@@ -1,0 +1,60 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/aither/praxeis/aither.yaml
+  description: |
+    Connect to a signaling relay and join a room.
+
+    Creates a signaling-session entity and connects via WebSocket.
+    Use sense-signaling to check connection state.
+  name: connect-signaling
+  oikos: aither
+  params:
+  - description: The room to join
+    name: room_id
+    required: true
+    type: string
+  - description: WebSocket URL of propylon-relay
+    name: relay_url
+    required: true
+    type: string
+  - description: 'Role: offerer or answerer'
+    name: role
+    required: true
+    type: string
+  steps:
+  - bindings:
+      created_at: now()
+      session_id: signaling-session/{{ room_id }}-{{ role }}-{{ now() }}
+    step: set
+  - bind_to: session
+    data:
+      created_at: $created_at
+      intent: connected
+      relay_url: $relay_url
+      role: $role
+      room_id: $room_id
+      status: connecting
+    eidos: signaling-session
+    id: $session_id
+    step: arise
+  - bind_to: manifest_result
+    entity_id: $session_id
+    step: manifest
+  - data:
+      connected_at: '{{ now() }}'
+      session_handle: $manifest_result.session_id
+      status: connected
+    id: $session_id
+    step: update
+  - step: return
+    value:
+      role: $role
+      room_id: $room_id
+      session_id: $session_id
+      status: connected
+  tier: 3
+  visible: true
+eidos: praxis
+id: praxis/aither/connect-signaling
+version: 136

@@ -1,0 +1,36 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/nous/praxeis/nous.yaml
+  description: |
+    Surface journeys relevant to a query.
+
+    Uses semantic search to find journeys by meaning.
+  name: surface-journeys
+  oikos: nous
+  params:
+  - description: What we're looking for
+    name: query
+    required: true
+    type: string
+  - description: How many journeys to surface
+    name: limit
+    required: false
+    type: number
+  - description: Optional filter by status
+    name: status
+    required: false
+    type: string
+  steps:
+  - bind_to: results
+    eidos_filter: journey
+    limit: $limit
+    query: $query
+    step: surface
+    threshold: 0.7
+  - step: return
+    value: $results
+  visible: true
+eidos: praxis
+id: praxis/nous/surface-journeys
+version: 136

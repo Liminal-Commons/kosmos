@@ -1,0 +1,85 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/oikos/praxeis/oikos.yaml
+  description: |
+    Take a note about something.
+
+    Notes mark something as worthy of attention.
+  name: take-note
+  oikos: oikos
+  params:
+  - description: What is being noted
+    name: content
+    required: true
+    type: string
+  - description: Why it matters
+    name: reason
+    required: false
+    type: string
+  - description: 'Note kind: observation, question, concern, insight, todo (default: observation)'
+    name: kind
+    required: false
+    type: string
+  - description: Entity ID this note is about
+    name: about
+    required: false
+    type: string
+  steps:
+  - bindings:
+      note_kind: $kind
+    step: set
+  - cases:
+    - then: []
+      when: $note_kind
+    default:
+    - bindings:
+        note_kind: observation
+      step: set
+    step: switch
+  - bindings:
+      created_at: now()
+      note_id: note/{{ now() }}
+    step: set
+  - bind_to: note_entity
+    data:
+      content: $content
+      created_at: $created_at
+      kind: $note_kind
+      reason: $reason
+    eidos: note
+    id: $note_id
+    step: arise
+  - cases:
+    - then:
+      - desmos: belongs-to
+        from_id: $note_id
+        step: bind
+        to_id: $_circle.id
+      when: $_circle
+    step: switch
+  - cases:
+    - then:
+      - desmos: authored-by
+        from_id: $note_id
+        step: bind
+        to_id: $_persona.id
+      when: $_persona
+    step: switch
+  - cases:
+    - then:
+      - desmos: about
+        from_id: $note_id
+        step: bind
+        to_id: $about
+      when: $about
+    step: switch
+  - step: return
+    value:
+      content: $content
+      kind: $note_kind
+      note_id: $note_id
+  visible: true
+eidos: praxis
+id: praxis/oikos/take-note
+version: 136

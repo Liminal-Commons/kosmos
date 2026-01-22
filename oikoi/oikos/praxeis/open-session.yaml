@@ -1,0 +1,41 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/oikos/praxeis/oikos.yaml
+  description: |
+    Open a new session. Requires dwelling context (animus in circle).
+
+    Creates a session entity and bonds to animus and circle.
+  name: open-session
+  oikos: oikos
+  params: []
+  steps:
+  - condition: $_animus
+    message: Cannot open session without dwelling animus
+    step: assert
+  - condition: $_circle
+    message: Cannot open session without dwelling circle
+    step: assert
+  - bindings:
+      opened_at: now()
+      session_id: session/{{ now() }}
+    step: set
+  - bind_to: session_entity
+    data:
+      opened_at: $opened_at
+      status: active
+    eidos: session
+    id: $session_id
+    step: arise
+  - desmos: belongs-to
+    from_id: $session_id
+    step: bind
+    to_id: $_circle.id
+  - step: return
+    value:
+      session_id: $session_id
+      status: active
+  visible: true
+eidos: praxis
+id: praxis/oikos/open-session
+version: 136

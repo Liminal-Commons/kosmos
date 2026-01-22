@@ -1,0 +1,31 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/thyra/praxeis/thyra.yaml
+  description: |
+    Get the current state of an accumulation.
+  name: get-accumulation
+  oikos: thyra
+  params:
+  - description: The accumulation to get
+    name: accumulation_id
+    required: true
+    type: string
+  steps:
+  - bind_to: accumulation
+    id: $accumulation_id
+    step: find
+  - condition: $accumulation
+    message: 'Accumulation not found: $accumulation_id'
+    step: assert
+  - step: return
+    value:
+      accumulation: $accumulation
+      content: $accumulation.data.content
+      status: $accumulation.data.status
+      stream_id: $accumulation.data.stream_id
+  tier: 1
+  visible: true
+eidos: praxis
+id: praxis/thyra/get-accumulation
+version: 136

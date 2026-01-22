@@ -1,0 +1,71 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/demiurge/praxeis/demiurge.yaml
+  description: |
+    Compose with content-addressed caching.
+
+    Hashes definition_id + inputs to create a cache key.
+    Returns cached artifact if exists and not stale.
+    Otherwise composes and stores with cache key.
+  name: compose-cached
+  oikos: demiurge
+  params:
+  - description: The artifact definition to compose from
+    name: definition_id
+    required: true
+    type: string
+  - description: Values to fill (overrides defaults)
+    name: inputs
+    required: false
+    type: object
+  - description: Expression ID that authorizes this composition
+    name: authorized_by
+    required: false
+    type: string
+  - description: Force re-composition even if cached
+    name: force_refresh
+    required: false
+    type: boolean
+  steps:
+  - bindings:
+      inputs_json: $inputs | to_json
+    step: set
+  - bind_to: cache_key
+    input: $definition_id-$inputs_json
+    step: digest
+  - bindings:
+      artifact_id: artifact/$cache_key
+    step: set
+  - bind_to: cached
+    id: $artifact_id
+    step: find
+  - cases:
+    - then:
+      - step: return
+        value:
+          artifact: $cached
+          cache_key: $cache_key
+          from_cache: true
+      when: $cached and not $cached.data.stale and not $force_refresh
+    step: switch
+  - bind_to: composed
+    definition_id: $definition_id
+    id: $artifact_id
+    inputs: $inputs
+    step: compose
+  - data:
+      cache_key: $cache_key
+      stale: false
+    id: $artifact_id
+    step: update
+  - step: return
+    value:
+      artifact: $composed
+      cache_key: $cache_key
+      from_cache: false
+  tier: 2
+  visible: true
+eidos: praxis
+id: praxis/demiurge/compose-cached
+version: 136

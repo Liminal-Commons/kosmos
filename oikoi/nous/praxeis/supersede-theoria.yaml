@@ -1,0 +1,71 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/nous/praxeis/nous.yaml
+  description: |
+    Supersede a theoria with a new understanding.
+
+    Creates new theoria, bonds it as superseding the old,
+    and marks the old as superseded.
+  name: supersede-theoria
+  oikos: nous
+  params:
+  - description: The theoria to supersede
+    name: old_theoria_id
+    required: true
+    type: string
+  - description: ID for the new theoria
+    name: new_theoria_id
+    required: true
+    type: string
+  - description: The new understanding
+    name: new_insight
+    required: true
+    type: string
+  - description: Domain (defaults to old theoria's domain)
+    name: domain
+    required: false
+    type: string
+  steps:
+  - bind_to: old_theoria
+    id: $old_theoria_id
+    step: find
+  - condition: $old_theoria
+    message: 'Theoria not found: $old_theoria_id'
+    step: assert
+  - bindings:
+      use_domain: $domain
+    step: set
+  - cases:
+    - then: []
+      when: $use_domain
+    default:
+    - bindings:
+        use_domain: $old_theoria.data.domain
+      step: set
+    step: switch
+  - bind_to: new_theoria_entity
+    data:
+      domain: $use_domain
+      insight: $new_insight
+      source: reasoning
+      status: provisional
+    eidos: theoria
+    id: $new_theoria_id
+    step: arise
+  - desmos: supersedes
+    from_id: $new_theoria_id
+    step: bind
+    to_id: $old_theoria_id
+  - data:
+      status: superseded
+    id: $old_theoria_id
+    step: update
+  - step: return
+    value:
+      new_theoria_id: $new_theoria_id
+      superseded_id: $old_theoria_id
+  visible: true
+eidos: praxis
+id: praxis/nous/supersede-theoria
+version: 136

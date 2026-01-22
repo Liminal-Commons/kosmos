@@ -1,0 +1,35 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/demiurge/praxeis/demiurge.yaml
+  description: |
+    Mark a specific artifact as stale.
+
+    Use when you know an artifact needs to be recomposed.
+  name: invalidate-artifact
+  oikos: demiurge
+  params:
+  - description: The artifact to invalidate
+    name: artifact_id
+    required: true
+    type: string
+  steps:
+  - bind_to: artifact
+    id: $artifact_id
+    step: find
+  - condition: $artifact
+    message: 'Artifact not found: $artifact_id'
+    step: assert
+  - data:
+      stale: true
+    id: $artifact_id
+    step: update
+  - step: return
+    value:
+      artifact_id: $artifact_id
+      invalidated: true
+  tier: 2
+  visible: true
+eidos: praxis
+id: praxis/demiurge/invalidate-artifact
+version: 136

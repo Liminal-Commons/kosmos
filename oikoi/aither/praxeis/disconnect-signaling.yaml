@@ -1,0 +1,41 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/aither/praxeis/aither.yaml
+  description: |
+    Disconnect from signaling relay.
+  name: disconnect-signaling
+  oikos: aither
+  params:
+  - description: The signaling session to disconnect
+    name: session_id
+    required: true
+    type: string
+  steps:
+  - bind_to: session
+    id: $session_id
+    step: find
+  - condition: $session
+    message: 'Signaling session not found: $session_id'
+    step: assert
+  - data:
+      intent: disconnected
+    id: $session_id
+    step: update
+  - bind_to: unmanifest_result
+    entity_id: $session_id
+    step: unmanifest
+  - data:
+      disconnected_at: '{{ now() }}'
+      status: disconnected
+    id: $session_id
+    step: update
+  - step: return
+    value:
+      disconnected: true
+      session_id: $session_id
+  tier: 3
+  visible: true
+eidos: praxis
+id: praxis/aither/disconnect-signaling
+version: 136

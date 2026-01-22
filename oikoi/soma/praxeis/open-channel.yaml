@@ -1,0 +1,76 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/soma/praxeis/soma.yaml
+  description: |
+    Open a channel for an animus.
+
+    Channels are interfaces for perception or action:
+    - perception: receives input (text, voice, vision)
+    - action: emits output (text, file, signal)
+    - bidirectional: both
+  name: open-channel
+  oikos: soma
+  params:
+  - description: The animus to open a channel for
+    name: animus_id
+    required: true
+    type: string
+  - description: ID for the new channel (e.g., channel/uuid)
+    name: channel_id
+    required: true
+    type: string
+  - description: Channel name
+    name: name
+    required: true
+    type: string
+  - description: What type of data (text, voice, vision, file, etc.)
+    name: modality
+    required: true
+    type: string
+  - description: Channel kind (perception, action, bidirectional)
+    name: kind
+    required: false
+    type: string
+  steps:
+  - bind_to: animus
+    id: $animus_id
+    step: find
+  - condition: $animus
+    message: 'Animus not found: $animus_id'
+    step: assert
+  - bindings:
+      channel_kind: $kind
+    step: set
+  - cases:
+    - then: []
+      when: $channel_kind
+    default:
+    - bindings:
+        channel_kind: bidirectional
+      step: set
+    step: switch
+  - bind_to: channel_entity
+    data:
+      kind: $channel_kind
+      modality: $modality
+      name: $name
+      status: open
+    eidos: channel
+    id: $channel_id
+    step: arise
+  - desmos: channel-of
+    from_id: $channel_id
+    step: bind
+    to_id: $animus_id
+  - step: return
+    value:
+      channel_id: $channel_id
+      kind: $channel_kind
+      modality: $modality
+      name: $name
+      status: open
+  visible: true
+eidos: praxis
+id: praxis/soma/open-channel
+version: 136

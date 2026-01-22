@@ -1,0 +1,32 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/nous/praxeis/nous.yaml
+  description: |
+    List journeys, optionally filtered by status.
+  name: list-journeys
+  oikos: nous
+  params:
+  - description: Filter by status (potential, active, paused, arrived, abandoned)
+    name: status
+    required: false
+    type: string
+  steps:
+  - bind_to: all_journeys
+    eidos: journey
+    step: gather
+  - cases:
+    - then:
+      - bind_to: all_journeys
+        condition: $item.data.status == '$status'
+        items: $all_journeys
+        step: filter
+      when: $status
+    step: switch
+  - step: return
+    value:
+      journeys: $all_journeys
+  visible: true
+eidos: praxis
+id: praxis/nous/list-journeys
+version: 136

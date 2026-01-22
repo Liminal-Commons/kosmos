@@ -1,0 +1,51 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/soma/praxeis/soma.yaml
+  description: |
+    Have an animus depart (end dwelling).
+
+    Marks the animus as departed and closes all open channels.
+  name: depart-animus
+  oikos: soma
+  params:
+  - description: The animus to depart
+    name: animus_id
+    required: true
+    type: string
+  steps:
+  - bind_to: animus
+    id: $animus_id
+    step: find
+  - condition: $animus
+    message: 'Animus not found: $animus_id'
+    step: assert
+  - data:
+      status: departed
+    id: $animus_id
+    step: update
+  - bind_to: channels
+    desmos: channel-of
+    resolve: from
+    step: trace
+    to_id: $animus_id
+  - item_var: channel
+    items: $channels
+    step: for_each
+    steps:
+    - cases:
+      - then:
+        - data:
+            status: closed
+          id: $channel.id
+          step: update
+        when: $channel.data.status == 'open'
+      step: switch
+  - step: return
+    value:
+      animus_id: $animus_id
+      departed: true
+  visible: true
+eidos: praxis
+id: praxis/soma/depart-animus
+version: 136

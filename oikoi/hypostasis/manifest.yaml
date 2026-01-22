@@ -1,0 +1,51 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/hypostasis/manifest.yaml
+  actuality_modes: null
+  oikos_id: hypostasis
+  provides:
+    desmoi:
+    - composed-from
+    - signed-by
+    eide: []
+    praxeis:
+    - hypostasis/compute-hash
+    - hypostasis/verify-chain
+    - hypostasis/verify-genesis
+    - hypostasis/export-phoreta
+    - hypostasis/import-phoreta
+    - hypostasis/create-snapshot
+    - hypostasis/restore-snapshot
+    - hypostasis/sync-delta
+    - hypostasis/generate-mnemonic
+    - hypostasis/derive-circle-key
+    - hypostasis/sign-content
+    - hypostasis/verify-signature
+    - hypostasis/export-persona
+    - hypostasis/import-persona
+    - hypostasis/sync-devices
+    - hypostasis/begin-genesis-ceremony
+    - hypostasis/add-genesis-signature
+    - hypostasis/finalize-genesis
+    - hypostasis/get-genesis-status
+  requires_dynamis:
+  - db.arise
+  - db.find
+  - db.bind
+  - db.trace
+  - db.gather
+  - db.update
+  - crypto.digest
+  - crypto.sign
+  - crypto.verify
+  - crypto.derive
+  stoicheia_form:
+    derive: arche
+    digest: arche
+    sign: arche
+    verify: arche
+  version: 0.1.0
+eidos: oikos-manifest
+id: oikos-manifest/hypostasis
+version: 1

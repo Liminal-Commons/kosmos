@@ -1,0 +1,30 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/nous/praxeis/nous.yaml
+  description: |
+    Gather entities by eidos.
+
+    Returns all entities of a given type, optionally limited.
+  name: gather
+  oikos: nous
+  params:
+  - description: Filter by eidos type
+    name: eidos
+    required: false
+    type: string
+  - description: Maximum results (default 100)
+    name: limit
+    required: false
+    type: number
+  steps:
+  - bind_to: entities
+    eidos: $eidos
+    limit: $limit
+    step: gather
+  - step: return
+    value: $entities
+  visible: true
+eidos: praxis
+id: praxis/nous/gather
+version: 136

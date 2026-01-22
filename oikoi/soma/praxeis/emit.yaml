@@ -1,0 +1,60 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/soma/praxeis/soma.yaml
+  description: |
+    Emit a signal through a channel.
+
+    Creates a signal entity bonded to the channel.
+  name: emit
+  oikos: soma
+  params:
+  - description: The channel to emit through
+    name: channel_id
+    required: true
+    type: string
+  - description: ID for the new signal (e.g., signal/uuid)
+    name: signal_id
+    required: true
+    type: string
+  - description: The content to emit
+    name: content
+    required: true
+    type: any
+  - description: Optional metadata about the signal
+    name: metadata
+    required: false
+    type: object
+  steps:
+  - bind_to: channel
+    id: $channel_id
+    step: find
+  - condition: $channel
+    message: 'Channel not found: $channel_id'
+    step: assert
+  - condition: $channel.data.status == 'open'
+    message: Channel is not open
+    step: assert
+  - condition: $channel.data.kind != 'perception'
+    message: Cannot emit through perception-only channel
+    step: assert
+  - bind_to: signal_entity
+    data:
+      content: $content
+      metadata: $metadata
+      modality: $channel.data.modality
+    eidos: signal
+    id: $signal_id
+    step: arise
+  - desmos: emitted-through
+    from_id: $signal_id
+    step: bind
+    to_id: $channel_id
+  - step: return
+    value:
+      modality: $channel.data.modality
+      signal_id: $signal_id
+  visible: true
+eidos: praxis
+id: praxis/soma/emit
+version: 136

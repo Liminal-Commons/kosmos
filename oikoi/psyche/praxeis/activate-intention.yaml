@@ -1,0 +1,32 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/psyche/praxeis/psyche.yaml
+  description: |
+    Activate a forming intention.
+  name: activate-intention
+  oikos: psyche
+  params:
+  - description: The intention to activate
+    name: intention_id
+    required: true
+    type: string
+  steps:
+  - bind_to: intention
+    id: $intention_id
+    step: find
+  - condition: $intention
+    message: 'Intention not found: $intention_id'
+    step: assert
+  - data:
+      status: active
+    id: $intention_id
+    step: update
+  - step: return
+    value:
+      activated: true
+      intention_id: $intention_id
+  visible: true
+eidos: praxis
+id: praxis/psyche/activate-intention
+version: 136

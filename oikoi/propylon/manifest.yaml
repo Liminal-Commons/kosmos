@@ -1,0 +1,38 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/propylon/manifest.yaml
+  actuality_modes: null
+  oikos_id: propylon
+  provides:
+    desmoi:
+    - grants-entry-to
+    - authenticated-via
+    - used-link
+    eide:
+    - propylon-link
+    - propylon-session
+    praxeis:
+    - propylon/create-link
+    - propylon/decode-link
+    - propylon/validate-link
+    - propylon/challenge-entry
+    - propylon/verify-entry
+    - propylon/revoke-link
+    - propylon/list-entry-audit
+    - propylon/approve-entry
+    - propylon/reject-entry
+  requires_dynamis:
+  - db.arise
+  - db.find
+  - db.bind
+  - db.update
+  - db.gather
+  - crypto.random
+  - crypto.sign
+  - crypto.verify
+  stoicheia_form: null
+  version: 0.1.0
+eidos: oikos-manifest
+id: oikos-manifest/propylon
+version: 1

@@ -1,0 +1,53 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/nous/praxeis/nous.yaml
+  description: |
+    Synthesize multiple theoria into higher understanding.
+
+    Requires at least 2 source theoria.
+  name: synthesize
+  oikos: nous
+  params:
+  - description: ID for the new synthesis
+    name: synthesis_id
+    required: true
+    type: string
+  - description: The synthesized understanding
+    name: insight
+    required: true
+    type: string
+  - description: Theoria IDs to synthesize (at least 2)
+    name: sources
+    required: true
+    type: array
+  - description: Domain for the synthesis
+    name: domain
+    required: true
+    type: string
+  steps:
+  - bind_to: synthesis_entity
+    data:
+      domain: $domain
+      insight: $insight
+      sources: $sources
+    eidos: synthesis
+    id: $synthesis_id
+    step: arise
+  - item_var: source_id
+    items: $sources
+    step: for_each
+    steps:
+    - desmos: synthesizes
+      from_id: $synthesis_id
+      step: bind
+      to_id: $source_id
+  - step: return
+    value:
+      insight: $insight
+      sources: $sources
+      synthesis_id: $synthesis_id
+  visible: true
+eidos: praxis
+id: praxis/nous/synthesize
+version: 136

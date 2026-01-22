@@ -1,0 +1,35 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/nous/praxeis/nous.yaml
+  description: |
+    Confirm a provisional theoria as crystallized.
+  name: confirm-theoria
+  oikos: nous
+  params:
+  - description: The theoria to confirm
+    name: theoria_id
+    required: true
+    type: string
+  steps:
+  - bind_to: theoria
+    id: $theoria_id
+    step: find
+  - condition: $theoria
+    message: 'Theoria not found: $theoria_id'
+    step: assert
+  - condition: $theoria.data.status == "provisional"
+    message: Theoria is not provisional
+    step: assert
+  - data:
+      status: crystallized
+    id: $theoria_id
+    step: update
+  - step: return
+    value:
+      confirmed: true
+      theoria_id: $theoria_id
+  visible: true
+eidos: praxis
+id: praxis/nous/confirm-theoria
+version: 136

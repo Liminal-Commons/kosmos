@@ -1,0 +1,49 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/manteia/praxeis/manteia.yaml
+  description: |
+    Reject a generation.
+
+    Marks the generation as rejected with a reason.
+  name: reject-generation
+  oikos: manteia
+  params:
+  - description: The generation to reject
+    name: generation_id
+    required: true
+    type: string
+  - description: Why rejecting
+    name: reason
+    required: false
+    type: string
+  - description: Who reviewed (persona ID)
+    name: reviewed_by
+    required: false
+    type: string
+  steps:
+  - bind_to: generation
+    id: $generation_id
+    step: find
+  - condition: $generation
+    message: 'Generation not found: $generation_id'
+    step: assert
+  - condition: $generation.data.status == "pending"
+    message: Generation is not pending review
+    step: assert
+  - data:
+      rejection_reason: $reason
+      reviewed_by: $reviewed_by
+      status: rejected
+    id: $generation_id
+    step: update
+  - step: return
+    value:
+      generation_id: $generation_id
+      reason: $reason
+      rejected: true
+  tier: 2
+  visible: true
+eidos: praxis
+id: praxis/manteia/reject-generation
+version: 136

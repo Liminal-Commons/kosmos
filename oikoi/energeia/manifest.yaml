@@ -1,0 +1,45 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/energeia/manifest.yaml
+  actuality_modes:
+    process:
+      manifest: spawn
+      sense: status
+      unmanifest: kill
+  oikos_id: energeia
+  provides:
+    desmoi:
+    - supervises
+    - runs-as
+    eide:
+    - daemon
+    - task
+    praxeis:
+    - ergon/create-daemon
+    - ergon/start-daemon
+    - ergon/stop-daemon
+    - ergon/sense-daemon
+    - ergon/reconcile-daemon
+    - ergon/list-daemons
+    - ergon/create-task
+    - ergon/run-task
+    - ergon/check-task
+    - ergon/list-tasks
+  requires_dynamis:
+  - db.arise
+  - db.find
+  - db.bind
+  - db.update
+  - db.gather
+  - process.spawn
+  - process.status
+  - process.kill
+  stoicheia_form:
+    manifest: arche
+    sense_actuality: arche
+    unmanifest: arche
+  version: 0.1.0
+eidos: oikos-manifest
+id: oikos-manifest/energeia
+version: 1

@@ -1,0 +1,50 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/git-sync/eide/git-sync-config.yaml
+  description: |
+    Configuration for git synchronization.
+
+    Stores the local path (where to emit), remote URL (where to push),
+    branch, and what types of content to sync (oikoi, theoria, docs).
+
+    One config per sync target. A circle might have multiple configs
+    for different purposes (e.g., public repo vs private backup).
+  fields:
+  - description: Local filesystem path for emission (e.g., /path/to/kosmos-repo)
+    name: local_path
+    required: true
+    type: string
+  - description: Git remote URL (e.g., git@github.com:liminalcommons/kosmos.git)
+    name: remote_url
+    required: true
+    type: string
+  - description: Git branch (default main)
+    name: branch
+    required: false
+    type: string
+  - description: Whether to sync oikos packages (default true)
+    name: sync_oikoi
+    required: false
+    type: boolean
+  - description: Whether to sync theoria (default true)
+    name: sync_theoria
+    required: false
+    type: boolean
+  - description: Whether to sync documentation (default true)
+    name: sync_docs
+    required: false
+    type: boolean
+  - description: ISO timestamp when config was created
+    name: created_at
+    required: false
+    type: string
+  - description: ISO timestamp of last successful sync
+    name: last_sync_at
+    required: false
+    type: string
+  name: git-sync-config
+  oikos: git-sync
+eidos: eidos
+id: eidos/git-sync-config
+version: 16

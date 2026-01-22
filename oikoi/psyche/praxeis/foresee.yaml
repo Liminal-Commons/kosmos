@@ -1,0 +1,63 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/psyche/praxeis/psyche.yaml
+  description: |
+    Note a prospect (anticipated possibility).
+
+    Not prediction but sense of what might unfold.
+  name: foresee
+  oikos: psyche
+  params:
+  - description: The animus foreseeing
+    name: animus_id
+    required: true
+    type: string
+  - description: ID for the new prospect
+    name: prospect_id
+    required: true
+    type: string
+  - description: What is anticipated
+    name: description
+    required: true
+    type: string
+  - description: Subjective sense, 0.0 to 1.0
+    name: likelihood
+    required: false
+    type: number
+  - description: positive, negative, neutral, or mixed
+    name: valence
+    required: false
+    type: string
+  - description: Temporal horizon (immediate, near, far)
+    name: horizon
+    required: false
+    type: string
+  steps:
+  - bind_to: animus
+    id: $animus_id
+    step: find
+  - condition: $animus
+    message: 'Animus not found: $animus_id'
+    step: assert
+  - bind_to: prospect_entity
+    data:
+      description: $description
+      horizon: $horizon
+      likelihood: $likelihood
+      valence: $valence
+    eidos: prospect
+    id: $prospect_id
+    step: arise
+  - desmos: foresees
+    from_id: $animus_id
+    step: bind
+    to_id: $prospect_id
+  - step: return
+    value:
+      description: $description
+      prospect_id: $prospect_id
+  visible: true
+eidos: praxis
+id: praxis/psyche/foresee
+version: 136

@@ -1,0 +1,29 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/manteia/praxeis/manteia.yaml
+  description: |
+    Get a generation by ID.
+
+    Returns the full generation record including prompt, response, and status.
+  name: get-generation
+  oikos: manteia
+  params:
+  - description: The generation ID
+    name: generation_id
+    required: true
+    type: string
+  steps:
+  - bind_to: generation
+    id: $generation_id
+    step: find
+  - condition: $generation
+    message: 'Generation not found: $generation_id'
+    step: assert
+  - step: return
+    value: $generation
+  tier: 1
+  visible: true
+eidos: praxis
+id: praxis/manteia/get-generation
+version: 136

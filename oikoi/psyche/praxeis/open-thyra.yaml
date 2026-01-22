@@ -1,0 +1,67 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/psyche/praxeis/psyche.yaml
+  description: |
+    Open a thyra (portal/interface) for the animus.
+
+    Thyra manages what can be shown, how things are presented,
+    and what interactions are possible.
+  name: open-thyra
+  oikos: psyche
+  params:
+  - description: The animus opening the thyra
+    name: animus_id
+    required: true
+    type: string
+  - description: ID for the new thyra
+    name: thyra_id
+    required: true
+    type: string
+  - description: Name of the thyra
+    name: name
+    required: true
+    type: string
+  - description: Type of interface (cli, web, api, ambient)
+    name: kind
+    required: true
+    type: string
+  - description: What can be done through this thyra
+    name: capabilities
+    required: true
+    type: array
+  - description: Circle IDs this thyra can see
+    name: visibility_scope
+    required: false
+    type: array
+  steps:
+  - bind_to: animus
+    id: $animus_id
+    step: find
+  - condition: $animus
+    message: 'Animus not found: $animus_id'
+    step: assert
+  - bind_to: thyra_entity
+    data:
+      capabilities: $capabilities
+      kind: $kind
+      name: $name
+      status: open
+      visibility_scope: $visibility_scope
+    eidos: thyra
+    id: $thyra_id
+    step: arise
+  - desmos: portal-of
+    from_id: $thyra_id
+    step: bind
+    to_id: $animus_id
+  - step: return
+    value:
+      kind: $kind
+      name: $name
+      status: open
+      thyra_id: $thyra_id
+  visible: true
+eidos: praxis
+id: praxis/psyche/open-thyra
+version: 136

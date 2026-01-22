@@ -1,0 +1,39 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/manteia/manifest.yaml
+  actuality_modes: null
+  oikos_id: manteia
+  provides:
+    desmoi:
+    - authorizes
+    - yields-generation
+    - memoizes
+    eide:
+    - generation
+    - inference-memo
+    praxeis:
+    - manteia/governed-inference
+    - manteia/list-pending-generations
+    - manteia/approve-generation
+    - manteia/reject-generation
+    - manteia/realize-generation
+    - manteia/check-memo
+    - manteia/clear-memo
+    - manteia/list-generations
+    - manteia/get-generation
+  requires_dynamis:
+  - db.arise
+  - db.find
+  - db.bind
+  - db.gather
+  - db.update
+  - manteia.infer
+  - crypto.digest
+  stoicheia_form:
+    digest: arche
+    infer: arche
+  version: 0.1.0
+eidos: oikos-manifest
+id: oikos-manifest/manteia
+version: 1

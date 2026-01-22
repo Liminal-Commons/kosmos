@@ -1,0 +1,33 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/nous/praxeis/nous.yaml
+  description: |
+    Get all waypoints for a journey.
+  name: get-journey-waypoints
+  oikos: nous
+  params:
+  - description: The journey to get waypoints for
+    name: journey_id
+    required: true
+    type: string
+  steps:
+  - bind_to: journey
+    id: $journey_id
+    step: find
+  - condition: $journey
+    message: 'Journey not found: $journey_id'
+    step: assert
+  - bind_to: waypoints
+    desmos: contains-waypoint
+    from_id: $journey_id
+    resolve: to
+    step: trace
+  - step: return
+    value:
+      journey_id: $journey_id
+      waypoints: $waypoints
+  visible: true
+eidos: praxis
+id: praxis/nous/get-journey-waypoints
+version: 136

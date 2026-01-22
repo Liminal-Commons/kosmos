@@ -1,0 +1,123 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/manteia/praxeis/manteia.yaml
+  description: |
+    Generate with mandatory governance — the only interface to LLM.
+
+    Every call:
+    1. Requires authorization (an entity that authorizes the generation)
+    2. Checks memoization cache (returns cached result if available)
+    3. Creates audit trail (generation entity records prompt, response, reviewer)
+    4. Supports auto-approve for low-risk generations
+  name: governed-inference
+  oikos: manteia
+  params:
+  - description: The prompt to send to the LLM
+    name: prompt
+    required: true
+    type: string
+  - description: Entity ID that authorizes this generation (REQUIRED)
+    name: authorized_by
+    required: true
+    type: string
+  - description: If generating content for an entity, which eidos
+    name: target_eidos
+    required: false
+    type: string
+  - description: Whether to auto-approve (default false for review gate)
+    name: auto_approve
+    required: false
+    type: boolean
+  - description: Model to use (default claude-sonnet-4-20250514)
+    name: model
+    required: false
+    type: string
+  - description: Optional system prompt
+    name: system_prompt
+    required: false
+    type: string
+  steps:
+  - bind_to: authorization
+    id: $authorized_by
+    step: find
+  - condition: $authorization
+    message: 'Authorization required for inference. Entity not found: $authorized_by'
+    step: assert
+  - bind_to: prompt_hash
+    input: $prompt
+    step: digest
+  - bind_to: cached
+    eidos: inference-memo
+    limit: 1
+    step: gather
+    where: json_extract(data, '$.prompt_hash') = '$prompt_hash'
+  - cases:
+    - then:
+      - bindings:
+          cached_response: $cached[0].data.response
+        step: set
+      - step: return
+        value:
+          from_cache: true
+          prompt_hash: $prompt_hash
+          response: $cached_response
+      when: $cached
+    step: switch
+  - bind_to: response
+    model: $model
+    prompt: $prompt
+    step: infer
+    system_prompt: $system_prompt
+  - bindings:
+      memo_id: memo/$prompt_hash
+    step: set
+  - data:
+      model: $model
+      prompt_hash: $prompt_hash
+      response: $response
+    eidos: inference-memo
+    id: $memo_id
+    step: arise
+  - bindings:
+      gen_status: $auto_approve
+      generation_id: generation/{{ uuid() }}
+    step: set
+  - cases:
+    - then:
+      - bindings:
+          gen_status: approved
+        step: set
+      when: $gen_status
+    default:
+    - bindings:
+        gen_status: pending
+      step: set
+    step: switch
+  - bind_to: generation
+    data:
+      authorized_by: $authorized_by
+      model: $model
+      prompt: $prompt
+      response: $response
+      status: $gen_status
+      target_eidos: $target_eidos
+    eidos: generation
+    id: $generation_id
+    step: arise
+  - desmos: authorizes
+    from_id: $authorized_by
+    step: bind
+    to_id: $generation_id
+  - step: return
+    value:
+      from_cache: false
+      generation_id: $generation_id
+      prompt_hash: $prompt_hash
+      response: $response
+      status: $gen_status
+  tier: 3
+  visible: true
+eidos: praxis
+id: praxis/manteia/governed-inference
+version: 136

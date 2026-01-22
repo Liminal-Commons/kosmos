@@ -1,0 +1,44 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/nous/praxeis/nous.yaml
+  description: |
+    List theoria, optionally filtered by domain or status.
+  name: list-theoria
+  oikos: nous
+  params:
+  - description: Filter by domain
+    name: domain
+    required: false
+    type: string
+  - description: Filter by status (provisional, crystallized, superseded)
+    name: status
+    required: false
+    type: string
+  steps:
+  - bind_to: all_theoria
+    eidos: theoria
+    step: gather
+  - cases:
+    - then:
+      - bind_to: all_theoria
+        condition: $item.data.domain == '$domain'
+        items: $all_theoria
+        step: filter
+      when: $domain
+    step: switch
+  - cases:
+    - then:
+      - bind_to: all_theoria
+        condition: $item.data.status == '$status'
+        items: $all_theoria
+        step: filter
+      when: $status
+    step: switch
+  - step: return
+    value:
+      theoria: $all_theoria
+  visible: true
+eidos: praxis
+id: praxis/nous/list-theoria
+version: 136

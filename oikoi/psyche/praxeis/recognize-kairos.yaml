@@ -1,0 +1,68 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/psyche/praxeis/psyche.yaml
+  description: |
+    Recognize an opportune moment (kairos).
+
+    Kairos marks when conditions align for action.
+    Not clock time but right time.
+  name: recognize-kairos
+  oikos: psyche
+  params:
+  - description: The animus recognizing
+    name: animus_id
+    required: true
+    type: string
+  - description: ID for the new kairos
+    name: kairos_id
+    required: true
+    type: string
+  - description: What makes this moment opportune
+    name: description
+    required: true
+    type: string
+  - description: Intention ID this is opportune for
+    name: for_intention
+    required: false
+    type: string
+  - description: What conditions have aligned
+    name: conditions
+    required: false
+    type: array
+  steps:
+  - bind_to: animus
+    id: $animus_id
+    step: find
+  - condition: $animus
+    message: 'Animus not found: $animus_id'
+    step: assert
+  - bind_to: kairos_entity
+    data:
+      conditions: $conditions
+      description: $description
+      for_intention: $for_intention
+    eidos: kairos
+    id: $kairos_id
+    step: arise
+  - desmos: recognizes
+    from_id: $animus_id
+    step: bind
+    to_id: $kairos_id
+  - cases:
+    - then:
+      - desmos: opportune-for
+        from_id: $kairos_id
+        step: bind
+        to_id: $for_intention
+      when: $for_intention
+    step: switch
+  - step: return
+    value:
+      description: $description
+      for_intention: $for_intention
+      kairos_id: $kairos_id
+  visible: true
+eidos: praxis
+id: praxis/psyche/recognize-kairos
+version: 136

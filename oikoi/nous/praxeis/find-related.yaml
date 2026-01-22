@@ -1,0 +1,53 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/nous/praxeis/nous.yaml
+  description: |
+    Find theoria related to a given theoria.
+
+    Returns supporting, contradicting, superseding, and superseded theoria.
+  name: find-related
+  oikos: nous
+  params:
+  - description: The theoria to find relations for
+    name: theoria_id
+    required: true
+    type: string
+  steps:
+  - bind_to: theoria
+    id: $theoria_id
+    step: find
+  - condition: $theoria
+    message: 'Theoria not found: $theoria_id'
+    step: assert
+  - bind_to: supporting
+    desmos: supports
+    resolve: from
+    step: trace
+    to_id: $theoria_id
+  - bind_to: contradicting
+    desmos: contradicts
+    resolve: from
+    step: trace
+    to_id: $theoria_id
+  - bind_to: superseding
+    desmos: supersedes
+    resolve: from
+    step: trace
+    to_id: $theoria_id
+  - bind_to: superseded
+    desmos: supersedes
+    from_id: $theoria_id
+    resolve: to
+    step: trace
+  - step: return
+    value:
+      contradicting: $contradicting
+      superseded: $superseded
+      superseding: $superseding
+      supporting: $supporting
+      theoria_id: $theoria_id
+  visible: true
+eidos: praxis
+id: praxis/nous/find-related
+version: 136

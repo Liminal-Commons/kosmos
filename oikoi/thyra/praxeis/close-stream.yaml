@@ -1,0 +1,42 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/thyra/praxeis/thyra.yaml
+  description: |
+    Close a stream — set intent to closed and reconcile.
+
+    The clean way to stop a stream. Sets intent, then reconciles
+    to actually stop the substrate process.
+  name: close-stream
+  oikos: thyra
+  params:
+  - description: The stream to close
+    name: stream_id
+    required: true
+    type: string
+  steps:
+  - bind_to: stream
+    id: $stream_id
+    step: find
+  - condition: $stream
+    message: 'Stream not found: $stream_id'
+    step: assert
+  - data:
+      intent: closed
+    id: $stream_id
+    step: update
+  - bind_to: reconcile_result
+    params:
+      stream_id: $stream_id
+    praxis: thyra/reconcile-stream
+    step: call
+  - step: return
+    value:
+      action: $reconcile_result.action
+      closed: true
+      stream_id: $stream_id
+  tier: 3
+  visible: true
+eidos: praxis
+id: praxis/thyra/close-stream
+version: 136

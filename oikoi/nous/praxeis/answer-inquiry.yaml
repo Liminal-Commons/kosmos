@@ -1,0 +1,49 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/nous/praxeis/nous.yaml
+  description: |
+    Answer an inquiry with theoria.
+
+    Creates an answers bond and marks the inquiry as answered.
+  name: answer-inquiry
+  oikos: nous
+  params:
+  - description: The inquiry to answer
+    name: inquiry_id
+    required: true
+    type: string
+  - description: The theoria that answers it
+    name: theoria_id
+    required: true
+    type: string
+  steps:
+  - bind_to: inquiry
+    id: $inquiry_id
+    step: find
+  - condition: $inquiry
+    message: 'Inquiry not found: $inquiry_id'
+    step: assert
+  - bind_to: theoria
+    id: $theoria_id
+    step: find
+  - condition: $theoria
+    message: 'Theoria not found: $theoria_id'
+    step: assert
+  - desmos: answers
+    from_id: $theoria_id
+    step: bind
+    to_id: $inquiry_id
+  - data:
+      status: answered
+    id: $inquiry_id
+    step: update
+  - step: return
+    value:
+      answered: true
+      inquiry_id: $inquiry_id
+      theoria_id: $theoria_id
+  visible: true
+eidos: praxis
+id: praxis/nous/answer-inquiry
+version: 136

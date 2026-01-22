@@ -1,0 +1,70 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/oikos/praxeis/oikos.yaml
+  description: |
+    Surface an insight from notes or observations.
+
+    Insights are emerging understanding, not yet crystallized into theoria.
+  name: surface-insight
+  oikos: oikos
+  params:
+  - description: The insight content
+    name: content
+    required: true
+    type: string
+  - description: Domain this insight belongs to
+    name: domain
+    required: true
+    type: string
+  - description: Confidence level 0.0 to 1.0
+    name: confidence
+    required: false
+    type: number
+  - description: Note IDs that contributed to this insight
+    name: from_notes
+    required: false
+    type: array
+  steps:
+  - bindings:
+      insight_id: insight/{{ now() }}
+      surfaced_at: now()
+    step: set
+  - bind_to: insight_entity
+    data:
+      confidence: $confidence
+      content: $content
+      domain: $domain
+      surfaced_at: $surfaced_at
+    eidos: insight
+    id: $insight_id
+    step: arise
+  - cases:
+    - then:
+      - desmos: surfaced-in
+        from_id: $insight_id
+        step: bind
+        to_id: $_circle.id
+      when: $_circle
+    step: switch
+  - cases:
+    - then:
+      - item_var: note_id
+        items: $from_notes
+        step: for_each
+        steps:
+        - desmos: surfaces
+          from_id: $note_id
+          step: bind
+          to_id: $insight_id
+      when: $from_notes
+    step: switch
+  - step: return
+    value:
+      content: $content
+      domain: $domain
+      insight_id: $insight_id
+  visible: true
+eidos: praxis
+id: praxis/oikos/surface-insight
+version: 136

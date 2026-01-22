@@ -1,0 +1,47 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/oikos/praxeis/oikos.yaml
+  description: |
+    Crystallize an insight into theoria.
+
+    Uses nous/crystallize-theoria to create the theoria,
+    then bonds the insight to it.
+  name: crystallize-insight
+  oikos: oikos
+  params:
+  - description: The insight to crystallize
+    name: insight_id
+    required: true
+    type: string
+  steps:
+  - bind_to: insight
+    id: $insight_id
+    step: find
+  - condition: $insight
+    message: 'Insight not found: $insight_id'
+    step: assert
+  - bindings:
+      theoria_id: theoria/{{ now() }}
+    step: set
+  - bind_to: theoria_result
+    params:
+      domain: $insight.data.domain
+      insight: $insight.data.content
+      source: insight
+      theoria_id: $theoria_id
+    praxis: nous/crystallize-theoria
+    step: call
+  - desmos: crystallizes
+    from_id: $insight_id
+    step: bind
+    to_id: $theoria_result.theoria_id
+  - step: return
+    value:
+      from_insight: $insight_id
+      status: provisional
+      theoria_id: $theoria_result.theoria_id
+  visible: true
+eidos: praxis
+id: praxis/oikos/crystallize-insight
+version: 136

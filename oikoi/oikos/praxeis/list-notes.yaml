@@ -1,0 +1,46 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/oikos/praxeis/oikos.yaml
+  description: |
+    List notes, optionally filtered.
+  name: list-notes
+  oikos: oikos
+  params:
+  - description: Filter to notes about this entity
+    name: about
+    required: false
+    type: string
+  - description: Filter by note kind
+    name: kind
+    required: false
+    type: string
+  steps:
+  - cases:
+    - then:
+      - bind_to: notes
+        desmos: about
+        resolve: from
+        step: trace
+        to_id: $about
+      when: $about
+    default:
+    - bind_to: notes
+      eidos: note
+      step: gather
+    step: switch
+  - cases:
+    - then:
+      - bind_to: notes
+        condition: $item.data.kind == '$kind'
+        items: $notes
+        step: filter
+      when: $kind
+    step: switch
+  - step: return
+    value:
+      notes: $notes
+  visible: true
+eidos: praxis
+id: praxis/oikos/list-notes
+version: 136

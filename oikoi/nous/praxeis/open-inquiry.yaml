@@ -1,0 +1,49 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/nous/praxeis/nous.yaml
+  description: |
+    Open a new inquiry (question).
+
+    Creates an inquiry entity and bonds to persona if available.
+  name: open-inquiry
+  oikos: nous
+  params:
+  - description: ID for the new inquiry
+    name: inquiry_id
+    required: true
+    type: string
+  - description: The question being asked
+    name: question
+    required: true
+    type: string
+  - description: Domain this inquiry belongs to
+    name: domain
+    required: true
+    type: string
+  steps:
+  - bind_to: inquiry_entity
+    data:
+      domain: $domain
+      question: $question
+      status: open
+    eidos: inquiry
+    id: $inquiry_id
+    step: arise
+  - cases:
+    - then:
+      - desmos: inquires
+        from_id: $_persona
+        step: bind
+        to_id: $inquiry_id
+      when: $_persona
+    step: switch
+  - step: return
+    value:
+      inquiry_id: $inquiry_id
+      question: $question
+      status: open
+  visible: true
+eidos: praxis
+id: praxis/nous/open-inquiry
+version: 136

@@ -1,0 +1,61 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/thyra/praxeis/thyra.yaml
+  description: |
+    Commit an accumulation — create expression from buffer.
+
+    This is the commitment boundary. The accumulated content
+    becomes a durable expression entity.
+  name: commit-accumulation
+  oikos: thyra
+  params:
+  - description: The accumulation to commit
+    name: accumulation_id
+    required: true
+    type: string
+  - description: 'Expression mode (default: declaration)'
+    name: mode
+    required: false
+    type: string
+  steps:
+  - bind_to: accumulation
+    id: $accumulation_id
+    step: find
+  - condition: $accumulation
+    message: 'Accumulation not found: $accumulation_id'
+    step: assert
+  - condition: $accumulation.data.status == "active"
+    message: 'Accumulation is not active: $accumulation_id'
+    step: assert
+  - condition: $accumulation.data.content != ""
+    message: Cannot commit empty accumulation
+    step: assert
+  - bind_to: express_result
+    params:
+      content: $accumulation.data.content
+      mode: $mode
+      source_kind: stream
+    praxis: thyra/express
+    step: call
+  - data:
+      committed_at: '{{ now() }}'
+      expression_id: $express_result.expression_id
+      status: committed
+    id: $accumulation_id
+    step: update
+  - desmos: derives-from
+    from_id: $express_result.expression_id
+    step: bind
+    to_id: $accumulation.data.stream_id
+  - step: return
+    value:
+      accumulation_id: $accumulation_id
+      content: $accumulation.data.content
+      expression_id: $express_result.expression_id
+      mode: $express_result.mode
+  tier: 3
+  visible: true
+eidos: praxis
+id: praxis/thyra/commit-accumulation
+version: 136

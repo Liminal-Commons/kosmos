@@ -1,0 +1,69 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/soma/praxeis/soma.yaml
+  description: |
+    Bring an animus into being. The animus instantiates a persona.
+
+    Creates:
+    - animus entity (status: dwelling)
+    - body-schema entity (default capabilities)
+    - instantiates bond to persona
+    - schema-of bond to animus
+
+    Returns the animus_id. Use this ID for channel operations.
+  name: arise-animus
+  oikos: soma
+  params:
+  - description: The persona this animus instantiates
+    name: persona_id
+    required: true
+    type: string
+  - description: ID for the new animus (e.g., animus/uuid)
+    name: animus_id
+    required: true
+    type: string
+  steps:
+  - bind_to: persona
+    id: $persona_id
+    step: find
+  - condition: $persona
+    message: 'Persona not found: $persona_id'
+    step: assert
+  - bind_to: animus_entity
+    data:
+      persona_id: $persona_id
+      status: dwelling
+    eidos: animus
+    id: $animus_id
+    step: arise
+  - desmos: instantiates
+    from_id: $animus_id
+    step: bind
+    to_id: $persona_id
+  - bindings:
+      schema_id: body-schema/$animus_id
+    step: set
+  - bind_to: schema_entity
+    data:
+      capabilities:
+      - perceive
+      - emit
+      - dwell
+      channels: []
+    eidos: body-schema
+    id: $schema_id
+    step: arise
+  - desmos: schema-of
+    from_id: $schema_id
+    step: bind
+    to_id: $animus_id
+  - step: return
+    value:
+      animus_id: $animus_id
+      body_schema_id: $schema_id
+      status: dwelling
+  visible: true
+eidos: praxis
+id: praxis/soma/arise-animus
+version: 136

@@ -1,0 +1,16 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/self-federation/manifest.yaml
+  actuality_modes: null
+  oikos_id: self-federation
+  provides:
+    desmoi: []
+    eide: []
+    praxeis: []
+  requires_dynamis: []
+  stoicheia_form: null
+  version: 0.1.0
+eidos: oikos-manifest
+id: oikos-manifest/self-federation
+version: 1

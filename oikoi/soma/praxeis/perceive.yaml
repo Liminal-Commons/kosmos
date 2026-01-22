@@ -1,0 +1,60 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/soma/praxeis/soma.yaml
+  description: |
+    Record a perception through a channel.
+
+    Creates a percept entity bonded to the channel.
+  name: perceive
+  oikos: soma
+  params:
+  - description: The channel to perceive through
+    name: channel_id
+    required: true
+    type: string
+  - description: ID for the new percept (e.g., percept/uuid)
+    name: percept_id
+    required: true
+    type: string
+  - description: The perceived content
+    name: content
+    required: true
+    type: any
+  - description: Optional metadata about the perception
+    name: metadata
+    required: false
+    type: object
+  steps:
+  - bind_to: channel
+    id: $channel_id
+    step: find
+  - condition: $channel
+    message: 'Channel not found: $channel_id'
+    step: assert
+  - condition: $channel.data.status == 'open'
+    message: Channel is not open
+    step: assert
+  - condition: $channel.data.kind != 'action'
+    message: Cannot perceive through action-only channel
+    step: assert
+  - bind_to: percept_entity
+    data:
+      content: $content
+      metadata: $metadata
+      modality: $channel.data.modality
+    eidos: percept
+    id: $percept_id
+    step: arise
+  - desmos: received-through
+    from_id: $percept_id
+    step: bind
+    to_id: $channel_id
+  - step: return
+    value:
+      modality: $channel.data.modality
+      percept_id: $percept_id
+  visible: true
+eidos: praxis
+id: praxis/soma/perceive
+version: 136

@@ -1,0 +1,30 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/nous-activation/manifest.yaml
+  actuality_modes: null
+  oikos_id: nous-activation
+  provides:
+    desmoi:
+    - invoked-via
+    - yields-invocation
+    eide:
+    - invocation-pattern
+    - invocation
+    praxeis:
+    - nous/gather-context
+    - nous/invoke
+    - nous/navigate
+  requires_dynamis:
+  - db.arise
+  - db.find
+  - db.bind
+  - db.trace
+  - db.gather
+  - db.update
+  - manteia.infer
+  stoicheia_form: null
+  version: 0.1.0
+eidos: oikos-manifest
+id: oikos-manifest/nous-activation
+version: 1

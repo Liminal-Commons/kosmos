@@ -1,0 +1,36 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/oikos/praxeis/oikos.yaml
+  description: |
+    Close a session.
+  name: close-session
+  oikos: oikos
+  params:
+  - description: The session to close
+    name: session_id
+    required: true
+    type: string
+  steps:
+  - bind_to: session
+    id: $session_id
+    step: find
+  - condition: $session
+    message: 'Session not found: $session_id'
+    step: assert
+  - bindings:
+      closed_at: now()
+    step: set
+  - data:
+      closed_at: $closed_at
+      status: closed
+    id: $session_id
+    step: update
+  - step: return
+    value:
+      closed: true
+      session_id: $session_id
+  visible: true
+eidos: praxis
+id: praxis/oikos/close-session
+version: 136

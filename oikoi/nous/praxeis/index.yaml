@@ -1,0 +1,30 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/nous/praxeis/nous.yaml
+  description: |
+    Index an entity for semantic search.
+
+    Generates an embedding for the given text and stores it with the entity.
+  name: index
+  oikos: nous
+  params:
+  - description: The entity to index
+    name: entity_id
+    required: true
+    type: string
+  - description: Text to generate embedding from
+    name: text
+    required: true
+    type: string
+  steps:
+  - bind_to: result
+    entity_id: $entity_id
+    step: index
+    text: $text
+  - step: return
+    value: $result
+  visible: true
+eidos: praxis
+id: praxis/nous/index
+version: 136

@@ -1,0 +1,27 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/pege/manifest.yaml
+  actuality_modes: null
+  oikos_id: pege
+  provides:
+    desmoi: []
+    eide: []
+    praxeis:
+    - pege/emit-eidos-reference
+    - pege/emit-stoicheion-reference
+    - pege/emit-desmos-reference
+    - pege/emit-all-eide
+    - pege/emit-all-stoicheia
+    - pege/emit-all-desmoi
+    - pege/emit-eidos-index
+  requires_dynamis:
+  - db.find
+  - db.gather
+  - db.bind
+  - fs.write
+  stoicheia_form: null
+  version: 0.1.0
+eidos: oikos-manifest
+id: oikos-manifest/pege
+version: 1

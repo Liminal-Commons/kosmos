@@ -1,0 +1,76 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/psyche/praxeis/psyche.yaml
+  description: |
+    Direct attention to something.
+
+    Creates an attention entity tracking where focus rests.
+  name: attend
+  oikos: psyche
+  params:
+  - description: The animus directing attention
+    name: animus_id
+    required: true
+    type: string
+  - description: What to attend to
+    name: target_id
+    required: true
+    type: string
+  - description: ID for the new attention entity
+    name: attention_id
+    required: true
+    type: string
+  - description: 0.0 to 1.0, how much focus (default 1.0)
+    name: weight
+    required: false
+    type: number
+  - description: Why attending to this
+    name: reason
+    required: false
+    type: string
+  steps:
+  - bind_to: animus
+    id: $animus_id
+    step: find
+  - condition: $animus
+    message: 'Animus not found: $animus_id'
+    step: assert
+  - bind_to: target
+    id: $target_id
+    step: find
+  - condition: $target
+    message: 'Target not found: $target_id'
+    step: assert
+  - bindings:
+      attention_weight: $weight
+    step: set
+  - cases:
+    - then: []
+      when: $attention_weight
+    default:
+    - bindings:
+        attention_weight: 1.0
+      step: set
+    step: switch
+  - bind_to: attention_entity
+    data:
+      reason: $reason
+      target_id: $target_id
+      weight: $attention_weight
+    eidos: attention
+    id: $attention_id
+    step: arise
+  - desmos: attends
+    from_id: $animus_id
+    step: bind
+    to_id: $target_id
+  - step: return
+    value:
+      attending_to: $target_id
+      attention_id: $attention_id
+      weight: $attention_weight
+  visible: true
+eidos: praxis
+id: praxis/psyche/attend
+version: 136

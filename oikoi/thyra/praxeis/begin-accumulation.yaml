@@ -1,0 +1,60 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/thyra/praxeis/thyra.yaml
+  description: |
+    Begin accumulating content from a stream.
+
+    Creates an accumulation entity that acts as a buffer for
+    content awaiting commitment. The clarifier writes to this.
+  name: begin-accumulation
+  oikos: thyra
+  params:
+  - description: The terminal stream this accumulation belongs to
+    name: stream_id
+    required: true
+    type: string
+  - description: Optional initial content
+    name: initial_content
+    required: false
+    type: string
+  steps:
+  - bind_to: stream
+    id: $stream_id
+    step: find
+  - condition: $stream
+    message: 'Stream not found: $stream_id'
+    step: assert
+  - bindings:
+      accumulation_id: accumulation/{{ now() }}
+      content: $initial_content
+      started_at: now()
+    step: set
+  - cases:
+    - then: []
+      when: $content
+    default:
+    - bindings:
+        content: ''
+      step: set
+    step: switch
+  - bind_to: accumulation
+    data:
+      content: $content
+      fragments: []
+      started_at: $started_at
+      status: active
+      stream_id: $stream_id
+    eidos: accumulation
+    id: $accumulation_id
+    step: arise
+  - step: return
+    value:
+      accumulation_id: $accumulation_id
+      status: active
+      stream_id: $stream_id
+  tier: 2
+  visible: true
+eidos: praxis
+id: praxis/thyra/begin-accumulation
+version: 136

@@ -1,0 +1,52 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/aither/manifest.yaml
+  actuality_modes:
+    webrtc:
+      manifest: create_peer_connection
+      sense: connection_state
+      signal: sdp_exchange
+      unmanifest: close_connection
+  oikos_id: aither
+  provides:
+    desmoi:
+    - bootstrapped-by
+    eide:
+    - data-channel
+    - signaling-session
+    praxeis:
+    - aither/connect-signaling
+    - aither/disconnect-signaling
+    - aither/sense-signaling
+    - aither/poll-signaling
+    - aither/send-offer
+    - aither/send-answer
+    - aither/create-channel
+    - aither/accept-answer
+    - aither/answer-channel
+    - aither/close-channel
+    - aither/sense-channel
+    - aither/reconcile-channel
+    - aither/send-message
+    - aither/receive-messages
+    - aither/list-channels
+  requires_dynamis:
+  - db.arise
+  - db.find
+  - db.bind
+  - db.update
+  - db.gather
+  - webrtc.manifest
+  - webrtc.sense
+  - webrtc.unmanifest
+  - webrtc.signal
+  stoicheia_form:
+    manifest: arche
+    sense_actuality: arche
+    signal: arche
+    unmanifest: arche
+  version: 0.1.0
+eidos: oikos-manifest
+id: oikos-manifest/aither
+version: 1

@@ -1,0 +1,72 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/thyra/praxeis/thyra.yaml
+  description: |
+    Append a fragment to an active accumulation.
+
+    Fragments are individual pieces (transcription segments, etc.)
+    that build up the accumulation content.
+  name: append-fragment
+  oikos: thyra
+  params:
+  - description: The accumulation to append to
+    name: accumulation_id
+    required: true
+    type: string
+  - description: The fragment content to append
+    name: fragment
+    required: true
+    type: string
+  - description: 'Separator between fragments (default: space)'
+    name: separator
+    required: false
+    type: string
+  steps:
+  - bind_to: accumulation
+    id: $accumulation_id
+    step: find
+  - condition: $accumulation
+    message: 'Accumulation not found: $accumulation_id'
+    step: assert
+  - condition: $accumulation.data.status == "active"
+    message: 'Accumulation is not active: $accumulation_id'
+    step: assert
+  - bindings:
+      sep: $separator
+    step: set
+  - cases:
+    - then: []
+      when: $sep
+    default:
+    - bindings:
+        sep: ' '
+      step: set
+    step: switch
+  - bindings:
+      current_content: $accumulation.data.content
+      fragment_at: now()
+      new_content: $current_content$sep$fragment
+    step: set
+  - cases:
+    - then:
+      - bindings:
+          new_content: $fragment
+        step: set
+      when: $current_content == ""
+    step: switch
+  - data:
+      content: $new_content
+      last_fragment_at: $fragment_at
+    id: $accumulation_id
+    step: update
+  - step: return
+    value:
+      accumulation_id: $accumulation_id
+      content: $new_content
+      fragment_added: $fragment
+  tier: 2
+  visible: true
+eidos: praxis
+id: praxis/thyra/append-fragment
+version: 136

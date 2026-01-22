@@ -1,0 +1,45 @@
+data:
+  _genesis:
+    authorized_by: expression/genesis-root
+    source: genesis/manteia/praxeis/manteia.yaml
+  description: |
+    Clear a memoized response.
+
+    Removes the memo so the next call will regenerate.
+  name: clear-memo
+  oikos: manteia
+  params:
+  - description: The prompt whose memo to clear
+    name: prompt
+    required: true
+    type: string
+  steps:
+  - bind_to: prompt_hash
+    input: $prompt
+    step: digest
+  - bindings:
+      memo_id: memo/$prompt_hash
+    step: set
+  - bind_to: memo
+    id: $memo_id
+    step: find
+  - cases:
+    - then:
+      - id: $memo_id
+        step: dissolve
+      - step: return
+        value:
+          cleared: true
+          prompt_hash: $prompt_hash
+      when: $memo
+    step: switch
+  - step: return
+    value:
+      cleared: false
+      prompt_hash: $prompt_hash
+      reason: Memo not found
+  tier: 2
+  visible: true
+eidos: praxis
+id: praxis/manteia/clear-memo
+version: 136
