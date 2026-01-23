@@ -47,4 +47,4 @@ data:
   oikos: git-sync
 eidos: eidos
 id: eidos/git-sync-config
-version: 22
+version: 31
