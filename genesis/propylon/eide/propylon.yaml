@@ -1,0 +1,220 @@
+# Propylon Eide
+# Gateway entry eide — invitation links and authentication sessions
+#
+# Extracted from spora.yaml stage-2-propylon
+
+eide:
+  # propylon-link — shareable invitation encoding
+  - id: eidos/propylon-link
+    data:
+      name: propylon-link
+      description: "Shareable invitation link. Encodes everything needed to attempt entry."
+      fields:
+        invitation_id:
+          type: string
+          required: true
+          description: "Reference to the invitation entity"
+        bootstrap:
+          type: string
+          required: true
+          description: "Gateway URL (e.g., wss://propylon.liminalcommons.com)"
+        circle_id:
+          type: string
+          required: true
+          description: "Target circle for entry"
+        inviter_id:
+          type: string
+          required: true
+          description: "Persona ID of the inviter"
+        inviter_pubkey:
+          type: string
+          required: true
+          description: "Ed25519 public key for signature verification"
+        signature:
+          type: string
+          required: true
+          description: "Ed25519 signature over invitation_id"
+        display:
+          type: object
+          required: false
+          description: "Human-readable metadata for link previews"
+        expires_at:
+          type: timestamp
+          required: false
+        max_uses:
+          type: number
+          required: false
+        require_approval:
+          type: boolean
+          required: false
+          default: false
+        status:
+          type: enum
+          values: [active, used, expired, revoked]
+          required: true
+          default: active
+        use_count:
+          type: number
+          required: false
+          default: 0
+          description: "Number of times this link has been used"
+        created_at:
+          type: timestamp
+          required: true
+        revoked_at:
+          type: timestamp
+          required: false
+
+  # entry-request — incoming entry request from inviter's perspective
+  - id: eidos/entry-request
+    data:
+      name: entry-request
+      description: |
+        Tracks an incoming entry request from the inviter's perspective.
+        When someone attempts to join via an invitation link, this entity
+        represents their pending request through the verification flow.
+      fields:
+        peer_id:
+          type: string
+          required: true
+          description: "WebRTC peer ID of the entrant"
+        invitation_id:
+          type: string
+          required: true
+          description: "Which invitation they're using"
+        circle_name:
+          type: string
+          required: false
+          description: "Display name of the target circle"
+        entrant_name:
+          type: string
+          required: false
+          description: "Display name of the entrant (when known)"
+        entrant_persona_id:
+          type: string
+          required: false
+          description: "Persona ID of the entrant (when known)"
+        timestamp:
+          type: timestamp
+          required: true
+          description: "When the entry request was received"
+        status:
+          type: enum
+          values: [pending, verifying, approved, rejected]
+          required: true
+          default: pending
+          description: "Current state of the entry request"
+        created_at:
+          type: timestamp
+          required: true
+        verified_at:
+          type: timestamp
+          required: false
+        approved_at:
+          type: timestamp
+          required: false
+        rejected_at:
+          type: timestamp
+          required: false
+
+  # propylon-session — authentication state machine
+  - id: eidos/propylon-session
+    data:
+      name: propylon-session
+      description: "Authentication session. Tracks challenge-response flow."
+      fields:
+        invitation_id:
+          type: string
+          required: true
+          description: "Which invitation is being used"
+        circle_id:
+          type: string
+          required: true
+          description: "Target circle"
+        nonce:
+          type: string
+          required: true
+          description: "Challenge nonce to sign"
+        entrant_pubkey:
+          type: string
+          required: false
+          description: "Public key of the entrant (known for returning entry)"
+        status:
+          type: enum
+          values: [challenged, pending_approval, authenticated, rejected, failed, expired]
+          required: true
+          default: challenged
+        challenge_expires:
+          type: timestamp
+          required: true
+        require_approval:
+          type: boolean
+          required: false
+        animus_id:
+          type: string
+          required: false
+          description: "Created animus ID after successful auth"
+        persona_name:
+          type: string
+          required: false
+          description: "Display name for new persona"
+        created_at:
+          type: timestamp
+          required: true
+        authenticated_at:
+          type: timestamp
+          required: false
+        approved_at:
+          type: timestamp
+          required: false
+        approved_by:
+          type: string
+          required: false
+        rejected_at:
+          type: timestamp
+          required: false
+        rejected_by:
+          type: string
+          required: false
+        rejection_reason:
+          type: string
+          required: false
+
+  # propylon-relay — WebSocket signaling infrastructure
+  - id: eidos/propylon-relay
+    data:
+      name: propylon-relay
+      description: |
+        WebSocket signaling relay for entry handshakes. Each commons operates
+        their own relay. The relay is minimal infrastructure — it facilitates
+        the cryptographic handshake but holds no long-term state.
+      fields:
+        name:
+          type: string
+          required: true
+          description: "Relay identifier (e.g., 'liminal')"
+        bootstrap_url:
+          type: string
+          required: true
+          description: "WebSocket endpoint (e.g., wss://propylon.liminalcommons.com)"
+        substrate:
+          type: enum
+          values: [cloudflare-workers, nixos-service, docker, other]
+          required: true
+          description: "Where the relay runs"
+        status:
+          type: enum
+          values: [active, degraded, offline, deploying]
+          required: true
+          default: active
+        deployed_at:
+          type: timestamp
+          required: false
+        version:
+          type: string
+          required: false
+          description: "Deployed version (git tag or commit)"
+        config:
+          type: object
+          required: false
+          description: "Substrate-specific configuration"

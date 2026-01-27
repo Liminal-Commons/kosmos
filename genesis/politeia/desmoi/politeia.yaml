@@ -1,0 +1,115 @@
+# Politeia Desmoi
+# Governance bonds — sovereignty, attainments, affordances, and invitations
+#
+# Extracted from spora.yaml stage-1-desmoi
+
+entities:
+  # sovereign-to — circle is sovereign to animus
+  - eidos: desmos
+    id: desmos/sovereign-to
+    data:
+      name: sovereign-to
+      description: "Circle is sovereign to animus — governs what it can do."
+      from_eidos: circle
+      to_eidos: animus
+      cardinality: one-to-many
+      symmetric: false
+
+  # embodies — animus embodies persona
+  - eidos: desmos
+    id: desmos/embodies
+    data:
+      name: embodies
+      description: "Animus embodies persona — the dwelling presence of an identity."
+      from_eidos: animus
+      to_eidos: persona
+      cardinality: many-to-one
+      symmetric: false
+
+  # grants-attainment — circle grants attainment
+  - eidos: desmos
+    id: desmos/grants-attainment
+    data:
+      name: grants-attainment
+      description: "Circle grants attainment to its members."
+      from_eidos: circle
+      to_eidos: attainment
+      cardinality: one-to-many
+      symmetric: false
+
+  # has-attainment — animus has attainment
+  - eidos: desmos
+    id: desmos/has-attainment
+    data:
+      name: has-attainment
+      description: "Animus has attainment — capability derived from membership."
+      from_eidos: animus
+      to_eidos: attainment
+      cardinality: many-to-many
+      symmetric: false
+
+  # granted-by — attainment granted by circle
+  - eidos: desmos
+    id: desmos/granted-by
+    data:
+      name: granted-by
+      description: "Attainment granted by circle — inverse tracking for provenance."
+      from_eidos: attainment
+      to_eidos: circle
+      cardinality: many-to-many
+      symmetric: false
+
+  # surfaces-as — affordance surfaces as HUD region
+  - eidos: desmos
+    id: desmos/surfaces-as
+    data:
+      name: surfaces-as
+      description: "Affordance surfaces as HUD region — how possibilities become visible."
+      from_eidos: affordance
+      to_eidos: hud-region
+      cardinality: many-to-one
+      symmetric: false
+
+  # enabled-by — HUD region enabled by attainment
+  - eidos: desmos
+    id: desmos/enabled-by
+    data:
+      name: enabled-by
+      description: "HUD region enabled by attainment — what capability makes it visible."
+      from_eidos: hud-region
+      to_eidos: attainment
+      cardinality: many-to-one
+      symmetric: false
+
+  # renders-in — HUD region renders in parent region
+  - eidos: desmos
+    id: desmos/renders-in
+    data:
+      name: renders-in
+      description: "HUD region renders in parent region — hierarchical composition."
+      from_eidos: hud-region
+      to_eidos: hud-region
+      cardinality: many-to-one
+      symmetric: false
+
+  # child-of — invitation is child of circle
+  - eidos: desmos
+    id: desmos/child-of
+    data:
+      name: child-of
+      description: "Invitation is child of circle — where the invite originates."
+      from_eidos: invitation
+      to_eidos: circle
+      cardinality: many-to-one
+      symmetric: false
+
+  # invited-to — invitation invites persona to circle
+  - eidos: desmos
+    id: desmos/invited-to
+    data:
+      name: invited-to
+      description: "Invitation invites persona to circle."
+      from_eidos: invitation
+      to_eidos: circle
+      cardinality: many-to-one
+      symmetric: false

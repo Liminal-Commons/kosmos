@@ -1,0 +1,460 @@
+# Entity Composition Artifact Definitions
+# ========================================
+#
+# Minimal artifact definitions for entity composition.
+# These enable praxeis to use `compose` instead of `arise` (CE4 migration).
+#
+# Each definition just specifies target_eidos - the compose_entity function
+# automatically passes inputs for eidos-defined fields (CE4.2a enhancement).
+#
+# Usage:
+#   - step: compose
+#     typos_id: "typos-def-circle"
+#     inputs: { name: "My Circle", ... }
+#     bind_to: result
+
+entities:
+
+# =============================================================================
+# Politeia (governance)
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-circle
+  data:
+    name: circle
+    description: "Compose a circle entity"
+    target_eidos: circle
+
+- eidos: typos
+  id: typos-def-invitation
+  data:
+    name: invitation
+    description: "Compose an invitation entity"
+    target_eidos: invitation
+
+- eidos: typos
+  id: typos-def-attainment
+  data:
+    name: attainment
+    description: "Compose an attainment entity (member's role/status in circle)"
+    target_eidos: attainment
+
+- eidos: typos
+  id: typos-def-affordance
+  data:
+    name: affordance
+    description: "Compose an affordance entity (permitted action)"
+    target_eidos: affordance
+
+- eidos: typos
+  id: typos-def-hud-region
+  data:
+    name: hud-region
+    description: "Compose a HUD region entity"
+    target_eidos: hud-region
+
+- eidos: typos
+  id: typos-def-membership-event
+  data:
+    name: membership-event
+    description: "Compose a membership-event entity (audit trail)"
+    target_eidos: membership-event
+
+# =============================================================================
+# Hypostasis (identity/keys)
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-kleidoura
+  data:
+    name: kleidoura
+    description: "Compose a kleidoura entity (encrypted keyring)"
+    target_eidos: kleidoura
+
+- eidos: typos
+  id: typos-def-genesis-record
+  data:
+    name: genesis-record
+    description: "Compose a genesis-record entity"
+    target_eidos: genesis-record
+
+- eidos: typos
+  id: typos-def-credential
+  data:
+    name: credential
+    description: "Compose a credential entity"
+    target_eidos: credential
+
+# =============================================================================
+# Propylon (entry/invitation links)
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-propylon-link
+  data:
+    name: propylon-link
+    description: "Compose a propylon-link entity"
+    target_eidos: propylon-link
+
+- eidos: typos
+  id: typos-def-propylon-session
+  data:
+    name: propylon-session
+    description: "Compose a propylon-session entity"
+    target_eidos: propylon-session
+
+- eidos: typos
+  id: typos-def-entry-request
+  data:
+    name: entry-request
+    description: "Compose an entry-request entity (incoming entry from inviter's view)"
+    target_eidos: entry-request
+
+- eidos: typos
+  id: typos-def-persona
+  data:
+    name: persona
+    description: "Compose a persona entity"
+    target_eidos: persona
+
+# =============================================================================
+# Oikos (sessions/conversations)
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-session
+  data:
+    name: session
+    description: "Compose a session entity"
+    target_eidos: session
+
+- eidos: typos
+  id: typos-def-conversation
+  data:
+    name: conversation
+    description: "Compose a conversation entity"
+    target_eidos: conversation
+
+- eidos: typos
+  id: typos-def-segment
+  data:
+    name: segment
+    description: "Compose a segment entity"
+    target_eidos: segment
+
+- eidos: typos
+  id: typos-def-note
+  data:
+    name: note
+    description: "Compose a note entity"
+    target_eidos: note
+
+- eidos: typos
+  id: typos-def-insight
+  data:
+    name: insight
+    description: "Compose an insight entity"
+    target_eidos: insight
+
+# =============================================================================
+# Psyche (attention/intention)
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-attention
+  data:
+    name: attention
+    description: "Compose an attention entity"
+    target_eidos: attention
+
+- eidos: typos
+  id: typos-def-intention
+  data:
+    name: intention
+    description: "Compose an intention entity"
+    target_eidos: intention
+
+- eidos: typos
+  id: typos-def-mood
+  data:
+    name: mood
+    description: "Compose a mood entity"
+    target_eidos: mood
+
+# =============================================================================
+# Soma (body/embodiment)
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-animus
+  data:
+    name: animus
+    description: "Compose an animus entity"
+    target_eidos: animus
+
+- eidos: typos
+  id: typos-def-body-schema
+  data:
+    name: body-schema
+    description: "Compose a body-schema entity"
+    target_eidos: body-schema
+
+- eidos: typos
+  id: typos-def-channel
+  data:
+    name: channel
+    description: "Compose a channel entity"
+    target_eidos: channel
+
+- eidos: typos
+  id: typos-def-percept
+  data:
+    name: percept
+    description: "Compose a percept entity"
+    target_eidos: percept
+
+- eidos: typos
+  id: typos-def-body-signal
+  data:
+    name: body-signal
+    description: "Compose a body-signal entity (output through a channel)"
+    target_eidos: body-signal
+
+# =============================================================================
+# Thyra (UI/rendering)
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-expression
+  data:
+    name: expression
+    description: "Compose an expression entity"
+    target_eidos: expression
+
+- eidos: typos
+  id: typos-def-stream
+  data:
+    name: stream
+    description: "Compose a stream entity"
+    target_eidos: stream
+
+- eidos: typos
+  id: typos-def-accumulation
+  data:
+    name: accumulation
+    description: "Compose an accumulation entity"
+    target_eidos: accumulation
+
+- eidos: typos
+  id: typos-def-dns-zone
+  data:
+    name: dns-zone
+    description: "Compose a dns-zone entity"
+    target_eidos: dns-zone
+
+- eidos: typos
+  id: typos-def-dns-provider-binding
+  data:
+    name: dns-provider-binding
+    description: "Compose a dns-provider-binding entity"
+    target_eidos: dns-provider-binding
+
+- eidos: typos
+  id: typos-def-dns-record
+  data:
+    name: dns-record
+    description: "Compose a dns-record entity"
+    target_eidos: dns-record
+
+- eidos: typos
+  id: typos-def-render-intent
+  data:
+    name: render-intent
+    description: "Compose a render-intent entity"
+    target_eidos: render-intent
+
+- eidos: typos
+  id: typos-def-workspace
+  data:
+    name: workspace
+    description: "Compose a workspace entity"
+    target_eidos: workspace
+
+- eidos: typos
+  id: typos-def-panel
+  data:
+    name: panel
+    description: "Compose a panel entity"
+    target_eidos: panel
+
+# =============================================================================
+# Nous (knowledge/theoria)
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-theoria
+  data:
+    name: theoria
+    description: "Compose a theoria entity (crystallized understanding)"
+    target_eidos: theoria
+
+- eidos: typos
+  id: typos-def-inquiry
+  data:
+    name: inquiry
+    description: "Compose an inquiry entity"
+    target_eidos: inquiry
+
+- eidos: typos
+  id: typos-def-synthesis
+  data:
+    name: synthesis
+    description: "Compose a synthesis entity"
+    target_eidos: synthesis
+
+- eidos: typos
+  id: typos-def-journey
+  data:
+    name: journey
+    description: "Compose a journey entity"
+    target_eidos: journey
+
+- eidos: typos
+  id: typos-def-waypoint
+  data:
+    name: waypoint
+    description: "Compose a waypoint entity"
+    target_eidos: waypoint
+
+- eidos: typos
+  id: typos-def-invocation
+  data:
+    name: invocation
+    description: "Compose an invocation entity"
+    target_eidos: invocation
+
+# =============================================================================
+# Aither (networking/signaling)
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-signaling-session
+  data:
+    name: signaling-session
+    description: "Compose a signaling-session entity"
+    target_eidos: signaling-session
+
+- eidos: typos
+  id: typos-def-data-channel
+  data:
+    name: data-channel
+    description: "Compose a data-channel entity"
+    target_eidos: data-channel
+
+- eidos: typos
+  id: typos-def-syndesmos
+  data:
+    name: syndesmos
+    description: "Compose a syndesmos entity (connection state)"
+    target_eidos: syndesmos
+
+- eidos: typos
+  id: typos-def-outbound-message
+  data:
+    name: outbound-message
+    description: "Compose an outbound-message entity (offline queue)"
+    target_eidos: outbound-message
+
+- eidos: typos
+  id: typos-def-presence-record
+  data:
+    name: presence-record
+    description: "Compose a presence-record entity"
+    target_eidos: presence-record
+
+- eidos: typos
+  id: typos-def-sync-message
+  data:
+    name: sync-message
+    description: "Compose a sync-message entity (P2P sync envelope)"
+    target_eidos: sync-message
+
+# =============================================================================
+# Demiurge (composition)
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-typos
+  data:
+    name: typos
+    description: "Compose a typos entity (meta-circular)"
+    target_eidos: typos
+
+# =============================================================================
+# Dokimasia (testing/validation)
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-validation-result
+  data:
+    name: validation-result
+    description: "Compose a validation-result entity"
+    target_eidos: validation-result
+
+# =============================================================================
+# Dynamis (releases/distribution)
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-oikos-dev
+  data:
+    name: oikos-dev
+    description: "Compose an oikos-dev entity (development package)"
+    target_eidos: oikos-dev
+
+- eidos: typos
+  id: typos-def-oikos-prod
+  data:
+    name: oikos-prod
+    description: "Compose an oikos-prod entity (production package)"
+    target_eidos: oikos-prod
+
+- eidos: typos
+  id: typos-def-publish-attestation
+  data:
+    name: publish-attestation
+    description: "Compose a publish-attestation entity"
+    target_eidos: publish-attestation
+
+# =============================================================================
+# Agora (spatial gathering)
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-agora-presence
+  data:
+    name: agora-presence
+    description: "Compose an agora presence entity"
+    target_eidos: agora/presence
+
+- eidos: typos
+  id: typos-def-agora-room
+  data:
+    name: agora-room
+    description: "Compose an agora room entity"
+    target_eidos: agora/room
+
+- eidos: typos
+  id: typos-def-agora-territory
+  data:
+    name: agora-territory
+    description: "Compose an agora territory entity"
+    target_eidos: agora/territory
+
+- eidos: typos
+  id: typos-def-agora-livekit-server
+  data:
+    name: agora-livekit-server
+    description: "Compose an agora livekit-server infrastructure entity"
+    target_eidos: agora/livekit-server

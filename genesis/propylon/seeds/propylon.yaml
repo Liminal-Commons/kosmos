@@ -1,0 +1,40 @@
+# Propylon Seeds
+# Initial propylon-relay infrastructure entities
+#
+# These entities represent commons-operated entry infrastructure.
+# Each relay is operated by a circle and serves their entry flows.
+#
+# Traces to: genesis/propylon/manifest.yaml
+# Authorized by: expression/genesis-root
+
+entities:
+
+# =============================================================================
+# PROPYLON RELAYS — WebSocket signaling infrastructure
+# =============================================================================
+
+# Liminal Commons primary relay
+- eidos: propylon-relay
+  id: propylon-relay/liminal-primary
+  data:
+    name: liminal-primary
+    bootstrap_url: wss://propylon.liminalcommons.com
+    substrate: cloudflare-workers
+    status: active
+    version: "0.1.0"
+    config:
+      worker_name: propylon-relay
+      rate_limit:
+        per_ip: 10
+        window_seconds: 60
+      room_ttl_seconds: 600
+      observability: true
+
+# =============================================================================
+# BONDS — Created during bootstrap
+# =============================================================================
+# Note: The operates-relay bond from circle to propylon-relay
+# is created when the operating circle is established.
+#
+# Example (created via praxis, not seeded here):
+#   circle/liminal-commons → operates-relay → propylon-relay/liminal-primary

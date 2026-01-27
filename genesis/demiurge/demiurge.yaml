@@ -1,0 +1,439 @@
+# demiurge.yaml
+# δημιουργός — the craftsman, the compositor
+#
+# One verb. One tool. The compositor is simple.
+# Complexity lives in the definition.
+
+oikos:
+  id: demiurge
+  scale: kosmos
+  description: |
+    The demiurge is the compositional engine. Everything in the kosmos
+    is composed via demiurge — there is ONE way to create.
+
+    compose(typos_id, inputs) → entity or artifact
+
+    Routing based on definition shape:
+    - Has target_eidos → entity composition
+    - Has slots, no target_eidos → graph composition (text or object)
+    - Has template, no target_eidos, no slots → template rendering
+
+    The compositor doesn't generate — it assembles.
+    Generation happens BEFORE composition (caller calls infer, then composes).
+
+# =============================================================================
+# EIDOS
+# =============================================================================
+
+eide:
+
+  - id: typos
+    description: |
+      τύπος — the mold, the composition template.
+
+      Shape determines routing:
+      - target_eidos present → entity composition
+      - slots present, no target_eidos → graph composition
+      - template present, no slots, no target_eidos → template rendering
+    fields:
+      name:
+        type: string
+        required: true
+      description:
+        type: string
+        required: false
+
+      # Entity composition mode
+      target_eidos:
+        type: string
+        required: false
+        description: The eidos to instantiate
+
+      # Graph composition mode
+      slots:
+        type: object
+        required: false
+        description: Named slots to fill with inputs
+
+      # Template rendering mode
+      template:
+        type: string
+        required: false
+        description: Template with {{ variable }} placeholders
+
+      # Common
+      defaults:
+        type: object
+        required: false
+        description: Default values for slots/template variables
+
+      bonds:
+        type: array
+        required: false
+        description: Bonds to create during composition
+
+      output_type:
+        type: string
+        required: false
+        description: Format of output (for template mode)
+
+  - id: artifact
+    description: |
+      A composed artifact — the result of template rendering.
+      (Entity composition produces the entity directly, not an artifact wrapper)
+    fields:
+      typos_id:
+        type: string
+        required: true
+      content:
+        type: string
+        required: true
+      inputs:
+        type: object
+        required: false
+      composed_at:
+        type: timestamp
+        required: true
+
+# =============================================================================
+# DESMOI
+# =============================================================================
+
+desmoi:
+
+  - id: composed-from
+    description: |
+      Entity was composed from this typos.
+    from_eidos: [any]
+    to_eidos: [typos]
+    cardinality: many-to-one
+
+  - id: authorized-by
+    description: |
+      This composition was authorized by that expression/entity.
+      The provenance chain. All chains terminate at genesis-root.
+    from_eidos: [any]
+    to_eidos: [any]
+    cardinality: many-to-one
+
+# =============================================================================
+# THE COMPOSE PRAXIS
+# =============================================================================
+
+praxeis:
+
+  - id: praxis/demiurge/compose
+    name: compose
+    oikos: demiurge
+    tier: 2
+    visible: true
+    description: |
+      The single composition interface.
+
+      Routes based on definition shape:
+      1. Has target_eidos → entity composition
+      2. Has slots, no target_eidos → graph composition
+      3. Has template, no slots, no target_eidos → template rendering
+    params:
+      typos_id:
+        type: string
+        required: true
+        description: The typos to compose from
+      inputs:
+        type: object
+        required: false
+        description: Values to fill (overrides defaults)
+      id:
+        type: string
+        required: false
+        description: Entity ID (only for entity composition, generated if not provided)
+      authorized_by:
+        type: string
+        required: false
+        description: Expression ID that authorizes this composition (provenance root)
+    steps:
+      # Find the definition
+      - type: find
+        id: '{{ typos_id }}'
+        bind_to: definition
+
+      - type: assert
+        condition: '{{ definition }}'
+        message: 'Typos not found: {{ typos_id }}'
+
+      # Merge defaults with inputs
+      - type: set
+        bindings:
+          merged: '{{ definition.data.defaults | merge(inputs) }}'
+
+      # Route based on shape
+      - type: switch
+        cases:
+          # Entity composition
+          - when: '{{ definition.data.target_eidos }}'
+            then:
+              - type: call
+                praxis: praxis/demiurge/compose-entity
+                inputs:
+                  definition: '{{ definition }}'
+                  merged: '{{ merged }}'
+                  id: '{{ id }}'
+                  authorized_by: '{{ authorized_by }}'
+                bind_to: result
+
+          # Graph composition (slots, no target_eidos)
+          - when: '{{ definition.data.slots and not definition.data.target_eidos }}'
+            then:
+              - type: call
+                praxis: praxis/demiurge/compose-graph
+                inputs:
+                  definition: '{{ definition }}'
+                  merged: '{{ merged }}'
+                  authorized_by: '{{ authorized_by }}'
+                bind_to: result
+
+          # Template rendering (fallback)
+          - when: '{{ definition.data.template }}'
+            then:
+              - type: call
+                praxis: praxis/demiurge/compose-template
+                inputs:
+                  definition: '{{ definition }}'
+                  merged: '{{ merged }}'
+                  authorized_by: '{{ authorized_by }}'
+                bind_to: result
+
+          # No valid shape
+          - when: 'true'
+            then:
+              - type: assert
+                condition: false
+                message: 'Definition has no composable shape (need target_eidos, slots, or template)'
+
+      - type: return
+        value: '{{ result }}'
+
+  # ---------------------------------------------------------------------------
+  # INTERNAL: Entity Composition
+  # ---------------------------------------------------------------------------
+
+  - id: praxis/demiurge/compose-entity
+    name: compose-entity
+    oikos: demiurge
+    tier: 2
+    visible: false
+    description: |
+      Internal: compose an entity from a definition with target_eidos.
+    params:
+      definition:
+        type: object
+        required: true
+      merged:
+        type: object
+        required: true
+      id:
+        type: string
+        required: false
+      authorized_by:
+        type: string
+        required: false
+    steps:
+      # Arise the entity
+      - type: arise
+        eidos: '{{ definition.data.target_eidos }}'
+        id: '{{ id }}'
+        data: '{{ merged }}'
+        bind_to: entity_result
+
+      # Create composed-from bond
+      - type: bind
+        from_id: '{{ entity_result.id }}'
+        to_id: '{{ definition.id }}'
+        desmos: composed-from
+
+      # Create authorized-by bond if provided
+      - type: switch
+        cases:
+          - when: '{{ authorized_by }}'
+            then:
+              - type: bind
+                from_id: '{{ entity_result.id }}'
+                to_id: '{{ authorized_by }}'
+                desmos: authorized-by
+
+      # Create bonds specified in definition
+      - type: switch
+        cases:
+          - when: '{{ definition.data.bonds }}'
+            then:
+              - type: for_each
+                in: '{{ definition.data.bonds }}'
+                as: bond_spec
+                do:
+                  - type: call
+                    praxis: praxis/demiurge/create-bond
+                    inputs:
+                      bond_spec: '{{ bond_spec }}'
+                      entity_id: '{{ entity_result.id }}'
+                      merged: '{{ merged }}'
+
+      - type: return
+        value:
+          mode: entity
+          entity_id: '{{ entity_result.id }}'
+          entity: '{{ entity_result.entity }}'
+
+  # ---------------------------------------------------------------------------
+  # INTERNAL: Graph Composition
+  # ---------------------------------------------------------------------------
+
+  - id: praxis/demiurge/compose-graph
+    name: compose-graph
+    oikos: demiurge
+    tier: 2
+    visible: false
+    description: |
+      Internal: compose from slots (graph composition).
+      Produces text or object based on output_type.
+    params:
+      definition:
+        type: object
+        required: true
+      merged:
+        type: object
+        required: true
+      authorized_by:
+        type: string
+        required: false
+    steps:
+      # Fill slots with merged values
+      - type: set
+        bindings:
+          filled: '{{ definition.data.slots | fill_slots(merged) }}'
+
+      # If output_type is object, return filled directly
+      # If output_type is text or unspecified, render to string
+      - type: switch
+        cases:
+          - when: '{{ definition.data.output_type == "object" }}'
+            then:
+              - type: return
+                value:
+                  mode: graph
+                  content: '{{ filled }}'
+
+          - when: 'true'
+            then:
+              - type: set
+                bindings:
+                  rendered: '{{ filled | render_graph }}'
+              - type: return
+                value:
+                  mode: graph
+                  content: '{{ rendered }}'
+
+  # ---------------------------------------------------------------------------
+  # INTERNAL: Template Rendering
+  # ---------------------------------------------------------------------------
+
+  - id: praxis/demiurge/compose-template
+    name: compose-template
+    oikos: demiurge
+    tier: 2
+    visible: false
+    description: |
+      Internal: render a template with merged values.
+    params:
+      definition:
+        type: object
+        required: true
+      merged:
+        type: object
+        required: true
+      authorized_by:
+        type: string
+        required: false
+    steps:
+      - type: render
+        template: '{{ definition.data.template }}'
+        context: '{{ merged }}'
+        bind_to: rendered
+
+      # If persist flag, create artifact entity
+      - type: switch
+        cases:
+          - when: '{{ definition.data.persist }}'
+            then:
+              - type: arise
+                eidos: artifact
+                data:
+                  typos_id: '{{ definition.id }}'
+                  content: '{{ rendered }}'
+                  inputs: '{{ merged }}'
+                  composed_at: '{{ now() }}'
+                bind_to: artifact_entity
+
+              - type: return
+                value:
+                  mode: template
+                  artifact_id: '{{ artifact_entity.id }}'
+                  content: '{{ rendered }}'
+
+          - when: 'true'
+            then:
+              - type: return
+                value:
+                  mode: template
+                  content: '{{ rendered }}'
+
+  # ---------------------------------------------------------------------------
+  # INTERNAL: Bond Creation
+  # ---------------------------------------------------------------------------
+
+  - id: praxis/demiurge/create-bond
+    name: create-bond
+    oikos: demiurge
+    tier: 2
+    visible: false
+    description: |
+      Internal: create a bond according to bond_spec.
+
+      Bond spec forms:
+      - { desmos, from_self, to_literal } — from entity to literal ID
+      - { desmos, from_self, to_input } — from entity to value from inputs
+      - { desmos, from_self, to_context } — from entity to context value
+      - { desmos, from_context, to_self } — from context value to entity
+      - { desmos, from_literal, to_self } — from literal ID to entity
+    params:
+      bond_spec:
+        type: object
+        required: true
+      entity_id:
+        type: string
+        required: true
+      merged:
+        type: object
+        required: true
+    steps:
+      - type: set
+        bindings:
+          from_id: |
+            {{ bond_spec.from_self ? entity_id :
+               bond_spec.from_literal ? bond_spec.from_literal :
+               bond_spec.from_context ? _context[bond_spec.from_context] :
+               bond_spec.from_input ? merged[bond_spec.from_input] : null }}
+          to_id: |
+            {{ bond_spec.to_self ? entity_id :
+               bond_spec.to_literal ? bond_spec.to_literal :
+               bond_spec.to_context ? _context[bond_spec.to_context] :
+               bond_spec.to_input ? merged[bond_spec.to_input] : null }}
+
+      - type: assert
+        condition: '{{ from_id and to_id }}'
+        message: 'Bond spec could not resolve from_id or to_id'
+
+      - type: bind
+        from_id: '{{ from_id }}'
+        to_id: '{{ to_id }}'
+        desmos: '{{ bond_spec.desmos }}'
+

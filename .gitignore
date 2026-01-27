@@ -2,3 +2,4 @@
 # Local kosmos state
 .kosmos/
 .mcp.json
+*.DS_Store

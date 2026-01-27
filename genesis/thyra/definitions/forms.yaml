@@ -1,0 +1,214 @@
+# forms.yaml
+# Typos (composition templates) for homoiconic forms
+#
+# Forms are composed artifacts. Their slots define:
+#   - Field schema (type, validation, required)
+#   - UI hints (component type, placeholder, help text)
+#   - Default values
+#
+# Three Pillars Application:
+#   Schema-driven: Validation generated from slot schemas
+#   Graph-driven: Form fields map to entity data via slots
+#   Cache-driven: Form rendering cached by definition + inputs
+
+entities:
+
+# =============================================================================
+# ONBOARDING FORMS
+# =============================================================================
+
+# Mnemonic entry form (for restore flow)
+- eidos: typos
+  id: typos-def-mnemonic-entry-form
+  data:
+    name: mnemonic-entry-form
+    description: |
+      Form for entering a 24-word recovery phrase.
+      Validates that input is valid BIP-39 mnemonic.
+    target_eidos: form-submission
+    slots:
+      mnemonic:
+        type: string
+        required: true
+        description: "24-word BIP-39 mnemonic phrase"
+        ui_hint:
+          component: textarea
+          rows: 4
+          placeholder: "Enter your 24 recovery words..."
+          autocomplete: off
+          spellcheck: false
+        validation:
+          pattern: "^(\\w+\\s+){23}\\w+$"
+          message: "Please enter exactly 24 words"
+
+# Mnemonic confirmation form (for create flow)
+- eidos: typos
+  id: typos-def-mnemonic-confirm-form
+  data:
+    name: mnemonic-confirm-form
+    description: |
+      Form for confirming user has saved mnemonic.
+      Accepts words 1, 12, 24 or the full phrase.
+    target_eidos: form-submission
+    slots:
+      confirm_input:
+        type: string
+        required: true
+        description: "Paste full phrase, or enter words 1, 12, and 24"
+        ui_hint:
+          component: input
+          placeholder: "word1 word12 word24"
+
+# Persona name form
+- eidos: typos
+  id: typos-def-persona-name-form
+  data:
+    name: persona-name-form
+    description: |
+      Form for naming a new persona.
+    target_eidos: form-submission
+    slots:
+      name:
+        type: string
+        required: true
+        description: "Display name for the persona"
+        ui_hint:
+          component: input
+          placeholder: "Your name..."
+          minLength: 1
+          maxLength: 64
+
+# =============================================================================
+# INVITATION FORMS
+# =============================================================================
+
+# Create invitation form
+- eidos: typos
+  id: typos-def-invitation-form
+  data:
+    name: invitation-form
+    description: |
+      Form for creating a propylon invitation link.
+      Configures message, expiry, usage limits, and approval requirements.
+    target_eidos: propylon-link
+    slots:
+      circle_id:
+        type: string
+        required: true
+        description: "Circle to invite to (usually auto-filled from context)"
+        ui_hint:
+          component: hidden
+      message:
+        type: string
+        required: false
+        default: ""
+        description: "Personal message to include with invitation"
+        ui_hint:
+          component: textarea
+          rows: 3
+          placeholder: "Add a personal message (optional)..."
+          maxLength: 500
+      expiresInDays:
+        type: number
+        required: true
+        default: 7
+        description: "Days until invitation expires"
+        ui_hint:
+          component: select
+          options:
+            - value: 1
+              label: "1 day"
+            - value: 7
+              label: "7 days"
+            - value: 30
+              label: "30 days"
+      maxUses:
+        type: number
+        required: false
+        description: "Maximum uses (empty = unlimited)"
+        ui_hint:
+          component: number
+          placeholder: "Unlimited"
+          min: 1
+      requireApproval:
+        type: boolean
+        required: false
+        default: false
+        description: "Require your approval before entry"
+        ui_hint:
+          component: checkbox
+          label: "Require my approval before they can enter"
+
+# Accept invitation form (for entering circle)
+- eidos: typos
+  id: typos-def-accept-invitation-form
+  data:
+    name: accept-invitation-form
+    description: |
+      Form for accepting a propylon invitation.
+      Shown after decoding an invitation link.
+    target_eidos: propylon-session
+    slots:
+      display_name:
+        type: string
+        required: true
+        description: "Name to show in the circle"
+        ui_hint:
+          component: input
+          placeholder: "Your name in this circle..."
+          minLength: 1
+          maxLength: 64
+
+# =============================================================================
+# CIRCLE FORMS
+# =============================================================================
+
+# Create circle form
+- eidos: typos
+  id: typos-def-create-circle-form
+  data:
+    name: create-circle-form
+    description: |
+      Form for creating a new circle.
+    target_eidos: circle
+    slots:
+      name:
+        type: string
+        required: true
+        description: "Circle name"
+        ui_hint:
+          component: input
+          placeholder: "Circle name..."
+          minLength: 1
+          maxLength: 64
+      description:
+        type: string
+        required: false
+        default: ""
+        description: "Circle description"
+        ui_hint:
+          component: textarea
+          rows: 2
+          placeholder: "What is this circle for? (optional)..."
+          maxLength: 500
+      kind:
+        type: string
+        required: true
+        default: intimate
+        description: "Circle type"
+        enum: [self, intimate, community, public]
+        ui_hint:
+          component: select
+          options:
+            - value: self
+              label: "Self (private)"
+              description: "Just you — notes, drafts, personal"
+            - value: intimate
+              label: "Intimate (invitation only)"
+              description: "Close trusted circle — requires invitation"
+            - value: community
+              label: "Community"
+              description: "Larger group with shared purpose"
+            - value: public
+              label: "Public"
+              description: "Open to anyone"

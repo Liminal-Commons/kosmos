@@ -1,0 +1,701 @@
+# dns.yaml
+# DNS infrastructure actualization praxeis (Phase 17.7)
+#
+# DNS follows the Energeia actuality pattern:
+# - dns-record entities exist in the graph (intent)
+# - actuality exists at the provider (cloudflare, route53)
+# - reconciler aligns intent with actuality (phylax pattern)
+#
+# Core concepts:
+# - Zone: sovereignty boundary managed by a circle
+# - Record: dual existence (intent + actuality)
+# - Provider binding: credentials and connection to provider
+
+entities:
+
+# =============================================================================
+# ZONE LIFECYCLE
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/dns/create-zone
+  data:
+    oikos: thyra
+    name: create-zone
+    visible: true
+    tier: 2
+    description: |
+      Create a DNS zone managed by the dwelling circle.
+
+      Zones are sovereignty boundaries. A circle that manages a zone
+      has authority over all records within it.
+    params:
+      - name: name
+        type: string
+        required: true
+        description: Zone name (e.g., liminalcommons.com)
+      - name: provider
+        type: string
+        required: true
+        description: DNS provider (cloudflare, route53, manual)
+    steps:
+      # CE4: compose instead of arise
+      - step: compose
+        typos_id: "typos-def-dns-zone"
+        inputs:
+          id: "dns-zone/{{ $name | replace('.', '-') }}"
+          name: "$name"
+          provider: "$provider"
+          status: "pending"
+          record_count: 0
+          created_at: "{{ now() }}"
+        bind_to: zone
+
+      # Bond zone to dwelling circle
+      - step: switch
+        cases:
+          - when: "$_circle"
+            then:
+              - step: bind
+                from_id: "$_circle"
+                to_id: "$zone.id"
+                desmos: manages-zone
+
+      - step: return
+        value:
+          zone: "$zone"
+          zone_id: "$zone.id"
+
+- eidos: praxis
+  id: praxis/dns/bind-zone-provider
+  data:
+    oikos: thyra
+    name: bind-zone-provider
+    visible: true
+    tier: 2
+    description: |
+      Bind a zone to its DNS provider with credentials.
+
+      Credentials are referenced via secret:// or env:// URIs,
+      never stored directly in the entity.
+    params:
+      - name: zone_id
+        type: string
+        required: true
+        description: Zone entity ID
+      - name: provider_zone_id
+        type: string
+        required: true
+        description: Provider's zone ID (from their dashboard)
+      - name: credential_ref
+        type: string
+        required: true
+        description: Reference to API token (secret://... or env://...)
+      - name: account_id
+        type: string
+        required: false
+        description: Provider account ID (for cloudflare)
+    steps:
+      - step: find
+        id: "$zone_id"
+        bind_to: zone
+
+      - step: assert
+        condition: "$zone"
+        message: "Zone not found: $zone_id"
+
+      # CE4: compose instead of arise
+      - step: compose
+        typos_id: "typos-def-dns-provider-binding"
+        inputs:
+          id: "dns-provider-binding/{{ $zone.data.name | replace('.', '-') }}"
+          provider: "$zone.data.provider"
+          zone_id: "$provider_zone_id"
+          account_id: "$account_id"
+          credential_ref: "$credential_ref"
+          status: "active"
+          created_at: "{{ now() }}"
+        bind_to: binding
+
+      - step: bind
+        from_id: "$zone.id"
+        to_id: "$binding.id"
+        desmos: provided-by
+
+      - step: update
+        id: "$zone.id"
+        data:
+          provider_zone_id: "$provider_zone_id"
+          status: "active"
+
+      - step: return
+        value:
+          zone: "$zone"
+          binding: "$binding"
+
+- eidos: praxis
+  id: praxis/dns/list-zones
+  data:
+    oikos: thyra
+    name: list-zones
+    visible: true
+    tier: 1
+    description: |
+      List DNS zones, optionally filtered by circle management.
+    params:
+      - name: circle_id
+        type: string
+        required: false
+        description: Filter to zones managed by this circle
+      - name: limit
+        type: number
+        required: false
+        description: Maximum results
+    steps:
+      - step: gather
+        eidos: dns-zone
+        limit: "$limit"
+        bind_to: zones
+
+      - step: switch
+        cases:
+          - when: "$circle_id"
+            then:
+              - step: trace
+                from_id: "$circle_id"
+                desmos: manages-zone
+                direction: outward
+                bind_to: managed_zone_ids
+              - step: filter
+                in: "$zones"
+                as: z
+                where: "$z.id in $managed_zone_ids"
+                bind_to: zones
+
+      - step: return
+        value:
+          zones: "$zones"
+          count: "$zones | length"
+
+# =============================================================================
+# RECORD LIFECYCLE
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/dns/create-record
+  data:
+    oikos: thyra
+    name: create-record
+    visible: true
+    tier: 2
+    description: |
+      Create a DNS record entity (intent). Does NOT create at provider yet.
+      Use reconcile-record to actualize.
+    params:
+      - name: zone_id
+        type: string
+        required: true
+        description: Zone this record belongs to
+      - name: record_type
+        type: string
+        required: true
+        description: Record type (A, AAAA, CNAME, TXT, MX, etc.)
+      - name: name
+        type: string
+        required: true
+        description: Record name (subdomain part, use @ for root)
+      - name: content
+        type: string
+        required: true
+        description: Record value (IP, hostname, text, etc.)
+      - name: ttl
+        type: number
+        required: false
+        description: Time-to-live in seconds (1 = auto for Cloudflare)
+      - name: priority
+        type: number
+        required: false
+        description: Priority for MX/SRV records
+      - name: proxied
+        type: boolean
+        required: false
+        description: Cloudflare proxy (orange cloud)
+      - name: addresses
+        type: string
+        required: false
+        description: Entity ID this record addresses (optional)
+    steps:
+      - step: find
+        id: "$zone_id"
+        bind_to: zone
+
+      - step: assert
+        condition: "$zone"
+        message: "Zone not found: $zone_id"
+
+      # Set defaults
+      - step: set
+        bindings:
+          record_ttl: "$ttl"
+          record_proxied: "$proxied"
+
+      - step: switch
+        cases:
+          - when: "not $record_ttl"
+            then:
+              - step: set
+                bindings:
+                  record_ttl: 1
+
+      - step: switch
+        cases:
+          - when: "$record_proxied == null"
+            then:
+              - step: set
+                bindings:
+                  record_proxied: true
+
+      # CE4: compose instead of arise
+      - step: compose
+        typos_id: "typos-def-dns-record"
+        inputs:
+          id: "dns-record/{{ $zone.data.name | replace('.', '-') }}-{{ $name | replace('.', '-') }}-{{ $record_type | lower }}"
+          record_type: "$record_type"
+          name: "$name"
+          content: "$content"
+          ttl: "$record_ttl"
+          priority: "$priority"
+          proxied: "$record_proxied"
+          desired_state: "present"
+          actual_state: "unknown"
+          created_at: "{{ now() }}"
+        bind_to: record
+
+      - step: bind
+        from_id: "$record.id"
+        to_id: "$zone.id"
+        desmos: in-zone
+
+      # Optional: bond to addressed entity
+      - step: switch
+        cases:
+          - when: "$addresses"
+            then:
+              - step: bind
+                from_id: "$record.id"
+                to_id: "$addresses"
+                desmos: addresses
+
+      - step: return
+        value:
+          record: "$record"
+          record_id: "$record.id"
+          note: "Record created as intent. Call reconcile-record to actualize."
+
+- eidos: praxis
+  id: praxis/dns/sense-record
+  data:
+    oikos: thyra
+    name: sense-record
+    visible: true
+    tier: 3
+    description: |
+      Sense the actual state of a DNS record at the provider.
+      Does NOT modify the entity - just returns current state.
+    params:
+      - name: record_id
+        type: string
+        required: true
+        description: The record to sense
+    steps:
+      - step: find
+        id: "$record_id"
+        bind_to: record
+
+      - step: assert
+        condition: "$record"
+        message: "Record not found: $record_id"
+
+      - step: sense_actuality
+        entity_id: "$record_id"
+        bind_to: actual
+
+      - step: return
+        value:
+          record_id: "$record_id"
+          desired_state: "$record.data.desired_state"
+          actual_state: "$actual.status"
+          actual_content: "$actual.content"
+          provider_record_id: "$actual.provider_record_id"
+          divergence: "$actual.divergence"
+
+- eidos: praxis
+  id: praxis/dns/reconcile-record
+  data:
+    oikos: thyra
+    name: reconcile-record
+    visible: true
+    tier: 3
+    description: |
+      Align DNS record intent with actuality (phylax pattern).
+
+      - desired=present, actual=absent -> MANIFEST (create at provider)
+      - desired=absent, actual=present -> UNMANIFEST (delete at provider)
+      - desired=present, actual=diverged -> UPDATE at provider
+    params:
+      - name: record_id
+        type: string
+        required: true
+        description: The record to reconcile
+    steps:
+      # Find intended state (existence)
+      - step: find
+        id: "$record_id"
+        bind_to: record
+
+      - step: assert
+        condition: "$record"
+        message: "Record not found: $record_id"
+
+      # Sense actual state (actuality)
+      - step: sense_actuality
+        entity_id: "$record_id"
+        bind_to: actual
+
+      # Determine action needed
+      - step: set
+        bindings:
+          desired: "$record.data.desired_state"
+          actual_status: "$actual.status"
+          action_taken: "none"
+
+      # Case: should be present but isn't
+      - step: switch
+        cases:
+          - when: '$desired == "present" and $actual_status == "absent"'
+            then:
+              - step: manifest
+                entity_id: "$record_id"
+                bind_to: manifest_result
+              - step: update
+                id: "$record_id"
+                data:
+                  actual_state: "present"
+                  provider_record_id: "$manifest_result.provider_record_id"
+                  last_reconciled_at: "{{ now() }}"
+              - step: set
+                bindings:
+                  action_taken: "manifested"
+
+          # Case: should be absent but exists
+          - when: '$desired == "absent" and $actual_status == "present"'
+            then:
+              - step: unmanifest
+                entity_id: "$record_id"
+                bind_to: unmanifest_result
+              - step: update
+                id: "$record_id"
+                data:
+                  actual_state: "absent"
+                  provider_record_id: null
+                  last_reconciled_at: "{{ now() }}"
+              - step: set
+                bindings:
+                  action_taken: "unmanifested"
+
+          # Case: should be present but diverged
+          - when: '$desired == "present" and $actual_status == "diverged"'
+            then:
+              - step: manifest
+                entity_id: "$record_id"
+                bind_to: update_result
+              - step: update
+                id: "$record_id"
+                data:
+                  actual_state: "present"
+                  divergence: null
+                  last_reconciled_at: "{{ now() }}"
+              - step: set
+                bindings:
+                  action_taken: "updated"
+
+        default:
+          # Already aligned
+          - step: update
+            id: "$record_id"
+            data:
+              actual_state: "$actual_status"
+              last_reconciled_at: "{{ now() }}"
+          - step: set
+            bindings:
+              action_taken: "aligned"
+
+      - step: return
+        value:
+          record_id: "$record_id"
+          desired_state: "$desired"
+          actual_state: "$actual_status"
+          action_taken: "$action_taken"
+
+- eidos: praxis
+  id: praxis/dns/delete-record
+  data:
+    oikos: thyra
+    name: delete-record
+    visible: true
+    tier: 2
+    description: |
+      Mark a DNS record for deletion. Sets desired_state=absent.
+      Calls reconcile to actually delete at provider.
+    params:
+      - name: record_id
+        type: string
+        required: true
+        description: The record to delete
+    steps:
+      - step: find
+        id: "$record_id"
+        bind_to: record
+
+      - step: assert
+        condition: "$record"
+        message: "Record not found: $record_id"
+
+      - step: update
+        id: "$record_id"
+        data:
+          desired_state: "absent"
+
+      - step: call
+        praxis: dns/reconcile-record
+        params:
+          record_id: "$record_id"
+        bind_to: reconcile_result
+
+      - step: return
+        value:
+          record_id: "$record_id"
+          deleted_at_provider: '$reconcile_result.action_taken == "unmanifested"'
+
+- eidos: praxis
+  id: praxis/dns/list-records
+  data:
+    oikos: thyra
+    name: list-records
+    visible: true
+    tier: 1
+    description: |
+      List DNS records in a zone.
+    params:
+      - name: zone_id
+        type: string
+        required: true
+        description: Zone to list records from
+      - name: record_type
+        type: string
+        required: false
+        description: Filter by record type
+      - name: limit
+        type: number
+        required: false
+        description: Maximum results
+    steps:
+      - step: find
+        id: "$zone_id"
+        bind_to: zone
+
+      - step: assert
+        condition: "$zone"
+        message: "Zone not found: $zone_id"
+
+      # Get all records in zone via bond traversal
+      - step: trace
+        to_id: "$zone_id"
+        desmos: in-zone
+        direction: inward
+        bind_to: records
+
+      # Filter by record type if specified
+      - step: switch
+        cases:
+          - when: "$record_type"
+            then:
+              - step: filter
+                in: "$records"
+                as: r
+                where: "$r.data.record_type == '$record_type'"
+                bind_to: records
+
+      # Apply limit if specified
+      - step: switch
+        cases:
+          - when: "$limit"
+            then:
+              - step: limit
+                in: "$records"
+                count: "$limit"
+                bind_to: records
+
+      - step: return
+        value:
+          zone_id: "$zone_id"
+          records: "$records"
+          count: "$records | length"
+
+# =============================================================================
+# BULK OPERATIONS
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/dns/reconcile-zone
+  data:
+    oikos: thyra
+    name: reconcile-zone
+    visible: true
+    tier: 3
+    description: |
+      Reconcile all records in a zone. Bulk phylax operation.
+    params:
+      - name: zone_id
+        type: string
+        required: true
+        description: Zone to reconcile
+    steps:
+      - step: call
+        praxis: dns/list-records
+        params:
+          zone_id: "$zone_id"
+        bind_to: listing
+
+      - step: set
+        bindings:
+          results: "[]"
+          manifested: 0
+          unmanifested: 0
+          updated: 0
+          aligned: 0
+
+      - step: for_each
+        items: "$listing.records"
+        item_var: record
+        steps:
+          - step: call
+            praxis: dns/reconcile-record
+            params:
+              record_id: "$record.id"
+            bind_to: result
+
+          - step: switch
+            cases:
+              - when: '$result.action_taken == "manifested"'
+                then:
+                  - step: set
+                    bindings:
+                      manifested: "$manifested + 1"
+              - when: '$result.action_taken == "unmanifested"'
+                then:
+                  - step: set
+                    bindings:
+                      unmanifested: "$unmanifested + 1"
+              - when: '$result.action_taken == "updated"'
+                then:
+                  - step: set
+                    bindings:
+                      updated: "$updated + 1"
+              - when: '$result.action_taken == "aligned"'
+                then:
+                  - step: set
+                    bindings:
+                      aligned: "$aligned + 1"
+
+          - step: set
+            bindings:
+              results: "$results + [$result]"
+
+      - step: update
+        id: "$zone_id"
+        data:
+          last_synced_at: "{{ now() }}"
+          record_count: "$listing.count"
+
+      - step: return
+        value:
+          zone_id: "$zone_id"
+          reconciled: "$listing.count"
+          summary:
+            manifested: "$manifested"
+            unmanifested: "$unmanifested"
+            updated: "$updated"
+            aligned: "$aligned"
+          results: "$results"
+
+- eidos: praxis
+  id: praxis/dns/sense-zone
+  data:
+    oikos: thyra
+    name: sense-zone
+    visible: true
+    tier: 3
+    description: |
+      Sense all records in a zone without reconciling.
+      Useful for detecting drift.
+    params:
+      - name: zone_id
+        type: string
+        required: true
+        description: Zone to sense
+    steps:
+      - step: call
+        praxis: dns/list-records
+        params:
+          zone_id: "$zone_id"
+        bind_to: listing
+
+      - step: set
+        bindings:
+          sensed_records: "[]"
+          present_count: 0
+          absent_count: 0
+          diverged_count: 0
+          unknown_count: 0
+
+      - step: for_each
+        items: "$listing.records"
+        item_var: record
+        steps:
+          - step: sense_actuality
+            entity_id: "$record.id"
+            bind_to: actual
+
+          - step: switch
+            cases:
+              - when: '$actual.status == "present"'
+                then:
+                  - step: set
+                    bindings:
+                      present_count: "$present_count + 1"
+              - when: '$actual.status == "absent"'
+                then:
+                  - step: set
+                    bindings:
+                      absent_count: "$absent_count + 1"
+              - when: '$actual.status == "diverged"'
+                then:
+                  - step: set
+                    bindings:
+                      diverged_count: "$diverged_count + 1"
+
+          - step: set
+            bindings:
+              sensed_records: "$sensed_records + [{ record_id: $record.id, desired: $record.data.desired_state, actual: $actual.status }]"
+
+      - step: return
+        value:
+          zone_id: "$zone_id"
+          total_records: "$listing.count"
+          summary:
+            present: "$present_count"
+            absent: "$absent_count"
+            diverged: "$diverged_count"
+            unknown: "$unknown_count"
+          records: "$sensed_records"

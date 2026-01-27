@@ -1,0 +1,27 @@
+# Dokimasia Desmoi
+# Validation bonds — provenance and validation results
+#
+# Extracted from spora.yaml stage-1-desmoi
+
+entities:
+  # validated-by — generation was validated, producing a validation-result
+  - eidos: desmos
+    id: desmos/validated-by
+    data:
+      name: validated-by
+      description: "Generation was validated, producing a validation-result"
+      from_eidos: generation
+      to_eidos: validation-result
+      cardinality: one-to-one
+      symmetric: false
+
+  # traces-to — provenance chain link
+  - eidos: desmos
+    id: desmos/traces-to
+    data:
+      name: traces-to
+      description: "Provenance chain link — authorization traces through this entity"
+      from_eidos: any
+      to_eidos: any
+      cardinality: many-to-one
+      symmetric: false

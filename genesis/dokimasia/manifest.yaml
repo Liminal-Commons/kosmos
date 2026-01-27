@@ -1,0 +1,54 @@
+# Oikos Manifest: Dokimasia
+# δοκιμασία — examination, testing, scrutiny.
+#
+# Validation before realization. Nothing invalid enters the entity store.
+# Provenance, schema, semantic validation.
+#
+# Manifest v2.1 — oikos metadata for entity composition
+
+format_version: "2.1"
+oikos_id: dokimasia
+version: "0.1.0"
+
+# Oikos metadata (v2.1)
+oikos_name: Dokimasia
+oikos_description: |
+  Examination, testing, scrutiny. Validation before realization.
+  Nothing invalid enters the entity store. Provides provenance,
+  schema, and semantic validation.
+oikos_scale: cross-scale
+
+content_paths:
+  - path: eide/
+    content_types: [eidos]
+  - path: desmoi/
+    content_types: [desmos]
+  - path: praxeis/
+    content_types: [praxis]
+
+requires_dynamis:
+  - db.arise
+  - db.find
+  - db.bind
+  - db.trace
+  - db.gather
+
+provides:
+  eide:
+    - validation-result
+    - validation-error
+
+  desmoi:
+    - validated-by
+    - traces-to
+
+  praxeis:
+    - dokimasia/validate-provenance
+    - dokimasia/validate-schema
+    - dokimasia/validate-semantic
+    - dokimasia/validate-generation
+    - dokimasia/compose-validation-report
+
+stoicheia_form:
+  # All validation logic in praxeis
+  # No special stoicheia

@@ -1,0 +1,49 @@
+# DNS Desmoi
+# Infrastructure management bonds — zones, records, and provider bindings
+#
+# Extracted from spora.yaml stage-1-desmoi
+
+entities:
+  # manages-zone — circle manages DNS zone
+  - eidos: desmos
+    id: desmos/manages-zone
+    data:
+      name: manages-zone
+      description: "Circle manages DNS zone. Establishes governance authority."
+      from_eidos: circle
+      to_eidos: dns-zone
+      cardinality: one-to-many
+      symmetric: false
+
+  # in-zone — DNS record belongs to zone
+  - eidos: desmos
+    id: desmos/in-zone
+    data:
+      name: in-zone
+      description: "DNS record belongs to zone."
+      from_eidos: dns-record
+      to_eidos: dns-zone
+      cardinality: many-to-one
+      symmetric: false
+
+  # provided-by — DNS zone provided by provider binding
+  - eidos: desmos
+    id: desmos/provided-by
+    data:
+      name: provided-by
+      description: "DNS zone provided by provider binding. Credentials flow through binding."
+      from_eidos: dns-zone
+      to_eidos: dns-provider-binding
+      cardinality: one-to-one
+      symmetric: false
+
+  # addresses — DNS record addresses entity
+  - eidos: desmos
+    id: desmos/addresses
+    data:
+      name: addresses
+      description: "DNS record addresses entity. Creates semantic link between hostname and what it points to."
+      from_eidos: dns-record
+      to_eidos: any
+      cardinality: many-to-one
+      symmetric: false

@@ -1,0 +1,270 @@
+# V8 Roadmap as Journeys
+# These become entities when bootstrapped.
+# Dependencies are bonds between journeys.
+#
+# The roadmap document (ROADMAP.md) remains as human-readable overview.
+# These journeys become operational tracking in the kosmos.
+
+# =============================================================================
+# COMPLETED JOURNEYS
+# =============================================================================
+
+entities:
+  - eidos: journey
+    id: journey/v8-substrate
+    data:
+      desire: "V8 substrate — entities, bonds, storage, interpreter"
+      status: arrived
+      current_waypoint: 4
+      embarked_at: "2026-01-15T00:00:00Z"
+      arrived_at: "2026-01-18T00:00:00Z"
+
+  - eidos: journey
+    id: journey/v8-aisthesis-phase1
+    data:
+      desire: "Aisthesis Phase 1+2 — embedding storage and surface operation"
+      status: arrived
+      current_waypoint: 3
+      embarked_at: "2026-01-17T00:00:00Z"
+      arrived_at: "2026-01-19T00:00:00Z"
+
+# =============================================================================
+# THE BLOCKER: POLIS — COMPLETE
+# =============================================================================
+
+  - eidos: journey
+    id: journey/v8-polis
+    data:
+      desire: "Polis runtime — circles, personas, dwelling context, visibility"
+      status: arrived
+      current_waypoint: 4
+      embarked_at: "2026-01-19T00:00:00Z"
+      arrived_at: "2026-01-19T12:00:00Z"
+
+# Waypoints for journey/v8-polis (all complete)
+  - eidos: waypoint
+    id: waypoint/v8-polis-0
+    data:
+      journey_id: journey/v8-polis
+      ordinal: 0
+      description: "Bootstrap entities — persona/victor, persona/claude, circle/kosmos in spora.yaml"
+      status: arrived
+
+  - eidos: waypoint
+    id: waypoint/v8-polis-1
+    data:
+      journey_id: journey/v8-polis
+      ordinal: 1
+      description: "Dwelling context in interpreter — DwellingContext struct, _persona/_circle in scope"
+      status: arrived
+
+  - eidos: waypoint
+    id: waypoint/v8-polis-2
+    data:
+      journey_id: journey/v8-polis
+      ordinal: 2
+      description: "Visibility function — visible_to() in host.rs"
+      status: arrived
+
+  - eidos: waypoint
+    id: waypoint/v8-polis-3
+    data:
+      journey_id: journey/v8-polis
+      ordinal: 3
+      description: "Wire into surface/gather — dwelling-aware filtering"
+      status: arrived
+
+# =============================================================================
+# NOW UNBLOCKED (polis complete)
+# =============================================================================
+
+  - eidos: journey
+    id: journey/v8-dwelling-aware
+    data:
+      desire: "Dwelling-aware operations — surface, gather, compose respect visibility"
+      status: arrived
+      current_waypoint: 3
+      embarked_at: "2026-01-19T12:00:00Z"
+      arrived_at: "2026-01-19T13:00:00Z"
+      notes: "surface, gather, compose all respect dwelling context"
+
+  - eidos: journey
+    id: journey/v8-aisthesis-phase3
+    data:
+      desire: "Aisthesis Phase 3 — dwelling-aware surfacing"
+      status: arrived  # complete — surface() accepts dwelling context
+      current_waypoint: 1
+      arrived_at: "2026-01-19T12:00:00Z"
+
+# =============================================================================
+# ACTIVE JOURNEY
+# =============================================================================
+
+  - eidos: journey
+    id: journey/v8-mcp
+    data:
+      desire: "V8 MCP layer — fresh MCP server using kosmos-v8 types"
+      status: arrived
+      current_waypoint: 4
+      embarked_at: "2026-01-19T14:00:00Z"
+      arrived_at: "2026-01-19T18:00:00Z"
+
+# Waypoints for journey/v8-mcp
+  - eidos: waypoint
+    id: waypoint/v8-mcp-0
+    data:
+      journey_id: journey/v8-mcp
+      ordinal: 0
+      description: "Create kosmos-mcp-v8 crate with Cargo.toml and basic structure"
+      status: arrived
+      notes: "crates/kosmos-mcp-v8 created with Cargo.toml, lib.rs, main.rs, error.rs, projection.rs"
+
+  - eidos: waypoint
+    id: waypoint/v8-mcp-1
+    data:
+      journey_id: journey/v8-mcp
+      ordinal: 1
+      description: "Implement MCP server with dwelling context tracking"
+      status: arrived
+      notes: "McpServer tracks DwellingState, passes DwellingContext to execute_praxis"
+
+  - eidos: waypoint
+    id: waypoint/v8-mcp-2
+    data:
+      journey_id: journey/v8-mcp
+      ordinal: 2
+      description: "Wire compose/surface/gather tools to pass dwelling context"
+      status: arrived
+      notes: "mcp-core.yaml praxeis created; eval_string fixed to handle $var; tests pass"
+
+  - eidos: waypoint
+    id: waypoint/v8-mcp-3
+    data:
+      journey_id: journey/v8-mcp
+      ordinal: 3
+      description: "Session management (arrive/depart)"
+      status: arrived
+      notes: "arise() and depart() implemented in McpServer"
+
+# =============================================================================
+# ACTIVE JOURNEY
+# =============================================================================
+
+  - eidos: journey
+    id: journey/v8-soma-psyche
+    data:
+      desire: "Soma/Psyche runtime — step types, animus lifecycle, embodiment"
+      status: active
+      current_waypoint: 5
+      embarked_at: "2026-01-19T19:00:00Z"
+      notes: |
+        Implements remaining step types needed by soma/psyche praxeis,
+        then wires the praxis definitions from klimax schemas.
+
+# Waypoints for journey/v8-soma-psyche
+  - eidos: waypoint
+    id: waypoint/v8-soma-psyche-0
+    data:
+      journey_id: journey/v8-soma-psyche
+      ordinal: 0
+      description: "Implement UpdateStep — modify entity data"
+      status: arrived
+      notes: "UpdateStep merges new data with existing; 42 tests passing"
+
+  - eidos: waypoint
+    id: waypoint/v8-soma-psyche-1
+    data:
+      journey_id: journey/v8-soma-psyche
+      ordinal: 1
+      description: "Implement TraceStep — follow bonds (trace_bonds)"
+      status: arrived
+      notes: "TraceStep traces bonds with optional resolve parameter to fetch entities"
+
+  - eidos: waypoint
+    id: waypoint/v8-soma-psyche-2
+    data:
+      journey_id: journey/v8-soma-psyche
+      ordinal: 2
+      description: "Implement SwitchStep — conditional branching"
+      status: arrived
+      notes: "SwitchStep with cases (when/then) and optional default"
+
+  - eidos: waypoint
+    id: waypoint/v8-soma-psyche-3
+    data:
+      journey_id: journey/v8-soma-psyche
+      ordinal: 3
+      description: "Implement FilterStep — filter collections"
+      status: arrived
+      notes: "FilterStep filters arrays by condition; added >, <, >=, <= operators"
+
+  - eidos: waypoint
+    id: waypoint/v8-soma-psyche-4
+    data:
+      journey_id: journey/v8-soma-psyche
+      ordinal: 4
+      description: "Implement LooseStep — dissolve bonds"
+      status: arrived
+      notes: "LooseStep dissolves bonds via loose_bond()"
+
+  - eidos: waypoint
+    id: waypoint/v8-soma-psyche-5
+    data:
+      journey_id: journey/v8-soma-psyche
+      ordinal: 5
+      description: "Wire soma praxeis — animus lifecycle, channels"
+      status: pending
+      notes: "Load praxeis from klimax/5-soma/soma.yaml, test arise/depart"
+
+  - eidos: waypoint
+    id: waypoint/v8-soma-psyche-6
+    data:
+      journey_id: journey/v8-soma-psyche
+      ordinal: 6
+      description: "Wire psyche praxeis — attention, intention, thyra"
+      status: pending
+      notes: "Load praxeis from klimax/6-psyche/psyche.yaml, test attention tracking"
+
+# =============================================================================
+# BONDS (dependencies between journeys)
+# =============================================================================
+
+bonds:
+  # Aisthesis Phase 1 depended on substrate
+  - from: journey/v8-aisthesis-phase1
+    to: journey/v8-substrate
+    desmos: depends-on
+
+  # Polis depends on substrate
+  - from: journey/v8-polis
+    to: journey/v8-substrate
+    desmos: depends-on
+
+  # Dwelling-aware operations blocked by polis
+  - from: journey/v8-dwelling-aware
+    to: journey/v8-polis
+    desmos: depends-on
+
+  # Aisthesis Phase 3 blocked by polis
+  - from: journey/v8-aisthesis-phase3
+    to: journey/v8-polis
+    desmos: depends-on
+
+  # Soma/Psyche depends on dwelling-aware
+  - from: journey/v8-soma-psyche
+    to: journey/v8-dwelling-aware
+    desmos: depends-on
+
+  # Waypoint bonds
+  - from: journey/v8-polis
+    to: waypoint/v8-polis-0
+    desmos: contains-waypoint
+  - from: journey/v8-polis
+    to: waypoint/v8-polis-1
+    desmos: contains-waypoint
+  - from: journey/v8-polis
+    to: waypoint/v8-polis-2
+    desmos: contains-waypoint
+  - from: journey/v8-polis
+    to: waypoint/v8-polis-3
+    desmos: contains-waypoint

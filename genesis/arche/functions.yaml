@@ -1,0 +1,428 @@
+# Arche: Function Declarations
+# Expression functions available in the interpreter.
+#
+# These functions become entities in kosmos, enabling:
+# - Discovery via surface("hash functions")
+# - Documentation generation
+# - Authoring-time validation (future)
+# - Interpreter code generation (future)
+
+entities:
+
+# =============================================================================
+# Collection Functions — Operations on arrays and objects
+# =============================================================================
+
+- eidos: function
+  id: function/len
+  data:
+    name: len
+    description: |
+      Returns the length of an array, string, or object.
+      For arrays: number of elements
+      For strings: number of characters
+      For objects: number of keys
+    category: collection
+    params:
+      - name: value
+        type: any
+        required: true
+        description: Array, string, or object to measure
+    return_type: number
+    pure: true
+    examples:
+      - "len($entities)"
+      - "len('hello')"
+      - "len($object)"
+
+- eidos: function
+  id: function/length
+  data:
+    name: length
+    description: Alias for len(). Returns the length of an array, string, or object.
+    category: collection
+    params:
+      - name: value
+        type: any
+        required: true
+        description: Array, string, or object to measure
+    return_type: number
+    pure: true
+    examples:
+      - "length($items)"
+
+- eidos: function
+  id: function/keys
+  data:
+    name: keys
+    description: Returns an array of keys from an object.
+    category: collection
+    params:
+      - name: object
+        type: object
+        required: true
+        description: Object to extract keys from
+    return_type: array
+    pure: true
+    examples:
+      - "keys($entity.data)"
+
+- eidos: function
+  id: function/values
+  data:
+    name: values
+    description: Returns an array of values from an object.
+    category: collection
+    params:
+      - name: object
+        type: object
+        required: true
+        description: Object to extract values from
+    return_type: array
+    pure: true
+    examples:
+      - "values($config)"
+
+- eidos: function
+  id: function/entries
+  data:
+    name: entries
+    description: |
+      Returns an array of [key, value] pairs from an object.
+      Useful for iterating over object properties.
+    category: collection
+    params:
+      - name: object
+        type: object
+        required: true
+        description: Object to extract entries from
+    return_type: array
+    pure: true
+    examples:
+      - "entries($fields)"
+
+- eidos: function
+  id: function/join
+  data:
+    name: join
+    description: Joins array elements into a string with a separator.
+    category: collection
+    params:
+      - name: array
+        type: array
+        required: true
+        description: Array of values to join
+      - name: separator
+        type: string
+        required: false
+        description: Separator string (default ",")
+    return_type: string
+    pure: true
+    examples:
+      - "join($names, ', ')"
+      - "$tags | join(' ')"
+
+# =============================================================================
+# String Functions — String manipulation
+# =============================================================================
+
+- eidos: function
+  id: function/prefix
+  data:
+    name: prefix
+    description: Prepends a string to another string.
+    category: string
+    params:
+      - name: value
+        type: string
+        required: true
+        description: String to prepend to
+      - name: prefix
+        type: string
+        required: true
+        description: String to prepend
+    return_type: string
+    pure: true
+    examples:
+      - "prefix($id, 'entity/')"
+
+- eidos: function
+  id: function/suffix
+  data:
+    name: suffix
+    description: Appends a string to another string.
+    category: string
+    params:
+      - name: value
+        type: string
+        required: true
+        description: String to append to
+      - name: suffix
+        type: string
+        required: true
+        description: String to append
+    return_type: string
+    pure: true
+    examples:
+      - "suffix($name, '.yaml')"
+
+# =============================================================================
+# Hash Functions — Cryptographic hashing
+# =============================================================================
+
+- eidos: function
+  id: function/blake3
+  data:
+    name: blake3
+    description: |
+      Computes BLAKE3 hash of a value. The value is serialized to JSON
+      before hashing, ensuring consistent hashing of complex structures.
+    category: hash
+    params:
+      - name: value
+        type: any
+        required: true
+        description: Value to hash (serialized to JSON)
+    return_type: string
+    pure: true
+    examples:
+      - "blake3($entities)"
+      - "blake3($content)"
+
+# =============================================================================
+# Time Functions — Timestamp operations
+# =============================================================================
+
+- eidos: function
+  id: function/now
+  data:
+    name: now
+    description: Returns the current Unix timestamp in milliseconds.
+    category: time
+    params: []
+    return_type: number
+    pure: false
+    examples:
+      - "now()"
+
+- eidos: function
+  id: function/timestamp_add_days
+  data:
+    name: timestamp_add_days
+    description: Adds days to a timestamp.
+    category: time
+    params:
+      - name: timestamp
+        type: number
+        required: true
+        description: Unix timestamp in milliseconds
+      - name: days
+        type: number
+        required: true
+        description: Number of days to add (can be negative)
+    return_type: number
+    pure: true
+    examples:
+      - "timestamp_add_days(now(), 7)"
+      - "timestamp_add_days($expires_at, -1)"
+
+- eidos: function
+  id: function/timestamp_add_hours
+  data:
+    name: timestamp_add_hours
+    description: Adds hours to a timestamp.
+    category: time
+    params:
+      - name: timestamp
+        type: number
+        required: true
+        description: Unix timestamp in milliseconds
+      - name: hours
+        type: number
+        required: true
+        description: Number of hours to add (can be negative)
+    return_type: number
+    pure: true
+    examples:
+      - "timestamp_add_hours(now(), 24)"
+
+- eidos: function
+  id: function/timestamp_add_minutes
+  data:
+    name: timestamp_add_minutes
+    description: Adds minutes to a timestamp.
+    category: time
+    params:
+      - name: timestamp
+        type: number
+        required: true
+        description: Unix timestamp in milliseconds
+      - name: minutes
+        type: number
+        required: true
+        description: Number of minutes to add (can be negative)
+    return_type: number
+    pure: true
+    examples:
+      - "timestamp_add_minutes(now(), 30)"
+
+- eidos: function
+  id: function/timestamp_before
+  data:
+    name: timestamp_before
+    description: Returns true if timestamp A is before timestamp B.
+    category: time
+    params:
+      - name: timestamp_a
+        type: number
+        required: true
+        description: First timestamp
+      - name: timestamp_b
+        type: number
+        required: true
+        description: Second timestamp
+    return_type: boolean
+    pure: true
+    examples:
+      - "timestamp_before($created_at, now())"
+
+# =============================================================================
+# Encoding Functions — Serialization and encoding
+# =============================================================================
+
+- eidos: function
+  id: function/json_encode
+  data:
+    name: json_encode
+    description: Serializes a value to a JSON string.
+    category: encoding
+    params:
+      - name: value
+        type: any
+        required: true
+        description: Value to serialize
+    return_type: string
+    pure: true
+    examples:
+      - "json_encode($data)"
+
+- eidos: function
+  id: function/json_decode
+  data:
+    name: json_decode
+    description: Parses a JSON string into a value.
+    category: encoding
+    params:
+      - name: json_string
+        type: string
+        required: true
+        description: JSON string to parse
+    return_type: any
+    pure: true
+    examples:
+      - "json_decode($response)"
+
+- eidos: function
+  id: function/yaml_encode
+  data:
+    name: yaml_encode
+    description: Serializes a value to a YAML string.
+    category: encoding
+    params:
+      - name: value
+        type: any
+        required: true
+        description: Value to serialize
+    return_type: string
+    pure: true
+    examples:
+      - "yaml_encode($entity)"
+
+- eidos: function
+  id: function/yaml_entity_list
+  data:
+    name: yaml_entity_list
+    description: |
+      Formats an array of entities as a YAML list with proper indentation.
+      Each entity is formatted with id and data fields.
+    category: encoding
+    params:
+      - name: entities
+        type: array
+        required: true
+        description: Array of entity objects
+    return_type: string
+    pure: true
+    examples:
+      - "yaml_entity_list($entities)"
+      - "$gathered | yaml_entity_list"
+
+- eidos: function
+  id: function/base64url_encode
+  data:
+    name: base64url_encode
+    description: |
+      Encodes a value as URL-safe base64 (no padding).
+      Used for JWT tokens and URL-safe encoding.
+    category: encoding
+    params:
+      - name: value
+        type: any
+        required: true
+        description: Value to encode (strings used directly, others JSON-serialized)
+    return_type: string
+    pure: true
+    examples:
+      - "base64url_encode($payload)"
+
+- eidos: function
+  id: function/base64url_decode
+  data:
+    name: base64url_decode
+    description: Decodes a URL-safe base64 string.
+    category: encoding
+    params:
+      - name: encoded
+        type: string
+        required: true
+        description: Base64url-encoded string
+    return_type: string
+    pure: true
+    examples:
+      - "base64url_decode($token)"
+
+# =============================================================================
+# Generator Functions — Value generation (impure)
+# =============================================================================
+
+- eidos: function
+  id: function/uuid
+  data:
+    name: uuid
+    description: Generates a new UUID v4 (random).
+    category: type
+    params: []
+    return_type: string
+    pure: false
+    examples:
+      - "uuid()"
+      - "prefix('entity/', uuid())"
+
+- eidos: function
+  id: function/random_hex
+  data:
+    name: random_hex
+    description: |
+      Generates a cryptographically random hex string.
+      Default 32 bytes (64 hex characters).
+    category: type
+    params:
+      - name: bytes
+        type: number
+        required: false
+        description: Number of random bytes (default 32)
+    return_type: string
+    pure: false
+    examples:
+      - "random_hex()"
+      - "random_hex(16)"

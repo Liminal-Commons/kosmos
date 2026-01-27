@@ -1,0 +1,79 @@
+# Oikos Manifest: Psyche
+# ψυχή — the experiencing self — attention, intention, mood, thyra, prospect, kairos
+#
+# Manifest v2.1 — oikos metadata for entity composition
+
+format_version: "2.1"
+oikos_id: psyche
+version: "0.2.0"
+
+# Oikos metadata (v2.1)
+oikos_name: Psyche
+oikos_description: |
+  The experiencing self. Provides attention (where focus rests),
+  intention (what is being pursued), mood (how the world shows up),
+  thyra (the portal through which experience flows), and temporal
+  texture (prospect and kairos).
+oikos_scale: psyche
+
+content_paths:
+  - path: eide/
+    content_types: [eidos]
+  - path: desmoi/
+    content_types: [desmos]
+  - path: praxeis/
+    content_types: [praxis]
+
+requires_dynamis:
+  - db.arise
+  - db.find
+  - db.bind
+  - db.trace
+  - db.update
+  - db.loose
+  - db.gather
+
+provides:
+  eide:
+    - attention
+    - intention
+    - mood
+    - thyra
+    - prospect
+    - kairos
+
+  desmoi:
+    - attends
+    - intends
+    - mood-of
+    - portal-of
+    - foresees
+    - recognizes
+    - opportune-for
+
+  praxeis:
+    # Attention
+    - psyche/attend
+    - psyche/release-attention
+    - psyche/list-attending
+    # Intention
+    - psyche/form-intention
+    - psyche/activate-intention
+    - psyche/fulfill-intention
+    - psyche/abandon-intention
+    - psyche/list-intentions
+    # Mood
+    - psyche/disclose-mood
+    - psyche/sense-mood
+    # Thyra
+    - psyche/open-thyra
+    - psyche/close-thyra
+    - psyche/list-thyrai
+    # Prospect and Kairos
+    - psyche/foresee
+    - psyche/recognize-kairos
+    # Continuity
+    - psyche/compose-constitution
+
+stoicheia_form:
+  # All stoicheia currently arche-level

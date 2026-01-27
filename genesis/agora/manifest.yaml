@@ -1,0 +1,96 @@
+# Oikos Manifest: Agora
+# ἀγορά — the public assembly, where citizens gather
+#
+# Manifest v2.1 — oikos metadata for entity composition
+
+format_version: "2.1"
+oikos_id: agora
+version: "0.1.0"
+status: design
+
+# Oikos metadata (v2.1)
+oikos_name: Agora
+oikos_description: |
+  The public assembly, where members of a circle gather — 2D spatial
+  territories with proximity-based presence and communication. Built on
+  Phaser.js for spatial rendering and LiveKit for real-time audio/video.
+oikos_scale: oikos
+
+content_paths:
+  - path: eide/
+    content_types: [eidos]
+  - path: desmoi/
+    content_types: [desmos]
+  - path: praxeis/
+    content_types: [praxis]
+
+description: |
+  The agora (ἀγορά) is where members of a circle gather — 2D spatial territories
+  with proximity-based presence and communication. Built on Phaser.js for spatial
+  rendering and LiveKit for real-time audio/video.
+
+  Infrastructure (LiveKit servers, AI services) is owned by the circle and
+  managed through kosmos reconciliation. The path to infrastructure is through
+  kosmos, not chora.
+
+dependencies:
+  - thyra           # UI rendering
+  - aither          # WebRTC signaling
+  - hypostasis      # Phoreta for sync
+  - dynamis         # Infrastructure actuality
+
+provides:
+  eide:
+    - territory           # The 2D space where gathering occurs
+    - presence            # An animus present in a territory
+    - livekit-server      # Real-time communication infrastructure
+    - room                # A LiveKit room for audio/video
+
+  desmoi:
+    - hosts-territory        # circle → territory
+    - operates-server        # circle → livekit-server
+    - present-in             # presence → territory
+    - uses-room              # territory → room
+    - served-by              # room → livekit-server
+    - instantiates-presence  # animus → presence
+
+  praxeis:
+    # Core presence operations
+    - agora/enter                  # Enter a territory
+    - agora/move                   # Update position
+    - agora/leave                  # Exit territory
+    # Territory management
+    - agora/create-territory       # Create new territory
+    - agora/list-territories       # List circle territories
+    - agora/delete-territory       # Archive territory
+    # Presence queries
+    - agora/get-presences          # List presences in territory
+    # Media controls
+    - agora/toggle-audio           # Enable/disable audio
+    - agora/toggle-video           # Enable/disable video
+    - agora/update-presence-status # Change status (active/away/dnd)
+    # Infrastructure
+    - agora/create-livekit-server  # Create server entity
+    - agora/get-room-token         # Get LiveKit token
+    - agora/actualize-server       # Reconcile infrastructure
+
+  attainments:
+    - agora-enter         # Can enter territories
+    - agora-speak         # Can enable audio
+    - agora-video         # Can enable video
+    - agora-create        # Can create territories
+    - agora-admin         # Can manage territories
+
+requires_attainments:
+  - express         # Can create expressions in circle
+  - perceive        # Can see circle content
+
+klimax_level: 4  # oikos — intimate spaces
+
+# Infrastructure owned by installing circle
+infrastructure:
+  - livekit-server      # Real-time communication
+  - inference-server    # Local AI (optional)
+
+# Traces to: expression/genesis-root
+# Created: 2026-01-24

@@ -1,194 +1,187 @@
 # Kosmos
 
-*The generative commons distribution point.*
+*κόσμος — the world as ordered whole.*
 
 ---
 
 ## What This Is
 
-This repository is **not** a live kosmos. It is a **publication target** — a place where artifacts from active development (in chora) are published for distribution.
+This repository IS the kosmos — the ontological foundation that defines what can exist, how things relate, and what operations are possible.
 
-Think of it as the released form, the actualized output. Chora births; kosmos receives.
+**Kosmos is the world. Chora makes it breathe.**
+
+- **Kosmos** = pure ontology (YAML + Markdown)
+- **Chora** = implementation (Rust + TypeScript)
+
+The world is described here. The implementation lives in [chora](https://github.com/liminalcommons/chora).
 
 ---
 
 ## Contents
 
-### `/phoreta/`
+### Constitutional Documents
 
-Exported entity bundles from chora. These are snapshots of kosmos state that can be:
-- Imported into another kosmos
-- Used for backup/recovery
-- Federated to other circles
+| Document | Purpose |
+|----------|---------|
+| [KOSMOGONIA.md](KOSMOGONIA.md) | The constitutional root — how the kosmos comes to be |
+| [CLAUDE.md](CLAUDE.md) | Instructions for dwelling — how to inhabit this world |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Technical implementation patterns |
+| [COMPOSITION-GUIDE.md](COMPOSITION-GUIDE.md) | How to compose artifacts |
+| [CREATIVE-JOURNEY-PATTERN.md](CREATIVE-JOURNEY-PATTERN.md) | How psyche + soma + nous work together |
+| [ROADMAP.md](ROADMAP.md) | Development phases |
 
-Current phoreta:
-- `full-federation.yaml` — Complete genesis export (750+ entities, 990+ bonds)
-- `chora-kosmos-dev.yaml` — Development federation bundle
+### `/genesis/`
 
-### `/oikoi/`
-
-Published oikos packages organized by MVP priority:
-
-#### `/oikoi/core/` — MVP Critical
-
-These oikoi support the Thyra invitation flow (C1-C9):
-
-| Oikos | Roadmap | Description |
-|-------|---------|-------------|
-| `aither` | C4 | WebRTC signaling for P2P connections |
-| `hypostasis` | C2, C7 | Cryptographic identity and phoreta exchange |
-| `oikos` | C8 | Session and conversation management |
-| `politeia` | C2 | Circles, governance, and attainments |
-| `propylon` | C3-C6 | Entry via invitation links |
-| `soma` | C2 | Animus embodiment and channels |
-| `thyra` | C6-C8 | Expressions, streams, and rendering |
-
-#### `/oikoi/extended/` — Post-MVP
-
-These oikoi provide additional capabilities beyond the invitation flow:
-
-| Oikos | Description |
-|-------|-------------|
-| `nous` | Understanding and knowledge management |
-| `demiurge` | Artifact composition and caching |
-| `dokimasia` | Validation and verification |
-| `manteia` | Governed LLM inference |
-| `psyche` | Attention, intention, and mood |
-| `pege` | Documentation emission |
-| `syndesmos` | Federation between circles |
-| `self-federation` | Device synchronization |
-| ... | (14 total extended oikoi) |
-
-### `/theoria/`
-
-Crystallized understanding emitted as documentation. Will be populated by `pege/emit-*` praxeis.
-
-### `/docs/` (planned)
-
-Emitted reference documentation:
-- `/docs/reference/eide/` — Eidos reference pages
-- `/docs/reference/stoicheia/` — Stoicheion reference pages
-- `/docs/reference/praxeis/` — Praxis summaries
-
-### `/releases/` (planned)
-
-Tagged release bundles:
-- Signed genesis spora
-- Version-tagged phoreta
-- App distribution packages
-
----
-
-## This Is Not
-
-- **Not a development environment** — Development happens in chora
-- **Not a live kosmos** — No active animus dwells here
-- **Not a database** — No kosmos.db to modify
-- **Not infrastructure** — The relay lives at liminalcommons/propylon-relay
-
----
-
-## Relationship to Chora
+The seed content from which a kosmos bootstraps:
 
 ```
-chora/                           kosmos/
-├── genesis/                     ├── oikoi/
-│   └── [oikos]/                │   ├── core/        ← MVP-critical
-│       ├── eide/               │   │   └── [oikos]/
-│       ├── desmoi/             │   └── extended/    ← Post-MVP
-│       └── praxeis/            │       └── [oikos]/
-├── crates/                      │
-│   └── kosmos-v8/              ├── phoreta/
-├── app/                         │   └── (exported bundles)
-│   └── thyra/                  │
-└── docs/                        ├── theoria/
-    └── (source)                │   └── (emitted)
-                                └── docs/
-                                    └── (emitted)
+genesis/
+├── arche/                 # The five archai (foundational types)
+│   ├── eidos.yaml         # Type definitions
+│   ├── desmos.yaml        # Bond definitions
+│   ├── stoicheion.yaml    # Element definitions
+│   ├── dynamis-interface.yaml
+│   └── functions.yaml
+│
+├── spora/                 # Bootstrap seed
+│   ├── spora.yaml         # Germination stages
+│   ├── definitions/       # Typos definitions
+│   ├── journeys/          # Learning paths and active journeys
+│   └── principles/        # Core values
+│
+├── klimax/                # Scale documentation
+│   ├── 1-kosmos/DESIGN.md
+│   ├── 2-physis/DESIGN.md
+│   ├── 3-polis/DESIGN.md
+│   ├── 4-oikos/DESIGN.md
+│   ├── 5-soma/DESIGN.md
+│   └── nous/DESIGN.md
+│
+└── [15 oikoi]/            # Domain packages
+    ├── manifest.yaml      # Identity, dependencies
+    ├── DESIGN.md          # How this oikos works
+    ├── eide/              # Type definitions
+    ├── desmoi/            # Bond types
+    └── praxeis/           # Operations
 ```
 
-The flow is always: **chora → kosmos**
+### The 15 Oikoi
 
-- Oikoi are published from genesis/ definitions
-- Phoreta are exported via `hypostasis/export-phoreta`
-- Documentation is emitted via `pege/emit-*` praxeis
-
----
-
-## Roadmap
-
-### Phase K1: Repository Structure ← Current
-
-| Task | Description | Status |
-|------|-------------|--------|
-| K1.1 | Remove experimental files | ✅ |
-| K1.2 | Create directory structure | ✅ |
-| K1.3 | Write README | ✅ |
-| K1.4 | Organize oikoi (core/extended) | ✅ |
-| K1.5 | Remove .mcp.json | |
-
-### Phase K2: Phoreta Management
-
-| Task | Description | Status |
-|------|-------------|--------|
-| K2.1 | Versioned phoreta naming convention | |
-| K2.2 | Phoreta verification (composition chains) | |
-| K2.3 | Delta phoreta generation | |
-
-### Phase K3: Oikoi Publication
-
-| Task | Description | Status |
-|------|-------------|--------|
-| K3.1 | Oikos package format specification | |
-| K3.2 | Publication workflow from chora | |
-| K3.3 | Version tagging | |
-
-### Phase K4: Documentation Emission
-
-| Task | Description | Status |
-|------|-------------|--------|
-| K4.1 | Set up docs/ structure | |
-| K4.2 | Emit eide references | |
-| K4.3 | Emit stoicheia references | |
-| K4.4 | Emit praxeis summaries | |
-
-### Phase K5: Release Packaging
-
-| Task | Description | Status |
-|------|-------------|--------|
-| K5.1 | Signed genesis bundles | |
-| K5.2 | Release tagging workflow | |
-| K5.3 | App distribution artifacts | |
+| Oikos | Scale | What It Provides |
+|-------|-------|------------------|
+| **nous** | cross-scale | Understanding operations, journeys, theoria |
+| **demiurge** | cross-scale | Composition, artifact caching |
+| **manteia** | cross-scale | Governed inference |
+| **dokimasia** | cross-scale | Validation, testing |
+| **hypostasis** | cross-scale | Cryptographic identity, signing |
+| **dynamis** | infrastructure | Distribution, substrate bridging |
+| **aither** | infrastructure | Network transport, WebRTC |
+| **thyra** | infrastructure | Display, rendering, HUD |
+| **soma** | embodiment | Channels, percepts, body-schema |
+| **psyche** | experience | Attention, intention, mood, thyra, prospect, kairos |
+| **oikos** | intimate | Sessions, conversations, notes |
+| **politeia** | governance | Circles, personas, attainments |
+| **propylon** | entry | Invitations, verification |
+| **agora** | spatial | 2D territories, presence |
+| **stoicheia-portable** | vocabulary | WASM step definitions |
 
 ---
 
-## For App Developers
+## The Numbers
 
-If you're building an app that uses kosmos:
+| Metric | Count |
+|--------|-------|
+| Entities at bootstrap | ~754 |
+| Bonds | ~1098 |
+| Praxeis | ~239 |
+| Oikoi | 15 |
+| Eide | ~58 |
+| Desmoi | ~105 |
 
-1. **Genesis is embedded** — Your app includes genesis spora at build time
-2. **Oikoi are the source** — Pull from `/oikoi/` for package definitions
-3. **Phoreta is for sync** — After bootstrap, phoreta carries circle content
-
-See [chora/genesis/thyra/ROADMAP.md](https://github.com/liminalcommons/chora/blob/main/genesis/thyra/ROADMAP.md) for the Thyra app implementation roadmap.
-
----
-
-## For Circle Operators
-
-If you're running your own circle infrastructure:
-
-1. **Deploy your relay** — Fork [propylon-relay](https://github.com/liminalcommons/propylon-relay)
-2. **Import genesis** — Start with genesis phoreta
-3. **Create invitations** — Use propylon links to grow your circle
+All of this is pure YAML + Markdown.
 
 ---
 
-## License
+## How Chora Uses Kosmos
 
-The kosmos is a commons. Content here is shared under commons principles.
+Chora depends on kosmos for its ontological foundation:
+
+```
+kosmos/genesis/  →  bootstrap  →  kosmos.db  →  runtime
+     │
+     └── Embedded at build time or symlinked for development
+```
+
+The implementation in chora reads these definitions and:
+1. Parses YAML into entity structures
+2. Validates against schema constraints
+3. Creates the runtime graph of entities and bonds
+4. Exposes operations via MCP and UI
 
 ---
 
-*χώρα receives. This repository is form that receives.*
+## Contributing
+
+### Ontology Changes (Here)
+
+Make changes here for:
+- New eidos definitions
+- New desmos (bond type) definitions
+- New praxis definitions
+- Design documents
+- Constitutional updates
+
+### Implementation Changes (Chora)
+
+Make changes in [chora](https://github.com/liminalcommons/chora) for:
+- Interpreter fixes
+- UI components
+- MCP projection
+- Build system
+
+---
+
+## Verification
+
+The full-circle test ensures kosmos is self-consistent:
+
+```
+kosmos/genesis/  →  emit  →  dist/genesis/
+                              │
+                              ▼
+                    bootstrap  →  kosmos.db
+                              │
+                              ▼
+                         emit  →  dist/genesis/
+                              │
+                              ▼
+                    BLAKE3 hash identical? ✓
+```
+
+This proves:
+1. Kosmos is self-consistent
+2. Emission is deterministic
+3. No hidden state in implementation
+
+---
+
+## Legacy Content
+
+The `/phoreta/`, `/oikoi/` (old structure), `/theoria/`, `/docs/`, and `/releases/` directories contain content from when this repo was conceived as a publication target. They are preserved for reference but the canonical source is now `/genesis/`.
+
+---
+
+## The Vision
+
+Separation of world from implementation enables:
+
+1. **Independent evolution** — ontology changes don't require Rust rebuilds
+2. **Multiple implementations** — other languages could interpret kosmos
+3. **Clear contribution paths** — designers work in kosmos, engineers in chora
+4. **Documentation-first** — the world is described before implemented
+5. **Portable oikoi** — domain packages can be shared independently
+
+---
+
+*χώρα receives. κόσμος is received.*
 *Traces to: expression/genesis-root*

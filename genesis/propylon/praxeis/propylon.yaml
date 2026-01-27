@@ -1,0 +1,1059 @@
+# propylon.yaml
+# Gateway entry praxeis — the narrow way through which beings enter
+#
+# Propylon facilitates entry, then forgets:
+# - Create shareable invitation links
+# - Validate invitation signatures
+# - Challenge-response authentication
+# - Hand off to P2P via aither
+#
+# The relay is deployed at propylon.liminalcommons.com
+
+entities:
+
+# =============================================================================
+# INVITATION LINK CREATION
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/propylon/create-link
+  data:
+    oikos: propylon
+    name: create-link
+    visible: true
+    tier: 2
+    description: |
+      Create a shareable invitation link for a circle.
+
+      The link encodes:
+      - invitation_id (UUID)
+      - circle_id (target circle)
+      - inviter_pubkey (for verification)
+      - signature (Ed25519 over invitation_id)
+      - display metadata (names, message)
+      - constraints (expiry, max_uses, require_approval)
+
+      Returns a URL-safe encoded link.
+    params:
+      - name: circle_id
+        type: string
+        required: true
+        description: Circle to invite to
+      - name: message
+        type: string
+        required: false
+        description: Optional message to include
+      - name: expires_in_days
+        type: number
+        required: false
+        description: Days until expiration (default 7)
+      - name: max_uses
+        type: number
+        required: false
+        description: Maximum uses (omit for unlimited)
+      - name: require_approval
+        type: boolean
+        required: false
+        description: Whether inviter must approve (default false)
+    steps:
+      # Get current dwelling context
+      - step: call
+        praxis: soma/sense-body
+        params: {}
+        bind_to: body
+
+      - step: assert
+        condition: "$body.animus_id"
+        message: "No animus in dwelling context"
+
+      # Verify caller is sovereign to the circle
+      - step: find
+        id: "$circle_id"
+        bind_to: circle
+
+      - step: assert
+        condition: "$circle"
+        message: "Circle not found: $circle_id"
+
+      # Generate invitation ID
+      - step: set
+        bindings:
+          invitation_id: "invitation/{{ uuid() }}"
+          expires_at: "{{ timestamp_add_days(now(), $expires_in_days || 7) }}"
+
+      # Get inviter's keypair from dwelling context
+      - step: call
+        praxis: hypostasis/derive-circle-key
+        params:
+          circle_id: "$circle_id"
+          purpose: invitation
+        bind_to: keypair
+
+      # Sign the invitation
+      - step: call
+        praxis: hypostasis/sign-content
+        params:
+          content: "$invitation_id"
+          private_key: "$keypair.private_key"
+        bind_to: signature_result
+
+      # Get inviter persona
+      - step: find
+        id: "$body.persona_id"
+        bind_to: persona
+
+      # Create invitation entity (CE4: compose instead of arise)
+      - step: compose
+        typos_id: "typos-def-invitation"
+        inputs:
+          id: "$invitation_id"
+          circle_id: "$circle_id"
+          inviter_id: "$body.persona_id"
+          message: "$message"
+          expires_at: "$expires_at"
+          max_uses: "$max_uses"
+          require_approval: "$require_approval || false"
+          status: active
+          use_count: 0
+          created_at: "{{ now() }}"
+
+      # Create propylon-link entity (CE4: compose instead of arise)
+      - step: compose
+        typos_id: "typos-def-propylon-link"
+        inputs:
+          id: "propylon-link/{{ uuid() }}"
+          invitation_id: "$invitation_id"
+          bootstrap: "wss://propylon.liminalcommons.com"
+          circle_id: "$circle_id"
+          inviter_id: "$body.persona_id"
+          inviter_pubkey: "$keypair.public_key"
+          signature: "$signature_result.signature"
+          display:
+            circle_name: "$circle.data.name"
+            inviter_name: "$persona.data.name"
+            message: "$message"
+          expires_at: "$expires_at"
+          max_uses: "$max_uses"
+          require_approval: "$require_approval || false"
+          status: active
+          created_at: "{{ now() }}"
+        bind_to: link_entity
+
+      # Create grants-entry-to bond
+      - step: bind
+        desmos: grants-entry-to
+        from: "$link_entity.id"
+        to: "$circle_id"
+
+      # Encode the link for sharing
+      - step: call
+        praxis: propylon/encode-link
+        params:
+          link_id: "$link_entity.id"
+        bind_to: encoded
+
+      - step: return
+        value:
+          link_id: "$link_entity.id"
+          invitation_id: "$invitation_id"
+          encoded_link: "$encoded.url"
+          shareable_url: "https://chora.link/p/$encoded.url"
+          expires_at: "$expires_at"
+
+# =============================================================================
+# LINK ENCODING/DECODING
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/propylon/encode-link
+  data:
+    oikos: propylon
+    name: encode-link
+    visible: false
+    tier: 1
+    description: |
+      Encode a propylon-link entity to URL-safe string.
+
+      Process: JSON → Compress → Base64url
+    params:
+      - name: link_id
+        type: string
+        required: true
+        description: The propylon-link entity ID
+    steps:
+      - step: find
+        id: "$link_id"
+        bind_to: link
+
+      - step: assert
+        condition: "$link"
+        message: "Link not found: $link_id"
+
+      # Extract fields for encoding
+      - step: set
+        bindings:
+          link_data:
+            invitation_id: "$link.data.invitation_id"
+            bootstrap: "$link.data.bootstrap"
+            inviter_id: "$link.data.inviter_id"
+            inviter_pubkey: "$link.data.inviter_pubkey"
+            signature: "$link.data.signature"
+            circle_id: "$link.data.circle_id"
+            display: "$link.data.display"
+            expires_at: "$link.data.expires_at"
+
+      # Encode: JSON → Base64url (compression deferred to Rust)
+      - step: set
+        bindings:
+          json_str: "{{ json_encode($link_data) }}"
+          url: "{{ base64url_encode($json_str) }}"
+
+      - step: return
+        value:
+          url: "$url"
+
+- eidos: praxis
+  id: praxis/propylon/decode-link
+  data:
+    oikos: propylon
+    name: decode-link
+    visible: true
+    tier: 1
+    description: |
+      Decode a URL-safe propylon link string to its components.
+
+      Process: Base64url → Decompress → JSON
+    params:
+      - name: encoded
+        type: string
+        required: true
+        description: The encoded link string
+    steps:
+      # Decode: Base64url → JSON
+      - step: set
+        bindings:
+          json_str: "{{ base64url_decode($encoded) }}"
+          link_data: "{{ json_decode($json_str) }}"
+
+      - step: return
+        value:
+          invitation_id: "$link_data.invitation_id"
+          bootstrap: "$link_data.bootstrap"
+          inviter_id: "$link_data.inviter_id"
+          inviter_pubkey: "$link_data.inviter_pubkey"
+          signature: "$link_data.signature"
+          circle_id: "$link_data.circle_id"
+          display: "$link_data.display"
+          expires_at: "$link_data.expires_at"
+
+# =============================================================================
+# LINK VALIDATION
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/propylon/validate-link
+  data:
+    oikos: propylon
+    name: validate-link
+    visible: true
+    tier: 2
+    description: |
+      Validate an invitation link.
+
+      Checks:
+      - Expiry (not expired)
+      - Status (not revoked)
+      - Use count (not exceeded max_uses)
+      - Signature (Ed25519 verification)
+
+      Returns validation result.
+    params:
+      - name: encoded
+        type: string
+        required: true
+        description: The encoded link string
+    steps:
+      # Decode the link
+      - step: call
+        praxis: propylon/decode-link
+        params:
+          encoded: "$encoded"
+        bind_to: link_data
+
+      # Check expiry
+      - step: set
+        bindings:
+          now: "{{ now() }}"
+          expired: "{{ $link_data.expires_at && timestamp_before($link_data.expires_at, $now) }}"
+
+      - step: switch
+        cases:
+          - when: "$expired == true"
+            then:
+              - step: return
+                value:
+                  valid: false
+                  error: "Link has expired"
+
+      # Verify signature
+      - step: call
+        praxis: hypostasis/verify-signature
+        params:
+          message: "$link_data.invitation_id"
+          signature: "$link_data.signature"
+          public_key: "$link_data.inviter_pubkey"
+        bind_to: sig_result
+
+      - step: switch
+        cases:
+          - when: "$sig_result.valid == false"
+            then:
+              - step: return
+                value:
+                  valid: false
+                  error: "Invalid signature"
+
+      # Check if invitation exists and is still active
+      - step: find
+        id: "$link_data.invitation_id"
+        bind_to: invitation
+
+      - step: switch
+        cases:
+          - when: "!$invitation"
+            then:
+              - step: return
+                value:
+                  valid: false
+                  error: "Invitation not found"
+
+      - step: switch
+        cases:
+          - when: "$invitation.data.status == \"revoked\""
+            then:
+              - step: return
+                value:
+                  valid: false
+                  error: "Invitation has been revoked"
+          - when: "$invitation.data.status == \"used\""
+            then:
+              - step: return
+                value:
+                  valid: false
+                  error: "Invitation has already been used"
+
+      # Check use count
+      - step: switch
+        cases:
+          - when: "$invitation.data.max_uses && $invitation.data.use_count >= $invitation.data.max_uses"
+            then:
+              - step: return
+                value:
+                  valid: false
+                  error: "Invitation has reached maximum uses"
+
+      - step: return
+        value:
+          valid: true
+          invitation_id: "$link_data.invitation_id"
+          circle_id: "$link_data.circle_id"
+          inviter_id: "$link_data.inviter_id"
+          require_approval: "$invitation.data.require_approval"
+
+# =============================================================================
+# CHALLENGE-RESPONSE AUTHENTICATION
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/propylon/challenge-entry
+  data:
+    oikos: propylon
+    name: challenge-entry
+    visible: true
+    tier: 2
+    description: |
+      Issue an authentication challenge for entry.
+
+      Creates a propylon-session with a nonce to sign.
+      The entrant must sign the nonce with their keypair.
+
+      For first-time entry: generates new keypair
+      For returning entry: uses existing keypair
+    params:
+      - name: encoded
+        type: string
+        required: true
+        description: The encoded invitation link
+      - name: entrant_pubkey
+        type: string
+        required: false
+        description: Existing public key (for returning entry)
+    steps:
+      # Validate the link first
+      - step: call
+        praxis: propylon/validate-link
+        params:
+          encoded: "$encoded"
+        bind_to: validation
+
+      - step: assert
+        condition: "$validation.valid"
+        message: "$validation.error"
+
+      # Generate challenge nonce
+      - step: set
+        bindings:
+          session_id: "propylon-session/{{ uuid() }}"
+          nonce: "{{ random_hex(32) }}"
+          challenge_expires: "{{ timestamp_add_minutes(now(), 5) }}"
+
+      # Create session entity (CE4: compose instead of arise)
+      - step: compose
+        typos_id: "typos-def-propylon-session"
+        inputs:
+          id: "$session_id"
+          invitation_id: "$validation.invitation_id"
+          circle_id: "$validation.circle_id"
+          nonce: "$nonce"
+          entrant_pubkey: "$entrant_pubkey"
+          status: challenged
+          challenge_expires: "$challenge_expires"
+          require_approval: "$validation.require_approval"
+          created_at: "{{ now() }}"
+        bind_to: session
+
+      # Bond session to link
+      - step: find
+        eidos: propylon-link
+        where:
+          invitation_id: "$validation.invitation_id"
+        bind_to: link
+
+      - step: switch
+        cases:
+          - when: "$link"
+            then:
+              - step: bind
+                desmos: used-link
+                from: "$session_id"
+                to: "$link.id"
+
+      - step: return
+        value:
+          session_id: "$session_id"
+          nonce: "$nonce"
+          challenge_expires: "$challenge_expires"
+          circle_id: "$validation.circle_id"
+          require_approval: "$validation.require_approval"
+          first_time: "{{ !$entrant_pubkey }}"
+
+- eidos: praxis
+  id: praxis/propylon/verify-entry
+  data:
+    oikos: propylon
+    name: verify-entry
+    visible: true
+    tier: 2
+    description: |
+      Verify entry response and complete authentication.
+
+      For first-time entry: verify signature with new pubkey
+      For returning entry: verify signature with known pubkey
+
+      On success:
+      - Creates animus
+      - Updates invitation use count
+      - Returns connection info for P2P
+
+      The gateway forgets after handoff.
+    params:
+      - name: session_id
+        type: string
+        required: true
+        description: The propylon-session ID
+      - name: signed_nonce
+        type: string
+        required: true
+        description: Signature of the nonce
+      - name: entrant_pubkey
+        type: string
+        required: true
+        description: Public key that signed the nonce
+      - name: persona_name
+        type: string
+        required: false
+        description: Display name for new persona (first-time entry)
+    steps:
+      # Find the session
+      - step: find
+        id: "$session_id"
+        bind_to: session
+
+      - step: assert
+        condition: "$session"
+        message: "Session not found"
+
+      - step: assert
+        condition: "$session.data.status == 'challenged'"
+        message: "Session not in challenged state"
+
+      # Check challenge expiry
+      - step: set
+        bindings:
+          expired: "{{ timestamp_before($session.data.challenge_expires, now()) }}"
+
+      - step: assert
+        condition: "!$expired"
+        message: "Challenge has expired"
+
+      # Verify signature
+      - step: call
+        praxis: hypostasis/verify-signature
+        params:
+          message: "$session.data.nonce"
+          signature: "$signed_nonce"
+          public_key: "$entrant_pubkey"
+        bind_to: sig_result
+
+      - step: assert
+        condition: "$sig_result.valid"
+        message: "Invalid signature"
+
+      # For returning entry, verify pubkey matches
+      - step: switch
+        cases:
+          - when: "$session.data.entrant_pubkey && $session.data.entrant_pubkey != $entrant_pubkey"
+            then:
+              - step: return
+                value:
+                  success: false
+                  error: "Public key does not match"
+
+      # Update invitation use count
+      - step: find
+        id: "$session.data.invitation_id"
+        bind_to: invitation
+
+      - step: update
+        id: "$invitation.id"
+        data:
+          use_count: "{{ $invitation.data.use_count + 1 }}"
+
+      # Check if approval required
+      - step: switch
+        cases:
+          - when: "$session.data.require_approval == true"
+            then:
+              # Mark session as pending approval
+              - step: update
+                id: "$session_id"
+                data:
+                  status: pending_approval
+                  entrant_pubkey: "$entrant_pubkey"
+                  persona_name: "$persona_name"
+              - step: return
+                value:
+                  success: true
+                  status: pending_approval
+                  message: "Entry request submitted. Awaiting inviter approval."
+
+      # Direct entry: create persona and animus
+      - step: set
+        bindings:
+          persona_id: "persona/{{ uuid() }}"
+          animus_id: "animus/{{ uuid() }}"
+
+      # Create persona for new entrant (CE4: compose instead of arise)
+      - step: compose
+        typos_id: "typos-def-persona"
+        inputs:
+          id: "$persona_id"
+          name: "$persona_name || 'Anonymous'"
+          pubkey: "$entrant_pubkey"
+          created_at: "{{ now() }}"
+        bind_to: persona
+
+      # Create animus via soma
+      - step: call
+        praxis: soma/arise-animus
+        params:
+          persona_id: "$persona_id"
+          animus_id: "$animus_id"
+        bind_to: animus_result
+
+      # Add membership to circle
+      - step: bind
+        desmos: member-of
+        from: "$animus_id"
+        to: "$session.data.circle_id"
+
+      # Bond animus to session for audit
+      - step: bind
+        desmos: authenticated-via
+        from: "$animus_id"
+        to: "$session_id"
+
+      # Update session to authenticated
+      - step: update
+        id: "$session_id"
+        data:
+          status: authenticated
+          entrant_pubkey: "$entrant_pubkey"
+          animus_id: "$animus_id"
+          authenticated_at: "{{ now() }}"
+
+      # Get connection info for P2P handoff
+      - step: set
+        bindings:
+          connection_info:
+            webrtc:
+              ice_servers:
+                - urls: ["stun:stun.l.google.com:19302"]
+            relay:
+              url: "wss://propylon.liminalcommons.com"
+              room_id: "$session.data.circle_id"
+            session:
+              id: "$session_id"
+              expires_at: "{{ timestamp_add_hours(now(), 1) }}"
+
+      - step: return
+        value:
+          success: true
+          status: authenticated
+          persona_id: "$persona_id"
+          animus_id: "$animus_id"
+          circle_id: "$session.data.circle_id"
+          connection_info: "$connection_info"
+
+# =============================================================================
+# LINK MANAGEMENT
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/propylon/revoke-link
+  data:
+    oikos: propylon
+    name: revoke-link
+    visible: true
+    tier: 2
+    description: |
+      Revoke an invitation link.
+
+      Marks both the propylon-link and invitation as revoked.
+      Any pending sessions using this link will fail validation.
+    params:
+      - name: invitation_id
+        type: string
+        required: true
+        description: The invitation to revoke
+    steps:
+      # Find the invitation
+      - step: find
+        id: "$invitation_id"
+        bind_to: invitation
+
+      - step: assert
+        condition: "$invitation"
+        message: "Invitation not found"
+
+      # Verify caller is the inviter
+      - step: call
+        praxis: soma/sense-body
+        params: {}
+        bind_to: body
+
+      - step: assert
+        condition: "$invitation.data.inviter_id == $body.persona_id"
+        message: "Only the inviter can revoke"
+
+      # Update invitation
+      - step: update
+        id: "$invitation_id"
+        data:
+          status: revoked
+          revoked_at: "{{ now() }}"
+
+      # Find and update associated link
+      - step: find
+        eidos: propylon-link
+        where:
+          invitation_id: "$invitation_id"
+        bind_to: link
+
+      - step: switch
+        cases:
+          - when: "$link"
+            then:
+              - step: update
+                id: "$link.id"
+                data:
+                  status: revoked
+                  revoked_at: "{{ now() }}"
+
+      - step: return
+        value:
+          revoked: true
+          invitation_id: "$invitation_id"
+
+- eidos: praxis
+  id: praxis/propylon/list-entry-audit
+  data:
+    oikos: propylon
+    name: list-entry-audit
+    visible: true
+    tier: 1
+    description: |
+      Query entry history for a circle.
+
+      Returns propylon-sessions for the caller's circles.
+      Useful for intrusion detection and audit.
+    params:
+      - name: circle_id
+        type: string
+        required: true
+        description: Circle to query
+      - name: status
+        type: string
+        required: false
+        description: Filter by status (challenged, authenticated, failed, pending_approval)
+      - name: limit
+        type: number
+        required: false
+        description: Maximum results (default 50)
+    steps:
+      # Gather sessions for this circle
+      - step: gather
+        eidos: propylon-session
+        where:
+          circle_id: "$circle_id"
+        limit: "$limit || 50"
+        bind_to: sessions
+
+      # Filter by status if provided
+      - step: switch
+        cases:
+          - when: "$status"
+            then:
+              - step: filter
+                items: "$sessions"
+                condition: "$item.data.status == $status"
+                bind_to: sessions
+
+      # Sort by created_at descending
+      - step: sort
+        input: "$sessions"
+        by: "data.created_at"
+        order: desc
+        bind_to: sessions
+
+      - step: return
+        value:
+          circle_id: "$circle_id"
+          count: "{{ length($sessions) }}"
+          sessions: "$sessions"
+
+# =============================================================================
+# APPROVAL FLOW
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/propylon/approve-entry
+  data:
+    oikos: propylon
+    name: approve-entry
+    visible: true
+    tier: 2
+    description: |
+      Approve a pending entry request.
+
+      Called by the inviter to approve someone waiting.
+      Creates the animus and returns connection info.
+    params:
+      - name: session_id
+        type: string
+        required: true
+        description: The pending session to approve
+    steps:
+      - step: find
+        id: "$session_id"
+        bind_to: session
+
+      - step: assert
+        condition: "$session"
+        message: "Session not found"
+
+      - step: assert
+        condition: "$session.data.status == 'pending_approval'"
+        message: "Session not pending approval"
+
+      # Verify caller is the inviter
+      - step: find
+        id: "$session.data.invitation_id"
+        bind_to: invitation
+
+      - step: call
+        praxis: soma/sense-body
+        params: {}
+        bind_to: body
+
+      - step: assert
+        condition: "$invitation.data.inviter_id == $body.persona_id"
+        message: "Only the inviter can approve"
+
+      # Create persona and animus
+      - step: set
+        bindings:
+          persona_id: "persona/{{ uuid() }}"
+          animus_id: "animus/{{ uuid() }}"
+
+      # CE4: compose instead of arise
+      - step: compose
+        typos_id: "typos-def-persona"
+        inputs:
+          id: "$persona_id"
+          name: "$session.data.persona_name || 'Anonymous'"
+          pubkey: "$session.data.entrant_pubkey"
+          created_at: "{{ now() }}"
+
+      - step: call
+        praxis: soma/arise-animus
+        params:
+          persona_id: "$persona_id"
+          animus_id: "$animus_id"
+        bind_to: animus_result
+
+      - step: bind
+        desmos: member-of
+        from: "$animus_id"
+        to: "$session.data.circle_id"
+
+      - step: bind
+        desmos: authenticated-via
+        from: "$animus_id"
+        to: "$session_id"
+
+      - step: update
+        id: "$session_id"
+        data:
+          status: authenticated
+          animus_id: "$animus_id"
+          approved_at: "{{ now() }}"
+          approved_by: "$body.persona_id"
+
+      - step: return
+        value:
+          success: true
+          persona_id: "$persona_id"
+          animus_id: "$animus_id"
+
+- eidos: praxis
+  id: praxis/propylon/reject-entry
+  data:
+    oikos: propylon
+    name: reject-entry
+    visible: true
+    tier: 2
+    description: |
+      Reject a pending entry request.
+    params:
+      - name: session_id
+        type: string
+        required: true
+        description: The pending session to reject
+      - name: reason
+        type: string
+        required: false
+        description: Reason for rejection
+    steps:
+      - step: find
+        id: "$session_id"
+        bind_to: session
+
+      - step: assert
+        condition: "$session"
+        message: "Session not found"
+
+      - step: assert
+        condition: "$session.data.status == 'pending_approval'"
+        message: "Session not pending approval"
+
+      # Verify caller is the inviter
+      - step: find
+        id: "$session.data.invitation_id"
+        bind_to: invitation
+
+      - step: call
+        praxis: soma/sense-body
+        params: {}
+        bind_to: body
+
+      - step: assert
+        condition: "$invitation.data.inviter_id == $body.persona_id"
+        message: "Only the inviter can reject"
+
+      - step: update
+        id: "$session_id"
+        data:
+          status: rejected
+          rejection_reason: "$reason"
+          rejected_at: "{{ now() }}"
+          rejected_by: "$body.persona_id"
+
+      - step: return
+        value:
+          rejected: true
+          session_id: "$session_id"
+
+# =============================================================================
+# SELF-FEDERATION
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/propylon/create-self-link
+  data:
+    oikos: propylon
+    name: create-self-link
+    visible: true
+    tier: 2
+    description: |
+      Create a self-invite link for device synchronization.
+
+      This link allows the same persona to connect from another device.
+      Unlike peer invitations, self-links:
+      - Don't require human verification (pubkey verification instead)
+      - Have longer expiry (30 days default)
+      - Can be stored in password managers for future use
+
+      The flow on Device B:
+      1. Install Thyra
+      2. Enter mnemonic (restores identity/keypair)
+      3. Enter self-link (provides location/relay)
+      4. Pubkey verification (no video call needed)
+      5. P2P sync begins
+    params:
+      - name: circle_id
+        type: string
+        required: true
+        description: Circle to sync (typically home circle)
+      - name: expires_in_days
+        type: number
+        required: false
+        description: Days until expiration (default 30)
+      - name: label
+        type: string
+        required: false
+        description: Optional label for this link (e.g., "laptop", "phone backup")
+    steps:
+      # Get current dwelling context
+      - step: call
+        praxis: soma/sense-body
+        params: {}
+        bind_to: body
+
+      - step: assert
+        condition: "$body.animus_id"
+        message: "No animus in dwelling context"
+
+      # Verify caller is member of the circle
+      - step: find
+        id: "$circle_id"
+        bind_to: circle
+
+      - step: assert
+        condition: "$circle"
+        message: "Circle not found: $circle_id"
+
+      # Generate invitation ID with self-sync marker
+      - step: set
+        bindings:
+          invitation_id: "invitation/self-{{ uuid() }}"
+          expires_at: "{{ timestamp_add_days(now(), $expires_in_days || 30) }}"
+
+      # Get persona's keypair
+      - step: call
+        praxis: hypostasis/derive-circle-key
+        params:
+          circle_id: "$circle_id"
+          purpose: self-sync
+        bind_to: keypair
+
+      # Sign the invitation
+      - step: call
+        praxis: hypostasis/sign-content
+        params:
+          content: "$invitation_id"
+          private_key: "$keypair.private_key"
+        bind_to: signature_result
+
+      # Get persona
+      - step: find
+        id: "$body.persona_id"
+        bind_to: persona
+
+      # Create invitation entity (marked as self-sync) (CE4: compose instead of arise)
+      - step: compose
+        typos_id: "typos-def-invitation"
+        inputs:
+          id: "$invitation_id"
+          circle_id: "$circle_id"
+          inviter_id: "$body.persona_id"
+          kind: self-sync
+          label: "$label"
+          expires_at: "$expires_at"
+          max_uses: null  # Unlimited for self-sync
+          require_approval: false
+          status: active
+          use_count: 0
+          created_at: "{{ now() }}"
+
+      # Create propylon-link entity (CE4: compose instead of arise)
+      - step: compose
+        typos_id: "typos-def-propylon-link"
+        inputs:
+          id: "propylon-link/self-{{ uuid() }}"
+          invitation_id: "$invitation_id"
+          bootstrap: "wss://propylon.liminalcommons.com"
+          circle_id: "$circle_id"
+          inviter_id: "$body.persona_id"
+          inviter_pubkey: "$keypair.public_key"
+          signature: "$signature_result.signature"
+          kind: self-sync
+          display:
+            circle_name: "$circle.data.name"
+            inviter_name: "$persona.data.name"
+            label: "$label"
+            message: "Self-sync link for device federation"
+          expires_at: "$expires_at"
+          max_uses: null
+          require_approval: false
+          status: active
+          created_at: "{{ now() }}"
+        bind_to: link_entity
+
+      # Create grants-entry-to bond
+      - step: bind
+        desmos: grants-entry-to
+        from: "$link_entity.id"
+        to: "$circle_id"
+
+      # Encode the link for sharing
+      - step: call
+        praxis: propylon/encode-link
+        params:
+          link_id: "$link_entity.id"
+        bind_to: encoded
+
+      - step: return
+        value:
+          link_id: "$link_entity.id"
+          invitation_id: "$invitation_id"
+          encoded_link: "$encoded.url"
+          shareable_url: "https://thyra.link/p/$encoded.url"
+          expires_at: "$expires_at"
+          kind: self-sync
+          instructions: |
+            To sync a new device:
+            1. Install Thyra
+            2. Enter your 24-word mnemonic
+            3. Paste this link when prompted
+            4. Your devices will sync automatically

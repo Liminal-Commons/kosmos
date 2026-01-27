@@ -1,0 +1,205 @@
+# Agora Eide
+# Entity types for spatial gathering
+
+entities:
+
+# ─────────────────────────────────────────────────────────────────
+# territory — The 2D space where gathering occurs
+# ─────────────────────────────────────────────────────────────────
+
+- eidos: eidos
+  id: eidos/agora/territory
+  data:
+    name: territory
+    oikos: agora
+    description: |
+      A 2D spatial environment where members of a circle gather.
+      Territories are rendered via Phaser.js and support proximity-based
+      presence and communication.
+
+    fields:
+      name:
+        type: string
+        required: true
+        description: Human-readable territory name
+
+      dimensions:
+        type: object
+        description: "{ width: number, height: number } in units"
+        default: { width: 1000, height: 1000 }
+
+      tilemap_url:
+        type: string
+        description: URL to Phaser tilemap JSON (R2 or CDN)
+
+      spawn_point:
+        type: object
+        description: "{ x: number, y: number } default entry location"
+        default: { x: 500, y: 500 }
+
+      capacity:
+        type: number
+        description: Maximum concurrent occupants
+        default: 50
+
+      room_name:
+        type: string
+        description: Associated LiveKit room name
+
+      status:
+        type: string
+        enum: [active, locked, archived]
+        default: active
+
+# ─────────────────────────────────────────────────────────────────
+# presence — An animus present in a territory
+# ─────────────────────────────────────────────────────────────────
+
+- eidos: eidos
+  id: eidos/agora/presence
+  data:
+    name: presence
+    oikos: agora
+    description: |
+      Represents an animus's current position and state within a territory.
+      Ephemeral — created on enter, destroyed on leave.
+
+    fields:
+      position:
+        type: object
+        required: true
+        description: "{ x: number, y: number }"
+
+      facing:
+        type: string
+        enum: [up, down, left, right]
+        default: down
+
+      status:
+        type: string
+        enum: [active, away, do-not-disturb]
+        default: active
+
+      audio_enabled:
+        type: boolean
+        default: false
+
+      video_enabled:
+        type: boolean
+        default: false
+
+      display_name:
+        type: string
+        description: Shown above avatar
+
+# ─────────────────────────────────────────────────────────────────
+# livekit-server — Real-time communication infrastructure
+# ─────────────────────────────────────────────────────────────────
+
+- eidos: eidos
+  id: eidos/agora/livekit-server
+  data:
+    name: livekit-server
+    oikos: agora
+    description: |
+      A LiveKit server instance owned and operated by a circle.
+      Infrastructure entity with actuality reconciliation.
+
+    fields:
+      host:
+        type: string
+        required: true
+        description: "e.g., livekit.liminalcommons.com"
+
+      ws_url:
+        type: string
+        description: "wss://livekit.liminalcommons.com"
+
+      api_key_ref:
+        type: string
+        description: Reference to secret (secret://livekit-api-key)
+
+      api_secret_ref:
+        type: string
+        description: Reference to secret (secret://livekit-api-secret)
+
+      status:
+        type: string
+        enum: [provisioning, running, stopped, error]
+        default: provisioning
+
+    actuality:
+      mode: process
+      provider: nixos
+      description: Reconciled as NixOS service on target substrate
+
+# ─────────────────────────────────────────────────────────────────
+# room — A LiveKit room for audio/video
+# ─────────────────────────────────────────────────────────────────
+
+- eidos: eidos
+  id: eidos/agora/room
+  data:
+    name: room
+    oikos: agora
+    description: |
+      A real-time communication room for a territory or ad-hoc meeting.
+      Managed by the circle's LiveKit server.
+
+    fields:
+      name:
+        type: string
+        required: true
+        description: Unique room identifier
+
+      max_participants:
+        type: number
+        default: 50
+
+      recording_enabled:
+        type: boolean
+        default: false
+
+      transcription_enabled:
+        type: boolean
+        default: false
+        description: If true, use local whisper via NPU
+
+# ─────────────────────────────────────────────────────────────────
+# attainments
+# ─────────────────────────────────────────────────────────────────
+
+- eidos: attainment
+  id: attainment/agora-enter
+  data:
+    name: agora-enter
+    description: Can enter agora territories in circle
+    oikos: agora
+
+- eidos: attainment
+  id: attainment/agora-speak
+  data:
+    name: agora-speak
+    description: Can enable audio in agora
+    oikos: agora
+
+- eidos: attainment
+  id: attainment/agora-video
+  data:
+    name: agora-video
+    description: Can enable video in agora
+    oikos: agora
+
+- eidos: attainment
+  id: attainment/agora-create
+  data:
+    name: agora-create
+    description: Can create new territories
+    oikos: agora
+
+- eidos: attainment
+  id: attainment/agora-admin
+  data:
+    name: agora-admin
+    description: Can manage territories, moderate presence
+    oikos: agora

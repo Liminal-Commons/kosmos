@@ -1,0 +1,2105 @@
+# aither.yaml
+# Aither praxeis for network and signaling operations
+#
+# Aither is the transport layer — P2P connections via WebRTC.
+# These praxeis wrap the webrtc dynamis. Aither is transport-level;
+# it doesn't know about circles or governance (that's syndesmos).
+
+entities:
+
+# =============================================================================
+# SIGNALING OPERATIONS (WebSocket to propylon-relay)
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/aither/connect-signaling
+  data:
+    oikos: aither
+    name: connect-signaling
+    visible: true
+    tier: 3
+    description: |
+      Connect to a signaling relay and join a room.
+
+      Creates a signaling-session entity and connects via WebSocket.
+      Use sense-signaling to check connection state.
+    params:
+      - name: room_id
+        type: string
+        required: true
+        description: The room to join
+      - name: relay_url
+        type: string
+        required: true
+        description: WebSocket URL of propylon-relay
+      - name: role
+        type: string
+        required: true
+        description: "Role: offerer or answerer"
+    steps:
+      # Generate session ID
+      - step: set
+        bindings:
+          session_id: "signaling-session/{{ room_id }}-{{ role }}-{{ now() }}"
+          created_at: "now()"
+
+      # Create the signaling-session entity (CE4: compose instead of arise)
+      - step: compose
+        typos_id: "typos-def-signaling-session"
+        inputs:
+          id: "$session_id"
+          room_id: "$room_id"
+          relay_url: "$relay_url"
+          role: "$role"
+          intent: "connected"
+          status: "connecting"
+          created_at: "$created_at"
+        bind_to: session
+
+      # Manifest to actually connect
+      - step: manifest
+        entity_id: "$session_id"
+        bind_to: manifest_result
+
+      # Update with session handle
+      - step: update
+        id: "$session_id"
+        data:
+          status: "connected"
+          session_handle: "$manifest_result.session_id"
+          connected_at: "{{ now() }}"
+
+      - step: return
+        value:
+          session_id: "$session_id"
+          room_id: "$room_id"
+          role: "$role"
+          status: "connected"
+
+- eidos: praxis
+  id: praxis/aither/disconnect-signaling
+  data:
+    oikos: aither
+    name: disconnect-signaling
+    visible: true
+    tier: 3
+    description: |
+      Disconnect from signaling relay.
+    params:
+      - name: session_id
+        type: string
+        required: true
+        description: The signaling session to disconnect
+    steps:
+      - step: find
+        id: "$session_id"
+        bind_to: session
+
+      - step: assert
+        condition: "$session"
+        message: "Signaling session not found: $session_id"
+
+      # Set intent to disconnected
+      - step: update
+        id: "$session_id"
+        data:
+          intent: "disconnected"
+
+      # Unmanifest to actually disconnect
+      - step: unmanifest
+        entity_id: "$session_id"
+        bind_to: unmanifest_result
+
+      - step: update
+        id: "$session_id"
+        data:
+          status: "disconnected"
+          disconnected_at: "{{ now() }}"
+
+      - step: return
+        value:
+          session_id: "$session_id"
+          disconnected: true
+
+- eidos: praxis
+  id: praxis/aither/sense-signaling
+  data:
+    oikos: aither
+    name: sense-signaling
+    visible: true
+    tier: 1
+    description: |
+      Sense the actual state of a signaling session.
+    params:
+      - name: session_id
+        type: string
+        required: true
+        description: The signaling session to sense
+    steps:
+      - step: find
+        id: "$session_id"
+        bind_to: session
+
+      - step: assert
+        condition: "$session"
+        message: "Signaling session not found: $session_id"
+
+      # Sense actuality
+      - step: sense_actuality
+        entity_id: "$session_id"
+        bind_to: actual
+
+      - step: return
+        value:
+          session_id: "$session_id"
+          intent: "$session.data.intent"
+          status: "$session.data.status"
+          connected: "$actual.connected"
+          room_id: "$session.data.room_id"
+          role: "$session.data.role"
+
+- eidos: praxis
+  id: praxis/aither/poll-signaling
+  data:
+    oikos: aither
+    name: poll-signaling
+    visible: true
+    tier: 2
+    description: |
+      Poll for pending messages from the signaling relay.
+
+      Returns offers, answers, ICE candidates, and peer events.
+    params:
+      - name: session_id
+        type: string
+        required: true
+        description: The signaling session to poll
+    steps:
+      - step: find
+        id: "$session_id"
+        bind_to: session
+
+      - step: assert
+        condition: "$session"
+        message: "Signaling session not found: $session_id"
+
+      # Poll uses the session handle
+      - step: signal
+        operation: poll
+        session_id: "$session.data.session_handle"
+        bind_to: messages
+
+      - step: return
+        value:
+          session_id: "$session_id"
+          offers: "$messages.offers"
+          answers: "$messages.answers"
+          ice_candidates: "$messages.ice_candidates"
+          peers_joined: "$messages.peers_joined"
+          peers_left: "$messages.peers_left"
+
+- eidos: praxis
+  id: praxis/aither/send-offer
+  data:
+    oikos: aither
+    name: send-offer
+    visible: true
+    tier: 2
+    description: |
+      Send an SDP offer through the signaling relay.
+    params:
+      - name: session_id
+        type: string
+        required: true
+        description: The signaling session
+      - name: sdp
+        type: string
+        required: true
+        description: The SDP offer
+    steps:
+      - step: find
+        id: "$session_id"
+        bind_to: session
+
+      - step: assert
+        condition: "$session"
+        message: "Signaling session not found: $session_id"
+
+      - step: signal
+        operation: send_offer
+        session_id: "$session.data.session_handle"
+        sdp: "$sdp"
+
+      - step: return
+        value:
+          sent: true
+          type: "offer"
+
+- eidos: praxis
+  id: praxis/aither/send-answer
+  data:
+    oikos: aither
+    name: send-answer
+    visible: true
+    tier: 2
+    description: |
+      Send an SDP answer through the signaling relay.
+    params:
+      - name: session_id
+        type: string
+        required: true
+        description: The signaling session
+      - name: sdp
+        type: string
+        required: true
+        description: The SDP answer
+    steps:
+      - step: find
+        id: "$session_id"
+        bind_to: session
+
+      - step: assert
+        condition: "$session"
+        message: "Signaling session not found: $session_id"
+
+      - step: signal
+        operation: send_answer
+        session_id: "$session.data.session_handle"
+        sdp: "$sdp"
+
+      - step: return
+        value:
+          sent: true
+          type: "answer"
+
+# =============================================================================
+# DATA CHANNEL OPERATIONS (WebRTC P2P)
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/aither/create-channel
+  data:
+    oikos: aither
+    name: create-channel
+    visible: true
+    tier: 3
+    description: |
+      Create a WebRTC data channel (as offerer).
+
+      Generates an SDP offer that must be sent to the remote peer
+      through signaling. Use accept-answer after receiving remote's answer.
+    params:
+      - name: channel_id
+        type: string
+        required: false
+        description: Optional channel ID (generated if not provided)
+      - name: signaling_session_id
+        type: string
+        required: false
+        description: Signaling session to use for SDP exchange
+    steps:
+      # Generate channel ID if not provided
+      - step: set
+        bindings:
+          cid: "$channel_id"
+          created_at: "now()"
+
+      - step: switch
+        cases:
+          - when: "$cid"
+            then: []
+        default:
+          - step: set
+            bindings:
+              cid: "data-channel/{{ now() }}"
+
+      # Create the data-channel entity (CE4: compose instead of arise)
+      - step: compose
+        typos_id: "typos-def-data-channel"
+        inputs:
+          id: "$cid"
+          channel_id: "$cid"
+          intent: "connected"
+          status: "new"
+          signaling_session_id: "$signaling_session_id"
+          created_at: "$created_at"
+        bind_to: channel
+
+      # Manifest to create WebRTC peer connection and get SDP offer
+      - step: manifest
+        entity_id: "$cid"
+        bind_to: manifest_result
+
+      # Update with SDP offer
+      - step: update
+        id: "$cid"
+        data:
+          status: "connecting"
+          sdp_offer: "$manifest_result.sdp_offer"
+
+      # Bond to signaling session if provided
+      - step: switch
+        cases:
+          - when: "$signaling_session_id"
+            then:
+              - step: bind
+                from_id: "$cid"
+                to_id: "$signaling_session_id"
+                desmos: "bootstrapped-by"
+
+      - step: return
+        value:
+          channel_id: "$cid"
+          sdp_offer: "$manifest_result.sdp_offer"
+          status: "connecting"
+
+- eidos: praxis
+  id: praxis/aither/accept-answer
+  data:
+    oikos: aither
+    name: accept-answer
+    visible: true
+    tier: 3
+    description: |
+      Accept an SDP answer from remote peer (offerer side).
+
+      After creating a channel and sending the offer through signaling,
+      call this with the received answer to complete the connection.
+    params:
+      - name: channel_id
+        type: string
+        required: true
+        description: The data channel
+      - name: sdp_answer
+        type: string
+        required: true
+        description: SDP answer from remote peer
+    steps:
+      - step: find
+        id: "$channel_id"
+        bind_to: channel
+
+      - step: assert
+        condition: "$channel"
+        message: "Data channel not found: $channel_id"
+
+      # Use webrtc dynamis to accept answer
+      - step: signal
+        operation: accept_answer
+        channel_id: "$channel_id"
+        sdp: "$sdp_answer"
+
+      - step: update
+        id: "$channel_id"
+        data:
+          sdp_answer: "$sdp_answer"
+          status: "connected"
+          connected_at: "{{ now() }}"
+
+      - step: return
+        value:
+          channel_id: "$channel_id"
+          connected: true
+
+- eidos: praxis
+  id: praxis/aither/answer-channel
+  data:
+    oikos: aither
+    name: answer-channel
+    visible: true
+    tier: 3
+    description: |
+      Answer an incoming WebRTC offer (as answerer).
+
+      When receiving an SDP offer through signaling, call this to
+      create the local peer connection and generate an answer.
+    params:
+      - name: sdp_offer
+        type: string
+        required: true
+        description: SDP offer from remote peer
+      - name: channel_id
+        type: string
+        required: false
+        description: Optional channel ID (generated if not provided)
+      - name: signaling_session_id
+        type: string
+        required: false
+        description: Signaling session the offer came from
+    steps:
+      # Generate channel ID if not provided
+      - step: set
+        bindings:
+          cid: "$channel_id"
+          created_at: "now()"
+
+      - step: switch
+        cases:
+          - when: "$cid"
+            then: []
+        default:
+          - step: set
+            bindings:
+              cid: "data-channel/{{ now() }}"
+
+      # Create data-channel entity (CE4: compose instead of arise)
+      - step: compose
+        typos_id: "typos-def-data-channel"
+        inputs:
+          id: "$cid"
+          channel_id: "$cid"
+          intent: "connected"
+          status: "connecting"
+          sdp_offer: "$sdp_offer"
+          signaling_session_id: "$signaling_session_id"
+          created_at: "$created_at"
+        bind_to: channel
+
+      # Generate answer using webrtc dynamis
+      - step: signal
+        operation: create_answer
+        channel_id: "$cid"
+        sdp: "$sdp_offer"
+        bind_to: answer_result
+
+      - step: update
+        id: "$cid"
+        data:
+          sdp_answer: "$answer_result.sdp_answer"
+          status: "connected"
+          connected_at: "{{ now() }}"
+
+      # Bond to signaling session if provided
+      - step: switch
+        cases:
+          - when: "$signaling_session_id"
+            then:
+              - step: bind
+                from_id: "$cid"
+                to_id: "$signaling_session_id"
+                desmos: "bootstrapped-by"
+
+      - step: return
+        value:
+          channel_id: "$cid"
+          sdp_answer: "$answer_result.sdp_answer"
+          status: "connected"
+
+- eidos: praxis
+  id: praxis/aither/close-channel
+  data:
+    oikos: aither
+    name: close-channel
+    visible: true
+    tier: 3
+    description: |
+      Close a data channel.
+    params:
+      - name: channel_id
+        type: string
+        required: true
+        description: The channel to close
+    steps:
+      - step: find
+        id: "$channel_id"
+        bind_to: channel
+
+      - step: assert
+        condition: "$channel"
+        message: "Data channel not found: $channel_id"
+
+      - step: update
+        id: "$channel_id"
+        data:
+          intent: "disconnected"
+
+      - step: unmanifest
+        entity_id: "$channel_id"
+        bind_to: result
+
+      - step: update
+        id: "$channel_id"
+        data:
+          status: "disconnected"
+          disconnected_at: "{{ now() }}"
+
+      - step: return
+        value:
+          channel_id: "$channel_id"
+          closed: true
+
+- eidos: praxis
+  id: praxis/aither/sense-channel
+  data:
+    oikos: aither
+    name: sense-channel
+    visible: true
+    tier: 1
+    description: |
+      Sense the actual state of a data channel.
+    params:
+      - name: channel_id
+        type: string
+        required: true
+        description: The channel to sense
+    steps:
+      - step: find
+        id: "$channel_id"
+        bind_to: channel
+
+      - step: assert
+        condition: "$channel"
+        message: "Data channel not found: $channel_id"
+
+      - step: sense_actuality
+        entity_id: "$channel_id"
+        bind_to: actual
+
+      - step: return
+        value:
+          channel_id: "$channel_id"
+          intent: "$channel.data.intent"
+          status: "$channel.data.status"
+          actual_state: "$actual.state"
+          connected: '$actual.state == "connected"'
+
+- eidos: praxis
+  id: praxis/aither/reconcile-channel
+  data:
+    oikos: aither
+    name: reconcile-channel
+    visible: true
+    tier: 3
+    description: |
+      Reconcile a data channel — align intent with actuality.
+
+      If intent is connected but actual is disconnected, attempt to reconnect.
+      Uses ICE restart or re-signaling as needed.
+    params:
+      - name: channel_id
+        type: string
+        required: true
+        description: The channel to reconcile
+    steps:
+      - step: find
+        id: "$channel_id"
+        bind_to: channel
+
+      - step: assert
+        condition: "$channel"
+        message: "Data channel not found: $channel_id"
+
+      # Sense current actuality
+      - step: sense_actuality
+        entity_id: "$channel_id"
+        bind_to: actual
+
+      - step: set
+        bindings:
+          intent: "$channel.data.intent"
+          actual_state: "$actual.state"
+
+      # Reconcile based on intent vs actual
+      - step: switch
+        cases:
+          # Intent connected, but not actually connected — attempt reconnect
+          - when: '$intent == "connected" and $actual_state != "connected"'
+            then:
+              - step: signal
+                operation: restart_ice
+                channel_id: "$channel_id"
+                bind_to: restart_result
+              - step: update
+                id: "$channel_id"
+                data:
+                  status: "reconnecting"
+                  last_reconnect_at: "{{ now() }}"
+              - step: return
+                value:
+                  channel_id: "$channel_id"
+                  action: "reconnect"
+                  success: "$restart_result.success"
+                  message: "ICE restart initiated"
+
+          # Intent disconnected, but still connected — close
+          - when: '$intent == "disconnected" and $actual_state == "connected"'
+            then:
+              - step: signal
+                operation: close
+                channel_id: "$channel_id"
+              - step: update
+                id: "$channel_id"
+                data:
+                  status: "disconnected"
+                  disconnected_at: "{{ now() }}"
+              - step: return
+                value:
+                  channel_id: "$channel_id"
+                  action: "disconnect"
+                  success: true
+                  message: "Channel closed"
+
+        # Already aligned
+        default:
+          - step: return
+            value:
+              channel_id: "$channel_id"
+              action: "none"
+              success: true
+              message: "Already aligned"
+
+- eidos: praxis
+  id: praxis/aither/send-message
+  data:
+    oikos: aither
+    name: send-message
+    visible: true
+    tier: 2
+    description: |
+      Send a message through a data channel.
+    params:
+      - name: channel_id
+        type: string
+        required: true
+        description: The channel to send through
+      - name: message
+        type: string
+        required: true
+        description: The message to send
+    steps:
+      - step: find
+        id: "$channel_id"
+        bind_to: channel
+
+      - step: assert
+        condition: "$channel"
+        message: "Data channel not found: $channel_id"
+
+      - step: signal
+        operation: send_message
+        channel_id: "$channel_id"
+        message: "$message"
+
+      - step: update
+        id: "$channel_id"
+        data:
+          last_message_at: "{{ now() }}"
+
+      - step: return
+        value:
+          sent: true
+          channel_id: "$channel_id"
+
+- eidos: praxis
+  id: praxis/aither/receive-messages
+  data:
+    oikos: aither
+    name: receive-messages
+    visible: true
+    tier: 2
+    description: |
+      Receive pending messages from a data channel.
+    params:
+      - name: channel_id
+        type: string
+        required: true
+        description: The channel to receive from
+    steps:
+      - step: find
+        id: "$channel_id"
+        bind_to: channel
+
+      - step: assert
+        condition: "$channel"
+        message: "Data channel not found: $channel_id"
+
+      - step: signal
+        operation: receive_messages
+        channel_id: "$channel_id"
+        bind_to: messages
+
+      - step: return
+        value:
+          channel_id: "$channel_id"
+          messages: "$messages"
+          count: "$messages | length"
+
+- eidos: praxis
+  id: praxis/aither/list-channels
+  data:
+    oikos: aither
+    name: list-channels
+    visible: true
+    tier: 1
+    description: |
+      List data channels, optionally filtered by status.
+    params:
+      - name: status
+        type: string
+        required: false
+        description: Filter by status
+      - name: limit
+        type: number
+        required: false
+        description: "Maximum results (default: 50)"
+    steps:
+      - step: set
+        bindings:
+          max_results: "$limit"
+
+      - step: switch
+        cases:
+          - when: "$max_results"
+            then: []
+        default:
+          - step: set
+            bindings:
+              max_results: 50
+
+      - step: gather
+        eidos: data-channel
+        bind_to: channels
+
+      - step: switch
+        cases:
+          - when: "$status"
+            then:
+              - step: filter
+                in: "$channels"
+                as: c
+                where: "$c.data.status == '$status'"
+                bind_to: channels
+
+      - step: limit
+        items: "$channels"
+        count: "$max_results"
+        bind_to: channels
+
+      - step: return
+        value:
+          channels: "$channels"
+          count: "$channels | length"
+
+# =============================================================================
+# SYNDESMOS OPERATIONS (Persistent Connection State)
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/aither/ensure-connection
+  data:
+    oikos: aither
+    name: ensure-connection
+    visible: true
+    tier: 3
+    description: |
+      Ensure a connection exists to a peer/room.
+
+      Creates a syndesmos if none exists, or returns existing one.
+      Sets intent to connected and begins connection process.
+    params:
+      - name: room_id
+        type: string
+        required: true
+        description: The signaling room to connect through
+      - name: peer_id
+        type: string
+        required: false
+        description: Remote peer identifier if known
+      - name: circle_id
+        type: string
+        required: false
+        description: Circle context for this connection
+    steps:
+      # Check if syndesmos already exists for this room
+      - step: gather
+        eidos: syndesmos
+        bind_to: existing
+
+      - step: filter
+        in: "$existing"
+        as: s
+        where: "$s.data.room_id == '$room_id'"
+        bind_to: matches
+
+      - step: set
+        bindings:
+          found: "$matches | first"
+
+      - step: switch
+        cases:
+          - when: "$found"
+            then:
+              # Update intent if needed
+              - step: switch
+                cases:
+                  - when: '$found.data.intent != "connected"'
+                    then:
+                      - step: update
+                        id: "$found.id"
+                        data:
+                          intent: "connected"
+                          retry_count: 0
+                          last_error: null
+              - step: return
+                value:
+                  syndesmos_id: "$found.id"
+                  status: "$found.data.status"
+                  created: false
+        default:
+          # Create new syndesmos
+          - step: set
+            bindings:
+              syndesmos_id: "syndesmos/{{ room_id }}-{{ now() }}"
+              created_at: "now()"
+
+          # CE4: compose instead of arise
+          - step: compose
+            typos_id: "typos-def-syndesmos"
+            inputs:
+              id: "$syndesmos_id"
+              room_id: "$room_id"
+              peer_id: "$peer_id"
+              circle_id: "$circle_id"
+              intent: "connected"
+              status: "connecting"
+              retry_count: 0
+              backoff_ms: 1000
+              created_at: "$created_at"
+            bind_to: syndesmos
+
+          # Bond to target peer if known
+          - step: switch
+            cases:
+              - when: "$peer_id"
+                then:
+                  - step: bind
+                    from_id: "$syndesmos_id"
+                    to_id: "persona/$peer_id"
+                    desmos: "targets-peer"
+
+          - step: return
+            value:
+              syndesmos_id: "$syndesmos_id"
+              status: "connecting"
+              created: true
+
+- eidos: praxis
+  id: praxis/aither/attempt-reconnect
+  data:
+    oikos: aither
+    name: attempt-reconnect
+    visible: true
+    tier: 3
+    description: |
+      Attempt to reconnect a failed or disconnected syndesmos.
+
+      Uses exponential backoff. Increments retry_count and updates
+      next_retry_at. Returns whether reconnection was attempted.
+    params:
+      - name: syndesmos_id
+        type: string
+        required: true
+        description: The syndesmos to reconnect
+    steps:
+      - step: find
+        id: "$syndesmos_id"
+        bind_to: syndesmos
+
+      - step: assert
+        condition: "$syndesmos"
+        message: "Syndesmos not found: $syndesmos_id"
+
+      # Check if we've exceeded max retries
+      - step: set
+        bindings:
+          current_retries: "$syndesmos.data.retry_count"
+          max_retries: "$syndesmos.data.max_retries"
+
+      - step: switch
+        cases:
+          - when: "$current_retries >= $max_retries"
+            then:
+              - step: update
+                id: "$syndesmos_id"
+                data:
+                  status: "failed"
+                  last_error: "Max retries exceeded"
+              - step: return
+                value:
+                  syndesmos_id: "$syndesmos_id"
+                  attempted: false
+                  reason: "max_retries_exceeded"
+
+      # Calculate next backoff (exponential: 1s, 2s, 4s, 8s, etc, max 60s)
+      - step: set
+        bindings:
+          current_backoff: "$syndesmos.data.backoff_ms"
+          next_backoff: "{{ min(current_backoff * 2, 60000) }}"
+          next_retry: "{{ now() + current_backoff }}"
+
+      # Update syndesmos with reconnection attempt
+      - step: update
+        id: "$syndesmos_id"
+        data:
+          status: "reconnecting"
+          retry_count: "{{ current_retries + 1 }}"
+          backoff_ms: "$next_backoff"
+          next_retry_at: "$next_retry"
+
+      # Attempt to manifest the connection
+      - step: manifest
+        entity_id: "$syndesmos_id"
+        bind_to: manifest_result
+
+      - step: switch
+        cases:
+          - when: "$manifest_result.success"
+            then:
+              - step: update
+                id: "$syndesmos_id"
+                data:
+                  status: "connected"
+                  last_connected_at: "{{ now() }}"
+                  retry_count: 0
+                  backoff_ms: 1000
+                  last_error: null
+              - step: return
+                value:
+                  syndesmos_id: "$syndesmos_id"
+                  attempted: true
+                  connected: true
+        default:
+          - step: update
+            id: "$syndesmos_id"
+            data:
+              status: "disconnected"
+              last_error: "$manifest_result.error"
+          - step: return
+            value:
+              syndesmos_id: "$syndesmos_id"
+              attempted: true
+              connected: false
+              next_retry_at: "$next_retry"
+
+- eidos: praxis
+  id: praxis/aither/disconnect-syndesmos
+  data:
+    oikos: aither
+    name: disconnect-syndesmos
+    visible: true
+    tier: 3
+    description: |
+      Disconnect a syndesmos gracefully.
+
+      Sets intent to disconnected and closes underlying channel.
+    params:
+      - name: syndesmos_id
+        type: string
+        required: true
+        description: The syndesmos to disconnect
+    steps:
+      - step: find
+        id: "$syndesmos_id"
+        bind_to: syndesmos
+
+      - step: assert
+        condition: "$syndesmos"
+        message: "Syndesmos not found: $syndesmos_id"
+
+      - step: update
+        id: "$syndesmos_id"
+        data:
+          intent: "disconnected"
+
+      - step: unmanifest
+        entity_id: "$syndesmos_id"
+        bind_to: result
+
+      - step: update
+        id: "$syndesmos_id"
+        data:
+          status: "disconnected"
+
+      - step: return
+        value:
+          syndesmos_id: "$syndesmos_id"
+          disconnected: true
+
+- eidos: praxis
+  id: praxis/aither/list-connections
+  data:
+    oikos: aither
+    name: list-connections
+    visible: true
+    tier: 1
+    description: |
+      List syndesmos connections, optionally filtered by status.
+    params:
+      - name: status
+        type: string
+        required: false
+        description: Filter by status
+      - name: circle_id
+        type: string
+        required: false
+        description: Filter by circle
+      - name: limit
+        type: number
+        required: false
+        description: "Maximum results (default: 50)"
+    steps:
+      - step: set
+        bindings:
+          max_results: "$limit"
+
+      - step: switch
+        cases:
+          - when: "$max_results"
+            then: []
+        default:
+          - step: set
+            bindings:
+              max_results: 50
+
+      - step: gather
+        eidos: syndesmos
+        bind_to: connections
+
+      - step: switch
+        cases:
+          - when: "$status"
+            then:
+              - step: filter
+                in: "$connections"
+                as: c
+                where: "$c.data.status == '$status'"
+                bind_to: connections
+
+      - step: switch
+        cases:
+          - when: "$circle_id"
+            then:
+              - step: filter
+                in: "$connections"
+                as: c
+                where: "$c.data.circle_id == '$circle_id'"
+                bind_to: connections
+
+      - step: limit
+        items: "$connections"
+        count: "$max_results"
+        bind_to: connections
+
+      - step: return
+        value:
+          connections: "$connections"
+          count: "$connections | length"
+
+# =============================================================================
+# OFFLINE MESSAGE QUEUE
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/aither/queue-message
+  data:
+    oikos: aither
+    name: queue-message
+    visible: true
+    tier: 2
+    description: |
+      Queue a message for delivery when offline.
+
+      Creates an outbound-message entity and bonds it to the syndesmos.
+    params:
+      - name: syndesmos_id
+        type: string
+        required: true
+        description: The syndesmos to queue for
+      - name: message_type
+        type: string
+        required: true
+        description: Type of message (phoreta, content-sync, etc)
+      - name: content
+        type: string
+        required: true
+        description: JSON-encoded message content
+      - name: ttl_hours
+        type: number
+        required: false
+        description: Hours until message expires (default 24)
+    steps:
+      - step: find
+        id: "$syndesmos_id"
+        bind_to: syndesmos
+
+      - step: assert
+        condition: "$syndesmos"
+        message: "Syndesmos not found: $syndesmos_id"
+
+      - step: set
+        bindings:
+          msg_id: "outbound-message/{{ now() }}"
+          created_at: "now()"
+          ttl: "$ttl_hours"
+
+      - step: switch
+        cases:
+          - when: "$ttl"
+            then: []
+        default:
+          - step: set
+            bindings:
+              ttl: 24
+
+      - step: set
+        bindings:
+          expires_at: "{{ now() + (ttl * 3600000) }}"
+
+      # CE4: compose instead of arise
+      - step: compose
+        typos_id: "typos-def-outbound-message"
+        inputs:
+          id: "$msg_id"
+          target_peer: "$syndesmos.data.room_id"
+          message_type: "$message_type"
+          content: "$content"
+          status: "pending"
+          attempts: 0
+          created_at: "$created_at"
+          expires_at: "$expires_at"
+        bind_to: message
+
+      - step: bind
+        from_id: "$msg_id"
+        to_id: "$syndesmos_id"
+        desmos: "queued-for"
+
+      - step: return
+        value:
+          message_id: "$msg_id"
+          syndesmos_id: "$syndesmos_id"
+          expires_at: "$expires_at"
+
+- eidos: praxis
+  id: praxis/aither/flush-queue
+  data:
+    oikos: aither
+    name: flush-queue
+    visible: true
+    tier: 2
+    description: |
+      Flush queued messages for a syndesmos.
+
+      Attempts to deliver all pending messages in order.
+      Marks each as delivered or failed.
+    params:
+      - name: syndesmos_id
+        type: string
+        required: true
+        description: The syndesmos to flush queue for
+    steps:
+      - step: find
+        id: "$syndesmos_id"
+        bind_to: syndesmos
+
+      - step: assert
+        condition: "$syndesmos"
+        message: "Syndesmos not found: $syndesmos_id"
+
+      # Only flush if connected
+      - step: switch
+        cases:
+          - when: '$syndesmos.data.status != "connected"'
+            then:
+              - step: return
+                value:
+                  syndesmos_id: "$syndesmos_id"
+                  flushed: 0
+                  reason: "not_connected"
+
+      # Get queued messages via bond
+      - step: trace
+        from_id: "$syndesmos_id"
+        direction: inward
+        desmos: "queued-for"
+        bind_to: messages
+
+      - step: filter
+        in: "$messages"
+        as: m
+        where: '$m.data.status == "pending"'
+        bind_to: pending
+
+      # Sort by created_at
+      - step: sort
+        items: "$pending"
+        by: "data.created_at"
+        direction: "asc"
+        bind_to: ordered
+
+      - step: set
+        bindings:
+          delivered_count: 0
+          failed_count: 0
+
+      # Attempt to deliver each message
+      - step: for_each
+        items: "$ordered"
+        as: msg
+        do:
+          # Check if expired
+          - step: switch
+            cases:
+              - when: "$msg.data.expires_at < now()"
+                then:
+                  - step: update
+                    id: "$msg.id"
+                    data:
+                      status: "expired"
+            default:
+              # Try to send
+              - step: update
+                id: "$msg.id"
+                data:
+                  status: "sending"
+                  last_attempt_at: "{{ now() }}"
+                  attempts: "{{ msg.data.attempts + 1 }}"
+
+              - step: signal
+                operation: send_message
+                channel_id: "$syndesmos.data.channel_id"
+                message: "$msg.data.content"
+                bind_to: send_result
+
+              - step: switch
+                cases:
+                  - when: "$send_result.success"
+                    then:
+                      - step: update
+                        id: "$msg.id"
+                        data:
+                          status: "delivered"
+                          delivered_at: "{{ now() }}"
+                      - step: set
+                        bindings:
+                          delivered_count: "{{ delivered_count + 1 }}"
+                default:
+                  - step: switch
+                    cases:
+                      - when: "$msg.data.attempts >= $msg.data.max_attempts"
+                        then:
+                          - step: update
+                            id: "$msg.id"
+                            data:
+                              status: "failed"
+                              last_error: "$send_result.error"
+                          - step: set
+                            bindings:
+                              failed_count: "{{ failed_count + 1 }}"
+                    default:
+                      - step: update
+                        id: "$msg.id"
+                        data:
+                          status: "pending"
+                          last_error: "$send_result.error"
+
+      - step: return
+        value:
+          syndesmos_id: "$syndesmos_id"
+          delivered: "$delivered_count"
+          failed: "$failed_count"
+          remaining: "{{ ordered | length - delivered_count - failed_count }}"
+
+# =============================================================================
+# PRESENCE OPERATIONS
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/aither/update-presence
+  data:
+    oikos: aither
+    name: update-presence
+    visible: true
+    tier: 2
+    description: |
+      Update or create presence record in a circle/room.
+    params:
+      - name: persona_id
+        type: string
+        required: true
+        description: The persona whose presence to update
+      - name: circle_id
+        type: string
+        required: false
+        description: Circle to update presence in
+      - name: room_id
+        type: string
+        required: false
+        description: Room to update presence in
+      - name: status
+        type: string
+        required: false
+        description: "Presence status (online, away, busy, offline)"
+    steps:
+      - step: set
+        bindings:
+          presence_status: "$status"
+          now_ts: "now()"
+
+      - step: switch
+        cases:
+          - when: "$presence_status"
+            then: []
+        default:
+          - step: set
+            bindings:
+              presence_status: "online"
+
+      # Check for existing presence record
+      - step: gather
+        eidos: presence-record
+        bind_to: existing
+
+      - step: filter
+        in: "$existing"
+        as: p
+        where: "$p.data.persona_id == '$persona_id'"
+        bind_to: matches
+
+      - step: switch
+        cases:
+          - when: "$circle_id"
+            then:
+              - step: filter
+                in: "$matches"
+                as: p
+                where: "$p.data.circle_id == '$circle_id'"
+                bind_to: matches
+
+      - step: set
+        bindings:
+          found: "$matches | first"
+
+      - step: switch
+        cases:
+          - when: "$found"
+            then:
+              # Update existing
+              - step: update
+                id: "$found.id"
+                data:
+                  status: "$presence_status"
+                  last_heartbeat: "$now_ts"
+              - step: return
+                value:
+                  presence_id: "$found.id"
+                  status: "$presence_status"
+                  updated: true
+        default:
+          # Create new presence record
+          - step: set
+            bindings:
+              presence_id: "presence-record/{{ persona_id }}-{{ now() }}"
+
+          # CE4: compose instead of arise
+          - step: compose
+            typos_id: "typos-def-presence-record"
+            inputs:
+              id: "$presence_id"
+              persona_id: "$persona_id"
+              circle_id: "$circle_id"
+              room_id: "$room_id"
+              status: "$presence_status"
+              last_heartbeat: "$now_ts"
+              connected_at: "$now_ts"
+            bind_to: presence
+
+          # Bond to persona
+          - step: bind
+            from_id: "$presence_id"
+            to_id: "persona/$persona_id"
+            desmos: "presence-of"
+
+          # Bond to circle if specified
+          - step: switch
+            cases:
+              - when: "$circle_id"
+                then:
+                  - step: bind
+                    from_id: "$presence_id"
+                    to_id: "$circle_id"
+                    desmos: "present-in"
+
+          - step: return
+            value:
+              presence_id: "$presence_id"
+              status: "$presence_status"
+              created: true
+
+- eidos: praxis
+  id: praxis/aither/heartbeat
+  data:
+    oikos: aither
+    name: heartbeat
+    visible: true
+    tier: 1
+    description: |
+      Send heartbeat to update presence timestamp.
+    params:
+      - name: presence_id
+        type: string
+        required: true
+        description: The presence record to update
+    steps:
+      - step: find
+        id: "$presence_id"
+        bind_to: presence
+
+      - step: assert
+        condition: "$presence"
+        message: "Presence record not found: $presence_id"
+
+      - step: update
+        id: "$presence_id"
+        data:
+          last_heartbeat: "{{ now() }}"
+
+      - step: return
+        value:
+          presence_id: "$presence_id"
+          heartbeat_at: "{{ now() }}"
+
+- eidos: praxis
+  id: praxis/aither/expire-stale-presence
+  data:
+    oikos: aither
+    name: expire-stale-presence
+    visible: true
+    tier: 2
+    description: |
+      Clean up stale presence records.
+
+      Marks records as offline if heartbeat expired, removes old offline records.
+    params:
+      - name: circle_id
+        type: string
+        required: false
+        description: Limit to specific circle
+    steps:
+      - step: gather
+        eidos: presence-record
+        bind_to: records
+
+      - step: switch
+        cases:
+          - when: "$circle_id"
+            then:
+              - step: filter
+                in: "$records"
+                as: r
+                where: "$r.data.circle_id == '$circle_id'"
+                bind_to: records
+
+      - step: set
+        bindings:
+          expired_count: 0
+          now_ts: "now()"
+
+      - step: for_each
+        items: "$records"
+        as: record
+        do:
+          - step: set
+            bindings:
+              last_hb: "$record.data.last_heartbeat"
+              expire_ms: "$record.data.expire_after_ms"
+              elapsed: "{{ now_ts - last_hb }}"
+
+          - step: switch
+            cases:
+              # Expired - mark as offline
+              - when: "$elapsed > $expire_ms"
+                then:
+                  - step: switch
+                    cases:
+                      - when: '$record.data.status != "offline"'
+                        then:
+                          - step: update
+                            id: "$record.id"
+                            data:
+                              status: "offline"
+                          - step: set
+                            bindings:
+                              expired_count: "{{ expired_count + 1 }}"
+
+      - step: return
+        value:
+          expired: "$expired_count"
+          checked: "$records | length"
+
+- eidos: praxis
+  id: praxis/aither/list-presence
+  data:
+    oikos: aither
+    name: list-presence
+    visible: true
+    tier: 1
+    description: |
+      List presence records for a circle or room.
+    params:
+      - name: circle_id
+        type: string
+        required: false
+        description: Filter by circle
+      - name: room_id
+        type: string
+        required: false
+        description: Filter by room
+      - name: status
+        type: string
+        required: false
+        description: Filter by status (online, away, busy, offline)
+      - name: exclude_offline
+        type: boolean
+        required: false
+        description: Exclude offline users (default true)
+    steps:
+      - step: gather
+        eidos: presence-record
+        bind_to: records
+
+      - step: switch
+        cases:
+          - when: "$circle_id"
+            then:
+              - step: filter
+                in: "$records"
+                as: r
+                where: "$r.data.circle_id == '$circle_id'"
+                bind_to: records
+
+      - step: switch
+        cases:
+          - when: "$room_id"
+            then:
+              - step: filter
+                in: "$records"
+                as: r
+                where: "$r.data.room_id == '$room_id'"
+                bind_to: records
+
+      - step: switch
+        cases:
+          - when: "$status"
+            then:
+              - step: filter
+                in: "$records"
+                as: r
+                where: "$r.data.status == '$status'"
+                bind_to: records
+
+      # Default: exclude offline
+      - step: set
+        bindings:
+          skip_offline: "$exclude_offline"
+
+      - step: switch
+        cases:
+          - when: "$skip_offline == null"
+            then:
+              - step: set
+                bindings:
+                  skip_offline: true
+
+      - step: switch
+        cases:
+          - when: "$skip_offline"
+            then:
+              - step: filter
+                in: "$records"
+                as: r
+                where: '$r.data.status != "offline"'
+                bind_to: records
+
+      - step: return
+        value:
+          presence: "$records"
+          count: "$records | length"
+
+# =============================================================================
+# SYNC OPERATIONS (C8.4/C8.5 Real-time P2P Sync)
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/aither/broadcast-sync
+  data:
+    oikos: aither
+    name: broadcast-sync
+    visible: true
+    tier: 2
+    description: |
+      Broadcast a sync message to all connected peers.
+
+      Used for real-time entity updates (C8.4). Creates a sync-message
+      envelope and sends it through all active data channels.
+    params:
+      - name: message_type
+        type: string
+        required: true
+        description: "Type: expression, entity, presence"
+      - name: action
+        type: string
+        required: true
+        description: "Action: create, update, delete"
+      - name: entity
+        type: object
+        required: false
+        description: "The entity being synced"
+      - name: circle_id
+        type: string
+        required: true
+        description: "Circle context"
+      - name: sender_id
+        type: string
+        required: true
+        description: "Sender's persona ID"
+    steps:
+      - step: set
+        bindings:
+          timestamp: "now()"
+
+      # Compose the sync-message
+      - step: compose
+        typos_id: "typos-def-sync-message"
+        inputs:
+          message_type: "$message_type"
+          action: "$action"
+          entity: "$entity"
+          circle_id: "$circle_id"
+          timestamp: "$timestamp"
+          sender_id: "$sender_id"
+        bind_to: sync_message
+
+      # Serialize to JSON
+      - step: set
+        bindings:
+          message_json: "{{ sync_message | to_json }}"
+
+      # Get all connected channels for this circle
+      - step: gather
+        eidos: syndesmos
+        bind_to: connections
+
+      - step: filter
+        in: "$connections"
+        as: c
+        where: '$c.data.circle_id == "$circle_id" and $c.data.status == "connected"'
+        bind_to: active_connections
+
+      # Send to each connected peer
+      - step: for_each
+        items: "$active_connections"
+        as: conn
+        do:
+          - step: signal
+            operation: send_message
+            channel_id: "$conn.data.channel_id"
+            message: "$message_json"
+
+      - step: return
+        value:
+          sent_to: "$active_connections | length"
+          timestamp: "$timestamp"
+
+- eidos: praxis
+  id: praxis/aither/receive-sync
+  data:
+    oikos: aither
+    name: receive-sync
+    visible: true
+    tier: 2
+    description: |
+      Handle an incoming sync message from a peer.
+
+      Parses the message, validates it, and applies the sync
+      based on message type (expression, entity, catch-up).
+    params:
+      - name: peer_id
+        type: string
+        required: true
+        description: "ID of the sending peer"
+      - name: message_json
+        type: string
+        required: true
+        description: "JSON-encoded sync message"
+    steps:
+      # Parse the message
+      - step: set
+        bindings:
+          message: "{{ message_json | from_json }}"
+
+      - step: assert
+        condition: "$message.message_type"
+        message: "Invalid sync message: missing message_type"
+
+      # Route based on message type
+      - step: switch
+        cases:
+          # Handle expression sync
+          - when: '$message.message_type == "expression"'
+            then:
+              - step: call
+                praxis: "aither/apply-expression-sync"
+                params:
+                  action: "$message.action"
+                  entity: "$message.entity"
+                  circle_id: "$message.circle_id"
+                  sender_id: "$message.sender_id"
+                bind_to: result
+
+          # Handle catch-up request
+          - when: '$message.message_type == "catch-up-request"'
+            then:
+              - step: call
+                praxis: "aither/respond-catch-up"
+                params:
+                  peer_id: "$peer_id"
+                  circle_id: "$message.circle_id"
+                  since: "$message.since"
+                bind_to: result
+
+          # Handle catch-up response
+          - when: '$message.message_type == "catch-up-response"'
+            then:
+              - step: call
+                praxis: "aither/apply-catch-up"
+                params:
+                  entities: "$message.entities"
+                  circle_id: "$message.circle_id"
+                bind_to: result
+
+        default:
+          - step: set
+            bindings:
+              result:
+                handled: false
+                reason: "Unknown message type"
+
+      - step: return
+        value:
+          peer_id: "$peer_id"
+          message_type: "$message.message_type"
+          result: "$result"
+
+- eidos: praxis
+  id: praxis/aither/apply-expression-sync
+  data:
+    oikos: aither
+    name: apply-expression-sync
+    visible: false
+    tier: 2
+    description: |
+      Apply an incoming expression sync to local kosmos.
+
+      Creates or updates the expression entity, maintaining
+      sync state without duplicating existing content.
+    params:
+      - name: action
+        type: string
+        required: true
+        description: "create, update, or delete"
+      - name: entity
+        type: object
+        required: true
+        description: "The expression entity"
+      - name: circle_id
+        type: string
+        required: true
+        description: "Circle context"
+      - name: sender_id
+        type: string
+        required: true
+        description: "Original author"
+    steps:
+      # Check if entity already exists
+      - step: find
+        id: "$entity.id"
+        bind_to: existing
+
+      - step: switch
+        cases:
+          # Create new expression
+          - when: '$action == "create" and not $existing'
+            then:
+              - step: compose
+                typos_id: "typos-def-expression"
+                inputs:
+                  id: "$entity.id"
+                  content: "$entity.data.content"
+                  mode: "$entity.data.mode"
+                  author_id: "$sender_id"
+                  circle_id: "$circle_id"
+                  synced_from: "$sender_id"
+                  created_at: "$entity.data.created_at"
+                bind_to: created
+              - step: return
+                value:
+                  applied: true
+                  action: "created"
+                  entity_id: "$entity.id"
+
+          # Skip if already exists
+          - when: '$action == "create" and $existing'
+            then:
+              - step: return
+                value:
+                  applied: false
+                  action: "skipped"
+                  reason: "Already exists"
+                  entity_id: "$entity.id"
+
+        default:
+          - step: return
+            value:
+              applied: false
+              action: "unknown"
+
+- eidos: praxis
+  id: praxis/aither/request-catch-up
+  data:
+    oikos: aither
+    name: request-catch-up
+    visible: true
+    tier: 2
+    description: |
+      Request catch-up sync from peers after reconnection (C8.5).
+
+      Broadcasts a catch-up-request to all connected peers with
+      the timestamp of last successful sync.
+    params:
+      - name: circle_id
+        type: string
+        required: true
+        description: "Circle to catch up"
+      - name: since
+        type: string
+        required: false
+        description: "Fetch entities since this timestamp (default: 1 hour ago)"
+      - name: sender_id
+        type: string
+        required: true
+        description: "Requester's persona ID"
+    steps:
+      # Default to 1 hour ago if not specified
+      - step: set
+        bindings:
+          since_ts: "$since"
+
+      - step: switch
+        cases:
+          - when: "not $since_ts"
+            then:
+              - step: set
+                bindings:
+                  since_ts: "{{ now() - 3600000 }}"
+
+      # Compose catch-up request message
+      - step: compose
+        typos_id: "typos-def-sync-message"
+        inputs:
+          message_type: "catch-up-request"
+          action: "request"
+          circle_id: "$circle_id"
+          timestamp: "{{ now() }}"
+          sender_id: "$sender_id"
+          since: "$since_ts"
+        bind_to: request_message
+
+      - step: set
+        bindings:
+          message_json: "{{ request_message | to_json }}"
+
+      # Get connected peers
+      - step: gather
+        eidos: syndesmos
+        bind_to: connections
+
+      - step: filter
+        in: "$connections"
+        as: c
+        where: '$c.data.circle_id == "$circle_id" and $c.data.status == "connected"'
+        bind_to: active_connections
+
+      # Send to all peers
+      - step: for_each
+        items: "$active_connections"
+        as: conn
+        do:
+          - step: signal
+            operation: send_message
+            channel_id: "$conn.data.channel_id"
+            message: "$message_json"
+
+      - step: return
+        value:
+          requested_from: "$active_connections | length"
+          since: "$since_ts"
+
+- eidos: praxis
+  id: praxis/aither/respond-catch-up
+  data:
+    oikos: aither
+    name: respond-catch-up
+    visible: false
+    tier: 2
+    description: |
+      Respond to a catch-up request with entities since timestamp.
+
+      Gathers expressions created after the requested timestamp
+      and sends them back to the requesting peer.
+    params:
+      - name: peer_id
+        type: string
+        required: true
+        description: "Requesting peer"
+      - name: circle_id
+        type: string
+        required: true
+        description: "Circle to gather from"
+      - name: since
+        type: string
+        required: true
+        description: "Timestamp to gather since"
+    steps:
+      # Gather expressions from this circle
+      - step: gather
+        eidos: expression
+        bind_to: all_expressions
+
+      # Filter by circle and timestamp
+      - step: filter
+        in: "$all_expressions"
+        as: e
+        where: '$e.data.circle_id == "$circle_id" and $e.data.created_at > "$since"'
+        bind_to: recent_expressions
+
+      # Compose response message
+      - step: compose
+        typos_id: "typos-def-sync-message"
+        inputs:
+          message_type: "catch-up-response"
+          action: "response"
+          entities: "$recent_expressions"
+          circle_id: "$circle_id"
+          timestamp: "{{ now() }}"
+          sender_id: "{{ session.persona_id }}"
+        bind_to: response_message
+
+      - step: set
+        bindings:
+          message_json: "{{ response_message | to_json }}"
+
+      # Find the connection to this peer
+      - step: gather
+        eidos: syndesmos
+        bind_to: connections
+
+      - step: filter
+        in: "$connections"
+        as: c
+        where: '$c.data.peer_id == "$peer_id" and $c.data.status == "connected"'
+        bind_to: peer_connection
+
+      - step: set
+        bindings:
+          conn: "$peer_connection | first"
+
+      - step: switch
+        cases:
+          - when: "$conn"
+            then:
+              - step: signal
+                operation: send_message
+                channel_id: "$conn.data.channel_id"
+                message: "$message_json"
+              - step: return
+                value:
+                  sent: true
+                  entity_count: "$recent_expressions | length"
+        default:
+          - step: return
+            value:
+              sent: false
+              reason: "Peer not connected"
+
+- eidos: praxis
+  id: praxis/aither/apply-catch-up
+  data:
+    oikos: aither
+    name: apply-catch-up
+    visible: false
+    tier: 2
+    description: |
+      Apply catch-up response entities to local kosmos.
+
+      Iterates through received entities and applies each one,
+      skipping duplicates.
+    params:
+      - name: entities
+        type: array
+        required: true
+        description: "Entities from catch-up response"
+      - name: circle_id
+        type: string
+        required: true
+        description: "Circle context"
+    steps:
+      - step: set
+        bindings:
+          applied_count: 0
+          skipped_count: 0
+
+      - step: for_each
+        items: "$entities"
+        as: entity
+        do:
+          # Check if exists
+          - step: find
+            id: "$entity.id"
+            bind_to: existing
+
+          - step: switch
+            cases:
+              - when: "not $existing"
+                then:
+                  # Compose new entity
+                  - step: compose
+                    typos_id: "typos-def-expression"
+                    inputs:
+                      id: "$entity.id"
+                      content: "$entity.data.content"
+                      mode: "$entity.data.mode"
+                      author_id: "$entity.data.author_id"
+                      circle_id: "$circle_id"
+                      synced_from: "$entity.data.author_id"
+                      created_at: "$entity.data.created_at"
+                    bind_to: created
+                  - step: set
+                    bindings:
+                      applied_count: "{{ applied_count + 1 }}"
+            default:
+              - step: set
+                bindings:
+                  skipped_count: "{{ skipped_count + 1 }}"
+
+      # Update last sync timestamp
+      - step: set
+        bindings:
+          now_ts: "now()"
+
+      - step: return
+        value:
+          applied: "$applied_count"
+          skipped: "$skipped_count"
+          total: "$entities | length"
+          synced_at: "$now_ts"

@@ -1,0 +1,179 @@
+# Nous Desmoi
+# Understanding bonds — connecting theoria, inquiries, journeys, and synthesis
+#
+# Extracted from spora.yaml stage-1-desmoi
+# NOTE: depends-on is shared with demiurge (artifact dependencies). See demiurge/desmoi/.
+
+entities:
+  # crystallized-in — theoria crystallized in a circle
+  - eidos: desmos
+    id: desmos/crystallized-in
+    data:
+      name: crystallized-in
+      description: "Theoria crystallized in a circle"
+      from_eidos: theoria
+      to_eidos: circle
+      cardinality: many-to-one
+      symmetric: false
+
+  # inquires — persona opened an inquiry
+  - eidos: desmos
+    id: desmos/inquires
+    data:
+      name: inquires
+      description: "Persona opened an inquiry"
+      from_eidos: persona
+      to_eidos: inquiry
+      cardinality: one-to-many
+      symmetric: false
+
+  # synthesizes — synthesis draws from theoria
+  - eidos: desmos
+    id: desmos/synthesizes
+    data:
+      name: synthesizes
+      description: "Synthesis draws from theoria"
+      from_eidos: synthesis
+      to_eidos: theoria
+      cardinality: many-to-many
+      symmetric: false
+
+  # answers — theoria answers an inquiry
+  - eidos: desmos
+    id: desmos/answers
+    data:
+      name: answers
+      description: "Theoria answers an inquiry"
+      from_eidos: theoria
+      to_eidos: inquiry
+      cardinality: many-to-one
+      symmetric: false
+
+  # contains-waypoint — journey contains this waypoint
+  - eidos: desmos
+    id: desmos/contains-waypoint
+    data:
+      name: contains-waypoint
+      description: "Journey contains this waypoint"
+      from_eidos: journey
+      to_eidos: waypoint
+      cardinality: one-to-many
+      symmetric: false
+
+  # contains-journey — journey contains sub-journey (hierarchical)
+  - eidos: desmos
+    id: desmos/contains-journey
+    data:
+      name: contains-journey
+      description: "Journey contains sub-journey. Enables hierarchical journey structure."
+      from_eidos: journey
+      to_eidos: journey
+      cardinality: one-to-many
+      symmetric: false
+
+  # benefits-from — journey benefits from another (soft dependency)
+  - eidos: desmos
+    id: desmos/benefits-from
+    data:
+      name: benefits-from
+      description: |
+        Journey benefits from another journey's completion.
+        Softer than depends-on — work can proceed, but is easier after the other completes.
+      from_eidos: journey
+      to_eidos: journey
+      cardinality: many-to-many
+      symmetric: false
+
+  # enables — completing this journey enables another
+  - eidos: desmos
+    id: desmos/enables
+    data:
+      name: enables
+      description: "Completing this journey enables another journey to begin."
+      from_eidos: journey
+      to_eidos: journey
+      cardinality: many-to-many
+      symmetric: false
+
+  # provides-leverage-for — completing this journey makes future journeys easier
+  - eidos: desmos
+    id: desmos/provides-leverage-for
+    data:
+      name: provides-leverage-for
+      description: |
+        Completing this journey provides leverage for future journeys.
+        Unlike depends-on (hard blocker) or benefits-from (nice-to-have),
+        provides-leverage-for indicates compound value — each new journey
+        of the target type benefits from the leverage journey's completion.
+      from_eidos: journey
+      to_eidos: journey
+      cardinality: many-to-many
+      symmetric: false
+
+  # waypoint-yields — waypoint yields this artifact on completion
+  - eidos: desmos
+    id: desmos/waypoint-yields
+    data:
+      name: waypoint-yields
+      description: "Waypoint yields this artifact on completion"
+      from_eidos: waypoint
+      to_eidos: artifact
+      cardinality: many-to-one
+      symmetric: false
+
+  # supersedes — theoria supersedes older understanding
+  - eidos: desmos
+    id: desmos/supersedes
+    data:
+      name: supersedes
+      description: "Theoria supersedes older understanding"
+      from_eidos: theoria
+      to_eidos: theoria
+      cardinality: many-to-one
+      symmetric: false
+
+  # supports — theoria supports another theoria
+  - eidos: desmos
+    id: desmos/supports
+    data:
+      name: supports
+      description: "Theoria supports another theoria"
+      from_eidos: theoria
+      to_eidos: theoria
+      cardinality: many-to-many
+      symmetric: false
+
+  # contradicts — theoria contradicts another theoria
+  - eidos: desmos
+    id: desmos/contradicts
+    data:
+      name: contradicts
+      description: "Theoria contradicts another theoria"
+      from_eidos: theoria
+      to_eidos: theoria
+      cardinality: many-to-many
+      symmetric: false
+
+  # evidences — entity provides evidence for theoria
+  - eidos: desmos
+    id: desmos/evidences
+    data:
+      name: evidences
+      description: "Entity provides evidence for theoria"
+      from_eidos: any
+      to_eidos: theoria
+      cardinality: many-to-many
+      symmetric: false
+
+  # journeys-toward — journey moves toward an intention
+  - eidos: desmos
+    id: desmos/journeys-toward
+    data:
+      name: journeys-toward
+      description: |
+        Journey moves toward an intention. Connects nous (understanding) to
+        psyche (experience). When journey completes, intention can be fulfilled.
+      from_eidos: journey
+      to_eidos: intention
+      cardinality: many-to-one
+      symmetric: false

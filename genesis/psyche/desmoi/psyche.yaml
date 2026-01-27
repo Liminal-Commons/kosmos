@@ -1,0 +1,89 @@
+# Psyche Desmoi
+# Inner life bonds — connecting animus to attention, intention, mood, thyra, prospect, kairos
+#
+# These bonds trace the inner life of the experiencing self:
+# - attends: where awareness is directed
+# - intends: what will is pursuing
+# - mood-of: how the world is showing up
+# - portal-of: through what interface experience flows
+# - foresees: what possibilities are anticipated
+# - recognizes: what opportune moments are perceived
+# - opportune-for: which intentions a kairos serves
+
+entities:
+  # attends — animus attends to something
+  - eidos: desmos
+    id: desmos/attends
+    data:
+      name: attends
+      description: "Animus attends to something. The direction of awareness."
+      from_eidos: animus
+      to_eidos: any
+      cardinality: many-to-many
+      symmetric: false
+
+  # intends — animus holds an intention
+  - eidos: desmos
+    id: desmos/intends
+    data:
+      name: intends
+      description: "Animus holds an intention. The directedness of will."
+      from_eidos: animus
+      to_eidos: intention
+      cardinality: one-to-many
+      symmetric: false
+
+  # mood-of — mood of animus
+  - eidos: desmos
+    id: desmos/mood-of
+    data:
+      name: mood-of
+      description: "Mood of animus. How the world shows up for this being."
+      from_eidos: mood
+      to_eidos: animus
+      cardinality: many-to-one
+      symmetric: false
+
+  # portal-of — thyra is portal of animus
+  - eidos: desmos
+    id: desmos/portal-of
+    data:
+      name: portal-of
+      description: "Thyra is portal of animus. Interface through which experience flows."
+      from_eidos: thyra
+      to_eidos: animus
+      cardinality: many-to-one
+      symmetric: false
+
+  # foresees — animus foresees a prospect
+  - eidos: desmos
+    id: desmos/foresees
+    data:
+      name: foresees
+      description: "Animus foresees a prospect. Anticipation of possibility."
+      from_eidos: animus
+      to_eidos: prospect
+      cardinality: one-to-many
+      symmetric: false
+
+  # recognizes — animus recognizes a kairos
+  - eidos: desmos
+    id: desmos/recognizes
+    data:
+      name: recognizes
+      description: "Animus recognizes a kairos. Perception of opportune moment."
+      from_eidos: animus
+      to_eidos: kairos
+      cardinality: one-to-many
+      symmetric: false
+
+  # opportune-for — kairos is opportune for an intention
+  - eidos: desmos
+    id: desmos/opportune-for
+    data:
+      name: opportune-for
+      description: "Kairos is opportune for an intention. The alignment of moment and purpose."
+      from_eidos: kairos
+      to_eidos: intention
+      cardinality: many-to-one
+      symmetric: false

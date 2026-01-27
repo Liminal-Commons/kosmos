@@ -1,0 +1,868 @@
+# Stoicheion Eide
+# Schema definitions for interpreter steps — enables constrained praxis generation
+#
+# These eide define the vocabulary of praxis steps. When manteia generates praxeis,
+# it can be constrained to produce only valid step structures by using JSON schemas
+# derived from these definitions.
+#
+# Tiers:
+#   0 = Pure data flow (no external effects)
+#   1 = Read operations (kosmos reads, collection ops)
+#   2 = Write operations (kosmos writes, control flow)
+#   3 = External operations (inference, filesystem, network)
+
+entities:
+  # =============================================================================
+  # Tier 0: Pure Data Flow
+  # =============================================================================
+
+  - eidos: eidos
+    id: eidos/stoicheion/set
+    data:
+      name: set
+      description: "Bind values to names in the current scope"
+      tier: 0
+      fields:
+        bindings:
+          type: object
+          required: true
+          description: "Object of variable names to values (e.g., {x: 1, y: 2})"
+
+  - eidos: eidos
+    id: eidos/stoicheion/return
+    data:
+      name: return
+      description: "Return a value from the praxis"
+      tier: 0
+      fields:
+        value:
+          type: any
+          required: true
+          description: "Value to return"
+
+  - eidos: eidos
+    id: eidos/stoicheion/assert
+    data:
+      name: assert
+      description: "Assert a condition, fail praxis if false"
+      tier: 0
+      fields:
+        condition:
+          type: string
+          required: true
+          description: "Expression to evaluate (must be truthy)"
+        message:
+          type: string
+          required: false
+          description: "Error message if assertion fails"
+
+  # =============================================================================
+  # Tier 1: Read Operations
+  # =============================================================================
+
+  - eidos: eidos
+    id: eidos/stoicheion/gather
+    data:
+      name: gather
+      description: "Gather entities by eidos type"
+      tier: 1
+      fields:
+        eidos:
+          type: string
+          required: false
+          description: "Eidos to filter by (omit for all)"
+        limit:
+          type: integer
+          required: false
+          description: "Maximum entities to return"
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind results to"
+
+  - eidos: eidos
+    id: eidos/stoicheion/trace
+    data:
+      name: trace
+      description: "Trace bonds between entities"
+      tier: 1
+      fields:
+        from_id:
+          type: string
+          required: false
+          description: "Starting entity ID (trace outgoing)"
+        to_id:
+          type: string
+          required: false
+          description: "Ending entity ID (trace incoming)"
+        desmos:
+          type: string
+          required: false
+          description: "Bond type to filter by"
+        resolve:
+          type: string
+          required: false
+          description: "Resolve entities: 'from' or 'to'"
+          enum: ["from", "to"]
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind results to"
+
+  - eidos: eidos
+    id: eidos/stoicheion/surface
+    data:
+      name: surface
+      description: "Surface entities by semantic proximity to query"
+      tier: 1
+      fields:
+        query:
+          type: string
+          required: true
+          description: "Semantic query"
+        eidos_filter:
+          type: string
+          required: false
+          description: "Eidos to filter results by"
+        limit:
+          type: integer
+          required: false
+          description: "Maximum results (default 10)"
+        threshold:
+          type: number
+          required: false
+          description: "Minimum similarity threshold (default 0.7)"
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind results to"
+
+  - eidos: eidos
+    id: eidos/stoicheion/sense_actuality
+    data:
+      name: sense_actuality
+      description: "Sense the actual state of an entity"
+      tier: 1
+      fields:
+        entity_id:
+          type: string
+          required: true
+          description: "Entity ID to sense"
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind result to"
+
+  - eidos: eidos
+    id: eidos/stoicheion/digest
+    data:
+      name: digest
+      description: "Create BLAKE3 hash digest of content"
+      tier: 1
+      fields:
+        input:
+          type: string
+          required: true
+          description: "Content to hash"
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind hash to"
+
+  # =============================================================================
+  # Tier 1: Collection Operations
+  # =============================================================================
+
+  - eidos: eidos
+    id: eidos/stoicheion/filter
+    data:
+      name: filter
+      description: "Filter an array by condition"
+      tier: 1
+      fields:
+        items:
+          type: any
+          required: true
+          description: "Array to filter"
+          aliases: ["in"]
+        condition:
+          type: string
+          required: true
+          description: "Condition expression (evaluated per item)"
+          aliases: ["where"]
+        item_var:
+          type: string
+          required: false
+          description: "Variable name for each item (default 'item')"
+          aliases: ["as"]
+          default: "item"
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind filtered results to"
+
+  - eidos: eidos
+    id: eidos/stoicheion/map
+    data:
+      name: map
+      description: "Transform each element of an array"
+      tier: 1
+      fields:
+        items:
+          type: any
+          required: true
+          description: "Array to transform"
+          aliases: ["in"]
+        item_var:
+          type: string
+          required: false
+          description: "Variable name for each item (default 'item')"
+          aliases: ["as"]
+          default: "item"
+        transform:
+          type: any
+          required: true
+          description: "Expression to produce new value"
+          aliases: ["to"]
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind transformed results to"
+
+  - eidos: eidos
+    id: eidos/stoicheion/reduce
+    data:
+      name: reduce
+      description: "Reduce an array to a single value"
+      tier: 1
+      fields:
+        items:
+          type: any
+          required: true
+          description: "Array to reduce"
+          aliases: ["in"]
+        item_var:
+          type: string
+          required: false
+          description: "Variable name for each item (default 'item')"
+          aliases: ["as"]
+          default: "item"
+        accumulator:
+          type: string
+          required: false
+          description: "Variable name for accumulator (default 'acc')"
+          default: "acc"
+        initial:
+          type: any
+          required: true
+          description: "Initial accumulator value"
+        transform:
+          type: any
+          required: true
+          description: "Expression to compute new accumulator"
+          aliases: ["to"]
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind final result to"
+
+  - eidos: eidos
+    id: eidos/stoicheion/sort
+    data:
+      name: sort
+      description: "Sort an array by a field"
+      tier: 1
+      fields:
+        items:
+          type: any
+          required: true
+          description: "Array to sort"
+        by:
+          type: string
+          required: true
+          description: "Field path to sort by (e.g., 'data.created_at')"
+        order:
+          type: string
+          required: false
+          description: "Sort order: 'asc' or 'desc' (default 'asc')"
+          enum: ["asc", "desc"]
+          default: "asc"
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind sorted results to"
+
+  - eidos: eidos
+    id: eidos/stoicheion/limit
+    data:
+      name: limit
+      description: "Limit an array to maximum number of items"
+      tier: 1
+      fields:
+        items:
+          type: any
+          required: true
+          description: "Array to limit"
+        count:
+          type: integer
+          required: true
+          description: "Maximum number of items"
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind limited results to"
+
+  # =============================================================================
+  # Tier 2: Entity Operations (Write)
+  # =============================================================================
+
+  - eidos: eidos
+    id: eidos/stoicheion/find
+    data:
+      name: find
+      description: "Find an entity by ID"
+      tier: 2
+      fields:
+        id:
+          type: string
+          required: true
+          description: "Entity ID to find"
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind entity to"
+
+  - eidos: eidos
+    id: eidos/stoicheion/arise
+    data:
+      name: arise
+      description: "Create an entity directly (not via compose). INTERNAL — use compose instead."
+      tier: 2
+      visibility: internal
+      fields:
+        eidos:
+          type: string
+          required: true
+          description: "Eidos (type) of the entity"
+        id:
+          type: string
+          required: true
+          description: "Entity ID"
+        data:
+          type: object
+          required: false
+          description: "Entity data"
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind created entity to"
+
+  - eidos: eidos
+    id: eidos/stoicheion/update
+    data:
+      name: update
+      description: "Update an entity's data (merges with existing)"
+      tier: 2
+      fields:
+        id:
+          type: string
+          required: true
+          description: "Entity ID to update"
+        data:
+          type: object
+          required: true
+          description: "Data to merge"
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind updated entity to"
+
+  - eidos: eidos
+    id: eidos/stoicheion/dissolve
+    data:
+      name: dissolve
+      description: "Delete an entity"
+      tier: 2
+      fields:
+        id:
+          type: string
+          required: true
+          description: "Entity ID to dissolve"
+
+  - eidos: eidos
+    id: eidos/stoicheion/bind
+    data:
+      name: bind
+      description: "Create a bond between entities"
+      tier: 2
+      fields:
+        from_id:
+          type: string
+          required: true
+          description: "Source entity ID"
+        to_id:
+          type: string
+          required: true
+          description: "Target entity ID"
+        desmos:
+          type: string
+          required: true
+          description: "Bond type (desmos)"
+        data:
+          type: object
+          required: false
+          description: "Optional bond data"
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind created bond to"
+
+  - eidos: eidos
+    id: eidos/stoicheion/loose
+    data:
+      name: loose
+      description: "Dissolve a bond between entities"
+      tier: 2
+      fields:
+        from_id:
+          type: string
+          required: true
+          description: "Source entity ID"
+        to_id:
+          type: string
+          required: true
+          description: "Target entity ID"
+        desmos:
+          type: string
+          required: true
+          description: "Bond type (desmos)"
+
+  - eidos: eidos
+    id: eidos/stoicheion/compose
+    data:
+      name: compose
+      description: "Compose an entity from a typos"
+      tier: 2
+      fields:
+        typos_id:
+          type: string
+          required: true
+          description: "Typos ID to compose from"
+        inputs:
+          type: object
+          required: false
+          description: "Input values for composition"
+        id:
+          type: string
+          required: false
+          description: "Override entity ID (auto-generated if not provided)"
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind composed entity to"
+
+  - eidos: eidos
+    id: eidos/stoicheion/index
+    data:
+      name: index
+      description: "Index an entity for semantic search"
+      tier: 2
+      fields:
+        entity_id:
+          type: string
+          required: true
+          description: "Entity ID to index"
+        text:
+          type: string
+          required: true
+          description: "Text to generate embedding from"
+        embedding:
+          type: array
+          required: false
+          description: "Pre-computed embedding (generated if not provided)"
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind result to"
+
+  - eidos: eidos
+    id: eidos/stoicheion/traverse
+    data:
+      name: traverse
+      description: "Traverse the graph following bond types"
+      tier: 2
+      fields:
+        root_id:
+          type: string
+          required: true
+          description: "Starting entity ID"
+        desmoi:
+          type: array
+          required: true
+          description: "Bond types to follow"
+          items:
+            type: string
+        depth:
+          type: integer
+          required: false
+          description: "Maximum traversal depth (default 10)"
+          default: 10
+        direction:
+          type: string
+          required: false
+          description: "Direction: 'outward', 'inward', or 'both'"
+          enum: ["outward", "inward", "both"]
+          default: "outward"
+        eidos:
+          type: string
+          required: false
+          description: "Filter to entities of this eidos"
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind results to"
+
+  - eidos: eidos
+    id: eidos/stoicheion/unmanifest
+    data:
+      name: unmanifest
+      description: "Remove an entity from actuality"
+      tier: 2
+      fields:
+        entity_id:
+          type: string
+          required: true
+          description: "Entity ID to unmanifest"
+        signal:
+          type: integer
+          required: false
+          description: "Signal for process mode (default SIGTERM/15)"
+          default: 15
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind result to"
+
+  - eidos: eidos
+    id: eidos/stoicheion/keyring
+    data:
+      name: keyring
+      description: "Cryptographic key and credential operations"
+      tier: 2
+      fields:
+        operation:
+          type: string
+          required: true
+          description: >
+            Operation: generate_mnemonic, derive_key, sign, verify,
+            is_unlocked, encrypt_credential, decrypt_credential,
+            store_credential, get_credential, has_attainment,
+            remove_credential, list_credentials, list_attainments
+          enum:
+            - generate_mnemonic
+            - derive_key
+            - sign
+            - verify
+            - is_unlocked
+            - encrypt_credential
+            - decrypt_credential
+            - store_credential
+            - get_credential
+            - has_attainment
+            - remove_credential
+            - list_credentials
+            - list_attainments
+        mnemonic:
+          type: string
+          required: false
+          description: "BIP-39 mnemonic (for derive_key, sign)"
+        circle_id:
+          type: string
+          required: false
+          description: "Circle ID for scoped key derivation"
+        data:
+          type: string
+          required: false
+          description: "Data to sign or verify"
+        signature:
+          type: string
+          required: false
+          description: "Signature (for verify)"
+        public_key:
+          type: string
+          required: false
+          description: "Public key (for verify)"
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind result to"
+        # Credential operation fields
+        service:
+          type: string
+          required: false
+          description: "Service identifier (for credential operations)"
+        value:
+          type: string
+          required: false
+          description: "Credential value (plaintext for encrypt, ciphertext for decrypt)"
+        credential_id:
+          type: string
+          required: false
+          description: "Credential ID (for remove/get operations)"
+        attainment:
+          type: string
+          required: false
+          description: "Attainment to check or grant"
+        grants_attainment:
+          type: string
+          required: false
+          description: "Attainment granted by this credential"
+        label:
+          type: string
+          required: false
+          description: "Label for the credential"
+        salt:
+          type: string
+          required: false
+          description: "Salt for encryption (for decrypt operation)"
+
+  # =============================================================================
+  # Tier 2: Control Flow
+  # =============================================================================
+
+  - eidos: eidos
+    id: eidos/stoicheion/switch
+    data:
+      name: switch
+      description: "Conditional branching based on conditions"
+      tier: 2
+      fields:
+        cases:
+          type: array
+          required: true
+          description: "Array of case objects with 'when' condition and 'then' steps"
+          items:
+            type: switch_case
+        default:
+          type: array
+          required: false
+          description: "Steps to execute if no case matches"
+          items:
+            type: step
+
+  - eidos: eidos
+    id: eidos/stoicheion/for_each
+    data:
+      name: for_each
+      description: "Iterate over a collection"
+      tier: 2
+      fields:
+        items:
+          type: any
+          required: true
+          description: "Array to iterate over"
+          aliases: ["in"]
+        item_var:
+          type: string
+          required: false
+          description: "Variable name for each item (default 'item')"
+          aliases: ["as"]
+          default: "item"
+        steps:
+          type: array
+          required: true
+          description: "Steps to execute for each item"
+          aliases: ["do"]
+          items:
+            type: step
+        lift:
+          type: array
+          required: false
+          description: "Variables to lift back to parent scope after each iteration (variable names)"
+          items:
+            type: string
+
+  - eidos: eidos
+    id: eidos/stoicheion/call
+    data:
+      name: call
+      description: "Call another praxis"
+      tier: 2
+      fields:
+        praxis:
+          type: string
+          required: true
+          description: "Praxis ID to call"
+        params:
+          type: object
+          required: false
+          description: "Parameters to pass"
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind result to"
+
+  # =============================================================================
+  # Tier 3: External Operations
+  # =============================================================================
+
+  - eidos: eidos
+    id: eidos/stoicheion/embed
+    data:
+      name: embed
+      description: "Generate embedding vector for text"
+      tier: 3
+      fields:
+        text:
+          type: string
+          required: true
+          description: "Text to embed"
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind embedding to"
+
+  - eidos: eidos
+    id: eidos/stoicheion/infer
+    data:
+      name: infer
+      description: "Call LLM for inference with optional structured output. INTERNAL — use governed-inference instead."
+      tier: 3
+      visibility: internal
+      fields:
+        prompt:
+          type: string
+          required: true
+          description: "Prompt to send"
+        system_prompt:
+          type: string
+          required: false
+          description: "System prompt"
+        model:
+          type: string
+          required: false
+          description: "Model to use (default claude-opus-4-5)"
+          default: "claude-opus-4-5"
+        temperature:
+          type: number
+          required: false
+          description: "Temperature (default 0.7)"
+          default: 0.7
+        output_schema:
+          type: object
+          required: false
+          description: "JSON Schema for structured output — constrains LLM to valid JSON"
+        stoicheion:
+          type: string
+          required: false
+          description: "Stoicheion eidos ID for auto-generated schema (e.g., eidos/stoicheion/filter)"
+        target_eidos:
+          type: string
+          required: false
+          description: "Eidos ID for auto-generated schema — constrains output to entity fields (e.g., eidos/theoria)"
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind response to (JSON if structured, string if plain)"
+
+  - eidos: eidos
+    id: eidos/stoicheion/manifest
+    data:
+      name: manifest
+      description: "Bring an entity into actuality"
+      tier: 3
+      fields:
+        entity_id:
+          type: string
+          required: true
+          description: "Entity ID to manifest"
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind result to"
+
+  - eidos: eidos
+    id: eidos/stoicheion/signal
+    data:
+      name: signal
+      description: "Signaling operations for WebRTC and protocols"
+      tier: 3
+      fields:
+        operation:
+          type: string
+          required: true
+          description: "Operation: poll, send_offer, send_answer, accept_answer, etc."
+        session_id:
+          type: string
+          required: false
+          description: "Signaling session ID"
+        channel_id:
+          type: string
+          required: false
+          description: "Data channel ID"
+        sdp:
+          type: string
+          required: false
+          description: "SDP data"
+        message:
+          type: any
+          required: false
+          description: "Message data"
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind result to"
+
+  - eidos: eidos
+    id: eidos/stoicheion/emit
+    data:
+      name: emit
+      description: "Emit content or entity to filesystem"
+      tier: 3
+      fields:
+        path:
+          type: string
+          required: true
+          description: "File path to write to"
+        entity_id:
+          type: string
+          required: false
+          description: "Entity ID to emit (serialized based on format)"
+        content:
+          type: string
+          required: false
+          description: "Direct content to write"
+        format:
+          type: string
+          required: false
+          description: "Output format: yaml, json, markdown, text"
+          enum: ["yaml", "json", "markdown", "text"]
+          default: "yaml"
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind result to"
+
+  - eidos: eidos
+    id: eidos/stoicheion/invoke
+    data:
+      name: invoke
+      description: "Invoke a dynamis operation (external provider like LiveKit, DNS, etc.)"
+      tier: 3
+      fields:
+        dynamis:
+          type: string
+          required: true
+          description: "Dynamis provider name (e.g., 'livekit', 'dns', 'r2')"
+        operation:
+          type: string
+          required: true
+          description: "Operation to invoke (e.g., 'create-token', 'sense', 'manifest')"
+        params:
+          type: object
+          required: false
+          description: "Parameters to pass to the operation"
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind result to"

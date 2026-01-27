@@ -1,0 +1,69 @@
+# Aither Desmoi
+# Connection bonds — queuing, presence, and channel relationships
+#
+# Syndesmos (connection state) uses these bonds to track relationships
+# between connections, messages, and presence records.
+
+entities:
+  # queued-for — outbound message queued for a connection
+  - eidos: desmos
+    id: desmos/queued-for
+    data:
+      name: queued-for
+      description: |
+        Message queued for delivery through this syndesmos.
+        When the connection is restored, queued messages are flushed in order.
+      from_eidos: outbound-message
+      to_eidos: syndesmos
+      cardinality: many-to-one
+      symmetric: false
+
+  # present-in — presence record in circle
+  - eidos: desmos
+    id: desmos/present-in
+    data:
+      name: present-in
+      description: |
+        Persona presence in a circle or room.
+        Ephemeral — expired records are cleaned up.
+      from_eidos: presence-record
+      to_eidos: circle
+      cardinality: many-to-one
+      symmetric: false
+
+  # connected-via — syndesmos uses a data channel
+  - eidos: desmos
+    id: desmos/connected-via
+    data:
+      name: connected-via
+      description: |
+        Syndesmos is connected via this data channel.
+        The syndesmos manages intent; the channel is the actuality.
+      from_eidos: syndesmos
+      to_eidos: data-channel
+      cardinality: one-to-one
+      symmetric: false
+
+  # belongs-to-persona — presence record belongs to persona
+  - eidos: desmos
+    id: desmos/presence-of
+    data:
+      name: presence-of
+      description: |
+        This presence record represents the presence of this persona.
+      from_eidos: presence-record
+      to_eidos: persona
+      cardinality: many-to-one
+      symmetric: false
+
+  # targets-peer — syndesmos targets a remote persona
+  - eidos: desmos
+    id: desmos/targets-peer
+    data:
+      name: targets-peer
+      description: |
+        This syndesmos is trying to connect to this remote persona.
+      from_eidos: syndesmos
+      to_eidos: persona
+      cardinality: many-to-one
+      symmetric: false

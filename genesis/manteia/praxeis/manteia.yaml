@@ -1,0 +1,582 @@
+# Manteia Praxeis — Governed Inference
+#
+# Μαντεία provides constrained LLM generation using JSON schemas
+# derived from stoicheion eide. This enables the LLM to generate
+# valid praxeis and steps that conform to the kosmos type system.
+
+entities:
+  # ===========================================================================
+  # governed-inference: Generate valid JSON matching a schema
+  # ===========================================================================
+  - eidos: praxis
+    id: praxis/manteia/governed-inference
+    data:
+      name: governed-inference
+      description: |
+        Generate structured output constrained to a JSON schema.
+
+        Schema sources (in order of precedence):
+        1. output_schema - explicit JSON Schema
+        2. stoicheion_id - derive from stoicheion eidos fields
+        3. target_eidos - derive from any eidos fields
+
+        Returns the generated JSON, validated against the schema.
+
+        When evaluate=true, performs two-step governed generation:
+        1. Generate content (schema-constrained)
+        2. Evaluate against criteria
+        3. Return governed envelope with verdict
+
+        Verdicts:
+        - TRUE: All critical criteria pass — safe to use
+        - FALSE: Critical criterion failed — includes guidance
+        - UNDECIDABLE: Cannot determine — human review needed
+      visible: true
+      params:
+        - name: prompt
+          required: true
+          description: "What to generate"
+        - name: stoicheion_id
+          required: false
+          description: "Stoicheion eidos ID for auto-schema (e.g., eidos/stoicheion/filter)"
+        - name: target_eidos
+          required: false
+          description: "Eidos ID for auto-schema (e.g., eidos/theoria)"
+        - name: output_schema
+          required: false
+          description: "JSON Schema to constrain output (alternative to stoicheion_id)"
+        - name: system_prompt
+          required: false
+          description: "Additional system context"
+        - name: evaluate
+          required: false
+          description: "When true, evaluate content against criteria and return governed envelope"
+        - name: criteria
+          required: false
+          description: "Array of evaluation criteria [{name, description, weight, check_prompt?}]"
+        - name: temperature
+          required: false
+          description: "Model temperature (0.0-1.0, default varies by model)"
+        - name: max_tokens
+          required: false
+          description: "Maximum tokens to generate"
+      steps:
+        # Step 1: Generate schema-constrained content
+        - step: infer
+          prompt: "$prompt"
+          system_prompt: "$system_prompt"
+          stoicheion: "$stoicheion_id"
+          target_eidos: "$target_eidos"
+          output_schema: "$output_schema"
+          temperature: "$temperature"
+          max_tokens: "$max_tokens"
+          bind_to: content
+        # Step 2: Conditional evaluation
+        - step: switch
+          cases:
+            - when: "$evaluate == true"
+              then:
+                # Evaluate against criteria
+                - step: call
+                  praxis: manteia/_evaluate-generation
+                  params:
+                    content: "$content"
+                    criteria: "$criteria"
+                    generation_context: "$prompt"
+                  bind_to: evaluation
+                # Build governed envelope
+                - step: set
+                  bindings:
+                    envelope:
+                      content: "$content"
+                      verdict: "$evaluation.verdict"
+                      criteria_results: "$evaluation.criteria_results"
+                      guidance: "$evaluation.guidance"
+                      provenance:
+                        action: governed-inference
+                        prompt_hash: "$prompt"
+                - step: return
+                  value: "$envelope"
+          default:
+            # No evaluation - return content directly (backward compatible)
+            - step: return
+              value: "$content"
+
+  # ===========================================================================
+  # generate-entity: Generate entity data constrained to eidos schema
+  # ===========================================================================
+  - eidos: praxis
+    id: praxis/manteia/generate-entity
+    data:
+      name: generate-entity
+      description: |
+        Generate entity data constrained to an eidos schema.
+
+        When target_eidos is provided, the LLM output is constrained to match
+        the eidos field definitions. This enables generating valid entity data
+        that can be used directly with arise or compose operations.
+
+        Example:
+          target_eidos: eidos/theoria
+          prompt: "Crystallize understanding about dependency tracking"
+
+        Returns valid entity data matching the eidos fields.
+      visible: true
+      params:
+        - name: prompt
+          required: true
+          description: "What entity to generate (describe the content/purpose)"
+        - name: target_eidos
+          required: true
+          description: "Eidos ID to constrain output (e.g., eidos/theoria)"
+        - name: system_prompt
+          required: false
+          description: "Additional system context"
+      steps:
+        - step: infer
+          prompt: "$prompt"
+          system_prompt: |
+            You are generating entity data for the kosmos.
+            $system_prompt
+
+            Return only the data fields that match the entity schema.
+            Do not include id or eidos fields - just the data content.
+          target_eidos: "$target_eidos"
+          bind_to: result
+        - step: return
+          value: "$result"
+
+  # ===========================================================================
+  # generate-step: Generate a single valid praxis step
+  # ===========================================================================
+  - eidos: praxis
+    id: praxis/manteia/generate-step
+    data:
+      name: generate-step
+      description: |
+        Generate a single praxis step constrained to valid stoicheion schema.
+
+        Example:
+          stoicheion: filter
+          intent: "Filter users by active status"
+
+        Returns a valid step object like:
+          { "filter": { "items": "$users", "condition": "item.active == true" } }
+      visible: true
+      params:
+        - name: stoicheion
+          required: true
+          description: "Step type name (e.g., filter, map, gather)"
+        - name: intent
+          required: true
+          description: "What this step should do"
+        - name: context
+          required: false
+          description: "Additional context (available variables, etc.)"
+      steps:
+        - step: set
+          bindings:
+            stoicheion_id: "eidos/stoicheion/$stoicheion"
+        - step: set
+          bindings:
+            full_prompt: |
+              Generate a praxis step that does: $intent
+
+              Context: $context
+
+              Return ONLY the step fields (not the wrapper object).
+              The step type is: $stoicheion
+        - step: infer
+          prompt: "$full_prompt"
+          system_prompt: |
+            You are generating a single praxis step for the kosmos interpreter.
+            Return only the step's field values as JSON, matching the schema exactly.
+            Do not include the step type wrapper - just the inner fields.
+          stoicheion: "$stoicheion_id"
+          bind_to: step_fields
+        # Wrap the fields in the step type
+        - step: set
+          bindings:
+            result:
+              "$stoicheion": "$step_fields"
+        - step: return
+          value: "$result"
+
+  # ===========================================================================
+  # generate-praxis: Generate a complete praxis
+  # ===========================================================================
+  - eidos: praxis
+    id: praxis/manteia/generate-praxis
+    data:
+      name: generate-praxis
+      description: |
+        Generate a complete praxis (multiple steps) from a high-level description.
+
+        Returns a praxis object with id, params, and steps arrays.
+        Each step is constrained to valid stoicheion schemas.
+      visible: true
+      params:
+        - name: praxis_id
+          required: true
+          description: "ID for the generated praxis (e.g., praxis/my-action)"
+        - name: description
+          required: true
+          description: "What this praxis should do"
+        - name: input_params
+          required: false
+          description: "Expected input parameters"
+        - name: context
+          required: false
+          description: "Additional context about available entities, praxeis, etc."
+      steps:
+        - step: set
+          bindings:
+            prompt: |
+              Generate a praxis that does: $description
+
+              Praxis ID: $praxis_id
+              Input parameters: $input_params
+
+              Context: $context
+
+              Return a complete praxis with:
+              - id: the praxis ID
+              - params: array of {name, required, description}
+              - steps: array of step objects
+
+              Available step types:
+              - set: Set a variable
+              - return: Return a value
+              - gather: Gather entities by eidos
+              - find: Find entity by ID
+              - filter: Filter array by condition
+              - map: Transform array elements
+              - for_each: Iterate with steps
+              - switch: Conditional branching
+              - arise: Create entity
+              - bind: Create bond
+              - infer: LLM inference
+              - call: Call another praxis
+        - step: infer
+          prompt: "$prompt"
+          system_prompt: |
+            You are generating a praxis for the kosmos interpreter.
+            Return a complete praxis definition as JSON.
+            Each step must be a valid stoicheion (use the step names as keys).
+          output_schema:
+            type: object
+            properties:
+              id:
+                type: string
+              params:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    required:
+                      type: boolean
+                    description:
+                      type: string
+                  required: ["name"]
+              steps:
+                type: array
+                items:
+                  type: object
+            required: ["id", "steps"]
+          bind_to: praxis
+        - step: return
+          value: "$praxis"
+
+  # ===========================================================================
+  # generate-typos: Generate a valid typos (V9)
+  # ===========================================================================
+  - eidos: praxis
+    id: praxis/manteia/generate-typos
+    data:
+      name: generate-typos
+      description: |
+        Generate a valid typos for composing new entity types.
+
+        This is V9 — the kosmos learning to write its own composition templates.
+        The output is constrained to eidos/typos, ensuring:
+        - Valid slot patterns (literal, computed, queried, generated, composed)
+        - Valid bond specifications (desmos, from/to bindings)
+        - Correct routing shape (target_eidos, slots, or template)
+
+        Example:
+          name: "user-profile"
+          purpose: "Compose user profiles with avatar, bio, and preferences"
+          target_eidos: "user"
+
+        Returns a complete typos ready for use with compose.
+      visible: true
+      params:
+        - name: name
+          required: true
+          description: "Name for the typos (e.g., 'user-profile')"
+        - name: purpose
+          required: true
+          description: "What this typos composes (detailed description)"
+        - name: target_eidos
+          required: false
+          description: "For entity composition - the eidos to compose"
+        - name: composition_type
+          required: false
+          description: "Routing hint: 'entity', 'graph', or 'template' (auto-detected from inputs)"
+        - name: examples
+          required: false
+          description: "Example inputs/outputs to guide generation"
+        - name: context
+          required: false
+          description: "Additional context about available eide, desmoi, etc."
+      steps:
+        - step: set
+          bindings:
+            prompt: |
+              Generate a typos for: $name
+
+              Purpose: $purpose
+
+              Target eidos: $target_eidos
+              Composition type hint: $composition_type
+
+              Examples: $examples
+
+              Context: $context
+
+              Create a complete typos with:
+              - name: Human-readable name
+              - description: What this typos composes and how to use it
+              - target_eidos: (if entity composition) The eidos to compose to
+              - slots: (if graph composition) Named slots with patterns
+              - template: (if template composition) Handlebars template string
+              - defaults: Default values for inputs
+              - bonds: Bonds to create automatically during composition
+
+              For slots, use these patterns:
+              - literal: Fixed value from default or input
+              - computed: Expression to evaluate
+              - queried: Entity lookup via find/gather
+              - generated: LLM inference (include prompt and optionally output_schema)
+              - composed: Nested typos composition (include typos_id)
+
+              For bonds, specify:
+              - desmos: The bond type (e.g., 'belongs-to', 'authored-by')
+              - from_self/to_self: Whether the composed entity is the source/target
+              - from_context/to_context: Context bindings (e.g., '_circle', '_persona')
+              - from_literal/to_literal: Fixed entity IDs
+              - optional: Whether the bond is optional
+        - step: infer
+          prompt: "$prompt"
+          system_prompt: |
+            You are generating a typos for the kosmos.
+            Typoi enable composing entities, graphs, or text.
+
+            The typos must be valid according to eidos/typos:
+            - Shape determines routing (target_eidos → entity, slots → graph, template → template)
+            - Slots use caller patterns to specify how to fill them
+            - Bonds specify relationships to create automatically
+
+            Return only the typos data fields (name, description, target_eidos, etc.)
+            Do not include id or eidos - those are added by the composition system.
+          target_eidos: "eidos/typos"
+          bind_to: typos_data
+        # Add the typos-def- prefix to name for ID
+        - step: set
+          bindings:
+            typos_id: "typos-def-$name"
+            result:
+              eidos: typos
+              id: "typos-def-$name"
+              data: "$typos_data"
+        - step: return
+          value: "$result"
+
+  # ===========================================================================
+  # get-stoicheion-schema: Get JSON schema for a stoicheion
+  # ===========================================================================
+  - eidos: praxis
+    id: praxis/manteia/get-stoicheion-schema
+    data:
+      name: get-stoicheion-schema
+      description: |
+        Get the JSON schema for a stoicheion step type.
+        Useful for understanding what fields a step accepts.
+      visible: true
+      params:
+        - name: stoicheion
+          required: true
+          description: "Step type name (e.g., filter, map, gather)"
+      steps:
+        - step: set
+          bindings:
+            stoicheion_id: "eidos/stoicheion/$stoicheion"
+        - step: find
+          id: "$stoicheion_id"
+          bind_to: eidos_entity
+        - step: switch
+          cases:
+            - when: "$eidos_entity == null"
+              then:
+                - step: return
+                  value:
+                    error: "Stoicheion not found: $stoicheion"
+        - step: set
+          bindings:
+            fields: "$eidos_entity.data.fields"
+        - step: set
+          bindings:
+            schema:
+              type: object
+              title: "$stoicheion"
+              description: "$eidos_entity.data.description"
+              properties: "$fields"
+        - step: return
+          value: "$schema"
+
+  # ===========================================================================
+  # list-stoicheia: List all available step types
+  # ===========================================================================
+  - eidos: praxis
+    id: praxis/manteia/list-stoicheia
+    data:
+      name: list-stoicheia
+      description: |
+        List all available stoicheion step types with their descriptions.
+        Grouped by tier (0=pure, 1=read, 2=write, 3=external).
+      visible: true
+      params:
+        - name: tier
+          required: false
+          description: "Filter by tier (0, 1, 2, or 3)"
+      steps:
+        - step: gather
+          eidos: eidos
+          limit: 100
+          bind_to: all_eide
+        - step: filter
+          in: "$all_eide"
+          where: "item.id.startsWith('eidos/stoicheion/')"
+          bind_to: stoicheia
+        - step: switch
+          cases:
+            - when: "$tier != null"
+              then:
+                - step: filter
+                  in: "$stoicheia"
+                  where: "item.data.tier == $tier"
+                  bind_to: stoicheia
+        - step: map
+          in: "$stoicheia"
+          to:
+            name: "$item.data.name"
+            description: "$item.data.description"
+            tier: "$item.data.tier"
+          bind_to: result
+        - step: return
+          value: "$result"
+
+  # ===========================================================================
+  # _evaluate-generation: Internal evaluation praxis (not exposed via MCP)
+  # ===========================================================================
+  - eidos: praxis
+    id: praxis/manteia/_evaluate-generation
+    data:
+      name: _evaluate-generation
+      description: |
+        Internal praxis for evaluating generated content against criteria.
+
+        Used by governed-inference to implement the two-step inference pattern:
+        1. Generate content (constrained by schema)
+        2. Evaluate against criteria (this praxis)
+
+        Returns verdict (TRUE/FALSE/UNDECIDABLE), criteria_results, and guidance.
+
+        NOT exposed via MCP — this is an implementation detail of governed generation.
+      visible: false
+      params:
+        - name: content
+          required: true
+          description: "The generated content to evaluate (JSON)"
+        - name: criteria
+          required: true
+          description: "Array of evaluation criteria [{name, description, weight, check_prompt?}]"
+        - name: generation_context
+          required: false
+          description: "Original prompt/context for the generation (helps evaluation)"
+      steps:
+        - step: set
+          bindings:
+            eval_prompt: |
+              Evaluate this generated content against the criteria below.
+
+              ## Generated Content
+              ```json
+              $content
+              ```
+
+              ## Generation Context
+              $generation_context
+
+              ## Criteria to Evaluate
+              $criteria
+
+              For each criterion:
+              1. Assess whether the content meets the criterion
+              2. Provide status: PASS, FAIL, or UNDECIDABLE
+              3. Explain your reasoning
+
+              Then determine the overall verdict:
+              - TRUE: All critical criteria pass
+              - FALSE: Any critical criterion fails
+              - UNDECIDABLE: Cannot determine (missing info, ambiguous)
+
+              If verdict is not TRUE, provide guidance for improvement.
+        - step: infer
+          prompt: "$eval_prompt"
+          system_prompt: |
+            You are evaluating generated content for quality and correctness.
+            Be thorough but fair. PASS criteria that are reasonably met.
+            FAIL criteria only when there is a clear deficiency.
+            Use UNDECIDABLE when you genuinely cannot determine.
+
+            Guidance should be actionable — what specifically should change?
+          output_schema:
+            type: object
+            properties:
+              criteria_results:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      description: "Criterion name that was evaluated"
+                    status:
+                      type: string
+                      enum: ["PASS", "FAIL", "UNDECIDABLE"]
+                    reason:
+                      type: string
+                      description: "Explanation for this status"
+                  required: ["name", "status", "reason"]
+              verdict:
+                type: string
+                enum: ["TRUE", "FALSE", "UNDECIDABLE"]
+                description: "Overall quality gate verdict"
+              guidance:
+                type: object
+                properties:
+                  resolution_hint:
+                    type: string
+                    description: "What needs to change for verdict=TRUE"
+                  gap_kind:
+                    type: string
+                    enum: ["missing", "incomplete", "incoherent", "none"]
+                    description: "Type of gap identified"
+                description: "Resolution guidance when verdict != TRUE"
+            required: ["criteria_results", "verdict"]
+          bind_to: evaluation
+        - step: return
+          value: "$evaluation"

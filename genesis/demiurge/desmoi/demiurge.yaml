@@ -1,0 +1,103 @@
+# Demiurge Desmoi
+# Artifact dependency tracking bonds
+#
+# Extracted from spora.yaml stage-1-desmoi
+# NOTE: depends-on is shared with nous (journey dependencies)
+
+entities:
+  # depends-on — artifact depends on entity (cache invalidation)
+  - eidos: desmos
+    id: desmos/depends-on
+    data:
+      name: depends-on
+      description: "Artifact depends on entity. Used for cache invalidation. Also used for journey dependencies."
+      from_eidos: any
+      to_eidos: any
+      cardinality: many-to-many
+      symmetric: false
+
+  # packages — oikos-dev packages an oikos
+  - eidos: desmos
+    id: desmos/packages
+    data:
+      name: packages
+      description: |
+        An oikos-dev packages a source oikos. This bond tracks which
+        development package was composed from which genesis oikos.
+      from_eidos: oikos-dev
+      to_eidos: oikos
+      cardinality: many-to-one
+      symmetric: false
+
+  # baked-from — oikos-prod was baked from oikos-dev
+  - eidos: desmos
+    id: desmos/baked-from
+    data:
+      name: baked-from
+      description: |
+        An oikos-prod was baked (generation specs resolved) from an oikos-dev.
+        Provides provenance from published package to development source.
+      from_eidos: oikos-prod
+      to_eidos: oikos-dev
+      cardinality: many-to-one
+      symmetric: false
+
+  # published-by — oikos-prod was published by an animus
+  - eidos: desmos
+    id: desmos/published-by
+    data:
+      name: published-by
+      description: |
+        An oikos-prod was published by an animus (persona in circle).
+        Tracks who signed and released the package.
+      from_eidos: oikos-prod
+      to_eidos: animus
+      cardinality: many-to-one
+      symmetric: false
+
+  # attests-to — publish-attestation attests to oikos-prod
+  - eidos: desmos
+    id: desmos/attests-to
+    data:
+      name: attests-to
+      description: |
+        A publish-attestation attests to the publication of an oikos-prod.
+        Provides audit trail for package provenance.
+      from_eidos: publish-attestation
+      to_eidos: oikos-prod
+      cardinality: many-to-one
+      symmetric: false
+
+  # derives-from — oikos-dev was forked from another oikos-dev
+  - eidos: desmos
+    id: desmos/derives-from
+    data:
+      name: derives-from
+      description: |
+        An oikos-dev was forked/derived from another oikos-dev.
+        Used for tracking generative-commons fork lineage.
+      from_eidos: oikos-dev
+      to_eidos: oikos-dev
+      cardinality: many-to-one
+      symmetric: false
+
+  # sources-content-from — oikos/entity sources content from a content-root
+  - eidos: desmos
+    id: desmos/sources-content-from
+    data:
+      name: sources-content-from
+      description: |
+        Entity sources content from a content-root. Makes content provenance
+        traversable rather than implicit.
+
+        Bootstrap traces sources-content-from bonds to discover all content
+        locations. Adding a content root = creating an entity + bond.
+
+        Examples:
+        - oikos/nous sources-content-from content-root/nous
+        - oikos/agora sources-content-from content-root/agora
+        - kosmos sources-content-from content-root/arche (constitutional)
+      from_eidos: any
+      to_eidos: content-root
+      cardinality: many-to-many
+      symmetric: false

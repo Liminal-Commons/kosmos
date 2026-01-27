@@ -1,0 +1,127 @@
+# Oikos Manifest: Dynamis
+# δύναμις — existence-actuality bridging — releases, deployments, substrates
+#
+# Dynamis is where kosmos intention becomes chora actuality.
+# The bridge between what should be and what is.
+#
+# Manifest v2.1 — oikos metadata for entity composition
+# Traces to: expression/genesis-root
+
+format_version: "2.1"
+oikos_id: dynamis
+version: "0.1.0"
+
+# Oikos metadata (v2.1)
+oikos_name: Dynamis
+oikos_description: |
+  Existence-actuality bridging. Where kosmos intention becomes chora
+  actuality. The bridge between what should be and what is. Manages
+  releases, deployments, substrates, and distribution channels.
+oikos_scale: cross-scale
+
+content_paths:
+  - path: eide/
+    content_types: [eidos]
+  - path: desmoi/
+    content_types: [desmos]
+  - path: praxeis/
+    content_types: [praxis]
+
+description: |
+  Existence-actuality bridging layer. Manages releases, deployments,
+  substrates, and distribution channels. Implements the phylax pattern
+  (sense → compare → act) for reconciling intent with actuality.
+
+requires_dynamis:
+  - db.arise
+  - db.find
+  - db.gather
+  - db.bind
+  - db.trace
+  - db.update
+  - energeia.manifest
+  - energeia.sense
+  - energeia.unmanifest
+
+provides:
+  eide:
+    - release
+    - release-artifact
+    - substrate
+    - distribution-channel
+    - deployment
+    - actuality-record
+
+  seeds:
+    - substrate/mac-universal
+    - substrate/windows-x64
+    - substrate/linux-x64
+    - distribution-channel/thyra-r2
+    - distribution-channel/github-releases
+
+  desmoi:
+    - contains-artifact
+    - targets-substrate
+    - distributed-via
+    - substrate-of
+    - deploys-release
+    - targets
+    - through-channel
+    - has-actuality
+    - triggered-journey
+    - succeeds-release
+    - supersedes-release
+
+  praxeis:
+    # Release lifecycle
+    - create-release
+    - register-artifact
+    - mark-release-built
+    - distribute-release
+    - sense-release
+    - reconcile-release
+
+    # Substrate management
+    - create-substrate
+
+    # Distribution channels
+    - create-distribution-channel
+
+    # Deployment management
+    - create-deployment
+    - manifest-deployment
+    - sense-deployment
+    - reconcile-deployment
+
+    # Query operations
+    - list-releases
+    - list-substrates
+    - list-distribution-channels
+
+actuality_modes:
+  release-artifact:
+    mode: object-storage
+    provider: r2
+    description: "Artifacts actualize as objects in R2 bucket"
+
+  deployment:
+    mode: process
+    description: "Deployments actualize as running processes or services"
+
+stoicheia_form:
+  # All stoicheia use arche (interpreter) form
+  create-release: arche
+  register-artifact: arche
+  mark-release-built: arche
+  distribute-release: arche
+  sense-release: arche
+  reconcile-release: arche
+  create-substrate: arche
+  create-distribution-channel: arche
+  create-deployment: arche
+  manifest-deployment: arche
+  sense-deployment: arche
+  reconcile-deployment: arche
+  list-releases: arche
+  list-substrates: arche
+  list-distribution-channels: arche

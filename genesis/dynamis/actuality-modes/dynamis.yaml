@@ -1,0 +1,331 @@
+# dynamis.yaml
+# Actuality mode definitions for dynamis
+#
+# These entities define how kosmos intention manifests in chora actuality.
+# Each mode specifies operations (manifest, sense, unmanifest) that the
+# energeia layer dispatches to.
+#
+# Schema-driven: build.rs reads these definitions and generates dispatch code.
+# Adding a new provider requires only a new entity here — no hand-written Rust.
+#
+# Traces to: genesis/dynamis/DESIGN.md (Schema Alignment)
+
+entities:
+
+# =============================================================================
+# OBJECT STORAGE MODES
+# =============================================================================
+
+- eidos: actuality-mode
+  id: actuality-mode/object-storage-r2
+  data:
+    name: object-storage
+    provider: r2
+    description: |
+      Cloudflare R2 object storage mode.
+
+      Used for release artifacts, static files, and any binary content
+      that needs to be distributed via CDN.
+    operations:
+      manifest:
+        stoicheion: r2-put-object
+        params:
+          - bucket
+          - key
+          - content
+          - content_type
+        description: Upload object to R2 bucket
+      sense:
+        stoicheion: r2-head-object
+        params:
+          - bucket
+          - key
+        returns:
+          exists: boolean
+          size: number
+          etag: string
+          last_modified: timestamp
+        description: Check if object exists and get metadata
+      unmanifest:
+        stoicheion: r2-delete-object
+        params:
+          - bucket
+          - key
+        description: Delete object from R2 bucket
+    config_schema:
+      bucket:
+        type: string
+        required: true
+        description: R2 bucket name
+      key_pattern:
+        type: string
+        required: true
+        description: |
+          Pattern for object key. Supports template variables:
+          {{ name }}, {{ version }}, {{ platform }}, {{ filename }}
+      credential_ref:
+        type: string
+        required: true
+        description: Reference to credentials (env:// or secret://)
+
+- eidos: actuality-mode
+  id: actuality-mode/object-storage-s3
+  data:
+    name: object-storage
+    provider: s3
+    description: |
+      AWS S3 object storage mode.
+
+      Compatible with any S3-compatible storage (AWS, MinIO, etc.).
+    operations:
+      manifest:
+        stoicheion: s3-put-object
+        params:
+          - bucket
+          - key
+          - content
+          - content_type
+        description: Upload object to S3 bucket
+      sense:
+        stoicheion: s3-head-object
+        params:
+          - bucket
+          - key
+        returns:
+          exists: boolean
+          size: number
+          etag: string
+          last_modified: timestamp
+        description: Check if object exists and get metadata
+      unmanifest:
+        stoicheion: s3-delete-object
+        params:
+          - bucket
+          - key
+        description: Delete object from S3 bucket
+    config_schema:
+      bucket:
+        type: string
+        required: true
+        description: S3 bucket name
+      region:
+        type: string
+        required: false
+        description: AWS region (default us-east-1)
+      key_pattern:
+        type: string
+        required: true
+        description: Pattern for object key
+      credential_ref:
+        type: string
+        required: true
+        description: Reference to credentials
+
+- eidos: actuality-mode
+  id: actuality-mode/object-storage-local
+  data:
+    name: object-storage
+    provider: local
+    description: |
+      Local filesystem object storage mode.
+
+      Used for development and testing. Files stored on local disk.
+    operations:
+      manifest:
+        stoicheion: fs-write-file
+        params:
+          - path
+          - content
+        description: Write file to local filesystem
+      sense:
+        stoicheion: fs-stat-file
+        params:
+          - path
+        returns:
+          exists: boolean
+          size: number
+          modified_at: timestamp
+        description: Check if file exists and get metadata
+      unmanifest:
+        stoicheion: fs-delete-file
+        params:
+          - path
+        description: Delete file from local filesystem
+    config_schema:
+      base_path:
+        type: string
+        required: true
+        description: Base directory for files
+      path_pattern:
+        type: string
+        required: true
+        description: Pattern for file path within base
+
+# =============================================================================
+# PROCESS MODES
+# =============================================================================
+
+- eidos: actuality-mode
+  id: actuality-mode/process-local
+  data:
+    name: process
+    provider: local
+    description: |
+      Local process execution mode.
+
+      Used for deployments that run as local processes (development servers,
+      background tasks, etc.).
+    operations:
+      manifest:
+        stoicheion: spawn-process
+        params:
+          - command
+          - args
+          - env
+          - working_dir
+        returns:
+          pid: number
+        description: Spawn a local process
+      sense:
+        stoicheion: check-process
+        params:
+          - pid
+        returns:
+          running: boolean
+          exit_code: number
+          cpu_usage: number
+          memory_usage: number
+        description: Check process status
+      unmanifest:
+        stoicheion: kill-process
+        params:
+          - pid
+          - signal
+        description: Terminate process
+    config_schema:
+      command:
+        type: string
+        required: true
+        description: Command to execute
+      args:
+        type: array
+        required: false
+        description: Command arguments
+      env:
+        type: object
+        required: false
+        description: Environment variables
+      working_dir:
+        type: string
+        required: false
+        description: Working directory
+
+- eidos: actuality-mode
+  id: actuality-mode/process-docker
+  data:
+    name: process
+    provider: docker
+    description: |
+      Docker container execution mode.
+
+      Used for containerized deployments.
+    operations:
+      manifest:
+        stoicheion: docker-run
+        params:
+          - image
+          - name
+          - ports
+          - env
+          - volumes
+        returns:
+          container_id: string
+        description: Start a Docker container
+      sense:
+        stoicheion: docker-inspect
+        params:
+          - container_id
+        returns:
+          running: boolean
+          status: string
+          health: string
+          ports: object
+        description: Inspect container status
+      unmanifest:
+        stoicheion: docker-stop
+        params:
+          - container_id
+          - timeout
+        description: Stop and remove container
+    config_schema:
+      image:
+        type: string
+        required: true
+        description: Docker image to run
+      name:
+        type: string
+        required: false
+        description: Container name
+      ports:
+        type: object
+        required: false
+        description: Port mappings (host:container)
+      volumes:
+        type: array
+        required: false
+        description: Volume mounts
+
+# =============================================================================
+# DNS MODES
+# =============================================================================
+
+- eidos: actuality-mode
+  id: actuality-mode/dns-cloudflare
+  data:
+    name: dns
+    provider: cloudflare
+    description: |
+      Cloudflare DNS management mode.
+
+      Used for DNS record management via Cloudflare API.
+    operations:
+      manifest:
+        stoicheion: cf-create-record
+        params:
+          - zone_id
+          - type
+          - name
+          - content
+          - ttl
+          - proxied
+        returns:
+          record_id: string
+        description: Create DNS record in Cloudflare
+      sense:
+        stoicheion: cf-get-record
+        params:
+          - zone_id
+          - record_id
+        returns:
+          exists: boolean
+          type: string
+          name: string
+          content: string
+          ttl: number
+          proxied: boolean
+        description: Get DNS record details
+      unmanifest:
+        stoicheion: cf-delete-record
+        params:
+          - zone_id
+          - record_id
+        description: Delete DNS record from Cloudflare
+    config_schema:
+      zone_id:
+        type: string
+        required: true
+        description: Cloudflare zone ID
+      credential_ref:
+        type: string
+        required: true
+        description: Reference to API token

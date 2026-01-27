@@ -1,0 +1,266 @@
+# Arche: Desmos Definitions
+# The kinds of bonds that can exist between entities.
+#
+# Every bond has a desmos (type). The desmos determines meaning.
+# Bonds carry encrypted traversal keys — reachability is cryptographic.
+
+# =============================================================================
+# COMPOSITION DESMOI — How things are made
+# =============================================================================
+
+- id: composed-from
+  description: |
+    Provenance bond. Every composed entity points to its definition.
+    This is the primary chain for authenticity verification.
+  from_eidos: [any]
+  to_eidos: [typos, genesis]
+  cardinality: many-to-one
+  required: true  # Every entity MUST have this bond
+
+- id: authorized-by
+  description: |
+    Authorization bond. Points to the expression/invocation that
+    authorized this entity's creation.
+  from_eidos: [any]
+  to_eidos: [expression, invocation]
+  cardinality: many-to-one
+
+- id: belongs-to
+  description: |
+    Containment within an oikos.
+  from_eidos: [praxis, typos, eidos]
+  to_eidos: [oikos]
+  cardinality: many-to-one
+
+- id: sources-content-from
+  description: |
+    Content sourcing. An oikos or manifest sources content from content-roots.
+    This makes "where content comes from" traversable, not implicit.
+
+    Bootstrap queries this bond to discover content paths instead of
+    hardcoding directory conventions.
+  from_eidos: [oikos-manifest, oikos]
+  to_eidos: [content-root]
+  cardinality: many-to-many
+
+- id: sourced-from
+  description: |
+    Content origin. An entity was loaded from this content-root.
+    Inverse of sources-content-from, applied to individual entities.
+
+    Enables answering: "Where did this entity come from?"
+  from_eidos: [any]
+  to_eidos: [content-root]
+  cardinality: many-to-one
+
+# =============================================================================
+# OIKOS DESMOI — How capability domains organize
+# =============================================================================
+
+- id: manifest-for
+  description: |
+    Links oikos-manifest to its oikos. Each oikos has exactly one manifest
+    that declares what it requires and provides.
+  from_eidos: [oikos-manifest]
+  to_eidos: [oikos]
+  cardinality: many-to-one
+
+- id: provides-affordance
+  description: |
+    An oikos provides an affordance or attainment. This exposes capabilities
+    that other oikoi can require.
+
+    Affordances are what an oikos CAN DO (praxeis, stoicheia).
+    Attainments are what an oikos HAS ACHIEVED (tier access, permissions).
+  from_eidos: [oikos]
+  to_eidos: [attainment, affordance]
+  cardinality: many-to-many
+
+- id: requires-attainment
+  description: |
+    Declares that something requires an attainment to be invoked.
+
+    For oikos: Required attainments must be available in the dwelling context.
+    For stoicheion: The interpreter queries this bond before executing tier 3 steps.
+    For praxis: Required attainments must be held by the invoking animus.
+
+    This enables graph-queryable permission checking rather than hardcoded gating.
+  from_eidos: [oikos, stoicheion, praxis, affordance]
+  to_eidos: [attainment]
+  cardinality: many-to-many
+
+# =============================================================================
+# DWELLING DESMOI — How presence is established
+# =============================================================================
+
+- id: dwells-in
+  description: |
+    Active dwelling. An animus dwells in a circle.
+    This bond grants visibility scope.
+  from_eidos: [animus]
+  to_eidos: [circle]
+  cardinality: many-to-one
+
+- id: member-of
+  description: |
+    Membership. A persona belongs to a circle.
+    Membership enables dwelling.
+  from_eidos: [persona]
+  to_eidos: [circle]
+  cardinality: many-to-many
+
+- id: instantiates
+  description: |
+    An animus instantiates a persona for a session.
+  from_eidos: [animus]
+  to_eidos: [persona]
+  cardinality: many-to-one
+
+# =============================================================================
+# UNDERSTANDING DESMOI — How knowledge relates
+# =============================================================================
+
+- id: yields
+  description: |
+    Contribution. A segment or conversation yielded this understanding.
+  from_eidos: [segment, session]
+  to_eidos: [theoria, insight]
+  cardinality: many-to-many
+
+- id: evidences
+  description: |
+    Supporting evidence. This entity provides evidence for that understanding.
+  from_eidos: [segment, note]
+  to_eidos: [theoria, insight]
+  cardinality: many-to-many
+
+- id: supports
+  description: |
+    Reinforcement. This theoria supports that theoria.
+  from_eidos: [theoria]
+  to_eidos: [theoria]
+  cardinality: many-to-many
+
+- id: contradicts
+  description: |
+    Tension. This theoria is in tension with that theoria.
+  from_eidos: [theoria]
+  to_eidos: [theoria]
+  cardinality: many-to-many
+
+- id: supersedes
+  description: |
+    Replacement. This theoria supersedes that theoria.
+    The old theoria is not deleted but marked superseded.
+  from_eidos: [theoria]
+  to_eidos: [theoria]
+  cardinality: many-to-one
+
+# =============================================================================
+# GOVERNANCE DESMOI — How circles organize
+# =============================================================================
+
+- id: adopts
+  description: |
+    A circle adopts a principle as binding.
+  from_eidos: [circle]
+  to_eidos: [principle]
+  cardinality: many-to-many
+
+- id: enacts
+  description: |
+    A pattern enacts a principle.
+  from_eidos: [pattern]
+  to_eidos: [principle]
+  cardinality: many-to-one
+
+- id: stewards
+  description: |
+    A persona stewards a circle (governance role).
+  from_eidos: [persona]
+  to_eidos: [circle]
+  cardinality: many-to-many
+
+# =============================================================================
+# ATTENTION DESMOI — How focus flows
+# =============================================================================
+
+- id: notes
+  description: |
+    A note marks something as worthy of attention.
+  from_eidos: [note]
+  to_eidos: [any]
+  cardinality: many-to-one
+
+- id: surfaces
+  description: |
+    Notes combine to surface an insight.
+  from_eidos: [note]
+  to_eidos: [insight]
+  cardinality: many-to-many
+
+- id: crystallizes
+  description: |
+    An insight crystallizes into theoria.
+  from_eidos: [insight]
+  to_eidos: [theoria]
+  cardinality: many-to-one
+
+# =============================================================================
+# PROVENANCE DESMOI — How authenticity chains
+# =============================================================================
+
+- id: signed-by
+  description: |
+    Genesis is signed by attestors.
+  from_eidos: [genesis]
+  to_eidos: [signature]
+  cardinality: one-to-many
+
+- id: derives-from
+  description: |
+    Key derivation chain. Child key derives from parent.
+  from_eidos: [keypair]
+  to_eidos: [keypair]
+  cardinality: many-to-one
+
+# =============================================================================
+# RENDERING DESMOI — How content becomes visual form
+# =============================================================================
+
+- id: renders-with
+  description: |
+    A renderer implements a render-type. The UI queries this bond to
+    discover which component renders which semantic category.
+  from_eidos: [renderer]
+  to_eidos: [render-type]
+  cardinality: many-to-one
+
+- id: displays-in
+  description: |
+    A panel displays in a region. Makes panel-to-region assignment
+    traversable rather than embedded in panel.region_id.
+  from_eidos: [panel]
+  to_eidos: [hud-region]
+  cardinality: many-to-one
+
+- id: uses-renderer
+  description: |
+    A panel uses a specific renderer for display. Alternative to
+    embedding render_type in the panel; makes dispatch graph-queryable.
+  from_eidos: [panel]
+  to_eidos: [renderer]
+  cardinality: many-to-one
+
+# =============================================================================
+# TRAVERSAL PROPERTIES
+# =============================================================================
+
+# All desmoi carry encrypted traversal keys.
+# To traverse bond A→B via desmos D:
+#   1. You must possess key K(A,D)
+#   2. K(A,D) decrypts the traversal payload
+#   3. Traversal grants visibility to B
+#
+# Dissolution of a bond invalidates its traversal key.
+# All downstream paths through that bond are severed.

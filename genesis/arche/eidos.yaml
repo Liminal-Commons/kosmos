@@ -1,0 +1,751 @@
+# Arche: Eidos Definitions
+# The kinds of things that can exist in kosmos.
+#
+# Every eidos defined here becomes a type that entities can instantiate.
+# All eidos trace to this definition. The chain begins here.
+
+# =============================================================================
+# META EIDOS — The grammar describing itself
+# =============================================================================
+
+- id: eidos
+  constitutional: true
+  description: |
+    The form of forms. An eidos defines what kind of thing an entity is.
+    This is the meta-eidos — the eidos of eidos itself.
+
+    Constitutional eide are pre-oikos: they define what packages CAN be.
+    They must emit from literal fill methods (cannot be derived).
+  fields:
+    id:
+      type: string
+      required: true
+      description: Unique identifier for this eidos
+    description:
+      type: string
+      required: true
+      description: What this kind of thing is
+    constitutional:
+      type: boolean
+      required: false
+      default: false
+      description: |
+        Whether this eidos is constitutional (pre-oikos, foundational grammar).
+        Constitutional eide must be authored with literal fill methods.
+        They cannot have generated or queried slots — they ARE the ground.
+    fields:
+      type: object
+      required: false
+      description: Schema of fields entities of this eidos have
+    constraints:
+      type: array
+      required: false
+      description: Validation rules for entities of this eidos
+
+- id: desmos
+  constitutional: true
+  description: |
+    The form of bonds. A desmos defines a type of relationship between entities.
+  fields:
+    id:
+      type: string
+      required: true
+      description: Unique identifier for this desmos
+    description:
+      type: string
+      required: true
+      description: What this relationship means
+    from_eidos:
+      type: array
+      required: false
+      description: Eidos that can be the source (any if not specified)
+    to_eidos:
+      type: array
+      required: false
+      description: Eidos that can be the target (any if not specified)
+    cardinality:
+      type: string
+      required: false
+      enum: [one-to-one, one-to-many, many-to-one, many-to-many]
+      default: many-to-many
+      description: Relationship cardinality
+
+- id: stoicheion
+  constitutional: true
+  description: |
+    The form of steps. A stoicheion defines an operation that can be performed.
+  fields:
+    id:
+      type: string
+      required: true
+      description: Unique identifier for this stoicheion
+    description:
+      type: string
+      required: true
+      description: What this operation does
+    tier:
+      type: number
+      required: true
+      description: Capability tier (0=elemental, 1=aggregate, 2=compositional, 3=generative)
+    params:
+      type: object
+      required: false
+      description: Parameters this stoicheion accepts
+    effects:
+      type: array
+      required: false
+      description: What this stoicheion can affect (read, write, external)
+    visibility:
+      type: enum
+      values: [external, internal]
+      required: false
+      default: external
+      description: |
+        Who can use this stoicheion:
+        - external: Available to all praxeis, agents, MCP tools
+        - internal: Interpreter implementation only (not exposed via MCP)
+        Internal stoicheia are gated — rejected unless called by composition subsystem.
+
+# =============================================================================
+# CONTENT SOURCING EIDOS — Where things come from
+# =============================================================================
+
+- id: content-root
+  constitutional: true
+  description: |
+    Where content comes from. A content-root embodies the provenance of loaded
+    entities — making "from where" traversable, not implicit.
+
+    Constitutional content roots (arche, spora) have constitutional: true and
+    load before oikos content. Regular oikos content roots load in dependency
+    order specified by manifest.yaml.
+
+    Multi-source composition becomes graph navigation:
+    - Oikos can have multiple content-root parents
+    - Content entities bond to their content-root via sourced-from
+    - Bootstrap queries content-roots instead of hardcoding paths
+  fields:
+    id:
+      type: string
+      required: true
+      description: Content root identifier (e.g., content-root/nous)
+    path:
+      type: string
+      required: true
+      description: |
+        Relative path from genesis directory to content location.
+        Examples: "arche/", "nous/eide/", "spora/definitions/"
+    oikos_id:
+      type: string
+      required: false
+      description: Oikos this content root belongs to (if not constitutional)
+    constitutional:
+      type: boolean
+      required: false
+      default: false
+      description: |
+        Whether this content is foundational (loads before oikoi).
+        Constitutional content roots: arche, spora germination stages.
+    order:
+      type: number
+      required: false
+      default: 0
+      description: |
+        Load order within constitutional phase or within oikos.
+        Lower numbers load first. Enables dependency ordering.
+    content_types:
+      type: array
+      required: false
+      description: |
+        What kinds of content this root provides.
+        Values: eide, desmoi, praxeis, definitions, entities
+      default: []
+
+# =============================================================================
+# COMPOSITION EIDOS — How things are made
+# =============================================================================
+
+- id: typos
+  description: |
+    Mold — composition template with slots and fill methods.
+    Every entity traces to its typos through the composed-from bond.
+
+    Routing is determined by shape:
+    - Has target_eidos → entity composition (creates domain entity of specified type)
+    - Has slots (no target_eidos) → graph composition (creates artifact with structured content)
+    - Has template (no slots, no target_eidos) → template rendering (creates artifact with rendered content)
+
+    All composition produces entities with provenance. The routing determines which eidos.
+  fields:
+    id:
+      type: string
+      required: true
+    name:
+      type: string
+      required: true
+      description: Human-readable name
+    description:
+      type: string
+      required: false
+      description: What this definition composes
+    target_eidos:
+      type: string
+      required: false
+      description: The eidos this definition produces (for entity composition)
+    slots:
+      type: array
+      required: false
+      description: |
+        Slots to fill during composition. Each slot references a slot-pattern.
+        Array format: [{ name, pattern, ... pattern-specific fields }]
+      items:
+        type: slot-pattern
+    template:
+      type: string
+      required: false
+      description: |
+        Handlebars template for rendering content. Variables reference slots.
+        Syntax: {{ slot_name }}, {{ slot_name | filter }}
+    defaults:
+      type: object
+      required: false
+      description: Default values for slots when not provided in inputs
+    bonds:
+      type: array
+      required: false
+      description: |
+        Bonds to create automatically on composition.
+        Each: { desmos, from_self, to_context | to_literal | to_input }
+    tier:
+      type: number
+      required: false
+      default: 0
+      description: Minimum tier required to use this definition
+
+- id: slot-pattern
+  constitutional: true
+  description: |
+    A pattern for filling slots during artifact composition. Slot patterns
+    define HOW a slot gets its value. This is the schema that all slot
+    definitions must follow.
+
+    Patterns:
+    - literal: Value provided directly or from defaults
+    - queried: Value gathered from graph traversal
+    - computed: Value derived from expression over other slots
+    - composed: Value from nested artifact composition
+    - generated: Value from LLM inference via manteia
+  fields:
+    name:
+      type: string
+      required: true
+      description: Slot name, used in templates as {{ name }}
+    pattern:
+      type: string
+      required: true
+      enum: [literal, queried, computed, composed, generated, input]
+      description: How this slot gets its value
+    description:
+      type: string
+      required: false
+      description: What this slot contains
+    required:
+      type: boolean
+      required: false
+      default: false
+      description: Whether this slot must have a value
+    when:
+      type: string
+      required: false
+      description: |
+        Condition expression. Slot is skipped if condition is falsy.
+        Example: "entity.data.fields" — skip if entity has no fields.
+    default:
+      type: any
+      required: false
+      description: Default value if not provided (for literal/input patterns)
+
+    # Pattern: literal
+    value:
+      type: any
+      required: false
+      description: "[literal] Static value"
+    template:
+      type: string
+      required: false
+      description: "[literal] Template string with variable interpolation"
+
+    # Pattern: input
+    param:
+      type: string
+      required: false
+      description: "[input] Parameter name from composition inputs. Defaults to slot name."
+
+    # Pattern: queried
+    gather:
+      type: object
+      required: false
+      description: |
+        [queried] Gather entities from the graph.
+        Format: { eidos: "entity-type", filter: "optional expression" }
+    source:
+      type: string
+      required: false
+      description: |
+        [queried] Dot-path to field value.
+        Format: "entity.data.fieldname" or "scope_var.path"
+    entity_id:
+      type: string
+      required: false
+      description: "[queried] Entity ID to query (if not from scope)"
+
+    # Pattern: computed
+    expression:
+      type: string
+      required: false
+      description: |
+        [computed] Expression to evaluate.
+        Has access to all prior slots in scope.
+        Examples: "len($entities)", "blake3($data)"
+    transform:
+      type: string
+      required: false
+      description: |
+        [computed] Transform to apply to source.
+        Values: yaml, json, markdown
+
+    # Pattern: composed
+    definition:
+      type: string
+      required: false
+      description: "[composed] Definition ID for nested composition"
+    inputs:
+      type: object
+      required: false
+      description: "[composed] Inputs to pass to nested composition"
+
+    # Pattern: generated
+    prompt:
+      type: string
+      required: false
+      description: "[generated] Prompt for LLM inference"
+    schema_source:
+      type: string
+      required: false
+      description: |
+        [generated] Where to get JSON schema for constrained generation.
+        Values: output_schema, stoicheion_id, target_eidos
+    output_schema:
+      type: object
+      required: false
+      description: "[generated] Explicit JSON schema for output"
+    authorized_by:
+      type: string
+      required: false
+      description: "[generated] Who authorizes this generation"
+    auto_approve:
+      type: boolean
+      required: false
+      description: "[generated] Whether to auto-approve without human review"
+
+- id: function
+  constitutional: true
+  description: |
+    An expression function available in the interpreter. Functions transform
+    values during praxis execution and artifact composition.
+
+    Declaring functions as eide enables:
+    - Discovery via surface/find
+    - Schema validation of function calls
+    - Documentation generation
+    - Eventually: interpreter code generation from declarations
+  fields:
+    name:
+      type: string
+      required: true
+      description: Function name as used in expressions (e.g., "len", "blake3")
+    description:
+      type: string
+      required: true
+      description: What this function does
+    category:
+      type: string
+      required: true
+      enum: [collection, string, hash, time, encoding, math, type]
+      description: |
+        Function category:
+        - collection: Array/object operations (len, keys, values, entries, join)
+        - string: String manipulation (prefix, suffix)
+        - hash: Cryptographic hashing (blake3, digest)
+        - time: Timestamp operations (now, timestamp_add_*)
+        - encoding: Serialization (json_encode, yaml_encode, base64url_*)
+        - math: Mathematical operations
+        - type: Type conversion and introspection
+    params:
+      type: array
+      required: true
+      description: |
+        Function parameters. Each: { name, type, required, description }
+      items:
+        type: object
+        properties:
+          name:
+            type: string
+            required: true
+          type:
+            type: string
+            required: true
+            enum: [any, string, number, boolean, array, object, timestamp]
+          required:
+            type: boolean
+            default: true
+          description:
+            type: string
+    return_type:
+      type: string
+      required: true
+      enum: [any, string, number, boolean, array, object, timestamp, null]
+      description: Type of value this function returns
+    pure:
+      type: boolean
+      required: false
+      default: true
+      description: |
+        Whether this function is pure (no side effects, deterministic).
+        Impure functions: now(), uuid(), random_hex()
+    tier:
+      type: number
+      required: false
+      default: 0
+      description: Minimum capability tier required to call this function
+    examples:
+      type: array
+      required: false
+      description: Usage examples as strings
+      items:
+        type: string
+
+- id: oikos
+  description: |
+    A domain of concern. Oikos group related definitions, praxeis, and eide.
+    Each oikos establishes part of the kosmos structure.
+  fields:
+    id:
+      type: string
+      required: true
+    name:
+      type: string
+      required: true
+    description:
+      type: string
+      required: true
+    scale:
+      type: string
+      required: true
+      enum: [kosmos, physis, polis, oikos, soma, psyche]
+      description: Which klimax scale this oikos belongs to
+
+- id: oikos-manifest
+  description: |
+    Manifest declaring what an oikos requires and provides.
+    Manifests formalize the contract between oikos and substrate.
+    An oikos with manifest becomes packageable.
+  fields:
+    oikos_id:
+      type: string
+      required: true
+      description: The oikos this manifest describes
+    version:
+      type: string
+      required: true
+      description: Semantic version (e.g., "0.1.0")
+    requires_dynamis:
+      type: array
+      required: false
+      description: |
+        Dynamis capabilities this oikos needs from the substrate.
+        Format: domain.capability (e.g., db.arise, aisthesis.embed, fs.read)
+    provides:
+      type: object
+      required: false
+      description: |
+        What this oikos contributes to the kosmos.
+        Contains: eide, desmoi, praxeis, stoicheia (arrays of IDs)
+    stoicheia_form:
+      type: object
+      required: false
+      description: |
+        How stoicheia are represented. Map of stoicheion_id to form.
+        Forms: arche (YAML interpreted by host), wasm (portable module)
+
+- id: praxis
+  description: |
+    An executable sequence of steps. Praxeis are how work gets done.
+    They compose stoicheia into meaningful operations.
+  fields:
+    id:
+      type: string
+      required: true
+    name:
+      type: string
+      required: true
+    description:
+      type: string
+      required: true
+    oikos:
+      type: string
+      required: true
+      description: Which oikos this praxis belongs to
+    params:
+      type: object
+      required: false
+      description: Input parameters
+    steps:
+      type: array
+      required: true
+      description: Sequence of stoicheion invocations
+    tier:
+      type: number
+      required: true
+      description: Capability tier of this praxis
+    visible:
+      type: boolean
+      required: false
+      default: false
+      description: Whether exposed via MCP/external interfaces
+
+# =============================================================================
+# PROVENANCE EIDOS — How authenticity is tracked
+# =============================================================================
+
+- id: genesis
+  constitutional: true
+  description: |
+    The root entity. There is exactly one genesis per kosmos.
+    All composition chains terminate here.
+  fields:
+    id:
+      type: string
+      required: true
+      value: genesis
+    kosmogonia_hash:
+      type: string
+      required: true
+      description: BLAKE3 hash of KOSMOGONIA.md
+    created_at:
+      type: timestamp
+      required: true
+    signatures:
+      type: array
+      required: true
+      description: Threshold signatures attesting this genesis
+
+- id: signature
+  constitutional: true
+  description: |
+    An attestation by a signer. Part of genesis verification.
+  fields:
+    signer_id:
+      type: string
+      required: true
+      description: Public key or identifier of signer
+    signature:
+      type: string
+      required: true
+      description: Cryptographic signature
+    attested_at:
+      type: timestamp
+      required: true
+    attestation:
+      type: string
+      required: false
+      description: Human-readable attestation statement
+
+# =============================================================================
+# UNDERSTANDING EIDOS — Preserved from V7
+# =============================================================================
+
+- id: theoria
+  description: |
+    Crystallized understanding. Insight that has stabilized into knowledge.
+    Theoria is epistemic — what we understand to be true.
+  fields:
+    insight:
+      type: string
+      required: true
+      description: The core understanding, clearly stated
+    domain:
+      type: string
+      required: true
+      description: Area of application
+    source:
+      type: string
+      required: true
+      enum: [conversation, observation, reasoning, external]
+    status:
+      type: string
+      required: true
+      enum: [provisional, crystallized, superseded]
+      default: provisional
+    evidence:
+      type: array
+      required: false
+    crystallized_at:
+      type: timestamp
+      required: false
+
+- id: principle
+  description: |
+    Normative commitment. What we hold ourselves to.
+    Principles are deontic — what should be.
+  fields:
+    statement:
+      type: string
+      required: true
+      description: The principle, clearly stated
+    domain:
+      type: string
+      required: true
+    rationale:
+      type: string
+      required: false
+      description: Why this principle
+    adopted_at:
+      type: timestamp
+      required: true
+
+- id: pattern
+  description: |
+    Enacted practice. How principles manifest in action.
+    Patterns are practical — what we do.
+  fields:
+    name:
+      type: string
+      required: true
+    description:
+      type: string
+      required: true
+    enacts:
+      type: string
+      required: false
+      description: Which principle this pattern enacts
+    steps:
+      type: array
+      required: false
+      description: How to apply this pattern
+
+# =============================================================================
+# RECONCILIATION EIDOS — Declarative state alignment
+# =============================================================================
+
+- id: reconciler
+  description: |
+    Declarative reconciliation rules for an entity type.
+    Maps intent/actuality pairs to transition actions.
+
+    The phylax pattern (sense → compare → act) is declared, not coded.
+    Adding reconciliation logic means editing entity data, not praxis code.
+  fields:
+    target_eidos:
+      type: string
+      required: true
+      description: The eidos this reconciler handles
+    intent_field:
+      type: string
+      required: true
+      description: Field path for desired state (e.g., "desired_state")
+    actuality_field:
+      type: string
+      required: true
+      description: Field path for actual state (e.g., "actual_state")
+    transitions:
+      type: array
+      required: true
+      description: |
+        Transition rules. Each rule specifies:
+        - intent: desired state(s) that trigger this rule
+        - actual: actual state(s) that match
+        - action: what to do (manifest, unmanifest, update, alert, journey)
+      items:
+        type: object
+        properties:
+          intent:
+            type: [string, array]
+            description: Desired state(s) to match
+          actual:
+            type: [string, array]
+            description: Actual state(s) to match
+          action:
+            type: string
+            enum: [manifest, unmanifest, update, alert, journey, none]
+            description: Action to take when both match
+
+# =============================================================================
+# ACTUALITY MODE EIDOS — Schema-driven energeia generation
+# =============================================================================
+
+- id: actuality-mode
+  description: |
+    Schema for actuality bridging operations. Defines how an entity type
+    manifests to, senses from, and unmanifests from chora.
+
+    This is the schema-driven pillar applied to dynamis. Instead of hand-writing
+    energeia handlers in Rust, we declare the operations here. build.rs reads
+    these definitions and generates the dispatch code.
+
+    Adding a new provider (S3, GCS, local filesystem) requires only:
+    1. Create an actuality-mode entity with the operations
+    2. Rebuild (build.rs generates dispatch)
+    No hand-written Rust required.
+  fields:
+    name:
+      type: string
+      required: true
+      description: Mode identifier (e.g., "object-storage", "process")
+    provider:
+      type: string
+      required: true
+      description: Provider implementation (e.g., "r2", "s3", "local")
+    operations:
+      type: object
+      required: true
+      description: |
+        The three actuality operations. Each specifies the stoicheion
+        to invoke and its parameter mapping.
+      properties:
+        manifest:
+          type: object
+          description: How to bring entity into actuality
+          properties:
+            stoicheion:
+              type: string
+              description: Step type to invoke (e.g., "upload-object")
+            params:
+              type: array
+              description: Parameter names required
+        sense:
+          type: object
+          description: How to query actual state
+          properties:
+            stoicheion:
+              type: string
+              description: Step type to invoke (e.g., "head-object")
+            params:
+              type: array
+              description: Parameter names required
+        unmanifest:
+          type: object
+          description: How to remove from actuality
+          properties:
+            stoicheion:
+              type: string
+              description: Step type to invoke (e.g., "delete-object")
+            params:
+              type: array
+              description: Parameter names required
+    config_schema:
+      type: object
+      required: true
+      description: |
+        Schema for provider-specific configuration.
+        Entities using this mode must provide config matching this schema.

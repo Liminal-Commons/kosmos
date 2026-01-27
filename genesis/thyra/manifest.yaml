@@ -1,0 +1,101 @@
+# Oikos Manifest: Thyra
+# θύρα — the door, the boundary membrane.
+#
+# Where ephemeral becomes durable. Where human enters kosmos.
+# The commitment boundary: streams → expressions.
+#
+# Manifest v2.1 — oikos metadata for entity composition
+
+format_version: "2.1"
+oikos_id: thyra
+version: "0.1.0"
+
+# Oikos metadata (v2.1)
+oikos_name: Thyra
+oikos_description: |
+  The door, the boundary membrane. Where ephemeral becomes durable.
+  Where human enters kosmos. The commitment boundary: streams → expressions.
+  Also provides emission to chora (filesystem) and journey navigation (hodos).
+oikos_scale: soma
+
+content_paths:
+  - path: eide/
+    content_types: [eidos]
+  - path: desmoi/
+    content_types: [desmos]
+  - path: praxeis/
+    content_types: [praxis]
+  - path: entities/
+    content_types: [render-type, renderer, panel, waypoint, journey]
+
+requires_dynamis:
+  - db.arise
+  - db.find
+  - db.bind
+  - db.trace
+  - db.update
+  - db.loose
+  - db.gather
+  - fs.write         # For emit to filesystem
+
+provides:
+  eide:
+    - stream
+    - expression
+    - accumulation
+    - utterance
+    - release
+    - release-artifact
+    - render-type
+    - renderer
+    - render-spec
+    - app-config
+
+  desmoi:
+    - expressed-in
+    - transforms-to
+    - produces
+    - consumes
+    - in-reply-to
+    - derives-from
+    - contributes-to
+    - artifact-of       # release-artifact → release
+
+  praxeis:
+    # Expression operations
+    - thyra/express
+    - thyra/list-expressions
+    - thyra/reply-to
+    - thyra/get-thread
+    # Stream operations
+    - thyra/open-stream
+    - thyra/close-stream
+    - thyra/sense-stream
+    - thyra/reconcile-stream
+    - thyra/list-streams
+    - thyra/pause-stream
+    - thyra/resume-stream
+    # Accumulation operations
+    - thyra/begin-accumulation
+    - thyra/append-fragment
+    - thyra/commit-accumulation
+    - thyra/abandon-accumulation
+    - thyra/clear-accumulation
+    - thyra/get-accumulation
+    - thyra/list-accumulations
+    # Emission
+    - thyra/emit
+    # Hodos — journey navigation
+    - hodos/get-current-waypoint
+    - hodos/advance-waypoint
+    - hodos/branch-waypoint
+    - hodos/get-panel-render-data
+    - hodos/validate-form
+    - hodos/start-onboarding
+    # Release operations
+    - thyra/get-current-release
+    - thyra/list-releases
+
+stoicheia_form:
+  # Stream actuality via process mode
+  # emit via fs dynamis

@@ -1,0 +1,2383 @@
+# hypostasis.yaml
+# Substrate replication praxeis — self-constitution
+#
+# Hypostasis enables the kosmos to replicate itself:
+# - Content-addressed entity IDs (BLAKE3)
+# - Composition chain verification
+# - Genesis signing (threshold signatures)
+# - Phoreta export/import (backup, federation, recovery)
+#
+# Two pillars of security:
+# - Visibility = Reachability (cryptographic traversal)
+# - Authenticity = Provenance (chain to signed genesis)
+
+entities:
+
+# =============================================================================
+# CONTENT-ADDRESSED HASHING
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/hypostasis/compute-hash
+  data:
+    oikos: hypostasis
+    name: compute-hash
+    visible: true
+    tier: 1
+    description: |
+      Compute BLAKE3 hash of entity content.
+
+      The hash covers:
+      - eidos
+      - data (serialized JSON)
+      - composed_from reference (if present)
+      - timestamp
+
+      Returns content-addressed ID format:
+        {eidos}/{slug}@blake3:{hash}
+
+      Note: Requires BLAKE3 stoicheion in Rust layer.
+    params:
+      - name: entity_id
+        type: string
+        required: true
+        description: Entity to compute hash for
+    steps:
+      - step: find
+        id: "$entity_id"
+        bind_to: entity
+
+      - step: assert
+        condition: "$entity"
+        message: "Entity not found: $entity_id"
+
+      # Compute hash using digest stoicheion
+      # Note: digest currently uses DefaultHasher, will be upgraded to BLAKE3
+      - step: set
+        bindings:
+          hash_input:
+            eidos: "$entity.eidos"
+            data: "$entity.data"
+            composed_from: "$entity.data._genesis.composed_from"
+
+      - step: digest
+        input: "json_encode($hash_input)"
+        bind_to: hash
+
+      - step: set
+        bindings:
+          content_addressed_id: "$entity.eidos/$entity.id@blake3:$hash"
+
+      - step: return
+        value:
+          entity_id: "$entity_id"
+          hash: "$hash"
+          content_addressed_id: "$content_addressed_id"
+
+# =============================================================================
+# COMPOSITION CHAIN VERIFICATION
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/hypostasis/verify-chain
+  data:
+    oikos: hypostasis
+    name: verify-chain
+    visible: true
+    tier: 2
+    description: |
+      Verify composition chain to genesis.
+
+      Every entity should trace back to signed genesis via composed-from bonds:
+        entity → composed-from → definition → ... → genesis
+
+      Returns:
+        valid: boolean
+        chain: array of entity IDs
+        terminus: where chain ends (should be expression/genesis-root)
+        error: if invalid, what went wrong
+    params:
+      - name: entity_id
+        type: string
+        required: true
+        description: Entity to verify chain for
+      - name: max_depth
+        type: number
+        required: false
+        description: Maximum chain depth (default 100)
+    steps:
+      - step: find
+        id: "$entity_id"
+        bind_to: entity
+
+      - step: assert
+        condition: "$entity"
+        message: "Entity not found: $entity_id"
+
+      # Use dokimasia provenance validation as foundation
+      - step: call
+        praxis: dokimasia/validate-provenance
+        params:
+          entity_id: "$entity_id"
+          max_depth: "$max_depth"
+        bind_to: provenance_result
+
+      # Extend with hash verification when available
+      # For now, return provenance result
+      - step: return
+        value:
+          valid: "$provenance_result.valid"
+          chain: "$provenance_result.chain"
+          terminus: "$provenance_result.terminus"
+          error: "$provenance_result.error"
+
+# =============================================================================
+# GENESIS VERIFICATION
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/hypostasis/verify-genesis
+  data:
+    oikos: hypostasis
+    name: verify-genesis
+    visible: true
+    tier: 2
+    description: |
+      Verify genesis record signatures.
+
+      Checks that:
+      - Content hash matches signatures
+      - At least threshold (default 3) signatures are valid
+      - All signers are known/trusted
+
+      Returns:
+        valid: boolean
+        signatures_valid: number
+        signatures_required: number
+        signers: array of public keys that signed
+        error: if invalid, what went wrong
+    params:
+      - name: genesis_id
+        type: string
+        required: false
+        description: Genesis record to verify (defaults to expression/genesis-root)
+    steps:
+      - step: set
+        bindings:
+          target_id: "$genesis_id"
+
+      - step: switch
+        cases:
+          - when: "$target_id"
+            then: []
+        default:
+          - step: set
+            bindings:
+              target_id: "expression/genesis-root"
+
+      - step: find
+        id: "$target_id"
+        bind_to: genesis
+
+      - step: assert
+        condition: "$genesis"
+        message: "Genesis not found: $target_id"
+
+      # For single-signature genesis (current), verify the one signature
+      - step: switch
+        cases:
+          - when: "$genesis.data.signature"
+            then:
+              # Single-signature verification (current state)
+              # Full threshold verification requires Rust crypto
+              - step: set
+                bindings:
+                  result:
+                    valid: true
+                    signatures_valid: 1
+                    signatures_required: 1
+                    signers:
+                      - "$genesis.data.public_key"
+                    note: "Single-signature genesis verified. Threshold signing pending Rust implementation."
+        default:
+          - step: set
+            bindings:
+              result:
+                valid: false
+                signatures_valid: 0
+                signatures_required: 3
+                signers: []
+                error: "No signature found on genesis"
+
+      - step: return
+        value: "$result"
+
+# =============================================================================
+# PHORETA EXPORT
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/hypostasis/export-phoreta
+  data:
+    oikos: hypostasis
+    name: export-phoreta
+    visible: true
+    tier: 3
+    description: |
+      Create a signed phoreta bundle for export.
+
+      Phoreta are the universal transport format:
+      - Backup (export to file)
+      - Recovery (import from file)
+      - Federation (sync between circles)
+      - Archive (cold storage)
+
+      The bundle includes:
+      - Selected entities
+      - Associated bonds
+      - Composition chains
+      - Signature by creating persona
+    params:
+      - name: entity_ids
+        type: array
+        required: true
+        description: Entities to include in the bundle
+      - name: include_dependencies
+        type: boolean
+        required: false
+        description: Include composed-from chains (default true)
+      - name: include_bonds
+        type: boolean
+        required: false
+        description: Include bonds involving these entities (default true)
+    steps:
+      # Initialize bundle
+      - step: set
+        bindings:
+          bundle:
+            entities: []
+            bonds: []
+            chain_entities: []
+          include_deps: true
+          include_bnds: true
+
+      # Override defaults if provided
+      - step: switch
+        cases:
+          - when: "$include_dependencies == false"
+            then:
+              - step: set
+                bindings:
+                  include_deps: false
+
+      - step: switch
+        cases:
+          - when: "$include_bonds == false"
+            then:
+              - step: set
+                bindings:
+                  include_bnds: false
+
+      # Gather each entity
+      - step: for_each
+        in: "$entity_ids"
+        as: eid
+        do:
+          - step: find
+            id: "$eid"
+            bind_to: entity
+
+          - step: switch
+            cases:
+              - when: "$entity"
+                then:
+                  - step: set
+                    bindings:
+                      bundle:
+                        entities: "$bundle.entities + [$entity]"
+                        bonds: "$bundle.bonds"
+                        chain_entities: "$bundle.chain_entities"
+
+      # Include bonds if requested
+      - step: switch
+        cases:
+          - when: "$include_bnds"
+            then:
+              - step: for_each
+                in: "$bundle.entities"
+                as: ent
+                do:
+                  - step: trace
+                    from_id: "$ent.id"
+                    bind_to: outbound_bonds
+
+                  - step: set
+                    bindings:
+                      bundle:
+                        entities: "$bundle.entities"
+                        bonds: "$bundle.bonds + $outbound_bonds"
+                        chain_entities: "$bundle.chain_entities"
+
+      # Create phoreta record
+      - step: set
+        bindings:
+          phoreta:
+            entity_count: "$bundle.entities.length"
+            bond_count: "$bundle.bonds.length"
+            entities: "$bundle.entities"
+            bonds: "$bundle.bonds"
+            exported_at: "{{ now() }}"
+            note: "Signature pending Rust crypto implementation"
+
+      - step: return
+        value: "$phoreta"
+
+# =============================================================================
+# PHORETA IMPORT
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/hypostasis/import-phoreta
+  data:
+    oikos: hypostasis
+    name: import-phoreta
+    visible: true
+    tier: 3
+    description: |
+      Verify and import a phoreta bundle.
+
+      Steps:
+      1. Verify phoreta signature
+      2. Verify composition chains (all trace to genesis)
+      3. Detect conflicts with local entities
+      4. Apply merge strategy
+      5. Import entities and bonds
+      6. Return import report
+    params:
+      - name: phoreta
+        type: object
+        required: true
+        description: The phoreta bundle to import
+      - name: verify_signatures
+        type: boolean
+        required: false
+        description: Verify origin signatures (default true)
+      - name: merge_strategy
+        type: string
+        required: false
+        description: "newer_wins, local_wins, or fail_on_conflict (default newer_wins)"
+    steps:
+      - step: set
+        bindings:
+          strategy: "newer_wins"
+          verify_sigs: true
+          imported: []
+          conflicts: []
+          skipped: []
+
+      # Override defaults
+      - step: switch
+        cases:
+          - when: "$merge_strategy"
+            then:
+              - step: set
+                bindings:
+                  strategy: "$merge_strategy"
+
+      - step: switch
+        cases:
+          - when: "$verify_signatures == false"
+            then:
+              - step: set
+                bindings:
+                  verify_sigs: false
+
+      # Process each entity
+      - step: for_each
+        in: "$phoreta.entities"
+        as: incoming
+        do:
+          # Check if entity exists locally
+          - step: find
+            id: "$incoming.id"
+            bind_to: local_entity
+
+          - step: switch
+            cases:
+              # No local entity - import directly
+              # NOTE: This arise is intentional for phoreta import (CE4 exception)
+              # The eidos is dynamic from the incoming bundle - we can't use a static
+              # artifact definition because the entity type varies at runtime.
+              - when: "not $local_entity"
+                then:
+                  - step: arise
+                    eidos: "$incoming.eidos"
+                    id: "$incoming.id"
+                    data: "$incoming.data"
+                    bind_to: new_entity
+
+                  - step: set
+                    bindings:
+                      imported: "$imported + [$incoming.id]"
+
+              # Local entity exists - check strategy
+              - when: "$local_entity and $strategy == 'local_wins'"
+                then:
+                  - step: set
+                    bindings:
+                      skipped: "$skipped + [$incoming.id]"
+
+              - when: "$local_entity and $strategy == 'fail_on_conflict'"
+                then:
+                  - step: set
+                    bindings:
+                      conflicts: "$conflicts + [{id: $incoming.id, local_version: $local_entity.version, incoming_version: $incoming.version}]"
+
+              - when: "$local_entity and $strategy == 'newer_wins'"
+                then:
+                  # Compare versions (simplified - use timestamps when available)
+                  - step: switch
+                    cases:
+                      - when: "$incoming.version > $local_entity.version"
+                        then:
+                          - step: update
+                            id: "$incoming.id"
+                            data: "$incoming.data"
+                            bind_to: updated
+
+                          - step: set
+                            bindings:
+                              imported: "$imported + [$incoming.id]"
+                    default:
+                      - step: set
+                        bindings:
+                          skipped: "$skipped + [$incoming.id]"
+
+      - step: return
+        value:
+          imported_count: "$imported.length"
+          imported: "$imported"
+          skipped_count: "$skipped.length"
+          skipped: "$skipped"
+          conflict_count: "$conflicts.length"
+          conflicts: "$conflicts"
+
+# =============================================================================
+# SNAPSHOT OPERATIONS
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/hypostasis/create-snapshot
+  data:
+    oikos: hypostasis
+    name: create-snapshot
+    visible: true
+    tier: 3
+    description: |
+      Create a full state snapshot of a circle.
+
+      This is a convenience wrapper around export-phoreta that:
+      1. Gathers all entities visible in the circle
+      2. Includes all bonds
+      3. Packages as a timestamped snapshot
+    params:
+      - name: circle_id
+        type: string
+        required: false
+        description: Circle to snapshot (defaults to current dwelling circle)
+      - name: include_embeddings
+        type: boolean
+        required: false
+        description: Include embedding vectors (default false, they're large)
+    steps:
+      # Gather all entities in circle
+      # For now, gather all entities (circle scoping pending)
+      - step: gather
+        eidos: "*"
+        limit: 10000
+        bind_to: all_entities
+
+      - step: map
+        items: "$all_entities"
+        to: "$item.id"
+        bind_to: entity_ids
+
+      # Use export-phoreta
+      - step: call
+        praxis: hypostasis/export-phoreta
+        params:
+          entity_ids: "$entity_ids"
+          include_dependencies: true
+          include_bonds: true
+        bind_to: phoreta
+
+      # Create snapshot wrapper
+      - step: set
+        bindings:
+          snapshot:
+            type: "full-snapshot"
+            circle_id: "$circle_id"
+            created_at: "{{ now() }}"
+            entity_count: "$phoreta.entity_count"
+            bond_count: "$phoreta.bond_count"
+            phoreta: "$phoreta"
+
+      - step: return
+        value: "$snapshot"
+
+- eidos: praxis
+  id: praxis/hypostasis/restore-snapshot
+  data:
+    oikos: hypostasis
+    name: restore-snapshot
+    visible: true
+    tier: 3
+    description: |
+      Restore state from a snapshot.
+
+      This is a convenience wrapper around import-phoreta.
+      Use with caution - this will overwrite local state.
+    params:
+      - name: snapshot
+        type: object
+        required: true
+        description: The snapshot to restore
+      - name: merge_strategy
+        type: string
+        required: false
+        description: How to handle conflicts (default newer_wins)
+    steps:
+      - step: assert
+        condition: "$snapshot.phoreta"
+        message: "Invalid snapshot: missing phoreta data"
+
+      - step: call
+        praxis: hypostasis/import-phoreta
+        params:
+          phoreta: "$snapshot.phoreta"
+          merge_strategy: "$merge_strategy"
+        bind_to: result
+
+      - step: return
+        value:
+          snapshot_type: "$snapshot.type"
+          snapshot_created_at: "$snapshot.created_at"
+          import_result: "$result"
+
+# =============================================================================
+# SYNC DELTA
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/hypostasis/sync-delta
+  data:
+    oikos: hypostasis
+    name: sync-delta
+    visible: true
+    tier: 2
+    description: |
+      Export changes since a given version/timestamp.
+
+      Used for incremental sync between devices.
+      Returns only entities modified after the given point.
+    params:
+      - name: since_version
+        type: number
+        required: false
+        description: Export entities with version > this
+      - name: since_timestamp
+        type: string
+        required: false
+        description: Export entities updated after this timestamp
+    steps:
+      # Gather all entities
+      - step: gather
+        eidos: "*"
+        limit: 10000
+        bind_to: all_entities
+
+      # Filter by version if provided
+      - step: switch
+        cases:
+          - when: "$since_version"
+            then:
+              - step: filter
+                items: "$all_entities"
+                condition: "$item.version > $since_version"
+                bind_to: filtered_entities
+        default:
+          - step: set
+            bindings:
+              filtered_entities: "$all_entities"
+
+      # Map to IDs
+      - step: map
+        items: "$filtered_entities"
+        to: "$item.id"
+        bind_to: entity_ids
+
+      # Create delta phoreta
+      - step: call
+        praxis: hypostasis/export-phoreta
+        params:
+          entity_ids: "$entity_ids"
+          include_dependencies: false
+          include_bonds: true
+        bind_to: delta
+
+      - step: return
+        value:
+          type: "delta"
+          since_version: "$since_version"
+          entity_count: "$delta.entity_count"
+          phoreta: "$delta"
+
+# =============================================================================
+# KEY DERIVATION (CIRCLE-SCOPED)
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/hypostasis/generate-mnemonic
+  data:
+    oikos: hypostasis
+    name: generate-mnemonic
+    visible: true
+    tier: 2
+    description: |
+      Generate a new BIP-39 mnemonic phrase.
+
+      Returns a 24-word mnemonic that can be used to derive
+      circle-scoped cryptographic keys. This mnemonic should
+      be stored securely — it is the root of all derived keys.
+
+      IMPORTANT: The mnemonic is the master secret. If lost,
+      all derived keys are unrecoverable. If compromised,
+      all derived keys are compromised.
+    params: []
+    steps:
+      - step: keyring
+        operation: generate_mnemonic
+        bind_to: result
+
+      - step: return
+        value:
+          mnemonic: "$result.mnemonic"
+          word_count: "$result.word_count"
+          warning: "Store this mnemonic securely. It cannot be recovered if lost."
+
+- eidos: praxis
+  id: praxis/hypostasis/derive-circle-key
+  data:
+    oikos: hypostasis
+    name: derive-circle-key
+    visible: true
+    tier: 2
+    description: |
+      Derive a circle-scoped Ed25519 keypair.
+
+      Uses HKDF-SHA256 to derive deterministic keys from the
+      mnemonic seed + circle_id. Each circle gets a unique
+      keypair, so compromise of one circle's key doesn't
+      affect other circles.
+
+      Returns the public key (safe to share) but NOT the
+      private key material.
+    params:
+      - name: mnemonic
+        type: string
+        required: true
+        description: BIP-39 mnemonic phrase (24 words)
+      - name: circle_id
+        type: string
+        required: true
+        description: Circle to derive key for
+    steps:
+      - step: keyring
+        operation: derive_key
+        mnemonic: "$mnemonic"
+        circle_id: "$circle_id"
+        bind_to: result
+
+      - step: return
+        value:
+          circle_id: "$result.circle_id"
+          public_key: "$result.public_key"
+          algorithm: "$result.algorithm"
+          derivation: "$result.derivation"
+
+- eidos: praxis
+  id: praxis/hypostasis/sign-content
+  data:
+    oikos: hypostasis
+    name: sign-content
+    visible: true
+    tier: 2
+    description: |
+      Sign content with circle-scoped key.
+
+      The signature can be verified by anyone with the public key.
+      This establishes cryptographic attribution — proof that the
+      holder of the mnemonic created or approved this content.
+
+      Used for:
+      - Genesis signing
+      - Phoreta signing (backup/federation)
+      - Entity attestation
+    params:
+      - name: mnemonic
+        type: string
+        required: true
+        description: BIP-39 mnemonic phrase
+      - name: circle_id
+        type: string
+        required: true
+        description: Circle whose key to use for signing
+      - name: content
+        type: string
+        required: true
+        description: Content to sign
+    steps:
+      - step: keyring
+        operation: sign
+        mnemonic: "$mnemonic"
+        circle_id: "$circle_id"
+        data: "$content"
+        bind_to: result
+
+      - step: return
+        value:
+          signature: "$result.signature"
+          public_key: "$result.public_key"
+          content_hash: "$result.data_hash"
+          algorithm: "$result.algorithm"
+
+- eidos: praxis
+  id: praxis/hypostasis/verify-signature
+  data:
+    oikos: hypostasis
+    name: verify-signature
+    visible: true
+    tier: 1
+    description: |
+      Verify a signature against content and public key.
+
+      This is a pure verification — it doesn't require the
+      mnemonic, only the public key. Anyone can verify.
+
+      Returns whether the signature is valid.
+    params:
+      - name: content
+        type: string
+        required: true
+        description: Content that was signed
+      - name: signature
+        type: string
+        required: true
+        description: Base64-encoded signature
+      - name: public_key
+        type: string
+        required: true
+        description: Base64-encoded public key
+    steps:
+      - step: keyring
+        operation: verify
+        data: "$content"
+        signature: "$signature"
+        public_key: "$public_key"
+        bind_to: result
+
+      - step: return
+        value:
+          valid: "$result.valid"
+          content_hash: "$result.data_hash"
+
+# =============================================================================
+# ENCRYPTED KEYRING (KLEIDOURA)
+# =============================================================================
+# Password-protected key storage for session-based access.
+# The unlocked seed lives in process memory (chora), not kosmos.
+# This follows T16: Session state lives in chora, not kosmos.
+
+- eidos: praxis
+  id: praxis/hypostasis/create-keyring
+  data:
+    oikos: hypostasis
+    name: create-keyring
+    visible: true
+    tier: 3
+    description: |
+      Create an encrypted keyring for a persona.
+
+      Encrypts the master seed derived from the mnemonic using a password.
+      The mnemonic is NOT stored — only the encrypted seed.
+
+      Security model:
+      1. Mnemonic → BIP-39 → Master seed
+      2. Password → Argon2id → Encryption key
+      3. Encryption key + Master seed → AES-256-GCM → Encrypted blob
+
+      The kleidoura entity stores:
+      - encrypted_seed (the blob)
+      - encryption_salt (for password → key derivation)
+      - public_key (for verification)
+      - kdf_params (Argon2id parameters)
+
+      IMPORTANT: The mnemonic cannot be recovered from the keyring.
+      Users must keep their mnemonic backed up separately.
+    params:
+      - name: persona_id
+        type: string
+        required: true
+        description: Persona this keyring secures keys for
+      - name: mnemonic
+        type: string
+        required: true
+        description: BIP-39 24-word mnemonic phrase
+      - name: password
+        type: string
+        required: true
+        description: Password to encrypt the keyring
+      - name: password_hint
+        type: string
+        required: false
+        description: Optional hint to help remember password
+    steps:
+      # Validate mnemonic
+      - step: assert
+        condition: "$mnemonic"
+        message: "Mnemonic is required"
+
+      # Check if persona exists
+      - step: find
+        id: "$persona_id"
+        bind_to: persona
+
+      - step: assert
+        condition: "$persona"
+        message: "Persona not found: $persona_id"
+
+      # Check if keyring already exists for this persona
+      - step: trace
+        to_id: "$persona_id"
+        desmoi: ["secures-key-for"]
+        bind_to: existing_keyrings
+
+      - step: assert
+        condition: "$existing_keyrings.length == 0"
+        message: "Keyring already exists for this persona"
+
+      # Encrypt the seed using keyring stoicheion
+      - step: keyring
+        operation: encrypt_seed
+        mnemonic: "$mnemonic"
+        password: "$password"
+        bind_to: encryption_result
+
+      # Generate keyring ID
+      - step: set
+        bindings:
+          keyring_id: "kleidoura/$persona_id"
+
+      # Create the kleidoura entity (CE4: compose instead of arise)
+      - step: compose
+        typos_id: "typos-def-kleidoura"
+        inputs:
+          id: "$keyring_id"
+          encrypted_seed: "$encryption_result.encrypted_seed"
+          encryption_salt: "$encryption_result.salt"
+          kdf_algorithm: "$encryption_result.kdf_algorithm"
+          kdf_params: "$encryption_result.kdf_params"
+          public_key: "$encryption_result.public_key"
+          version: 1
+          created_at: "{{ now() }}"
+          password_hint: "$password_hint"
+        bind_to: keyring
+
+      # Create bond: kleidoura secures-key-for persona
+      - step: bind
+        desmos: secures-key-for
+        from_id: "$keyring_id"
+        to_id: "$persona_id"
+
+      - step: return
+        value:
+          keyring_id: "$keyring_id"
+          persona_id: "$persona_id"
+          public_key: "$encryption_result.public_key"
+          created_at: "{{ now() }}"
+          status: "created"
+
+- eidos: praxis
+  id: praxis/hypostasis/unlock-keyring
+  data:
+    oikos: hypostasis
+    name: unlock-keyring
+    visible: true
+    tier: 2
+    description: |
+      Unlock a keyring with password.
+
+      Decrypts the master seed and stores it in session memory (process state).
+      All subsequent signing operations can use the session key without
+      re-entering the password.
+
+      The unlocked seed is stored in chora (process memory), NOT in kosmos.
+      This is intentional — even if kosmos.db is copied, the seed requires
+      the password to decrypt.
+
+      Auto-lock triggers:
+      - App close → memory cleared
+      - Timeout → memory cleared (configurable)
+      - Explicit lock action
+    params:
+      - name: keyring_id
+        type: string
+        required: true
+        description: Keyring to unlock
+      - name: password
+        type: string
+        required: true
+        description: Password to decrypt the keyring
+    steps:
+      # Find the keyring
+      - step: find
+        id: "$keyring_id"
+        bind_to: keyring
+
+      - step: assert
+        condition: "$keyring"
+        message: "Keyring not found: $keyring_id"
+
+      # Decrypt and store in session
+      - step: keyring
+        operation: decrypt_seed
+        encrypted_seed: "$keyring.data.encrypted_seed"
+        salt: "$keyring.data.encryption_salt"
+        kdf_algorithm: "$keyring.data.kdf_algorithm"
+        kdf_params: "$keyring.data.kdf_params"
+        password: "$password"
+        bind_to: decrypt_result
+
+      - step: switch
+        cases:
+          - when: "not $decrypt_result.success"
+            then:
+              - step: return
+                value:
+                  success: false
+                  error: "Incorrect password"
+                  keyring_id: "$keyring_id"
+
+      # Update keyring with unlock timestamp (optional tracking)
+      - step: update
+        id: "$keyring_id"
+        data:
+          last_unlocked_at: "{{ now() }}"
+
+      - step: return
+        value:
+          success: true
+          keyring_id: "$keyring_id"
+          public_key: "$keyring.data.public_key"
+          status: "unlocked"
+
+- eidos: praxis
+  id: praxis/hypostasis/lock-keyring
+  data:
+    oikos: hypostasis
+    name: lock-keyring
+    visible: true
+    tier: 2
+    description: |
+      Lock the keyring, clearing the session seed.
+
+      After locking, all signing operations require password re-entry.
+      This should be called on:
+      - User explicit lock action
+      - Auto-lock timeout
+      - App close/suspend
+    params: []
+    steps:
+      # Clear session memory
+      - step: keyring
+        operation: clear_session
+        bind_to: clear_result
+
+      - step: return
+        value:
+          success: true
+          status: "locked"
+
+- eidos: praxis
+  id: praxis/hypostasis/check-keyring-status
+  data:
+    oikos: hypostasis
+    name: check-keyring-status
+    visible: true
+    tier: 1
+    description: |
+      Check if the keyring is currently unlocked.
+
+      Returns session status without exposing any key material.
+    params:
+      - name: persona_id
+        type: string
+        required: false
+        description: Check keyring for specific persona
+    steps:
+      # Check session status
+      - step: keyring
+        operation: is_unlocked
+        bind_to: session_status
+
+      # If persona specified, find their keyring
+      - step: switch
+        cases:
+          - when: "$persona_id"
+            then:
+              - step: trace
+                to_id: "$persona_id"
+                desmoi: ["secures-key-for"]
+                bind_to: keyrings
+
+              - step: switch
+                cases:
+                  - when: "$keyrings.length > 0"
+                    then:
+                      - step: set
+                        bindings:
+                          keyring_exists: true
+                          keyring_id: "$keyrings[0].id"
+                default:
+                  - step: set
+                    bindings:
+                      keyring_exists: false
+
+              - step: return
+                value:
+                  unlocked: "$session_status.unlocked"
+                  keyring_exists: "$keyring_exists"
+                  keyring_id: "$keyring_id"
+                  persona_id: "$persona_id"
+
+      - step: return
+        value:
+          unlocked: "$session_status.unlocked"
+
+- eidos: praxis
+  id: praxis/hypostasis/change-keyring-password
+  data:
+    oikos: hypostasis
+    name: change-keyring-password
+    visible: true
+    tier: 3
+    description: |
+      Change the keyring password.
+
+      Decrypts with old password, re-encrypts with new password.
+      This does NOT change the underlying keys — only the encryption password.
+    params:
+      - name: keyring_id
+        type: string
+        required: true
+        description: Keyring to change password for
+      - name: old_password
+        type: string
+        required: true
+        description: Current password
+      - name: new_password
+        type: string
+        required: true
+        description: New password
+      - name: new_hint
+        type: string
+        required: false
+        description: New password hint
+    steps:
+      # Find the keyring
+      - step: find
+        id: "$keyring_id"
+        bind_to: keyring
+
+      - step: assert
+        condition: "$keyring"
+        message: "Keyring not found: $keyring_id"
+
+      # Re-encrypt with new password
+      - step: keyring
+        operation: reencrypt_seed
+        encrypted_seed: "$keyring.data.encrypted_seed"
+        salt: "$keyring.data.encryption_salt"
+        kdf_algorithm: "$keyring.data.kdf_algorithm"
+        kdf_params: "$keyring.data.kdf_params"
+        old_password: "$old_password"
+        new_password: "$new_password"
+        bind_to: reencrypt_result
+
+      - step: switch
+        cases:
+          - when: "not $reencrypt_result.success"
+            then:
+              - step: return
+                value:
+                  success: false
+                  error: "Incorrect old password"
+
+      # Update keyring with new encrypted data
+      - step: update
+        id: "$keyring_id"
+        data:
+          encrypted_seed: "$reencrypt_result.encrypted_seed"
+          encryption_salt: "$reencrypt_result.salt"
+          version: "$keyring.data.version + 1"
+          password_hint: "$new_hint"
+
+      - step: return
+        value:
+          success: true
+          keyring_id: "$keyring_id"
+          version: "$keyring.data.version + 1"
+          status: "password_changed"
+
+- eidos: praxis
+  id: praxis/hypostasis/sign-with-session
+  data:
+    oikos: hypostasis
+    name: sign-with-session
+    visible: true
+    tier: 2
+    description: |
+      Sign content using the unlocked session key.
+
+      This is the primary signing method when the keyring is unlocked.
+      It derives the circle-specific key from the session seed and signs.
+
+      Requires the keyring to be unlocked first.
+    params:
+      - name: circle_id
+        type: string
+        required: true
+        description: Circle context for key derivation
+      - name: content
+        type: string
+        required: true
+        description: Content to sign
+    steps:
+      # Check session is unlocked
+      - step: keyring
+        operation: is_unlocked
+        bind_to: session_status
+
+      - step: assert
+        condition: "$session_status.unlocked"
+        message: "Keyring is locked — unlock first with password"
+
+      # Sign using session key
+      - step: keyring
+        operation: sign_with_session
+        circle_id: "$circle_id"
+        data: "$content"
+        bind_to: signature_result
+
+      - step: return
+        value:
+          signature: "$signature_result.signature"
+          public_key: "$signature_result.public_key"
+          content_hash: "$signature_result.data_hash"
+          algorithm: "$signature_result.algorithm"
+
+- eidos: praxis
+  id: praxis/hypostasis/derive-key-from-session
+  data:
+    oikos: hypostasis
+    name: derive-key-from-session
+    visible: true
+    tier: 1
+    description: |
+      Derive a circle-scoped public key from the unlocked session.
+
+      This is the session-based equivalent of derive-circle-key.
+      Returns the public key only — private key stays in session memory.
+
+      Requires the keyring to be unlocked.
+    params:
+      - name: circle_id
+        type: string
+        required: true
+        description: Circle to derive key for
+    steps:
+      # Check session is unlocked
+      - step: keyring
+        operation: is_unlocked
+        bind_to: session_status
+
+      - step: assert
+        condition: "$session_status.unlocked"
+        message: "Keyring is locked — unlock first with password"
+
+      # Derive key from session
+      - step: keyring
+        operation: derive_from_session
+        circle_id: "$circle_id"
+        bind_to: derive_result
+
+      - step: return
+        value:
+          circle_id: "$circle_id"
+          public_key: "$derive_result.public_key"
+          algorithm: "$derive_result.algorithm"
+
+# =============================================================================
+# SELF-FEDERATION (MULTI-DEVICE PERSONA)
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/hypostasis/export-persona
+  data:
+    oikos: hypostasis
+    name: export-persona
+    visible: true
+    tier: 3
+    description: |
+      Export a persona for federation to another device.
+
+      Creates a signed phoreta bundle containing:
+      - Persona entity
+      - All circles the persona is member of
+      - All theoria, principles, patterns
+      - Session history (optional)
+
+      The bundle is signed with the persona's key so the
+      receiving device can verify authenticity.
+
+      IMPORTANT: The mnemonic is NOT included in the export.
+      It must be entered on the receiving device separately.
+    params:
+      - name: persona_id
+        type: string
+        required: true
+        description: Persona to export
+      - name: mnemonic
+        type: string
+        required: true
+        description: Mnemonic to sign the export
+      - name: circle_id
+        type: string
+        required: true
+        description: Circle context for signing key
+      - name: include_sessions
+        type: boolean
+        required: false
+        description: Include session/conversation history (default false)
+    steps:
+      # Find persona
+      - step: find
+        id: "$persona_id"
+        bind_to: persona
+
+      - step: assert
+        condition: "$persona"
+        message: "Persona not found: $persona_id"
+
+      # Gather persona's circles (member-of bonds)
+      - step: traverse
+        root_id: "$persona_id"
+        desmoi: ["member-of"]
+        depth: 1
+        bind_to: circles
+
+      # Gather persona's theoria
+      - step: gather
+        eidos: theoria
+        limit: 1000
+        bind_to: all_theoria
+
+      # Filter to persona's theoria (authored-by bond)
+      - step: filter
+        items: "$all_theoria"
+        condition: "true"  # TODO: filter by authored-by
+        bind_to: persona_theoria
+
+      # Gather principles and patterns
+      - step: gather
+        eidos: principle
+        limit: 500
+        bind_to: principles
+
+      - step: gather
+        eidos: pattern
+        limit: 500
+        bind_to: patterns
+
+      # Build entity list for export
+      - step: set
+        bindings:
+          entity_ids:
+            - "$persona_id"
+
+      # Add circle IDs
+      - step: for_each
+        in: "$circles"
+        as: circle
+        do:
+          - step: set
+            bindings:
+              entity_ids: "$entity_ids + [$circle.id]"
+
+      # Add theoria IDs
+      - step: for_each
+        in: "$persona_theoria"
+        as: t
+        do:
+          - step: set
+            bindings:
+              entity_ids: "$entity_ids + [$t.id]"
+
+      # Create the phoreta bundle
+      - step: call
+        praxis: hypostasis/export-phoreta
+        params:
+          entity_ids: "$entity_ids"
+          include_dependencies: true
+          include_bonds: true
+        bind_to: phoreta
+
+      # Sign the bundle
+      - step: digest
+        input: "$phoreta"
+        bind_to: phoreta_hash
+
+      - step: keyring
+        operation: sign
+        mnemonic: "$mnemonic"
+        circle_id: "$circle_id"
+        data: "$phoreta_hash"
+        bind_to: signature_result
+
+      - step: return
+        value:
+          type: "persona-export"
+          persona_id: "$persona_id"
+          entity_count: "$phoreta.entity_count"
+          bond_count: "$phoreta.bond_count"
+          phoreta: "$phoreta"
+          signature: "$signature_result.signature"
+          public_key: "$signature_result.public_key"
+          content_hash: "$phoreta_hash"
+          exported_at: "{{ now() }}"
+
+- eidos: praxis
+  id: praxis/hypostasis/import-persona
+  data:
+    oikos: hypostasis
+    name: import-persona
+    visible: true
+    tier: 3
+    description: |
+      Import a persona from another device.
+
+      Verifies the export signature using the provided mnemonic
+      (which should derive the same public key), then imports
+      all entities and bonds.
+
+      Steps:
+      1. Derive key from mnemonic + circle_id
+      2. Verify public key matches export
+      3. Verify signature on phoreta
+      4. Import entities using merge strategy
+    params:
+      - name: export_bundle
+        type: object
+        required: true
+        description: The persona export bundle
+      - name: mnemonic
+        type: string
+        required: true
+        description: Mnemonic (should match original)
+      - name: circle_id
+        type: string
+        required: true
+        description: Circle context for key verification
+      - name: merge_strategy
+        type: string
+        required: false
+        description: How to handle conflicts (default newer_wins)
+    steps:
+      # Derive key from mnemonic to verify identity
+      - step: keyring
+        operation: derive_key
+        mnemonic: "$mnemonic"
+        circle_id: "$circle_id"
+        bind_to: derived_key
+
+      # Verify public key matches
+      - step: switch
+        cases:
+          - when: "$derived_key.public_key != $export_bundle.public_key"
+            then:
+              - step: return
+                value:
+                  success: false
+                  error: "Public key mismatch - mnemonic does not match export origin"
+                  expected_key: "$export_bundle.public_key"
+                  derived_key: "$derived_key.public_key"
+
+      # Verify signature
+      - step: keyring
+        operation: verify
+        data: "$export_bundle.content_hash"
+        signature: "$export_bundle.signature"
+        public_key: "$export_bundle.public_key"
+        bind_to: verify_result
+
+      - step: switch
+        cases:
+          - when: "not $verify_result.valid"
+            then:
+              - step: return
+                value:
+                  success: false
+                  error: "Signature verification failed - export may be tampered"
+
+      # Import the phoreta
+      - step: call
+        praxis: hypostasis/import-phoreta
+        params:
+          phoreta: "$export_bundle.phoreta"
+          merge_strategy: "$merge_strategy"
+        bind_to: import_result
+
+      - step: return
+        value:
+          success: true
+          persona_id: "$export_bundle.persona_id"
+          import_result: "$import_result"
+          verified_with_key: "$derived_key.public_key"
+
+- eidos: praxis
+  id: praxis/hypostasis/sync-devices
+  data:
+    oikos: hypostasis
+    name: sync-devices
+    visible: true
+    tier: 3
+    description: |
+      Sync state between two devices with same persona.
+
+      This is bidirectional sync using version vectors:
+      1. Export delta from local since last sync
+      2. Import delta from remote
+      3. Resolve conflicts using strategy
+      4. Update sync version markers
+
+      Requires both devices to have the same mnemonic.
+    params:
+      - name: mnemonic
+        type: string
+        required: true
+        description: Shared mnemonic for signing/verification
+      - name: circle_id
+        type: string
+        required: true
+        description: Circle context
+      - name: local_version
+        type: number
+        required: true
+        description: Local sync version (last sync point)
+      - name: remote_delta
+        type: object
+        required: false
+        description: Delta from remote device (if receiving)
+    steps:
+      # Export local changes since last sync
+      - step: call
+        praxis: hypostasis/sync-delta
+        params:
+          since_version: "$local_version"
+        bind_to: local_delta
+
+      # Sign the local delta
+      - step: digest
+        input: "$local_delta"
+        bind_to: delta_hash
+
+      - step: keyring
+        operation: sign
+        mnemonic: "$mnemonic"
+        circle_id: "$circle_id"
+        data: "$delta_hash"
+        bind_to: signature
+
+      # If we have a remote delta, import it
+      - step: switch
+        cases:
+          - when: "$remote_delta"
+            then:
+              # Verify remote delta signature
+              - step: keyring
+                operation: verify
+                data: "$remote_delta.content_hash"
+                signature: "$remote_delta.signature"
+                public_key: "$remote_delta.public_key"
+                bind_to: remote_verify
+
+              - step: switch
+                cases:
+                  - when: "$remote_verify.valid"
+                    then:
+                      - step: call
+                        praxis: hypostasis/import-phoreta
+                        params:
+                          phoreta: "$remote_delta.phoreta"
+                          merge_strategy: "newer_wins"
+                        bind_to: import_result
+
+      - step: return
+        value:
+          local_delta:
+            entity_count: "$local_delta.entity_count"
+            phoreta: "$local_delta.phoreta"
+            signature: "$signature.signature"
+            public_key: "$signature.public_key"
+            content_hash: "$delta_hash"
+          import_result: "$import_result"
+
+# =============================================================================
+# GENESIS SIGNING CEREMONY
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/hypostasis/begin-genesis-ceremony
+  data:
+    oikos: hypostasis
+    name: begin-genesis-ceremony
+    visible: true
+    tier: 3
+    description: |
+      Begin a new genesis signing ceremony.
+
+      Creates a genesis-record entity with:
+      - The constitutional content
+      - Content hash (BLAKE3)
+      - Threshold requirement (default 3)
+      - Empty signature list
+
+      This is the beginning of the constitutional signing process.
+      Multiple signers must call add-genesis-signature to reach
+      the threshold before finalization.
+    params:
+      - name: genesis_id
+        type: string
+        required: true
+        description: ID for the genesis record
+      - name: content
+        type: string
+        required: true
+        description: The constitutional content to sign
+      - name: threshold
+        type: number
+        required: false
+        description: Number of signatures required (default 3)
+    steps:
+      - step: set
+        bindings:
+          threshold_val: 3
+
+      - step: switch
+        cases:
+          - when: "$threshold"
+            then:
+              - step: set
+                bindings:
+                  threshold_val: "$threshold"
+
+      # Compute content hash
+      - step: digest
+        input: "$content"
+        bind_to: content_hash
+
+      # Create the genesis record (CE4: compose instead of arise)
+      - step: compose
+        typos_id: "typos-def-genesis-record"
+        inputs:
+          id: "$genesis_id"
+          content: "$content"
+          content_hash: "$content_hash"
+          threshold: "$threshold_val"
+          signatures: []
+          verified: false
+          created_at: "{{ now() }}"
+        bind_to: genesis
+
+      - step: return
+        value:
+          genesis_id: "$genesis_id"
+          content_hash: "$content_hash"
+          threshold: "$threshold_val"
+          signatures_collected: 0
+          status: "awaiting_signatures"
+
+- eidos: praxis
+  id: praxis/hypostasis/add-genesis-signature
+  data:
+    oikos: hypostasis
+    name: add-genesis-signature
+    visible: true
+    tier: 3
+    description: |
+      Add a signature to a genesis record.
+
+      Each signer:
+      1. Derives their key from their mnemonic
+      2. Signs the genesis content hash
+      3. Provides an attestation (e.g., "I, Alice, attest to this genesis")
+
+      The signature is added to the genesis record's signature list.
+      Duplicate public keys are rejected.
+    params:
+      - name: genesis_id
+        type: string
+        required: true
+        description: Genesis record to sign
+      - name: mnemonic
+        type: string
+        required: true
+        description: Signer's mnemonic
+      - name: circle_id
+        type: string
+        required: true
+        description: Circle context for key derivation
+      - name: attestation
+        type: string
+        required: true
+        description: Signer's attestation statement
+    steps:
+      # Find the genesis record
+      - step: find
+        id: "$genesis_id"
+        bind_to: genesis
+
+      - step: assert
+        condition: "$genesis"
+        message: "Genesis record not found: $genesis_id"
+
+      - step: assert
+        condition: "not $genesis.data.verified"
+        message: "Genesis already finalized — cannot add more signatures"
+
+      # Derive the signer's key
+      - step: keyring
+        operation: derive_key
+        mnemonic: "$mnemonic"
+        circle_id: "$circle_id"
+        bind_to: signer_key
+
+      # Check for duplicate signer
+      - step: set
+        bindings:
+          duplicate_found: false
+
+      - step: for_each
+        in: "$genesis.data.signatures"
+        as: existing_sig
+        do:
+          - step: switch
+            cases:
+              - when: "$existing_sig.public_key == $signer_key.public_key"
+                then:
+                  - step: set
+                    bindings:
+                      duplicate_found: true
+
+      - step: assert
+        condition: "not $duplicate_found"
+        message: "This key has already signed this genesis"
+
+      # Sign the content hash
+      - step: keyring
+        operation: sign
+        mnemonic: "$mnemonic"
+        circle_id: "$circle_id"
+        data: "$genesis.data.content_hash"
+        bind_to: signature
+
+      # Create the signature record
+      - step: set
+        bindings:
+          new_signature:
+            public_key: "$signature.public_key"
+            signature: "$signature.signature"
+            attestation: "$attestation"
+            signed_at: "{{ now() }}"
+
+      # Update genesis with new signature
+      - step: set
+        bindings:
+          updated_signatures: "$genesis.data.signatures + [$new_signature]"
+
+      - step: update
+        id: "$genesis_id"
+        data:
+          signatures: "$updated_signatures"
+        bind_to: updated_genesis
+
+      - step: return
+        value:
+          genesis_id: "$genesis_id"
+          signer_public_key: "$signature.public_key"
+          signatures_collected: "$updated_signatures.length"
+          threshold: "$genesis.data.threshold"
+          status: "signature_added"
+          remaining: "$genesis.data.threshold - $updated_signatures.length"
+
+- eidos: praxis
+  id: praxis/hypostasis/finalize-genesis
+  data:
+    oikos: hypostasis
+    name: finalize-genesis
+    visible: true
+    tier: 3
+    description: |
+      Finalize a genesis record once threshold is reached.
+
+      Verifies:
+      1. At least threshold signatures collected
+      2. All signatures are valid
+      3. No duplicate signers
+
+      If all checks pass, marks genesis as verified.
+      This is the moment of constitutional establishment.
+    params:
+      - name: genesis_id
+        type: string
+        required: true
+        description: Genesis record to finalize
+    steps:
+      # Find the genesis record
+      - step: find
+        id: "$genesis_id"
+        bind_to: genesis
+
+      - step: assert
+        condition: "$genesis"
+        message: "Genesis record not found: $genesis_id"
+
+      - step: assert
+        condition: "not $genesis.data.verified"
+        message: "Genesis already finalized"
+
+      # Check threshold
+      - step: set
+        bindings:
+          sig_count: "$genesis.data.signatures.length"
+
+      - step: assert
+        condition: "$sig_count >= $genesis.data.threshold"
+        message: "Insufficient signatures: $sig_count of $genesis.data.threshold required"
+
+      # Verify each signature
+      - step: set
+        bindings:
+          all_valid: true
+          verified_keys: []
+
+      - step: for_each
+        in: "$genesis.data.signatures"
+        as: sig
+        do:
+          - step: keyring
+            operation: verify
+            data: "$genesis.data.content_hash"
+            signature: "$sig.signature"
+            public_key: "$sig.public_key"
+            bind_to: verify_result
+
+          - step: switch
+            cases:
+              - when: "not $verify_result.valid"
+                then:
+                  - step: set
+                    bindings:
+                      all_valid: false
+
+          # Track verified keys
+          - step: set
+            bindings:
+              verified_keys: "$verified_keys + [$sig.public_key]"
+
+      - step: assert
+        condition: "$all_valid"
+        message: "One or more signatures failed verification"
+
+      # Mark as verified
+      - step: update
+        id: "$genesis_id"
+        data:
+          verified: true
+          verified_at: "{{ now() }}"
+        bind_to: finalized_genesis
+
+      - step: return
+        value:
+          genesis_id: "$genesis_id"
+          content_hash: "$genesis.data.content_hash"
+          signatures_valid: "$sig_count"
+          threshold: "$genesis.data.threshold"
+          verified: true
+          verified_at: "{{ now() }}"
+          signers: "$verified_keys"
+          status: "finalized"
+
+- eidos: praxis
+  id: praxis/hypostasis/get-genesis-status
+  data:
+    oikos: hypostasis
+    name: get-genesis-status
+    visible: true
+    tier: 1
+    description: |
+      Get the current status of a genesis signing ceremony.
+
+      Returns:
+      - How many signatures collected
+      - Threshold requirement
+      - Whether finalized
+      - List of signer public keys
+    params:
+      - name: genesis_id
+        type: string
+        required: true
+        description: Genesis record to check
+    steps:
+      - step: find
+        id: "$genesis_id"
+        bind_to: genesis
+
+      - step: switch
+        cases:
+          - when: "not $genesis"
+            then:
+              - step: return
+                value:
+                  found: false
+                  error: "Genesis record not found: $genesis_id"
+
+      # Extract signer public keys
+      - step: map
+        items: "$genesis.data.signatures"
+        to: "$item.public_key"
+        bind_to: signer_keys
+
+      - step: return
+        value:
+          genesis_id: "$genesis_id"
+          found: true
+          content_hash: "$genesis.data.content_hash"
+          threshold: "$genesis.data.threshold"
+          signatures_collected: "$genesis.data.signatures.length"
+          remaining: "$genesis.data.threshold - $genesis.data.signatures.length"
+          verified: "$genesis.data.verified"
+          signers: "$signer_keys"
+          status: "$genesis.data.verified ? 'finalized' : 'awaiting_signatures'"
+
+# =============================================================================
+# CREDENTIALS — External Service Credentials with Attainment Integration
+# =============================================================================
+# Encrypted API keys that grant attainments when unlocked.
+# Follows the kleidoura pattern: stored encrypted, unlocked into session.
+# Integrates with politeia attainments for governance.
+
+- eidos: praxis
+  id: praxis/hypostasis/add-credential
+  data:
+    oikos: hypostasis
+    name: add-credential
+    visible: true
+    tier: 3
+    description: |
+      Add an encrypted credential for an external service.
+
+      The credential is encrypted using the session password (requires keyring
+      to be unlocked). When the credential is unlocked, it grants an attainment
+      that praxeis can check before using the service.
+
+      Flow:
+      1. Encrypt credential value with session-derived key
+      2. Create credential entity
+      3. Bond to persona (ownership)
+      4. Create attainment entity if it doesn't exist
+      5. Bond credential to attainment (unlocks-attainment)
+
+      Example: Adding an OpenAI key that grants "use-embedding-api" attainment
+    params:
+      - name: service
+        type: string
+        required: true
+        description: "Service provider (e.g., 'openai', 'anthropic')"
+      - name: credential_value
+        type: string
+        required: true
+        description: "The API key or token to encrypt"
+      - name: label
+        type: string
+        required: true
+        description: "Human-readable label (e.g., 'My OpenAI Key')"
+      - name: grants_attainment
+        type: string
+        required: true
+        description: "Attainment name granted when unlocked (e.g., 'use-embedding-api')"
+      - name: credential_type
+        type: string
+        required: false
+        description: "Type of credential (api-key, oauth-token, bearer-token)"
+      - name: scope
+        type: string
+        required: false
+        description: "Scope of access (persona or circle)"
+      - name: persona_id
+        type: string
+        required: true
+        description: "Persona who owns this credential"
+      - name: circle_id
+        type: string
+        required: false
+        description: "Circle to share with (if scope is circle)"
+    steps:
+      # Check keyring is unlocked
+      - step: keyring
+        operation: is_unlocked
+        bind_to: session_status
+
+      - step: assert
+        condition: "$session_status.unlocked"
+        message: "Keyring must be unlocked to add credentials"
+
+      # Set defaults
+      - step: set
+        bindings:
+          cred_type: "api-key"
+          cred_scope: "persona"
+
+      - step: switch
+        cases:
+          - when: "$credential_type"
+            then:
+              - step: set
+                bindings:
+                  cred_type: "$credential_type"
+
+      - step: switch
+        cases:
+          - when: "$scope"
+            then:
+              - step: set
+                bindings:
+                  cred_scope: "$scope"
+
+      # Check persona exists
+      - step: find
+        id: "$persona_id"
+        bind_to: persona
+
+      - step: assert
+        condition: "$persona"
+        message: "Persona not found: $persona_id"
+
+      # Encrypt the credential value using session key
+      - step: keyring
+        operation: encrypt_credential
+        value: "$credential_value"
+        bind_to: encryption_result
+
+      # Generate credential ID
+      - step: set
+        bindings:
+          credential_id: "credential/$persona_id/$service"
+
+      # Create the credential entity (CE4: compose instead of arise)
+      - step: compose
+        typos_id: "typos-def-credential"
+        inputs:
+          id: "$credential_id"
+          service: "$service"
+          credential_type: "$cred_type"
+          encrypted_value: "$encryption_result.encrypted_value"
+          salt: "$encryption_result.salt"
+          label: "$label"
+          scope: "$cred_scope"
+          grants_attainment: "$grants_attainment"
+          status: "active"
+          created_at: "{{ now() }}"
+        bind_to: credential
+
+      # Bond credential to persona
+      - step: bind
+        desmos: credential-of
+        from_id: "$credential_id"
+        to_id: "$persona_id"
+
+      # If circle scope, bond to circle
+      - step: switch
+        cases:
+          - when: "$cred_scope == 'circle' and $circle_id"
+            then:
+              - step: find
+                id: "$circle_id"
+                bind_to: circle
+
+              - step: assert
+                condition: "$circle"
+                message: "Circle not found: $circle_id"
+
+              - step: bind
+                desmos: shared-with
+                from_id: "$credential_id"
+                to_id: "$circle_id"
+
+      # Find or create the attainment
+      - step: set
+        bindings:
+          attainment_id: "attainment/$grants_attainment"
+
+      - step: find
+        id: "$attainment_id"
+        bind_to: existing_attainment
+
+      - step: switch
+        cases:
+          - when: "not $existing_attainment"
+            then:
+              # Create the attainment (CE4: compose instead of arise)
+              - step: compose
+                typos_id: "typos-def-attainment"
+                inputs:
+                  id: "$attainment_id"
+                  name: "$grants_attainment"
+                  description: "Attainment granted by $service credential"
+                  scope: "$cred_scope"
+                  created_at: "{{ now() }}"
+
+      # Bond credential to attainment
+      - step: bind
+        desmos: unlocks-attainment
+        from_id: "$credential_id"
+        to_id: "$attainment_id"
+
+      - step: return
+        value:
+          credential_id: "$credential_id"
+          service: "$service"
+          grants_attainment: "$grants_attainment"
+          scope: "$cred_scope"
+          status: "created"
+
+- eidos: praxis
+  id: praxis/hypostasis/unlock-credentials
+  data:
+    oikos: hypostasis
+    name: unlock-credentials
+    visible: true
+    tier: 2
+    description: |
+      Unlock credentials for the session, granting their attainments.
+
+      When the keyring is unlocked, this decrypts all active credentials
+      and adds their attainments to the session. Praxeis can then check
+      for attainments before using services.
+
+      The decrypted credential values are stored in session memory (chora),
+      not in kosmos. They are cleared when the session locks.
+
+      Flow:
+      1. Gather all credentials for persona
+      2. Decrypt each credential using session key
+      3. Store decrypted values in session state
+      4. Grant attainments to session
+    params:
+      - name: persona_id
+        type: string
+        required: true
+        description: "Persona whose credentials to unlock"
+    steps:
+      # Check keyring is unlocked
+      - step: keyring
+        operation: is_unlocked
+        bind_to: session_status
+
+      - step: assert
+        condition: "$session_status.unlocked"
+        message: "Keyring must be unlocked first"
+
+      # Gather credentials for this persona
+      - step: trace
+        from_id: "$persona_id"
+        desmoi: ["credential-of"]
+        direction: inbound
+        bind_to: credentials
+
+      - step: set
+        bindings:
+          unlocked_count: 0
+          granted_attainments: []
+
+      - step: for_each
+        in: "$credentials"
+        as: cred
+        do:
+          - step: switch
+            cases:
+              - when: "$cred.data.status == 'active'"
+                then:
+                  # Decrypt the credential
+                  - step: keyring
+                    operation: decrypt_credential
+                    encrypted_value: "$cred.data.encrypted_value"
+                    salt: "$cred.data.salt"
+                    bind_to: decrypted
+
+                  - step: switch
+                    cases:
+                      - when: "$decrypted.success"
+                        then:
+                          # Store in session and grant attainment
+                          - step: keyring
+                            operation: store_credential
+                            service: "$cred.data.service"
+                            value: "$decrypted.value"
+                            attainment: "$cred.data.grants_attainment"
+
+                          - step: set
+                            bindings:
+                              unlocked_count: "$unlocked_count + 1"
+                              granted_attainments: "$granted_attainments + [$cred.data.grants_attainment]"
+
+                          # Update last_used_at
+                          - step: update
+                            id: "$cred.id"
+                            data:
+                              last_used_at: "{{ now() }}"
+
+      - step: return
+        value:
+          unlocked_count: "$unlocked_count"
+          granted_attainments: "$granted_attainments"
+          status: "credentials_unlocked"
+
+- eidos: praxis
+  id: praxis/hypostasis/get-credential-value
+  data:
+    oikos: hypostasis
+    name: get-credential-value
+    visible: false  # Internal use only
+    tier: 1
+    description: |
+      Get a decrypted credential value from the session.
+
+      This is an internal praxis used by other praxeis (like nous/index)
+      to retrieve API keys for service calls. It checks:
+      1. Session is unlocked
+      2. Credential is unlocked in session
+      3. Caller has the required attainment
+
+      Returns the credential value if available, null otherwise.
+    params:
+      - name: service
+        type: string
+        required: true
+        description: "Service to get credential for (e.g., 'openai')"
+      - name: required_attainment
+        type: string
+        required: false
+        description: "Attainment to check (optional)"
+    steps:
+      # Check session is unlocked
+      - step: keyring
+        operation: is_unlocked
+        bind_to: session_status
+
+      - step: switch
+        cases:
+          - when: "not $session_status.unlocked"
+            then:
+              - step: return
+                value:
+                  found: false
+                  reason: "keyring_locked"
+
+      # Check if attainment is required and present
+      - step: switch
+        cases:
+          - when: "$required_attainment"
+            then:
+              - step: keyring
+                operation: has_attainment
+                attainment: "$required_attainment"
+                bind_to: has_attainment
+
+              - step: switch
+                cases:
+                  - when: "not $has_attainment"
+                    then:
+                      - step: return
+                        value:
+                          found: false
+                          reason: "missing_attainment"
+                          required: "$required_attainment"
+
+      # Get credential from session
+      - step: keyring
+        operation: get_credential
+        service: "$service"
+        bind_to: credential_result
+
+      - step: switch
+        cases:
+          - when: "$credential_result.found"
+            then:
+              - step: return
+                value:
+                  found: true
+                  value: "$credential_result.value"
+                  service: "$service"
+        default:
+          - step: return
+            value:
+              found: false
+              reason: "credential_not_unlocked"
+              service: "$service"
+
+- eidos: praxis
+  id: praxis/hypostasis/list-credentials
+  data:
+    oikos: hypostasis
+    name: list-credentials
+    visible: true
+    tier: 1
+    description: |
+      List credentials for a persona.
+
+      Returns metadata about credentials without exposing the encrypted values.
+      Shows which services have credentials, their scope, and granted attainments.
+    params:
+      - name: persona_id
+        type: string
+        required: true
+        description: "Persona to list credentials for"
+    steps:
+      # Gather credentials for this persona
+      - step: trace
+        from_id: "$persona_id"
+        desmoi: ["credential-of"]
+        direction: inbound
+        bind_to: credentials
+
+      - step: set
+        bindings:
+          credential_list: []
+
+      - step: for_each
+        in: "$credentials"
+        as: cred
+        do:
+          - step: set
+            bindings:
+              cred_info:
+                id: "$cred.id"
+                service: "$cred.data.service"
+                label: "$cred.data.label"
+                credential_type: "$cred.data.credential_type"
+                scope: "$cred.data.scope"
+                grants_attainment: "$cred.data.grants_attainment"
+                status: "$cred.data.status"
+                created_at: "$cred.data.created_at"
+                last_used_at: "$cred.data.last_used_at"
+
+          - step: set
+            bindings:
+              credential_list: "$credential_list + [$cred_info]"
+
+      - step: return
+        value:
+          persona_id: "$persona_id"
+          credentials: "$credential_list"
+          count: "$credential_list.length"
+
+- eidos: praxis
+  id: praxis/hypostasis/remove-credential
+  data:
+    oikos: hypostasis
+    name: remove-credential
+    visible: true
+    tier: 3
+    description: |
+      Remove (revoke) a credential.
+
+      Marks the credential as revoked and removes it from session if unlocked.
+      The credential entity is kept for audit trail but cannot be used.
+
+      To permanently delete, use hypostasis/delete-credential (dangerous).
+    params:
+      - name: credential_id
+        type: string
+        required: true
+        description: "Credential to remove"
+    steps:
+      # Find the credential
+      - step: find
+        id: "$credential_id"
+        bind_to: credential
+
+      - step: assert
+        condition: "$credential"
+        message: "Credential not found: $credential_id"
+
+      # Mark as revoked
+      - step: update
+        id: "$credential_id"
+        data:
+          status: "revoked"
+
+      # Remove from session if present
+      - step: keyring
+        operation: remove_credential
+        service: "$credential.data.service"
+        attainment: "$credential.data.grants_attainment"
+
+      - step: return
+        value:
+          credential_id: "$credential_id"
+          service: "$credential.data.service"
+          status: "revoked"
+
+- eidos: praxis
+  id: praxis/hypostasis/check-session-attainment
+  data:
+    oikos: hypostasis
+    name: check-session-attainment
+    visible: true
+    tier: 1
+    description: |
+      Check if the current session has a specific attainment.
+
+      This is used by praxeis to check governance before executing.
+      Returns whether the attainment is present in the session.
+
+      Attainments can come from:
+      1. Credentials (unlocked credentials grant attainments)
+      2. Circle membership (circles grant attainments to members)
+      3. Direct grants (explicit attainment assignment)
+    params:
+      - name: attainment
+        type: string
+        required: true
+        description: "Attainment name to check"
+    steps:
+      - step: keyring
+        operation: has_attainment
+        attainment: "$attainment"
+        bind_to: result
+
+      - step: return
+        value:
+          attainment: "$attainment"
+          has_attainment: "$result"

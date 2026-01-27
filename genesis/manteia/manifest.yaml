@@ -1,0 +1,61 @@
+# Oikos Manifest: Manteia
+# μαντεία — divination, prophecy. Governed inference.
+#
+# Manifest v2.1 — oikos metadata for entity composition
+
+format_version: "2.1"
+oikos_id: manteia
+version: "0.1.0"
+
+# Oikos metadata (v2.1)
+oikos_name: Manteia
+oikos_description: |
+  Divination, prophecy. Governed inference through the kosmos.
+  Provides constrained LLM generation using JSON schemas derived
+  from stoicheion eide.
+oikos_scale: cross-scale
+
+content_paths:
+  - path: eide/
+    content_types: [eidos]
+  - path: praxeis/
+    content_types: [praxis]
+
+description: |
+  Μαντεία (manteia) — divination, prophecy.
+
+  Governed inference through the kosmos. Manteia provides constrained
+  LLM generation using JSON schemas derived from stoicheion eide.
+
+  Key capabilities:
+  - Structured output inference (JSON Schema constrained)
+  - Quality evaluation with verdicts (TRUE/FALSE/UNDECIDABLE)
+  - Praxis generation (LLM writes valid praxeis)
+  - Step generation (individual step creation)
+  - Schema introspection (query stoicheion schemas)
+klimax_level: 3
+depends_on:
+  - nous
+  - stoicheia-portable
+
+requires_dynamis:
+  - db.find
+  - db.gather
+  - intelligence.infer
+
+provides:
+  eide:
+    - governed-envelope
+    - evaluation-criterion
+    - criterion-result
+
+  praxeis:
+    - manteia/governed-inference
+    - manteia/generate-entity
+    - manteia/generate-step
+    - manteia/generate-praxis
+    - manteia/generate-typos
+    - manteia/get-stoicheion-schema
+    - manteia/list-stoicheia
+    # Internal evaluation praxis
+    - manteia/_evaluate-generation

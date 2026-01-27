@@ -1,0 +1,108 @@
+# Oikos Manifest: Aither
+# αἰθήρ — the upper air, the pure element. Network transport.
+#
+# P2P connections via WebRTC. The transport layer that doesn't
+# know about circles or governance (that's syndesmos).
+#
+# Manifest v2.1 — oikos metadata for entity composition
+
+format_version: "2.1"
+oikos_id: aither
+version: "0.1.0"
+
+# Oikos metadata (v2.1)
+oikos_name: Aither
+oikos_description: |
+  The upper air, the pure element. Network transport via P2P WebRTC
+  connections. The transport layer that doesn't know about circles
+  or governance (that's syndesmos).
+oikos_scale: physis
+
+content_paths:
+  - path: eide/
+    content_types: [eidos]
+  - path: desmoi/
+    content_types: [desmos]
+  - path: praxeis/
+    content_types: [praxis]
+
+requires_dynamis:
+  - db.arise
+  - db.find
+  - db.bind
+  - db.update
+  - db.gather
+  - webrtc.manifest       # Create peer connections
+  - webrtc.sense          # Query connection state
+  - webrtc.unmanifest     # Close connections
+  - webrtc.signal         # Send/receive SDP, ICE
+
+provides:
+  eide:
+    - data-channel
+    - signaling-session
+    - syndesmos
+    - outbound-message
+    - presence-record
+    - sync-message
+
+  desmoi:
+    - bootstrapped-by
+    - queued-for
+    - present-in
+    - connected-via
+    - presence-of
+    - targets-peer
+
+  praxeis:
+    # Signaling operations
+    - aither/connect-signaling
+    - aither/disconnect-signaling
+    - aither/sense-signaling
+    - aither/poll-signaling
+    - aither/send-offer
+    - aither/send-answer
+    # Data channel operations
+    - aither/create-channel
+    - aither/accept-answer
+    - aither/answer-channel
+    - aither/close-channel
+    - aither/sense-channel
+    - aither/reconcile-channel
+    - aither/send-message
+    - aither/receive-messages
+    - aither/list-channels
+    # Syndesmos (connection state) operations
+    - aither/ensure-connection
+    - aither/attempt-reconnect
+    - aither/disconnect-syndesmos
+    - aither/list-connections
+    # Offline queue operations
+    - aither/queue-message
+    - aither/flush-queue
+    # Presence operations
+    - aither/update-presence
+    - aither/heartbeat
+    - aither/expire-stale-presence
+    - aither/list-presence
+    # Sync operations (C8.4/C8.5)
+    - aither/broadcast-sync
+    - aither/receive-sync
+    - aither/apply-expression-sync
+    - aither/request-catch-up
+    - aither/respond-catch-up
+    - aither/apply-catch-up
+
+stoicheia_form:
+  manifest: arche       # Routes to webrtc dynamis
+  sense_actuality: arche
+  unmanifest: arche
+  signal: arche
+
+actuality_modes:
+  webrtc:
+    manifest: create_peer_connection
+    sense: connection_state
+    unmanifest: close_connection
+    signal: sdp_exchange
+

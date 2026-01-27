@@ -1,0 +1,527 @@
+# oikos.yaml
+# Oikos praxeis exposed as MCP tools
+#
+# Oikos is the intimate dwelling — sessions, conversations, notes, insights.
+# These praxeis enable session management and attention marking.
+
+entities:
+
+# =============================================================================
+# SESSION MANAGEMENT
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/oikos/open-session
+  data:
+    oikos: oikos
+    name: open-session
+    visible: true
+    description: |
+      Open a new session. Requires dwelling context (animus in circle).
+
+      Creates a session entity and bonds to animus and circle.
+    params: []
+    steps:
+      # Assert we have dwelling context
+      - step: assert
+        condition: "$_animus"
+        message: "Cannot open session without dwelling animus"
+
+      - step: assert
+        condition: "$_circle"
+        message: "Cannot open session without dwelling circle"
+
+      # Generate session ID
+      - step: set
+        bindings:
+          session_id: "session/{{ now() }}"
+          opened_at: "now()"
+
+      # Create the session (CE4: compose instead of arise)
+      - step: compose
+        typos_id: "typos-def-session"
+        inputs:
+          id: "$session_id"
+          opened_at: "$opened_at"
+          status: "active"
+        bind_to: session_entity
+
+      # Bond session to circle
+      - step: bind
+        from_id: "$session_id"
+        to_id: "$_circle.id"
+        desmos: "belongs-to"
+
+      - step: return
+        value:
+          session_id: "$session_id"
+          status: "active"
+
+- eidos: praxis
+  id: praxis/oikos/close-session
+  data:
+    oikos: oikos
+    name: close-session
+    visible: true
+    description: |
+      Close a session.
+    params:
+      - name: session_id
+        type: string
+        required: true
+        description: The session to close
+    steps:
+      - step: find
+        id: "$session_id"
+        bind_to: session
+
+      - step: assert
+        condition: "$session"
+        message: "Session not found: $session_id"
+
+      - step: set
+        bindings:
+          closed_at: "now()"
+
+      - step: update
+        id: "$session_id"
+        data:
+          status: "closed"
+          closed_at: "$closed_at"
+
+      - step: return
+        value:
+          closed: true
+          session_id: "$session_id"
+
+# =============================================================================
+# CONVERSATION MANAGEMENT
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/oikos/open-conversation
+  data:
+    oikos: oikos
+    name: open-conversation
+    visible: true
+    description: |
+      Open a new conversation within a session.
+    params:
+      - name: session_id
+        type: string
+        required: true
+        description: The session to open conversation in
+      - name: title
+        type: string
+        required: false
+        description: Optional title for the conversation
+    steps:
+      - step: find
+        id: "$session_id"
+        bind_to: session
+
+      - step: assert
+        condition: "$session"
+        message: "Session not found: $session_id"
+
+      # Generate conversation ID
+      - step: set
+        bindings:
+          conversation_id: "conversation/{{ now() }}"
+          opened_at: "now()"
+
+      # Create the conversation (CE4: compose instead of arise)
+      - step: compose
+        typos_id: "typos-def-conversation"
+        inputs:
+          id: "$conversation_id"
+          title: "$title"
+          opened_at: "$opened_at"
+          status: "active"
+        bind_to: conversation_entity
+
+      # Bond to session
+      - step: bind
+        from_id: "$conversation_id"
+        to_id: "$session_id"
+        desmos: "within"
+
+      - step: return
+        value:
+          conversation_id: "$conversation_id"
+          session_id: "$session_id"
+          status: "active"
+
+- eidos: praxis
+  id: praxis/oikos/add-segment
+  data:
+    oikos: oikos
+    name: add-segment
+    visible: true
+    description: |
+      Add a segment to a conversation.
+    params:
+      - name: conversation_id
+        type: string
+        required: true
+        description: The conversation to add segment to
+      - name: content
+        type: string
+        required: true
+        description: The segment content
+      - name: kind
+        type: string
+        required: false
+        description: "Segment kind: message, action, observation, reflection (default: message)"
+      - name: author_kind
+        type: string
+        required: false
+        description: "Author kind: human, ai, system (default: human)"
+    steps:
+      - step: find
+        id: "$conversation_id"
+        bind_to: conversation
+
+      - step: assert
+        condition: "$conversation"
+        message: "Conversation not found: $conversation_id"
+
+      # Set defaults
+      - step: set
+        bindings:
+          segment_kind: "$kind"
+          segment_author: "$author_kind"
+
+      - step: switch
+        cases:
+          - when: "$segment_kind"
+            then: []
+        default:
+          - step: set
+            bindings:
+              segment_kind: "message"
+
+      - step: switch
+        cases:
+          - when: "$segment_author"
+            then: []
+        default:
+          - step: set
+            bindings:
+              segment_author: "human"
+
+      # Generate segment ID
+      - step: set
+        bindings:
+          segment_id: "segment/{{ now() }}"
+          created_at: "now()"
+
+      # Create the segment (CE4: compose instead of arise)
+      - step: compose
+        typos_id: "typos-def-segment"
+        inputs:
+          id: "$segment_id"
+          content: "$content"
+          kind: "$segment_kind"
+          author_kind: "$segment_author"
+          created_at: "$created_at"
+        bind_to: segment_entity
+
+      # Bond to conversation
+      - step: bind
+        from_id: "$segment_id"
+        to_id: "$conversation_id"
+        desmos: "within"
+
+      # Bond to persona if available
+      - step: switch
+        cases:
+          - when: "$_persona"
+            then:
+              - step: bind
+                from_id: "$segment_id"
+                to_id: "$_persona.id"
+                desmos: "authored-by"
+
+      - step: return
+        value:
+          segment_id: "$segment_id"
+          conversation_id: "$conversation_id"
+          kind: "$segment_kind"
+
+# =============================================================================
+# NOTE-TAKING
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/oikos/take-note
+  data:
+    oikos: oikos
+    name: take-note
+    visible: true
+    description: |
+      Take a note about something.
+
+      Notes mark something as worthy of attention.
+    params:
+      - name: content
+        type: string
+        required: true
+        description: What is being noted
+      - name: reason
+        type: string
+        required: false
+        description: Why it matters
+      - name: kind
+        type: string
+        required: false
+        description: "Note kind: observation, question, concern, insight, todo (default: observation)"
+      - name: about
+        type: string
+        required: false
+        description: Entity ID this note is about
+    steps:
+      # Set default kind
+      - step: set
+        bindings:
+          note_kind: "$kind"
+
+      - step: switch
+        cases:
+          - when: "$note_kind"
+            then: []
+        default:
+          - step: set
+            bindings:
+              note_kind: "observation"
+
+      # Generate note ID
+      - step: set
+        bindings:
+          note_id: "note/{{ now() }}"
+          created_at: "now()"
+
+      # Create the note (CE4: compose instead of arise)
+      - step: compose
+        typos_id: "typos-def-note"
+        inputs:
+          id: "$note_id"
+          content: "$content"
+          reason: "$reason"
+          kind: "$note_kind"
+          created_at: "$created_at"
+        bind_to: note_entity
+
+      # Bond to circle if available
+      - step: switch
+        cases:
+          - when: "$_circle"
+            then:
+              - step: bind
+                from_id: "$note_id"
+                to_id: "$_circle.id"
+                desmos: "belongs-to"
+
+      # Bond to persona as author if available
+      - step: switch
+        cases:
+          - when: "$_persona"
+            then:
+              - step: bind
+                from_id: "$note_id"
+                to_id: "$_persona.id"
+                desmos: "authored-by"
+
+      # Bond to target if about something
+      - step: switch
+        cases:
+          - when: "$about"
+            then:
+              - step: bind
+                from_id: "$note_id"
+                to_id: "$about"
+                desmos: "about"
+
+      - step: return
+        value:
+          note_id: "$note_id"
+          content: "$content"
+          kind: "$note_kind"
+
+- eidos: praxis
+  id: praxis/oikos/list-notes
+  data:
+    oikos: oikos
+    name: list-notes
+    visible: true
+    description: |
+      List notes, optionally filtered.
+    params:
+      - name: about
+        type: string
+        required: false
+        description: Filter to notes about this entity
+      - name: kind
+        type: string
+        required: false
+        description: Filter by note kind
+    steps:
+      # If about is specified, trace from that entity
+      - step: switch
+        cases:
+          - when: "$about"
+            then:
+              - step: trace
+                to_id: "$about"
+                desmos: "about"
+                resolve: "from"
+                bind_to: notes
+        default:
+          - step: gather
+            eidos: note
+            bind_to: notes
+
+      # Filter by kind if specified
+      - step: switch
+        cases:
+          - when: "$kind"
+            then:
+              - step: filter
+                items: "$notes"
+                condition: "$item.data.kind == '$kind'"
+                bind_to: notes
+
+      - step: return
+        value:
+          notes: "$notes"
+
+# =============================================================================
+# INSIGHT SURFACING
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/oikos/surface-insight
+  data:
+    oikos: oikos
+    name: surface-insight
+    visible: true
+    description: |
+      Surface an insight from notes or observations.
+
+      Insights are emerging understanding, not yet crystallized into theoria.
+    params:
+      - name: content
+        type: string
+        required: true
+        description: The insight content
+      - name: domain
+        type: string
+        required: true
+        description: Domain this insight belongs to
+      - name: confidence
+        type: number
+        required: false
+        description: Confidence level 0.0 to 1.0
+      - name: from_notes
+        type: array
+        required: false
+        description: Note IDs that contributed to this insight
+    steps:
+      # Generate insight ID
+      - step: set
+        bindings:
+          insight_id: "insight/{{ now() }}"
+          surfaced_at: "now()"
+
+      # Create the insight (CE4: compose instead of arise)
+      - step: compose
+        typos_id: "typos-def-insight"
+        inputs:
+          id: "$insight_id"
+          content: "$content"
+          domain: "$domain"
+          confidence: "$confidence"
+          surfaced_at: "$surfaced_at"
+        bind_to: insight_entity
+
+      # Bond to circle if available
+      - step: switch
+        cases:
+          - when: "$_circle"
+            then:
+              - step: bind
+                from_id: "$insight_id"
+                to_id: "$_circle.id"
+                desmos: "surfaced-in"
+
+      # Bond to contributing notes if provided
+      - step: switch
+        cases:
+          - when: "$from_notes"
+            then:
+              - step: for_each
+                items: "$from_notes"
+                item_var: note_id
+                steps:
+                  - step: bind
+                    from_id: "$note_id"
+                    to_id: "$insight_id"
+                    desmos: "surfaces"
+
+      - step: return
+        value:
+          insight_id: "$insight_id"
+          content: "$content"
+          domain: "$domain"
+
+- eidos: praxis
+  id: praxis/oikos/crystallize-insight
+  data:
+    oikos: oikos
+    name: crystallize-insight
+    visible: true
+    description: |
+      Crystallize an insight into theoria.
+
+      Uses nous/crystallize-theoria to create the theoria,
+      then bonds the insight to it.
+    params:
+      - name: insight_id
+        type: string
+        required: true
+        description: The insight to crystallize
+    steps:
+      - step: find
+        id: "$insight_id"
+        bind_to: insight
+
+      - step: assert
+        condition: "$insight"
+        message: "Insight not found: $insight_id"
+
+      # Generate theoria ID
+      - step: set
+        bindings:
+          theoria_id: "theoria/{{ now() }}"
+
+      # Call nous crystallize-theoria
+      - step: call
+        praxis: "nous/crystallize-theoria"
+        params:
+          theoria_id: "$theoria_id"
+          insight: "$insight.data.content"
+          domain: "$insight.data.domain"
+          source: "insight"
+        bind_to: theoria_result
+
+      # Bond insight to theoria
+      - step: bind
+        from_id: "$insight_id"
+        to_id: "$theoria_result.theoria_id"
+        desmos: "crystallizes"
+
+      - step: return
+        value:
+          theoria_id: "$theoria_result.theoria_id"
+          from_insight: "$insight_id"
+          status: "provisional"

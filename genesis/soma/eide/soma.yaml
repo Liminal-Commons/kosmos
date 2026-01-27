@@ -1,0 +1,87 @@
+# Soma Eide
+# Embodiment eide — the body through which animus perceives and acts
+#
+# Extracted from spora.yaml stage-2-presence
+# Note: animus stays in spora.yaml as foundational (needed by founder stage)
+
+eide:
+  # channel — perception/action interface
+  - id: eidos/channel
+    data:
+      name: channel
+      description: "Interface for perception or action"
+      fields:
+        name:
+          type: string
+          required: true
+        kind:
+          type: enum
+          values: [perception, action, bidirectional]
+          required: true
+        modality:
+          type: string
+          required: true
+        status:
+          type: enum
+          values: [open, closed, suspended]
+          required: true
+        opened_at:
+          type: timestamp
+          required: true
+
+  # percept — something perceived
+  - id: eidos/percept
+    data:
+      name: percept
+      description: "A unit of sensory input through a channel"
+      fields:
+        modality:
+          type: string
+          required: true
+        content:
+          type: any
+          required: true
+        perceived_at:
+          type: timestamp
+          required: true
+        metadata:
+          type: object
+          required: false
+
+  # body-signal — something emitted through a channel
+  - id: eidos/body-signal
+    data:
+      name: body-signal
+      description: "A unit of output through a channel (renamed from signal to avoid collision with stoicheion/signal)"
+      fields:
+        modality:
+          type: string
+          required: true
+        content:
+          type: any
+          required: true
+        emitted_at:
+          type: timestamp
+          required: true
+        metadata:
+          type: object
+          required: false
+
+  # body-schema — self-awareness
+  - id: eidos/body-schema
+    data:
+      name: body-schema
+      description: "The animus's sense of its own shape and capacity"
+      fields:
+        channels:
+          type: array
+          required: true
+        capabilities:
+          type: array
+          required: true
+        limits:
+          type: object
+          required: false
+        updated_at:
+          type: timestamp
+          required: true

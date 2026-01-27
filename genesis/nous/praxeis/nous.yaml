@@ -1,0 +1,1440 @@
+# nous.yaml
+# Nous praxeis exposed as MCP tools
+#
+# Nous is understanding operations — surfacing, gathering, finding, indexing,
+# traversal, theoria, inquiry, synthesis, journeys.
+# These praxeis enable discovery and crystallization of understanding.
+#
+# NOTE: Timestamps are handled by the DB layer automatically.
+
+entities:
+
+# =============================================================================
+# SURFACING (Semantic Search)
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/nous/surface-journeys
+  data:
+    oikos: nous
+    name: surface-journeys
+    visible: true
+    description: |
+      Surface journeys relevant to a query.
+
+      Uses semantic search to find journeys by meaning.
+    params:
+      - name: query
+        type: string
+        required: true
+        description: What we're looking for
+      - name: limit
+        type: number
+        required: false
+        description: How many journeys to surface
+      - name: status
+        type: string
+        required: false
+        description: Optional filter by status
+    steps:
+      - step: surface
+        query: "$query"
+        eidos_filter: "journey"
+        limit: "$limit"
+        threshold: 0.7
+        bind_to: results
+      - step: return
+        value: "$results"
+
+- eidos: praxis
+  id: praxis/nous/surface
+  data:
+    oikos: nous
+    name: surface
+    visible: true
+    description: |
+      Surface entities by semantic proximity to a query.
+
+      Uses embeddings to find entities whose meaning is close to the query.
+    params:
+      - name: query
+        type: string
+        required: true
+        description: The semantic query
+      - name: eidos
+        type: string
+        required: false
+        description: Optional filter by eidos type
+      - name: limit
+        type: number
+        required: false
+        description: Maximum results (default 10)
+      - name: threshold
+        type: number
+        required: false
+        description: Minimum similarity threshold (default 0.7)
+    steps:
+      - step: surface
+        query: "$query"
+        eidos_filter: "$eidos"
+        limit: "$limit"
+        threshold: "$threshold"
+        bind_to: results
+      - step: return
+        value: "$results"
+
+# =============================================================================
+# GATHERING AND FINDING
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/nous/gather
+  data:
+    oikos: nous
+    name: gather
+    visible: true
+    description: |
+      Gather entities by eidos.
+
+      Returns all entities of a given type, optionally limited.
+    params:
+      - name: eidos
+        type: string
+        required: false
+        description: Filter by eidos type
+      - name: limit
+        type: number
+        required: false
+        description: Maximum results (default 100)
+    steps:
+      - step: gather
+        eidos: "$eidos"
+        limit: "$limit"
+        bind_to: entities
+      - step: return
+        value: "$entities"
+
+- eidos: praxis
+  id: praxis/nous/find
+  data:
+    oikos: nous
+    name: find
+    visible: true
+    description: |
+      Find an entity by its ID.
+
+      Returns the entity if found, null otherwise.
+    params:
+      - name: id
+        type: string
+        required: true
+        description: The entity ID to find
+    steps:
+      - step: find
+        id: "$id"
+        bind_to: entity
+      - step: return
+        value: "$entity"
+
+# =============================================================================
+# INDEXING
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/nous/index
+  data:
+    oikos: nous
+    name: index
+    visible: true
+    description: |
+      Index an entity for semantic search.
+
+      Generates an embedding for the given text and stores it with the entity.
+    params:
+      - name: entity_id
+        type: string
+        required: true
+        description: The entity to index
+      - name: text
+        type: string
+        required: true
+        description: Text to generate embedding from
+    steps:
+      - step: index
+        entity_id: "$entity_id"
+        text: "$text"
+        bind_to: result
+      - step: return
+        value: "$result"
+
+- eidos: praxis
+  id: praxis/nous/index-functions
+  data:
+    oikos: nous
+    name: index-functions
+    visible: true
+    description: |
+      Index all function entities for semantic search.
+
+      Gathers all eidos/function entities and indexes each one with
+      text combining category, name, and description.
+      Makes functions discoverable via surface("hash functions").
+    params: []
+    steps:
+      - step: gather
+        eidos: function
+        bind_to: functions
+      - step: set
+        bindings:
+          indexed_count: 0
+      - step: for_each
+        items: "$functions"
+        as: func
+        do:
+          - step: set
+            bindings:
+              index_text: "{{ $func.data.category }} function: {{ $func.data.name }} - {{ $func.data.description }}"
+          - step: index
+            entity_id: "$func.id"
+            text: "$index_text"
+          - step: set
+            bindings:
+              indexed_count: "{{ $indexed_count + 1 }}"
+      - step: return
+        value:
+          indexed: "$indexed_count"
+          message: "Indexed all function entities for semantic search"
+
+# =============================================================================
+# TRAVERSAL
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/nous/traverse
+  data:
+    oikos: nous
+    name: traverse
+    visible: true
+    description: |
+      Traverse the graph from a root entity, following specified bond types.
+
+      Performs breadth-first search up to a specified depth.
+      Returns all entities reachable through the specified desmoi.
+
+      Use this for:
+      - Dependency trees for validation reports
+      - Provenance chains (composed-from, authorized-by)
+      - Circle membership graphs
+      - Knowledge network navigation
+    params:
+      - name: root_id
+        type: string
+        required: true
+        description: Starting entity ID
+      - name: desmoi
+        type: array
+        required: true
+        description: Bond types to follow (e.g., ["depends-on", "composed-from"])
+      - name: depth
+        type: number
+        required: false
+        description: Maximum traversal depth (default 10)
+      - name: direction
+        type: string
+        required: false
+        description: Direction to traverse bonds (outward, inward, both). Default outward.
+      - name: eidos
+        type: string
+        required: false
+        description: Only return entities of this eidos
+    steps:
+      - step: traverse
+        root_id: "$root_id"
+        desmoi: "$desmoi"
+        depth: "$depth"
+        direction: "$direction"
+        eidos: "$eidos"
+        bind_to: entities
+      - step: return
+        value: "$entities"
+
+# =============================================================================
+# THEORIA OPERATIONS
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/nous/crystallize-theoria
+  data:
+    oikos: nous
+    name: crystallize-theoria
+    visible: true
+    description: |
+      Crystallize an understanding into theoria.
+
+      Creates a theoria entity with the insight, domain, and status.
+      Bonds theoria to dwelling circle via crystallized-in.
+      Indexes theoria for semantic surfacing (makes it discoverable).
+    params:
+      - name: theoria_id
+        type: string
+        required: true
+        description: ID for the new theoria (e.g., theoria/uuid)
+      - name: insight
+        type: string
+        required: true
+        description: The understanding being crystallized
+      - name: domain
+        type: string
+        required: true
+        description: Domain this understanding belongs to
+      - name: source
+        type: string
+        required: false
+        description: Where this understanding came from (default conversation)
+      - name: evidence
+        type: array
+        required: false
+        description: Entity IDs that evidence this theoria
+    steps:
+      # Default source to conversation
+      - step: set
+        bindings:
+          theoria_source: "$source"
+
+      - step: switch
+        cases:
+          - when: "$theoria_source"
+            then: []
+        default:
+          - step: set
+            bindings:
+              theoria_source: "conversation"
+
+      # Create the theoria (CE4: compose instead of arise)
+      - step: compose
+        typos_id: "typos-def-theoria"
+        inputs:
+          id: "$theoria_id"
+          insight: "$insight"
+          domain: "$domain"
+          source: "$theoria_source"
+          status: "provisional"
+        bind_to: theoria_entity
+
+      # Bond to dwelling circle if available
+      - step: switch
+        cases:
+          - when: "$_circle"
+            then:
+              - step: bind
+                from_id: "$theoria_id"
+                to_id: "$_circle"
+                desmos: "crystallized-in"
+
+      # Create evidence bonds if provided
+      - step: switch
+        cases:
+          - when: "$evidence"
+            then:
+              - step: for_each
+                items: "$evidence"
+                item_var: evidence_id
+                steps:
+                  - step: bind
+                    from_id: "$evidence_id"
+                    to_id: "$theoria_id"
+                    desmos: "evidences"
+
+      # Index for semantic surfacing (V4.4)
+      # Makes theoria discoverable via surface queries
+      - step: index
+        entity_id: "$theoria_id"
+        text: "$domain: $insight"
+
+      - step: return
+        value:
+          theoria_id: "$theoria_id"
+          insight: "$insight"
+          domain: "$domain"
+          status: "provisional"
+          indexed: true
+
+- eidos: praxis
+  id: praxis/nous/confirm-theoria
+  data:
+    oikos: nous
+    name: confirm-theoria
+    visible: true
+    description: |
+      Confirm a provisional theoria as crystallized.
+    params:
+      - name: theoria_id
+        type: string
+        required: true
+        description: The theoria to confirm
+    steps:
+      - step: find
+        id: "$theoria_id"
+        bind_to: theoria
+
+      - step: assert
+        condition: "$theoria"
+        message: "Theoria not found: $theoria_id"
+
+      - step: assert
+        condition: '$theoria.data.status == "provisional"'
+        message: "Theoria is not provisional"
+
+      - step: update
+        id: "$theoria_id"
+        data:
+          status: "crystallized"
+
+      - step: return
+        value:
+          confirmed: true
+          theoria_id: "$theoria_id"
+
+- eidos: praxis
+  id: praxis/nous/supersede-theoria
+  data:
+    oikos: nous
+    name: supersede-theoria
+    visible: true
+    description: |
+      Supersede a theoria with a new understanding.
+
+      Creates new theoria, bonds it as superseding the old,
+      and marks the old as superseded.
+    params:
+      - name: old_theoria_id
+        type: string
+        required: true
+        description: The theoria to supersede
+      - name: new_theoria_id
+        type: string
+        required: true
+        description: ID for the new theoria
+      - name: new_insight
+        type: string
+        required: true
+        description: The new understanding
+      - name: domain
+        type: string
+        required: false
+        description: Domain (defaults to old theoria's domain)
+    steps:
+      - step: find
+        id: "$old_theoria_id"
+        bind_to: old_theoria
+
+      - step: assert
+        condition: "$old_theoria"
+        message: "Theoria not found: $old_theoria_id"
+
+      # Use old domain if not specified
+      - step: set
+        bindings:
+          use_domain: "$domain"
+
+      - step: switch
+        cases:
+          - when: "$use_domain"
+            then: []
+        default:
+          - step: set
+            bindings:
+              use_domain: "$old_theoria.data.domain"
+
+      # Create new theoria (CE4: compose instead of arise)
+      - step: compose
+        typos_id: "typos-def-theoria"
+        inputs:
+          id: "$new_theoria_id"
+          insight: "$new_insight"
+          domain: "$use_domain"
+          source: "reasoning"
+          status: "provisional"
+        bind_to: new_theoria_entity
+
+      # Create supersedes bond
+      - step: bind
+        from_id: "$new_theoria_id"
+        to_id: "$old_theoria_id"
+        desmos: "supersedes"
+
+      # Mark old as superseded
+      - step: update
+        id: "$old_theoria_id"
+        data:
+          status: "superseded"
+
+      - step: return
+        value:
+          new_theoria_id: "$new_theoria_id"
+          superseded_id: "$old_theoria_id"
+
+- eidos: praxis
+  id: praxis/nous/list-theoria
+  data:
+    oikos: nous
+    name: list-theoria
+    visible: true
+    description: |
+      List theoria, optionally filtered by domain or status.
+    params:
+      - name: domain
+        type: string
+        required: false
+        description: Filter by domain
+      - name: status
+        type: string
+        required: false
+        description: Filter by status (provisional, crystallized, superseded)
+    steps:
+      - step: gather
+        eidos: theoria
+        bind_to: all_theoria
+
+      # Filter by domain if specified
+      - step: switch
+        cases:
+          - when: "$domain"
+            then:
+              - step: filter
+                items: "$all_theoria"
+                condition: "$item.data.domain == '$domain'"
+                bind_to: all_theoria
+
+      # Filter by status if specified
+      - step: switch
+        cases:
+          - when: "$status"
+            then:
+              - step: filter
+                items: "$all_theoria"
+                condition: "$item.data.status == '$status'"
+                bind_to: all_theoria
+
+      - step: return
+        value:
+          theoria: "$all_theoria"
+
+# =============================================================================
+# INQUIRY OPERATIONS
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/nous/open-inquiry
+  data:
+    oikos: nous
+    name: open-inquiry
+    visible: true
+    description: |
+      Open a new inquiry (question).
+
+      Creates an inquiry entity and bonds to persona if available.
+    params:
+      - name: inquiry_id
+        type: string
+        required: true
+        description: ID for the new inquiry
+      - name: question
+        type: string
+        required: true
+        description: The question being asked
+      - name: domain
+        type: string
+        required: true
+        description: Domain this inquiry belongs to
+    steps:
+      # Create the inquiry (CE4: compose instead of arise)
+      - step: compose
+        typos_id: "typos-def-inquiry"
+        inputs:
+          id: "$inquiry_id"
+          question: "$question"
+          domain: "$domain"
+          status: "open"
+        bind_to: inquiry_entity
+
+      # Bond to persona if available
+      - step: switch
+        cases:
+          - when: "$_persona"
+            then:
+              - step: bind
+                from_id: "$_persona"
+                to_id: "$inquiry_id"
+                desmos: "inquires"
+
+      - step: return
+        value:
+          inquiry_id: "$inquiry_id"
+          question: "$question"
+          status: "open"
+
+- eidos: praxis
+  id: praxis/nous/answer-inquiry
+  data:
+    oikos: nous
+    name: answer-inquiry
+    visible: true
+    description: |
+      Answer an inquiry with theoria.
+
+      Creates an answers bond and marks the inquiry as answered.
+    params:
+      - name: inquiry_id
+        type: string
+        required: true
+        description: The inquiry to answer
+      - name: theoria_id
+        type: string
+        required: true
+        description: The theoria that answers it
+    steps:
+      - step: find
+        id: "$inquiry_id"
+        bind_to: inquiry
+
+      - step: assert
+        condition: "$inquiry"
+        message: "Inquiry not found: $inquiry_id"
+
+      - step: find
+        id: "$theoria_id"
+        bind_to: theoria
+
+      - step: assert
+        condition: "$theoria"
+        message: "Theoria not found: $theoria_id"
+
+      # Create answers bond
+      - step: bind
+        from_id: "$theoria_id"
+        to_id: "$inquiry_id"
+        desmos: "answers"
+
+      # Update inquiry status
+      - step: update
+        id: "$inquiry_id"
+        data:
+          status: "answered"
+
+      - step: return
+        value:
+          answered: true
+          inquiry_id: "$inquiry_id"
+          theoria_id: "$theoria_id"
+
+# =============================================================================
+# SYNTHESIS OPERATIONS
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/nous/synthesize
+  data:
+    oikos: nous
+    name: synthesize
+    visible: true
+    description: |
+      Synthesize multiple theoria into higher understanding.
+
+      Requires at least 2 source theoria.
+    params:
+      - name: synthesis_id
+        type: string
+        required: true
+        description: ID for the new synthesis
+      - name: insight
+        type: string
+        required: true
+        description: The synthesized understanding
+      - name: sources
+        type: array
+        required: true
+        description: Theoria IDs to synthesize (at least 2)
+      - name: domain
+        type: string
+        required: true
+        description: Domain for the synthesis
+    steps:
+      # Create the synthesis (CE4: compose instead of arise)
+      - step: compose
+        typos_id: "typos-def-synthesis"
+        inputs:
+          id: "$synthesis_id"
+          insight: "$insight"
+          sources: "$sources"
+          domain: "$domain"
+        bind_to: synthesis_entity
+
+      # Create synthesizes bonds to each source
+      - step: for_each
+        items: "$sources"
+        item_var: source_id
+        steps:
+          - step: bind
+            from_id: "$synthesis_id"
+            to_id: "$source_id"
+            desmos: "synthesizes"
+
+      - step: return
+        value:
+          synthesis_id: "$synthesis_id"
+          insight: "$insight"
+          sources: "$sources"
+
+# =============================================================================
+# KNOWLEDGE NAVIGATION
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/nous/find-related
+  data:
+    oikos: nous
+    name: find-related
+    visible: true
+    description: |
+      Find theoria related to a given theoria.
+
+      Returns supporting, contradicting, superseding, and superseded theoria.
+    params:
+      - name: theoria_id
+        type: string
+        required: true
+        description: The theoria to find relations for
+    steps:
+      - step: find
+        id: "$theoria_id"
+        bind_to: theoria
+
+      - step: assert
+        condition: "$theoria"
+        message: "Theoria not found: $theoria_id"
+
+      # Find supporting (theoria that support this one)
+      - step: trace
+        to_id: "$theoria_id"
+        desmos: "supports"
+        resolve: "from"
+        bind_to: supporting
+
+      # Find contradicting
+      - step: trace
+        to_id: "$theoria_id"
+        desmos: "contradicts"
+        resolve: "from"
+        bind_to: contradicting
+
+      # Find superseding (theoria that supersede this one)
+      - step: trace
+        to_id: "$theoria_id"
+        desmos: "supersedes"
+        resolve: "from"
+        bind_to: superseding
+
+      # Find superseded by this
+      - step: trace
+        from_id: "$theoria_id"
+        desmos: "supersedes"
+        resolve: "to"
+        bind_to: superseded
+
+      - step: return
+        value:
+          theoria_id: "$theoria_id"
+          supporting: "$supporting"
+          contradicting: "$contradicting"
+          superseding: "$superseding"
+          superseded: "$superseded"
+
+# =============================================================================
+# JOURNEY OPERATIONS (HODOS)
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/nous/begin-journey
+  data:
+    oikos: nous
+    name: begin-journey
+    visible: true
+    description: |
+      Begin a new journey toward a desire.
+
+      Creates a journey entity with status potential.
+    params:
+      - name: journey_id
+        type: string
+        required: true
+        description: ID for the new journey
+      - name: desire
+        type: string
+        required: true
+        description: What we're moving toward (the telos)
+    steps:
+      # Create the journey (CE4: compose instead of arise)
+      - step: compose
+        typos_id: "typos-def-journey"
+        inputs:
+          id: "$journey_id"
+          desire: "$desire"
+          status: "potential"
+          current_waypoint: 0
+        bind_to: journey_entity
+
+      - step: return
+        value:
+          journey_id: "$journey_id"
+          desire: "$desire"
+          status: "potential"
+
+- eidos: praxis
+  id: praxis/nous/embark-journey
+  data:
+    oikos: nous
+    name: embark-journey
+    visible: true
+    description: |
+      Embark on a journey (transition from potential to active).
+    params:
+      - name: journey_id
+        type: string
+        required: true
+        description: The journey to embark on
+    steps:
+      - step: find
+        id: "$journey_id"
+        bind_to: journey
+
+      - step: assert
+        condition: "$journey"
+        message: "Journey not found: $journey_id"
+
+      - step: update
+        id: "$journey_id"
+        data:
+          status: "active"
+
+      - step: return
+        value:
+          embarked: true
+          journey_id: "$journey_id"
+
+- eidos: praxis
+  id: praxis/nous/add-waypoint
+  data:
+    oikos: nous
+    name: add-waypoint
+    visible: true
+    description: |
+      Add a waypoint to a journey.
+    params:
+      - name: journey_id
+        type: string
+        required: true
+        description: The journey to add waypoint to
+      - name: waypoint_id
+        type: string
+        required: true
+        description: ID for the new waypoint
+      - name: ordinal
+        type: number
+        required: true
+        description: Position in journey (0-indexed)
+      - name: description
+        type: string
+        required: true
+        description: What this waypoint represents
+    steps:
+      - step: find
+        id: "$journey_id"
+        bind_to: journey
+
+      - step: assert
+        condition: "$journey"
+        message: "Journey not found: $journey_id"
+
+      # Create the waypoint (CE4: compose instead of arise)
+      - step: compose
+        typos_id: "typos-def-waypoint"
+        inputs:
+          id: "$waypoint_id"
+          journey_id: "$journey_id"
+          ordinal: "$ordinal"
+          description: "$description"
+          status: "pending"
+        bind_to: waypoint_entity
+
+      # Bond waypoint to journey
+      - step: bind
+        from_id: "$journey_id"
+        to_id: "$waypoint_id"
+        desmos: "contains-waypoint"
+
+      - step: return
+        value:
+          waypoint_id: "$waypoint_id"
+          journey_id: "$journey_id"
+          ordinal: "$ordinal"
+          status: "pending"
+
+- eidos: praxis
+  id: praxis/nous/reach-waypoint
+  data:
+    oikos: nous
+    name: reach-waypoint
+    visible: true
+    description: |
+      Mark a waypoint as reached.
+    params:
+      - name: waypoint_id
+        type: string
+        required: true
+        description: The waypoint that was reached
+      - name: artifact_id
+        type: string
+        required: false
+        description: Optional artifact this waypoint yields
+    steps:
+      - step: find
+        id: "$waypoint_id"
+        bind_to: waypoint
+
+      - step: assert
+        condition: "$waypoint"
+        message: "Waypoint not found: $waypoint_id"
+
+      # Update waypoint status
+      - step: update
+        id: "$waypoint_id"
+        data:
+          status: "reached"
+          artifact_id: "$artifact_id"
+
+      # Create waypoint-yields bond if artifact provided
+      - step: switch
+        cases:
+          - when: "$artifact_id"
+            then:
+              - step: bind
+                from_id: "$waypoint_id"
+                to_id: "$artifact_id"
+                desmos: "waypoint-yields"
+
+      # Update journey's current_waypoint
+      - step: find
+        id: "$waypoint.data.journey_id"
+        bind_to: journey
+
+      - step: switch
+        cases:
+          - when: "$journey"
+            then:
+              - step: set
+                bindings:
+                  next_ordinal: "$waypoint.data.ordinal"
+              # Note: In a full implementation, we'd increment by 1
+              # For now, we just set to the reached waypoint's ordinal + 1
+              - step: update
+                id: "$waypoint.data.journey_id"
+                data:
+                  current_waypoint: "$next_ordinal"
+
+      - step: return
+        value:
+          reached: true
+          waypoint_id: "$waypoint_id"
+          artifact_id: "$artifact_id"
+
+- eidos: praxis
+  id: praxis/nous/complete-journey
+  data:
+    oikos: nous
+    name: complete-journey
+    visible: true
+    description: |
+      Complete a journey (arrive at telos).
+    params:
+      - name: journey_id
+        type: string
+        required: true
+        description: The journey to complete
+    steps:
+      - step: find
+        id: "$journey_id"
+        bind_to: journey
+
+      - step: assert
+        condition: "$journey"
+        message: "Journey not found: $journey_id"
+
+      - step: update
+        id: "$journey_id"
+        data:
+          status: "arrived"
+
+      - step: return
+        value:
+          completed: true
+          journey_id: "$journey_id"
+
+- eidos: praxis
+  id: praxis/nous/abandon-journey
+  data:
+    oikos: nous
+    name: abandon-journey
+    visible: true
+    description: |
+      Abandon a journey.
+    params:
+      - name: journey_id
+        type: string
+        required: true
+        description: The journey to abandon
+      - name: reason
+        type: string
+        required: false
+        description: Why abandoning
+    steps:
+      - step: find
+        id: "$journey_id"
+        bind_to: journey
+
+      - step: assert
+        condition: "$journey"
+        message: "Journey not found: $journey_id"
+
+      - step: update
+        id: "$journey_id"
+        data:
+          status: "abandoned"
+          abandon_reason: "$reason"
+
+      - step: return
+        value:
+          abandoned: true
+          journey_id: "$journey_id"
+          reason: "$reason"
+
+- eidos: praxis
+  id: praxis/nous/list-journeys
+  data:
+    oikos: nous
+    name: list-journeys
+    visible: true
+    description: |
+      List journeys, optionally filtered by status.
+    params:
+      - name: status
+        type: string
+        required: false
+        description: Filter by status (potential, active, paused, arrived, abandoned)
+    steps:
+      - step: gather
+        eidos: journey
+        bind_to: all_journeys
+
+      # Filter by status if specified
+      - step: switch
+        cases:
+          - when: "$status"
+            then:
+              - step: filter
+                items: "$all_journeys"
+                condition: "$item.data.status == '$status'"
+                bind_to: all_journeys
+
+      - step: return
+        value:
+          journeys: "$all_journeys"
+
+- eidos: praxis
+  id: praxis/nous/get-journey-waypoints
+  data:
+    oikos: nous
+    name: get-journey-waypoints
+    visible: true
+    description: |
+      Get all waypoints for a journey.
+    params:
+      - name: journey_id
+        type: string
+        required: true
+        description: The journey to get waypoints for
+    steps:
+      - step: find
+        id: "$journey_id"
+        bind_to: journey
+
+      - step: assert
+        condition: "$journey"
+        message: "Journey not found: $journey_id"
+
+      # Trace waypoints via contains-waypoint bond
+      - step: trace
+        from_id: "$journey_id"
+        desmos: "contains-waypoint"
+        resolve: "to"
+        bind_to: waypoints
+
+      - step: return
+        value:
+          journey_id: "$journey_id"
+          waypoints: "$waypoints"
+
+# =============================================================================
+# GENERIC PRAXIS INVOCATION
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/nous/call-praxis
+  data:
+    oikos: nous
+    name: call-praxis
+    visible: true
+    description: |
+      Invoke any praxis by ID.
+
+      Use this to call praxeis that aren't exposed as direct MCP tools.
+      Discover praxeis via find/surface, then invoke via this meta-praxis.
+
+      Example: call-praxis(praxis_id: "politeia/create-circle", params: {...})
+    params:
+      - name: praxis_id
+        type: string
+        required: true
+        description: The praxis to invoke (e.g., "politeia/create-circle" or full "praxis/politeia/create-circle")
+      - name: params
+        type: object
+        required: false
+        description: Parameters to pass to the praxis
+    steps:
+      # Normalize praxis_id (allow both "oikos/name" and "praxis/oikos/name")
+      - step: set
+        bindings:
+          normalized_id: "$praxis_id"
+
+      # Call the target praxis
+      - step: call
+        praxis: "$normalized_id"
+        params: "$params"
+        bind_to: result
+
+      - step: return
+        value: "$result"
+
+# =============================================================================
+# NOUS ACTIVATION (Composed Inference)
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/nous/gather-context
+  data:
+    oikos: nous
+    name: gather-context
+    visible: false
+    description: |
+      Gather context for an invocation according to a pattern specification.
+
+      Reads the pattern's context configuration and assembles:
+      - Theoria from specified domains
+      - Recent session context (if include_recent)
+      - Entities via bond traversals (if specified)
+    params:
+      - name: pattern_id
+        type: string
+        required: true
+        description: The invocation-pattern to gather context for
+    steps:
+      # Find the pattern
+      - step: find
+        id: "$pattern_id"
+        bind_to: pattern
+
+      - step: assert
+        condition: "$pattern"
+        message: "Invocation pattern not found: $pattern_id"
+
+      # Initialize context object
+      - step: set
+        bindings:
+          context:
+            theoria: []
+            recent: []
+            traversed: []
+
+      # Gather theoria by domains if specified
+      - step: switch
+        cases:
+          - when: "$pattern.data.context.theoria_domains"
+            then:
+              - step: gather
+                eidos: theoria
+                bind_to: all_theoria
+              - step: filter
+                items: "$all_theoria"
+                condition: "$pattern.data.context.theoria_domains contains $item.data.domain"
+                bind_to: filtered_theoria
+              - step: set
+                bindings:
+                  context:
+                    theoria: "$filtered_theoria"
+                    recent: "$context.recent"
+                    traversed: "$context.traversed"
+
+      # Include recent session context if specified
+      - step: switch
+        cases:
+          - when: "$pattern.data.context.include_recent"
+            then:
+              - step: gather
+                eidos: note
+                limit: 10
+                bind_to: recent_notes
+              - step: set
+                bindings:
+                  context:
+                    theoria: "$context.theoria"
+                    recent: "$recent_notes"
+                    traversed: "$context.traversed"
+
+      - step: return
+        value: "$context"
+
+- eidos: praxis
+  id: praxis/nous/invoke
+  data:
+    oikos: nous
+    name: invoke
+    visible: true
+    description: |
+      Activate chora-nous via composed invocation.
+
+      The core activation loop:
+      1. Gather context per pattern specification
+      2. Render system and user prompts from templates
+      3. Call infer stoicheion
+      4. Parse yield (response, expression_mode, actions, mutations)
+      5. Execute yielded actions
+      6. Apply yielded mutations
+      7. Create invocation record
+
+      Expression modes determine how yields should be received:
+      - suggestion: Soft, exploratory — take it or leave it
+      - invitation: Opening a door — can be declined
+      - inquiry: Seeking understanding — calls for reflection
+      - request: Asking for action — creates some obligation
+      - proposal: Formal offer — invites deliberation
+      - declaration: Stating what is — the default
+
+      Returns the yield and invocation ID.
+    params:
+      - name: pattern_id
+        type: string
+        required: true
+        description: The invocation-pattern to use
+      - name: utterance
+        type: string
+        required: true
+        description: The input to process (what triggered activation)
+      - name: expression_mode
+        type: string
+        required: false
+        description: How the yield should be received (suggestion, invitation, inquiry, request, proposal, declaration). Default declaration.
+      - name: additional_context
+        type: object
+        required: false
+        description: Additional context to include (e.g., goal, iteration)
+    steps:
+      # Find the pattern
+      - step: find
+        id: "$pattern_id"
+        bind_to: pattern
+
+      - step: assert
+        condition: "$pattern"
+        message: "Invocation pattern not found: $pattern_id"
+
+      # Gather context
+      - step: call
+        praxis: nous/gather-context
+        params:
+          pattern_id: "$pattern_id"
+        bind_to: context
+
+      # Merge additional context if provided
+      - step: switch
+        cases:
+          - when: "$additional_context"
+            then:
+              - step: set
+                bindings:
+                  context:
+                    theoria: "$context.theoria"
+                    recent: "$context.recent"
+                    traversed: "$context.traversed"
+                    additional: "$additional_context"
+
+      # Compose system prompt from template
+      - step: render
+        template: "$pattern.data.system_template"
+        context:
+          theoria: "$context.theoria"
+          recent: "$context.recent"
+          additional: "$context.additional"
+        bind_to: system_prompt
+
+      # Compose user prompt from template
+      - step: render
+        template: "$pattern.data.user_template"
+        context:
+          utterance: "$utterance"
+          theoria: "$context.theoria"
+          recent: "$context.recent"
+          additional: "$context.additional"
+        bind_to: user_prompt
+
+      # Call governed inference (CE4: via governed-inference instead of raw infer)
+      - step: call
+        praxis: manteia/governed-inference
+        params:
+          prompt: "$user_prompt"
+          system_prompt: "$system_prompt"
+          temperature: "$pattern.data.temperature"
+          max_tokens: "$pattern.data.max_tokens"
+        bind_to: response
+
+      # Default expression_mode to declaration if not provided
+      - step: set
+        bindings:
+          effective_expression_mode: "$expression_mode"
+
+      - step: switch
+        cases:
+          - when: "$effective_expression_mode"
+            then: []
+        default:
+          - step: set
+            bindings:
+              effective_expression_mode: "declaration"
+
+      # Parse yield - for now, treat entire response as text
+      # In future, can parse structured JSON yields
+      - step: set
+        bindings:
+          yield:
+            response: "$response"
+            expression_mode: "$effective_expression_mode"
+            actions: []
+            mutations: []
+
+      # Create invocation record (CE4: compose instead of arise)
+      - step: compose
+        typos_id: "typos-def-invocation"
+        inputs:
+          pattern_id: "$pattern_id"
+          context_snapshot: "$context"
+          composed_prompt:
+            system: "$system_prompt"
+            user: "$user_prompt"
+          yield: "$yield"
+          actions_executed: []
+          mutations_applied: []
+        bind_to: invocation
+
+      - step: return
+        value:
+          invocation_id: "$invocation.id"
+          yield: "$yield"
+
+- eidos: praxis
+  id: praxis/nous/navigate
+  data:
+    oikos: nous
+    name: navigate
+    visible: true
+    description: |
+      Multi-step reasoning via iterative invocation.
+
+      The kosmos holds the loop, not the LLM. Each iteration:
+      1. Gather current context
+      2. Invoke with goal and iteration info
+      3. Check if done (yield.done = true)
+      4. Continue or return
+
+      This enables navigation toward a goal with kosmos-level orchestration.
+    params:
+      - name: goal
+        type: string
+        required: true
+        description: What we're navigating toward
+      - name: pattern_id
+        type: string
+        required: true
+        description: The invocation-pattern to use for each step
+      - name: max_iterations
+        type: number
+        required: false
+        description: Maximum iterations before stopping (default 5)
+    steps:
+      # Initialize
+      - step: set
+        bindings:
+          iteration: 0
+          done: false
+          max_iter: "$max_iterations"
+          results: []
+
+      # Default max_iterations if not provided
+      - step: switch
+        cases:
+          - when: "$max_iter"
+            then: []
+        default:
+          - step: set
+            bindings:
+              max_iter: 5
+
+      # Navigation loop
+      - step: while
+        condition: "not $done and $iteration < $max_iter"
+        do:
+          # Invoke with goal context
+          - step: call
+            praxis: nous/invoke
+            params:
+              pattern_id: "$pattern_id"
+              utterance: "$goal"
+              additional_context:
+                goal: "$goal"
+                iteration: "$iteration"
+                previous_results: "$results"
+            bind_to: step_result
+
+          # Append result
+          - step: set
+            bindings:
+              results: "$results + [$step_result]"
+
+          # Check if done (look for done flag in yield)
+          - step: switch
+            cases:
+              - when: "$step_result.yield.done"
+                then:
+                  - step: set
+                    bindings:
+                      done: true
+            default:
+              - step: set
+                bindings:
+                  iteration: "$iteration + 1"
+
+      - step: return
+        value:
+          goal: "$goal"
+          iterations: "$iteration"
+          done: "$done"
+          final_yield: "$step_result.yield"
+          all_results: "$results"

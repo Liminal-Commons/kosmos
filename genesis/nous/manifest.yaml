@@ -1,0 +1,93 @@
+# Oikos Manifest: Nous
+# νοῦς — understanding operations, theoria, inquiry, synthesis, journeys.
+#
+# Nous is a cross-scale oikos for understanding operations that run through
+# all scales. Not a klimax scale but the operational layer for surfacing,
+# gathering, finding, traversal, and crystallization.
+#
+# Manifest v2.1 — oikos metadata for entity composition
+
+format_version: "2.1"
+oikos_id: nous
+version: "0.1.0"
+
+# Oikos metadata (v2.1)
+oikos_name: Nous
+oikos_description: |
+  Understanding operations — theoria, inquiry, synthesis, journeys.
+  The cross-scale operational layer for surfacing, gathering, finding,
+  traversal, and crystallization of knowledge.
+oikos_scale: cross-scale
+
+content_paths:
+  - path: eide/
+    content_types: [eidos]
+  - path: desmoi/
+    content_types: [desmos]
+  - path: praxeis/
+    content_types: [praxis]
+
+requires_dynamis:
+  - db.arise
+  - db.find
+  - db.bind
+  - db.trace
+  - db.update
+  - db.loose
+  - db.gather
+  - aisthesis.surface
+  - aisthesis.index
+
+provides:
+  eide:
+    # NOTE: theoria is foundational (defined in spora.yaml stage-1-archai)
+    # Nous provides praxeis that operate on theoria, but doesn't define it
+    - journey
+    - waypoint
+    - inquiry
+    - synthesis
+
+  desmoi:
+    - crystallized-in
+    - inquires
+    - synthesizes
+    - answers
+    - contains-waypoint
+    - contains-journey
+    - benefits-from
+    - enables
+    - provides-leverage-for
+    - waypoint-yields
+    - supersedes
+    - supports
+    - contradicts
+    - evidences
+    - journeys-toward
+
+  praxeis:
+    - nous/surface-journeys
+    - nous/surface
+    - nous/gather
+    - nous/find
+    - nous/index
+    - nous/index-functions
+    - nous/traverse
+    - nous/crystallize-theoria
+    - nous/confirm-theoria
+    - nous/supersede-theoria
+    - nous/list-theoria
+    - nous/open-inquiry
+    - nous/answer-inquiry
+    - nous/synthesize
+    - nous/find-related
+    - nous/begin-journey
+    - nous/embark-journey
+    - nous/add-waypoint
+    - nous/reach-waypoint
+    - nous/complete-journey
+    - nous/abandon-journey
+    - nous/list-journeys
+    - nous/get-journey-waypoints
+
+stoicheia_form:
+  # All stoicheia currently arche-level (Tier 2-3 operations)

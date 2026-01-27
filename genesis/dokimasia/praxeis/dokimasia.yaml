@@ -1,0 +1,1060 @@
+# dokimasia.yaml
+# Validation praxeis — examination before realization
+#
+# Dokimasia ensures only valid things arise:
+# - Provenance: authorization chain traces to genesis
+# - Schema: content matches target eidos definition
+# - Semantic: all references resolve
+# - Behavioral: dry-run passes (future)
+#
+# Constitutional requirement: Authenticity = Provenance
+
+entities:
+
+# =============================================================================
+# PROVENANCE VALIDATION — Chain to Genesis
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/dokimasia/validate-provenance
+  data:
+    oikos: dokimasia
+    name: validate-provenance
+    visible: true
+    tier: 2
+    description: |
+      Verify that an entity's authorization traces to genesis.
+
+      Walks the authorized_by chain until:
+      - It reaches expression/genesis-root (valid)
+      - It reaches an entity without authorized_by (invalid)
+      - It detects a cycle (invalid)
+      - Max depth exceeded (invalid, possible attack)
+
+      Returns:
+        valid: boolean
+        chain: array of entity IDs traced
+        terminus: where the chain ended
+        error: validation-error if failed
+    params:
+      - name: entity_id
+        type: string
+        required: true
+        description: Entity to validate provenance for
+      - name: max_depth
+        type: number
+        required: false
+        description: Maximum chain length (default 100)
+    steps:
+      - step: find
+        id: "$entity_id"
+        bind_to: start_entity
+
+      - step: assert
+        condition: "$start_entity"
+        message: "Entity not found: $entity_id"
+
+      # Initialize chain tracking
+      - step: set
+        bindings:
+          chain: []
+          current_id: "$entity_id"
+          max: 100
+          depth: 0
+          valid: false
+          error: null
+          terminus: null
+
+      # Override max if provided
+      - step: switch
+        cases:
+          - when: "$max_depth"
+            then:
+              - step: set
+                bindings:
+                  max: "$max_depth"
+
+      # Walk the chain iteratively using for_each with early exit
+      # We'll use a recursive-style approach with call
+      - step: call
+        praxis: praxis/dokimasia/_walk-chain
+        params:
+          current_id: "$current_id"
+          chain: "$chain"
+          depth: 0
+          max_depth: "$max"
+          visited: []
+        bind_to: result
+
+      - step: return
+        value: "$result"
+
+# Internal: recursive chain walker
+- eidos: praxis
+  id: praxis/dokimasia/_walk-chain
+  data:
+    oikos: dokimasia
+    name: _walk-chain
+    visible: false
+    tier: 2
+    description: "Internal: recursively walk the authorization chain"
+    params:
+      - name: current_id
+        type: string
+        required: true
+      - name: chain
+        type: array
+        required: true
+      - name: depth
+        type: number
+        required: true
+      - name: max_depth
+        type: number
+        required: true
+      - name: visited
+        type: array
+        required: true
+    steps:
+      # Check for genesis root
+      - step: switch
+        cases:
+          - when: '$current_id == "expression/genesis-root"'
+            then:
+              - step: return
+                value:
+                  valid: true
+                  chain: "$chain"
+                  terminus: "expression/genesis-root"
+
+      # Check depth limit
+      - step: switch
+        cases:
+          - when: "$depth >= $max_depth"
+            then:
+              - step: return
+                value:
+                  valid: false
+                  chain: "$chain"
+                  terminus: "$current_id"
+                  error:
+                    layer: "provenance"
+                    code: "MAX_DEPTH_EXCEEDED"
+                    message: "Provenance chain exceeded max depth"
+                    context:
+                      max_depth: "$max_depth"
+                      at_entity: "$current_id"
+
+      # Check for cycle (entity already visited)
+      - step: set
+        bindings:
+          is_cycle: false
+
+      - step: for_each
+        items: "$visited"
+        item_var: visited_id
+        steps:
+          - step: switch
+            cases:
+              - when: "$visited_id == $current_id"
+                then:
+                  - step: set
+                    bindings:
+                      is_cycle: true
+
+      - step: switch
+        cases:
+          - when: "$is_cycle"
+            then:
+              - step: return
+                value:
+                  valid: false
+                  chain: "$chain"
+                  terminus: "$current_id"
+                  error:
+                    layer: "provenance"
+                    code: "CYCLE_DETECTED"
+                    message: "Provenance chain contains cycle"
+                    context:
+                      cycle_at: "$current_id"
+
+      # Find current entity
+      - step: find
+        id: "$current_id"
+        bind_to: current
+
+      - step: switch
+        cases:
+          - when: "not $current"
+            then:
+              - step: return
+                value:
+                  valid: false
+                  chain: "$chain"
+                  terminus: "$current_id"
+                  error:
+                    layer: "provenance"
+                    code: "ENTITY_NOT_FOUND"
+                    message: "Entity in chain not found"
+                    context:
+                      missing_id: "$current_id"
+
+      # Get authorized_by
+      - step: set
+        bindings:
+          next_id: "$current.data.authorized_by"
+
+      - step: switch
+        cases:
+          - when: "not $next_id"
+            then:
+              - step: return
+                value:
+                  valid: false
+                  chain: "$chain"
+                  terminus: "$current_id"
+                  error:
+                    layer: "provenance"
+                    code: "CHAIN_BROKEN"
+                    message: "Entity has no authorized_by"
+                    context:
+                      entity_id: "$current_id"
+
+      # Recurse with updated chain
+      - step: set
+        bindings:
+          new_chain: "$chain + [$current_id]"
+          new_visited: "$visited + [$current_id]"
+          new_depth: "$depth + 1"
+
+      - step: call
+        praxis: praxis/dokimasia/_walk-chain
+        params:
+          current_id: "$next_id"
+          chain: "$new_chain"
+          depth: "$new_depth"
+          max_depth: "$max_depth"
+          visited: "$new_visited"
+        bind_to: result
+
+      - step: return
+        value: "$result"
+
+# =============================================================================
+# SCHEMA VALIDATION — Content Matches Eidos
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/dokimasia/validate-schema
+  data:
+    oikos: dokimasia
+    name: validate-schema
+    visible: true
+    tier: 1
+    description: |
+      Verify content matches target eidos schema.
+
+      Checks:
+      - All required fields are present
+      - Field types match (string, number, boolean, array, object)
+      - Enum values are valid
+
+      Returns:
+        valid: boolean
+        errors: array of validation-error
+    params:
+      - name: eidos_id
+        type: string
+        required: true
+        description: Target eidos ID
+      - name: content
+        type: object
+        required: true
+        description: Content to validate
+    steps:
+      # Find the eidos definition
+      - step: find
+        id: "$eidos_id"
+        bind_to: eidos_def
+
+      - step: switch
+        cases:
+          - when: "not $eidos_def"
+            then:
+              - step: return
+                value:
+                  valid: false
+                  errors:
+                    - layer: "schema"
+                      code: "EIDOS_NOT_FOUND"
+                      message: "Target eidos not found"
+                      context:
+                        eidos_id: "$eidos_id"
+
+      # Get fields definition
+      - step: set
+        bindings:
+          fields: "$eidos_def.data.fields"
+          errors: []
+          valid: true
+
+      # If no fields defined, pass validation
+      - step: switch
+        cases:
+          - when: "not $fields"
+            then:
+              - step: return
+                value:
+                  valid: true
+                  errors: []
+
+      # Check each field in the definition
+      - step: for_each
+        items: "$fields | keys"
+        item_var: field_name
+        steps:
+          - step: set
+            bindings:
+              field_def: "$fields[$field_name]"
+              field_value: "$content[$field_name]"
+              field_exists: "$content[$field_name] != null"
+
+          # Check required fields
+          - step: switch
+            cases:
+              - when: "$field_def.required and not $field_exists"
+                then:
+                  - step: set
+                    bindings:
+                      valid: false
+                      errors: "$errors + [{layer: 'schema', code: 'MISSING_FIELD', message: 'Required field missing', path: '$.' + $field_name}]"
+
+          # Type checking (basic)
+          # Note: Full type checking would require more sophisticated logic
+
+      - step: return
+        value:
+          valid: "$valid"
+          errors: "$errors"
+
+# =============================================================================
+# SEMANTIC VALIDATION — References Resolve
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/dokimasia/validate-semantic
+  data:
+    oikos: dokimasia
+    name: validate-semantic
+    visible: true
+    tier: 1
+    description: |
+      Verify all entity/eidos/desmos references resolve.
+
+      Scans content for fields ending in _id or containing entity IDs
+      and verifies each referenced entity exists.
+
+      Returns:
+        valid: boolean
+        errors: array of validation-error
+    params:
+      - name: content
+        type: object
+        required: true
+        description: Content with references to validate
+    steps:
+      - step: set
+        bindings:
+          errors: []
+          valid: true
+
+      # Check common reference fields
+      # This is a simplified version - a full implementation would scan all fields
+
+      # Check eidos_id if present
+      - step: switch
+        cases:
+          - when: "$content.eidos_id"
+            then:
+              - step: find
+                id: "$content.eidos_id"
+                bind_to: eidos_ref
+              - step: switch
+                cases:
+                  - when: "not $eidos_ref"
+                    then:
+                      - step: set
+                        bindings:
+                          valid: false
+                          errors: "$errors + [{layer: 'semantic', code: 'UNRESOLVED_EIDOS', message: 'Referenced eidos not found', path: '$.eidos_id', context: {ref: $content.eidos_id}}]"
+
+      # Check target_eidos if present
+      - step: switch
+        cases:
+          - when: "$content.target_eidos"
+            then:
+              - step: find
+                id: "eidos/$content.target_eidos"
+                bind_to: target_ref
+              - step: switch
+                cases:
+                  - when: "not $target_ref"
+                    then:
+                      # Try without prefix
+                      - step: find
+                        id: "$content.target_eidos"
+                        bind_to: target_ref2
+                      - step: switch
+                        cases:
+                          - when: "not $target_ref2"
+                            then:
+                              - step: set
+                                bindings:
+                                  valid: false
+                                  errors: "$errors + [{layer: 'semantic', code: 'UNRESOLVED_EIDOS', message: 'Target eidos not found', path: '$.target_eidos', context: {ref: $content.target_eidos}}]"
+
+      # Check praxis_id if present
+      - step: switch
+        cases:
+          - when: "$content.praxis_id"
+            then:
+              - step: find
+                id: "$content.praxis_id"
+                bind_to: praxis_ref
+              - step: switch
+                cases:
+                  - when: "not $praxis_ref"
+                    then:
+                      - step: set
+                        bindings:
+                          valid: false
+                          errors: "$errors + [{layer: 'semantic', code: 'UNRESOLVED_PRAXIS', message: 'Referenced praxis not found', path: '$.praxis_id', context: {ref: $content.praxis_id}}]"
+
+      # Check circle_id if present
+      - step: switch
+        cases:
+          - when: "$content.circle_id"
+            then:
+              - step: find
+                id: "$content.circle_id"
+                bind_to: circle_ref
+              - step: switch
+                cases:
+                  - when: "not $circle_ref"
+                    then:
+                      - step: set
+                        bindings:
+                          valid: false
+                          errors: "$errors + [{layer: 'semantic', code: 'UNRESOLVED_ENTITY', message: 'Referenced circle not found', path: '$.circle_id', context: {ref: $content.circle_id}}]"
+
+      # Check persona_id if present
+      - step: switch
+        cases:
+          - when: "$content.persona_id"
+            then:
+              - step: find
+                id: "$content.persona_id"
+                bind_to: persona_ref
+              - step: switch
+                cases:
+                  - when: "not $persona_ref"
+                    then:
+                      - step: set
+                        bindings:
+                          valid: false
+                          errors: "$errors + [{layer: 'semantic', code: 'UNRESOLVED_ENTITY', message: 'Referenced persona not found', path: '$.persona_id', context: {ref: $content.persona_id}}]"
+
+      - step: return
+        value:
+          valid: "$valid"
+          errors: "$errors"
+
+# =============================================================================
+# COMBINED VALIDATION — Full Generation Validation
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/dokimasia/validate-generation
+  data:
+    oikos: dokimasia
+    name: validate-generation
+    visible: true
+    tier: 2
+    description: |
+      Validate a generation through all layers.
+
+      Runs:
+      1. Provenance validation (authorization chain to genesis)
+      2. Schema validation (content matches target eidos)
+      3. Semantic validation (references resolve)
+
+      Creates a validation-result entity recording the outcome.
+      Bonds the generation to its validation-result.
+
+      Returns the validation-result.
+    params:
+      - name: generation_id
+        type: string
+        required: true
+        description: Generation to validate
+      - name: include_behavioral
+        type: boolean
+        required: false
+        description: Include behavioral validation (default false)
+    steps:
+      - step: find
+        id: "$generation_id"
+        bind_to: generation
+
+      - step: assert
+        condition: "$generation"
+        message: "Generation not found: $generation_id"
+
+      # Initialize result tracking
+      - step: set
+        bindings:
+          all_errors: []
+          provenance_valid: false
+          schema_valid: false
+          semantic_valid: false
+          provenance_chain: []
+
+      # --- Provenance Validation ---
+      - step: call
+        praxis: praxis/dokimasia/validate-provenance
+        params:
+          entity_id: "$generation.data.authorized_by"
+        bind_to: prov_result
+
+      - step: set
+        bindings:
+          provenance_valid: "$prov_result.valid"
+          provenance_chain: "$prov_result.chain"
+
+      - step: switch
+        cases:
+          - when: "not $prov_result.valid"
+            then:
+              - step: set
+                bindings:
+                  all_errors: "$all_errors + [$prov_result.error]"
+
+      # --- Schema Validation (only if has target_eidos) ---
+      - step: switch
+        cases:
+          - when: "$generation.data.target_eidos"
+            then:
+              # Get the content to validate
+              - step: set
+                bindings:
+                  content_to_validate: "$generation.data.final_content"
+
+              - step: switch
+                cases:
+                  - when: "not $content_to_validate"
+                    then:
+                      - step: set
+                        bindings:
+                          content_to_validate: "$generation.data.response"
+
+              # Parse content if it's a string (JSON)
+              # Note: This assumes content is already an object or parseable
+
+              - step: call
+                praxis: praxis/dokimasia/validate-schema
+                params:
+                  eidos_id: "eidos/$generation.data.target_eidos"
+                  content: "$content_to_validate"
+                bind_to: schema_result
+
+              - step: set
+                bindings:
+                  schema_valid: "$schema_result.valid"
+
+              - step: switch
+                cases:
+                  - when: "not $schema_result.valid"
+                    then:
+                      - step: set
+                        bindings:
+                          all_errors: "$all_errors + $schema_result.errors"
+        default:
+          - step: set
+            bindings:
+              schema_valid: true
+
+      # --- Semantic Validation ---
+      - step: set
+        bindings:
+          semantic_content: "$generation.data.final_content"
+
+      - step: switch
+        cases:
+          - when: "not $semantic_content"
+            then:
+              - step: set
+                bindings:
+                  semantic_content: "$generation.data.response"
+
+      - step: call
+        praxis: praxis/dokimasia/validate-semantic
+        params:
+          content: "$semantic_content"
+        bind_to: sem_result
+
+      - step: set
+        bindings:
+          semantic_valid: "$sem_result.valid"
+
+      - step: switch
+        cases:
+          - when: "not $sem_result.valid"
+            then:
+              - step: set
+                bindings:
+                  all_errors: "$all_errors + $sem_result.errors"
+
+      # --- Compute overall pass ---
+      - step: set
+        bindings:
+          passed: "$provenance_valid and $schema_valid and $semantic_valid"
+          validation_id: "validation/$generation_id"
+
+      # --- Create validation-result entity (CE4: compose instead of arise) ---
+      - step: compose
+        typos_id: "typos-def-validation-result"
+        inputs:
+          id: "$validation_id"
+          generation_id: "$generation_id"
+          passed: "$passed"
+          provenance_valid: "$provenance_valid"
+          schema_valid: "$schema_valid"
+          semantic_valid: "$semantic_valid"
+          errors: "$all_errors"
+          provenance_chain: "$provenance_chain"
+          validated_at: "{{ now() }}"
+        bind_to: validation
+
+      # --- Bond generation to validation-result ---
+      - step: bind
+        from_id: "$generation_id"
+        to_id: "$validation_id"
+        desmos: validated-by
+
+      - step: return
+        value: "$validation"
+
+# =============================================================================
+# VALIDATION REPORT — Graph-Bubbling Aggregation
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/dokimasia/compose-validation-report
+  data:
+    oikos: dokimasia
+    name: compose-validation-report
+    visible: true
+    tier: 2
+    description: |
+      Compose a validation report that aggregates validation status
+      across a dependency subgraph.
+
+      Uses the traverse stoicheion to walk depends-on, authorized-by,
+      and composed-from bonds from the root entity. For each entity
+      in the subgraph, gathers validation results.
+
+      Returns an artifact containing:
+      - root: the starting entity
+      - traversed: count of entities examined
+      - summary: { passed, failed, pending }
+      - failures: array of validation errors with context
+      - provenance_chain: authorization chain to genesis
+    params:
+      - name: root_id
+        type: string
+        required: true
+        description: Entity to start validation traversal from
+      - name: depth
+        type: number
+        required: false
+        description: Maximum traversal depth (default 10)
+      - name: include_passed
+        type: boolean
+        required: false
+        description: Include passed validations in results
+    steps:
+      # Set defaults
+      - step: set
+        bindings:
+          max_depth: 10
+          show_passed: false
+
+      - step: switch
+        cases:
+          - when: "$depth"
+            then:
+              - step: set
+                bindings:
+                  max_depth: "$depth"
+
+      - step: switch
+        cases:
+          - when: "$include_passed"
+            then:
+              - step: set
+                bindings:
+                  show_passed: "$include_passed"
+
+      # Verify root exists
+      - step: find
+        id: "$root_id"
+        bind_to: root_entity
+
+      - step: assert
+        condition: "$root_entity"
+        message: "Root entity not found: $root_id"
+
+      # Traverse the dependency graph
+      - step: traverse
+        root_id: "$root_id"
+        desmoi:
+          - depends-on
+          - authorized-by
+          - composed-from
+        depth: "$max_depth"
+        direction: outward
+        bind_to: traversed_entities
+
+      # Count traversed
+      - step: set
+        bindings:
+          traversed_count: 0
+          passed_count: 0
+          failed_count: 0
+          pending_count: 0
+          failures: []
+          all_results: []
+
+      # For each traversed entity, gather validation results
+      - step: for_each
+        items: "$traversed_entities"
+        item_var: entity
+        steps:
+          - step: set
+            bindings:
+              traversed_count: "$traversed_count + 1"
+
+          # Check for validated-by bonds
+          - step: trace
+            from_id: "$entity.id"
+            desmos: validated-by
+            resolve: to
+            bind_to: validations
+
+          - step: for_each
+            items: "$validations"
+            item_var: validation
+            steps:
+              - step: switch
+                cases:
+                  - when: "$validation.data.passed"
+                    then:
+                      - step: set
+                        bindings:
+                          passed_count: "$passed_count + 1"
+                      - step: switch
+                        cases:
+                          - when: "$show_passed"
+                            then:
+                              - step: set
+                                bindings:
+                                  all_results: "$all_results + [{entity_id: $entity.id, validation_id: $validation.id, passed: true}]"
+                  - when: "not $validation.data.passed"
+                    then:
+                      - step: set
+                        bindings:
+                          failed_count: "$failed_count + 1"
+                          failures: "$failures + [{entity_id: $entity.id, validation_id: $validation.id, errors: $validation.data.errors}]"
+
+      # Get provenance chain for the root
+      - step: call
+        praxis: praxis/dokimasia/validate-provenance
+        params:
+          entity_id: "$root_id"
+        bind_to: provenance_result
+
+      # Build the report artifact
+      - step: set
+        bindings:
+          report_id: "validation-report/$root_id"
+          report_content:
+            root: "$root_id"
+            traversed: "$traversed_count"
+            summary:
+              passed: "$passed_count"
+              failed: "$failed_count"
+              pending: "$pending_count"
+            failures: "$failures"
+            provenance_chain: "$provenance_result.chain"
+            provenance_valid: "$provenance_result.valid"
+
+      # Compose the artifact
+      - step: compose
+        typos_id: "typos-def-validation-report"
+        id: "$report_id"
+        inputs:
+          root_id: "$root_id"
+          depth: "$max_depth"
+          include_passed: "$show_passed"
+        bind_to: report_artifact
+
+      # Update the artifact with the computed content
+      - step: update
+        id: "$report_id"
+        data:
+          content: "$report_content"
+          composed_at: "{{ now() }}"
+        bind_to: updated_artifact
+
+      # Bind the report to its dependencies for cache invalidation
+      - step: for_each
+        items: "$traversed_entities"
+        item_var: dep
+        steps:
+          - step: bind
+            from_id: "$report_id"
+            to_id: "$dep.id"
+            desmos: depends-on
+
+      - step: return
+        value: "$updated_artifact"
+
+# =============================================================================
+# PRAXIS LINTING — Constitutional Violation Detection (CE3)
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/dokimasia/lint-praxis
+  data:
+    oikos: dokimasia
+    name: lint-praxis
+    visible: true
+    tier: 1
+    description: |
+      Lint a praxis for constitutional violations.
+
+      Checks:
+      1. Direct `arise` usage — should use `compose` (via demiurge/compose)
+      2. Direct `infer` usage — should use `governed-inference`
+      3. Direct `digest` usage — should use `governed-inference` with digest wrapper
+      4. Unknown step names (delegated to bootstrap validation)
+      5. Missing required fields (delegated to bootstrap validation)
+
+      Constitutional principle: External agents must use compositional interfaces
+      (compose, governed-inference) rather than internal stoicheia (arise, infer).
+
+      Returns:
+        praxis_id: the praxis examined
+        violations: array of {type, step_index, step_name, message, guidance}
+        warnings: array of non-blocking issues
+        passed: boolean (true if no violations)
+    params:
+      - name: praxis_id
+        type: string
+        required: true
+        description: ID of praxis to lint
+    steps:
+      - step: find
+        id: "$praxis_id"
+        bind_to: praxis
+
+      - step: assert
+        condition: "$praxis"
+        message: "Praxis not found: $praxis_id"
+
+      - step: set
+        bindings:
+          violations: []
+          warnings: []
+          step_index: 0
+
+      # Walk through all steps looking for violations
+      - step: for_each
+        items: "$praxis.data.steps"
+        item_var: s
+        steps:
+          - step: set
+            bindings:
+              step_index: "$step_index + 1"
+              step_name: "$s.step"
+
+          # CE3.2: Flag direct arise usage
+          - step: switch
+            cases:
+              - when: '$step_name == "arise"'
+                then:
+                  - step: set
+                    bindings:
+                      violations: "$violations + [{type: 'CONSTITUTIONAL_VIOLATION', step_index: $step_index, step_name: 'arise', message: 'Direct arise usage bypasses composition', guidance: 'Use step: call with praxis: demiurge/compose and typos_id param instead'}]"
+
+          # CE3.3: Flag direct infer usage
+          - step: switch
+            cases:
+              - when: '$step_name == "infer"'
+                then:
+                  - step: set
+                    bindings:
+                      violations: "$violations + [{type: 'CONSTITUTIONAL_VIOLATION', step_index: $step_index, step_name: 'infer', message: 'Direct infer usage bypasses governed generation', guidance: 'Use step: call with praxis: manteia/governed-inference instead'}]"
+
+          # Flag direct digest usage (should go through governed-inference)
+          - step: switch
+            cases:
+              - when: '$step_name == "digest"'
+                then:
+                  - step: set
+                    bindings:
+                      warnings: "$warnings + [{type: 'RECOMMENDED_CHANGE', step_index: $step_index, step_name: 'digest', message: 'digest should use governed-inference for quality gates', guidance: 'Consider using manteia/governed-inference with evaluate: true for content that affects users'}]"
+
+      - step: set
+        bindings:
+          passed: "length($violations) == 0"
+
+      - step: return
+        value:
+          praxis_id: "$praxis_id"
+          violations: "$violations"
+          warnings: "$warnings"
+          passed: "$passed"
+          violation_count: "length($violations)"
+          warning_count: "length($warnings)"
+
+- eidos: praxis
+  id: praxis/dokimasia/lint-all-praxeis
+  data:
+    oikos: dokimasia
+    name: lint-all-praxeis
+    visible: true
+    tier: 2
+    description: |
+      Lint all praxeis in the kosmos for constitutional violations.
+
+      Useful for CE4 migration planning — identifies all praxeis that need
+      to be migrated from arise/infer to compose/governed-inference.
+
+      Returns:
+        total: number of praxeis examined
+        passed: number with no violations
+        failed: number with violations
+        violations_by_praxis: array of {praxis_id, violations}
+        summary: {arise_count, infer_count, digest_count}
+    params:
+      - name: include_internal
+        type: boolean
+        required: false
+        description: Include internal praxeis (name starts with _)
+    steps:
+      - step: gather
+        eidos: praxis
+        bind_to: all_praxeis
+
+      - step: set
+        bindings:
+          total: 0
+          passed: 0
+          failed: 0
+          violations_by_praxis: []
+          arise_count: 0
+          infer_count: 0
+          digest_count: 0
+          include_all: false
+
+      - step: switch
+        cases:
+          - when: "$include_internal"
+            then:
+              - step: set
+                bindings:
+                  include_all: true
+
+      - step: for_each
+        items: "$all_praxeis"
+        item_var: p
+        steps:
+          # Skip internal praxeis unless requested
+          - step: set
+            bindings:
+              is_internal: false
+
+          - step: switch
+            cases:
+              - when: '$p.data.name | startswith("_")'
+                then:
+                  - step: set
+                    bindings:
+                      is_internal: true
+
+          - step: switch
+            cases:
+              - when: "$is_internal and not $include_all"
+                then:
+                  # Skip this praxis
+                  - step: set
+                    bindings:
+                      skip: true
+            default:
+              - step: set
+                bindings:
+                  total: "$total + 1"
+
+              - step: call
+                praxis: praxis/dokimasia/lint-praxis
+                params:
+                  praxis_id: "$p.id"
+                bind_to: lint_result
+
+              - step: switch
+                cases:
+                  - when: "$lint_result.passed"
+                    then:
+                      - step: set
+                        bindings:
+                          passed: "$passed + 1"
+                  - when: "not $lint_result.passed"
+                    then:
+                      - step: set
+                        bindings:
+                          failed: "$failed + 1"
+                          violations_by_praxis: "$violations_by_praxis + [{praxis_id: $p.id, violations: $lint_result.violations, warnings: $lint_result.warnings}]"
+
+              # Count violation types
+              - step: for_each
+                items: "$lint_result.violations"
+                item_var: v
+                steps:
+                  - step: switch
+                    cases:
+                      - when: '$v.step_name == "arise"'
+                        then:
+                          - step: set
+                            bindings:
+                              arise_count: "$arise_count + 1"
+                      - when: '$v.step_name == "infer"'
+                        then:
+                          - step: set
+                            bindings:
+                              infer_count: "$infer_count + 1"
+                      - when: '$v.step_name == "digest"'
+                        then:
+                          - step: set
+                            bindings:
+                              digest_count: "$digest_count + 1"
+
+      - step: return
+        value:
+          total: "$total"
+          passed: "$passed"
+          failed: "$failed"
+          violations_by_praxis: "$violations_by_praxis"
+          summary:
+            arise_count: "$arise_count"
+            infer_count: "$infer_count"
+            digest_count: "$digest_count"

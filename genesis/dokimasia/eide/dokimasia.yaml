@@ -1,0 +1,74 @@
+# Dokimasia Eide
+# Validation eide — proving fitness before realization
+#
+# Extracted from spora.yaml stage-2-presence
+
+eide:
+  # validation-result — dokimasia validation outcome
+  - id: eidos/validation-result
+    data:
+      name: validation-result
+      description: "Result of validating a generation before realization."
+      fields:
+        generation_id:
+          type: string
+          required: true
+          description: "The generation that was validated"
+        passed:
+          type: boolean
+          required: true
+          description: "Whether all validation passed"
+        provenance_valid:
+          type: boolean
+          required: true
+          description: "Does authorization chain trace to genesis?"
+        schema_valid:
+          type: boolean
+          required: true
+          description: "Does content match target eidos schema?"
+        semantic_valid:
+          type: boolean
+          required: true
+          description: "Do all references resolve?"
+        behavioral_valid:
+          type: boolean
+          required: false
+          description: "Does dry-run pass? (only if requested)"
+        errors:
+          type: array
+          required: false
+          description: "List of validation errors (if any)"
+        provenance_chain:
+          type: array
+          required: false
+          description: "The traced authorization chain (for audit)"
+        validated_at:
+          type: timestamp
+          required: true
+
+  # validation-error — specific validation failure
+  - id: eidos/validation-error
+    data:
+      name: validation-error
+      description: "A specific validation failure."
+      fields:
+        layer:
+          type: string
+          required: true
+          description: "Which validation layer failed (provenance, schema, semantic, behavioral)"
+        code:
+          type: string
+          required: true
+          description: "Error code (e.g., CHAIN_BROKEN, MISSING_FIELD)"
+        message:
+          type: string
+          required: true
+          description: "Human-readable error message"
+        path:
+          type: string
+          required: false
+          description: "JSON path to the problem (e.g., $.data.target_eidos)"
+        context:
+          type: object
+          required: false
+          description: "Additional context about the failure"

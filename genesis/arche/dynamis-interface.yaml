@@ -1,0 +1,832 @@
+# Dynamis Interface Specification
+# V9.1 Deliverable — The contract between WASM and Rust
+#
+# This file defines every capability that the chora substrate provides
+# to WASM modules. WASM stoicheia call these as host imports.
+#
+# Traces to: host.rs (HostContext implementation)
+# Authorized by: expression/genesis-root
+
+version: "9.0.0"
+generated: "2026-01-22"
+
+# Interface module name for WASM imports
+# All capabilities are imported as: (import "dynamis" "capability_name" ...)
+module: dynamis
+
+# =============================================================================
+# PROVENANCE REQUIREMENTS
+# Constitutional constraint from KOSMOGONIA: "Authenticity = Provenance"
+# =============================================================================
+
+provenance:
+  description: |
+    Every entity must trace back to signed genesis through composition chains.
+    This is a constitutional requirement, not a convention.
+
+    The dynamis bridge enforces this by:
+    1. Requiring `composed_from` on all entity creation calls
+    2. Verifying the referenced definition exists
+    3. Including provenance in created entity metadata
+
+    There is no path to create entities without provenance.
+
+  required_for:
+    - db.arise    # Must specify composed_from
+
+  verification:
+    - "Definition exists: composed_from reference resolves"
+    - "Authorization: Caller module can use that definition"
+    - "Chain validity: Definition traces to genesis"
+
+  failure_modes:
+    missing_composed_from: "Entity creation rejected"
+    definition_not_found: "Entity creation rejected"
+    unauthorized_caller: "Entity creation rejected"
+    broken_chain: "Flagged in dokimasia validation"
+
+# =============================================================================
+# TIER 2: Database Operations (db.*)
+# Local substrate access — the graph itself
+# =============================================================================
+
+capabilities:
+
+  # ---------------------------------------------------------------------------
+  # Entity Operations
+  # ---------------------------------------------------------------------------
+
+  db.arise:
+    tier: 2
+    category: db
+    description: |
+      Create a new entity in the kosmos.
+      If entity with same ID exists, updates it and increments version.
+
+      PROVENANCE: The composed_from parameter is REQUIRED and enforced.
+      Every entity must trace to genesis through its composed_from chain.
+    rust_method: "HostContext::arise_entity"
+    rust_file: "crates/kosmos/src/host.rs:160"
+    params:
+      - name: eidos
+        type: string
+        description: "Entity type (e.g., 'persona', 'theoria')"
+      - name: id
+        type: string
+        description: "Unique entity identifier"
+      - name: data
+        type: json
+        description: "Entity data as JSON object"
+      - name: composed_from
+        type: string
+        required: true
+        description: |
+          Definition ID this entity is composed from.
+          REQUIRED — the bridge will reject calls without valid composed_from.
+          Must reference an existing definition that traces to genesis.
+    returns:
+      type: json
+      description: "Created entity with id, eidos, data, version, composed_from"
+    side_effects:
+      - "Writes to entities table"
+      - "Increments version if entity exists"
+      - "Validates composed_from reference exists and traces to genesis"
+    wasm_import:
+      name: db_arise
+      params:
+        - { name: eidos_ptr, type: i32, description: "Pointer to eidos string" }
+        - { name: eidos_len, type: i32, description: "Length of eidos string" }
+        - { name: id_ptr, type: i32, description: "Pointer to id string" }
+        - { name: id_len, type: i32, description: "Length of id string" }
+        - { name: data_ptr, type: i32, description: "Pointer to JSON data" }
+        - { name: data_len, type: i32, description: "Length of JSON data" }
+        - { name: composed_from_ptr, type: i32, description: "Pointer to composed_from string (REQUIRED)" }
+        - { name: composed_from_len, type: i32, description: "Length of composed_from string" }
+      results:
+        - { type: i32, description: "Pointer to result JSON" }
+        - { type: i32, description: "Length of result JSON" }
+
+  db.find:
+    tier: 2
+    category: db
+    description: |
+      Find an entity by its ID.
+      Returns null if entity does not exist.
+    rust_method: "HostContext::find_entity"
+    rust_file: "crates/kosmos/src/host.rs:179"
+    params:
+      - name: id
+        type: string
+        description: "Entity identifier to find"
+    returns:
+      type: json | null
+      description: "Found entity or null"
+    side_effects: []
+    wasm_import:
+      name: db_find
+      params:
+        - { name: id_ptr, type: i32 }
+        - { name: id_len, type: i32 }
+      results:
+        - { type: i32, description: "Pointer to result JSON (0 if not found)" }
+        - { type: i32, description: "Length of result JSON (0 if not found)" }
+
+  db.gather:
+    tier: 2
+    category: db
+    description: |
+      Gather entities by eidos type.
+      If dwelling context provided, filters by visibility.
+    rust_method: "HostContext::gather_entities"
+    rust_file: "crates/kosmos/src/host.rs:211"
+    params:
+      - name: eidos
+        type: string | null
+        description: "Filter by eidos (use '*' or null for all)"
+      - name: limit
+        type: integer | null
+        description: "Maximum entities to return (default 100)"
+    returns:
+      type: array<json>
+      description: "Array of matching entities"
+    side_effects: []
+    wasm_import:
+      name: db_gather
+      params:
+        - { name: eidos_ptr, type: i32, description: "Pointer to eidos (0 for wildcard)" }
+        - { name: eidos_len, type: i32 }
+        - { name: limit, type: i32, description: "Max results (0 for default)" }
+      results:
+        - { type: i32, description: "Pointer to result JSON array" }
+        - { type: i32, description: "Length of result" }
+
+  db.dissolve:
+    tier: 2
+    category: db
+    description: |
+      Dissolve (delete) an entity and all its bonds.
+    rust_method: "HostContext::dissolve_entity"
+    rust_file: "crates/kosmos/src/host.rs:275"
+    params:
+      - name: id
+        type: string
+        description: "Entity identifier to dissolve"
+    returns:
+      type: void
+    side_effects:
+      - "Deletes from entities table"
+      - "Deletes all bonds involving this entity"
+    wasm_import:
+      name: db_dissolve
+      params:
+        - { name: id_ptr, type: i32 }
+        - { name: id_len, type: i32 }
+      results:
+        - { type: i32, description: "0 on success, error code otherwise" }
+
+  db.update:
+    tier: 2
+    category: db
+    description: |
+      Update an entity's data.
+      Increments version number.
+    rust_method: "HostContext::update_entity"
+    rust_file: "crates/kosmos/src/host.rs:287"
+    params:
+      - name: id
+        type: string
+        description: "Entity identifier to update"
+      - name: data
+        type: json
+        description: "New entity data"
+    returns:
+      type: json
+      description: "Updated entity"
+    side_effects:
+      - "Updates entities table"
+      - "Increments version"
+    wasm_import:
+      name: db_update
+      params:
+        - { name: id_ptr, type: i32 }
+        - { name: id_len, type: i32 }
+        - { name: data_ptr, type: i32 }
+        - { name: data_len, type: i32 }
+      results:
+        - { type: i32 }
+        - { type: i32 }
+
+  # ---------------------------------------------------------------------------
+  # Bond Operations
+  # ---------------------------------------------------------------------------
+
+  db.bind:
+    tier: 2
+    category: db
+    description: |
+      Create a bond between two entities.
+      Replaces existing bond with same from/to/desmos.
+    rust_method: "HostContext::create_bond"
+    rust_file: "crates/kosmos/src/host.rs:307"
+    params:
+      - name: from_id
+        type: string
+        description: "Source entity ID"
+      - name: desmos
+        type: string
+        description: "Bond type"
+      - name: to_id
+        type: string
+        description: "Target entity ID"
+      - name: data
+        type: json | null
+        description: "Optional bond data"
+    returns:
+      type: json
+      description: "Created bond with id, from_id, to_id, desmos, data"
+    side_effects:
+      - "Writes to bonds table"
+    wasm_import:
+      name: db_bind
+      params:
+        - { name: from_ptr, type: i32 }
+        - { name: from_len, type: i32 }
+        - { name: desmos_ptr, type: i32 }
+        - { name: desmos_len, type: i32 }
+        - { name: to_ptr, type: i32 }
+        - { name: to_len, type: i32 }
+        - { name: data_ptr, type: i32, description: "0 if no data" }
+        - { name: data_len, type: i32 }
+      results:
+        - { type: i32 }
+        - { type: i32 }
+
+  db.trace:
+    tier: 2
+    category: db
+    description: |
+      Trace bonds from/to an entity.
+      Can filter by desmos type.
+    rust_method: "HostContext::trace_bonds"
+    rust_file: "crates/kosmos/src/host.rs:334"
+    params:
+      - name: from_id
+        type: string | null
+        description: "Filter by source entity"
+      - name: to_id
+        type: string | null
+        description: "Filter by target entity"
+      - name: desmos
+        type: string | null
+        description: "Filter by bond type"
+    returns:
+      type: array<json>
+      description: "Array of matching bonds"
+    side_effects: []
+    wasm_import:
+      name: db_trace
+      params:
+        - { name: from_ptr, type: i32 }
+        - { name: from_len, type: i32 }
+        - { name: to_ptr, type: i32 }
+        - { name: to_len, type: i32 }
+        - { name: desmos_ptr, type: i32 }
+        - { name: desmos_len, type: i32 }
+      results:
+        - { type: i32 }
+        - { type: i32 }
+
+  db.loose:
+    tier: 2
+    category: db
+    description: |
+      Remove a specific bond.
+    rust_method: "HostContext::loose_bond"
+    rust_file: "crates/kosmos/src/host.rs:403"
+    params:
+      - name: from_id
+        type: string
+      - name: desmos
+        type: string
+      - name: to_id
+        type: string
+    returns:
+      type: void
+    side_effects:
+      - "Deletes from bonds table"
+    wasm_import:
+      name: db_loose
+      params:
+        - { name: from_ptr, type: i32 }
+        - { name: from_len, type: i32 }
+        - { name: desmos_ptr, type: i32 }
+        - { name: desmos_len, type: i32 }
+        - { name: to_ptr, type: i32 }
+        - { name: to_len, type: i32 }
+      results:
+        - { type: i32, description: "0 on success" }
+
+  db.traverse:
+    tier: 2
+    category: db
+    description: |
+      Traverse the graph from a root entity following specified bond types.
+      BFS traversal up to specified depth.
+    rust_method: "HostContext::traverse"
+    rust_file: "crates/kosmos/src/host.rs:413"
+    params:
+      - name: root_id
+        type: string
+        description: "Starting entity"
+      - name: desmoi
+        type: array<string>
+        description: "Bond types to follow"
+      - name: depth
+        type: integer
+        description: "Maximum traversal depth"
+      - name: direction
+        type: string
+        enum: [outward, inward, both]
+        description: "Direction to follow bonds"
+      - name: eidos_filter
+        type: string | null
+        description: "Only return entities of this eidos"
+    returns:
+      type: array<json>
+      description: "All reachable entities"
+    side_effects: []
+    wasm_import:
+      name: db_traverse
+      params:
+        - { name: root_ptr, type: i32 }
+        - { name: root_len, type: i32 }
+        - { name: desmoi_ptr, type: i32, description: "JSON array of strings" }
+        - { name: desmoi_len, type: i32 }
+        - { name: depth, type: i32 }
+        - { name: direction, type: i32, description: "0=outward, 1=inward, 2=both" }
+        - { name: eidos_ptr, type: i32 }
+        - { name: eidos_len, type: i32 }
+      results:
+        - { type: i32 }
+        - { type: i32 }
+
+  # ---------------------------------------------------------------------------
+  # Visibility Operations
+  # ---------------------------------------------------------------------------
+
+  polis.visible_to:
+    tier: 2
+    category: polis
+    description: |
+      Check if a persona can see an entity based on circle membership.
+    rust_method: "HostContext::visible_to"
+    rust_file: "crates/kosmos/src/host.rs:498"
+    params:
+      - name: persona_id
+        type: string
+      - name: entity_id
+        type: string
+    returns:
+      type: boolean
+    side_effects: []
+    wasm_import:
+      name: polis_visible_to
+      params:
+        - { name: persona_ptr, type: i32 }
+        - { name: persona_len, type: i32 }
+        - { name: entity_ptr, type: i32 }
+        - { name: entity_len, type: i32 }
+      results:
+        - { type: i32, description: "1 if visible, 0 otherwise" }
+
+# =============================================================================
+# TIER 3: External World Operations
+# Network, AI, filesystem — operations with external effects
+# =============================================================================
+
+  # ---------------------------------------------------------------------------
+  # Aisthesis — Embedding and Semantic Search
+  # ---------------------------------------------------------------------------
+
+  aisthesis.embed:
+    tier: 3
+    category: aisthesis
+    description: |
+      Generate embedding vector for text using OpenAI API.
+    rust_method: "HostContext::embed"
+    rust_file: "crates/kosmos/src/host.rs:557"
+    params:
+      - name: text
+        type: string
+        description: "Text to embed"
+    returns:
+      type: array<f32>
+      description: "1536-dimensional embedding vector"
+    side_effects:
+      - "Calls OpenAI API"
+    requires_env:
+      - OPENAI_API_KEY
+    wasm_import:
+      name: aisthesis_embed
+      params:
+        - { name: text_ptr, type: i32 }
+        - { name: text_len, type: i32 }
+      results:
+        - { type: i32, description: "Pointer to f32 array" }
+        - { type: i32, description: "Number of f32 elements (should be 1536)" }
+
+  aisthesis.index:
+    tier: 3
+    category: aisthesis
+    description: |
+      Store embedding for an entity, making it discoverable via surface.
+    rust_method: "HostContext::index_embedding"
+    rust_file: "crates/kosmos/src/host.rs:602"
+    params:
+      - name: entity_id
+        type: string
+      - name: text
+        type: string
+        description: "Text that was embedded"
+      - name: embedding
+        type: array<f32>
+        description: "The embedding vector"
+    returns:
+      type: void
+    side_effects:
+      - "Updates embedding columns in entities table"
+    wasm_import:
+      name: aisthesis_index
+      params:
+        - { name: id_ptr, type: i32 }
+        - { name: id_len, type: i32 }
+        - { name: text_ptr, type: i32 }
+        - { name: text_len, type: i32 }
+        - { name: embed_ptr, type: i32 }
+        - { name: embed_len, type: i32, description: "Number of f32 elements" }
+      results:
+        - { type: i32, description: "0 on success" }
+
+  aisthesis.surface:
+    tier: 3
+    category: aisthesis
+    description: |
+      Surface entities by semantic proximity to a query.
+      Uses cosine similarity on embeddings.
+    rust_method: "HostContext::surface"
+    rust_file: "crates/kosmos/src/host.rs:623"
+    params:
+      - name: query
+        type: string
+        description: "Semantic search query"
+      - name: limit
+        type: integer
+        description: "Maximum results"
+      - name: threshold
+        type: f64
+        description: "Minimum similarity (0.0 to 1.0)"
+      - name: eidos_filter
+        type: string | null
+        description: "Filter by entity type"
+    returns:
+      type: array<SurfaceResult>
+      description: "Matching entities with similarity scores"
+    side_effects:
+      - "Calls OpenAI API for query embedding"
+    wasm_import:
+      name: aisthesis_surface
+      params:
+        - { name: query_ptr, type: i32 }
+        - { name: query_len, type: i32 }
+        - { name: limit, type: i32 }
+        - { name: threshold, type: f64 }
+        - { name: eidos_ptr, type: i32 }
+        - { name: eidos_len, type: i32 }
+      results:
+        - { type: i32 }
+        - { type: i32 }
+
+  # ---------------------------------------------------------------------------
+  # Manteia — LLM Inference
+  # ---------------------------------------------------------------------------
+
+  manteia.infer:
+    tier: 3
+    category: manteia
+    description: |
+      Call LLM for inference. Currently uses Anthropic Claude.
+    rust_method: "HostContext::infer"
+    rust_file: "crates/kosmos/src/host.rs:727"
+    params:
+      - name: prompt
+        type: string
+        description: "User prompt"
+      - name: system
+        type: string | null
+        description: "Optional system prompt"
+      - name: model
+        type: string
+        description: "Model identifier"
+      - name: temperature
+        type: f64
+        description: "Sampling temperature"
+    returns:
+      type: string
+      description: "Model response text"
+    side_effects:
+      - "Calls Anthropic API"
+    requires_env:
+      - ANTHROPIC_API_KEY
+    wasm_import:
+      name: manteia_infer
+      params:
+        - { name: prompt_ptr, type: i32 }
+        - { name: prompt_len, type: i32 }
+        - { name: system_ptr, type: i32 }
+        - { name: system_len, type: i32 }
+        - { name: model_ptr, type: i32 }
+        - { name: model_len, type: i32 }
+        - { name: temperature, type: f64 }
+      results:
+        - { type: i32 }
+        - { type: i32 }
+
+  # ---------------------------------------------------------------------------
+  # Energeia — Actuality Operations
+  # ---------------------------------------------------------------------------
+
+  energeia.manifest:
+    tier: 3
+    category: energeia
+    description: |
+      Manifest an entity — bring it into actuality.
+      Behavior depends on entity eidos (daemon, task, stream, etc.).
+    rust_method: "HostContext::manifest"
+    rust_file: "crates/kosmos/src/host.rs:801"
+    params:
+      - name: entity_id
+        type: string
+    returns:
+      type: json
+      description: "Manifest result with status and details"
+    side_effects:
+      - "May spawn processes"
+      - "May create DNS records"
+      - "May start media capture"
+    wasm_import:
+      name: energeia_manifest
+      params:
+        - { name: id_ptr, type: i32 }
+        - { name: id_len, type: i32 }
+      results:
+        - { type: i32 }
+        - { type: i32 }
+
+  energeia.sense:
+    tier: 3
+    category: energeia
+    description: |
+      Sense the actual state of an entity.
+      Queries substrate/provider for current actuality.
+    rust_method: "HostContext::sense_actuality"
+    rust_file: "crates/kosmos/src/host.rs:1006"
+    params:
+      - name: entity_id
+        type: string
+    returns:
+      type: json
+      description: "Sensed actuality with status and details"
+    side_effects:
+      - "May query external providers (DNS, etc.)"
+    wasm_import:
+      name: energeia_sense
+      params:
+        - { name: id_ptr, type: i32 }
+        - { name: id_len, type: i32 }
+      results:
+        - { type: i32 }
+        - { type: i32 }
+
+  energeia.unmanifest:
+    tier: 3
+    category: energeia
+    description: |
+      Unmanifest an entity — remove from actuality.
+      Kills processes, deletes DNS records, stops streams.
+    rust_method: "HostContext::unmanifest"
+    rust_file: "crates/kosmos/src/host.rs:1169"
+    params:
+      - name: entity_id
+        type: string
+      - name: signal
+        type: integer
+        description: "Signal for process termination (default 15 = SIGTERM)"
+    returns:
+      type: json
+      description: "Unmanifest result"
+    side_effects:
+      - "May kill processes"
+      - "May delete DNS records"
+      - "May stop media capture"
+    wasm_import:
+      name: energeia_unmanifest
+      params:
+        - { name: id_ptr, type: i32 }
+        - { name: id_len, type: i32 }
+        - { name: signal, type: i32 }
+      results:
+        - { type: i32 }
+        - { type: i32 }
+
+  # ---------------------------------------------------------------------------
+  # Aither — Signaling Operations
+  # ---------------------------------------------------------------------------
+
+  aither.signal:
+    tier: 3
+    category: aither
+    description: |
+      Signaling operations for WebRTC and other protocols.
+      Operations: poll, send_offer, send_answer, accept_answer,
+      create_answer, restart_ice, close, send_message, receive_messages
+    rust_method: "HostContext::signal"
+    rust_file: "crates/kosmos/src/host.rs:1302"
+    params:
+      - name: operation
+        type: string
+        enum: [poll, send_offer, send_answer, accept_answer, create_answer, restart_ice, close, send_message, receive_messages]
+      - name: session_id
+        type: string | null
+      - name: channel_id
+        type: string | null
+      - name: sdp
+        type: string | null
+      - name: message
+        type: json | null
+    returns:
+      type: json
+      description: "Operation result"
+    side_effects:
+      - "Network I/O"
+    wasm_import:
+      name: aither_signal
+      params:
+        - { name: op_ptr, type: i32 }
+        - { name: op_len, type: i32 }
+        - { name: session_ptr, type: i32 }
+        - { name: session_len, type: i32 }
+        - { name: channel_ptr, type: i32 }
+        - { name: channel_len, type: i32 }
+        - { name: sdp_ptr, type: i32 }
+        - { name: sdp_len, type: i32 }
+        - { name: msg_ptr, type: i32 }
+        - { name: msg_len, type: i32 }
+      results:
+        - { type: i32 }
+        - { type: i32 }
+
+  # ---------------------------------------------------------------------------
+  # Filesystem Operations
+  # ---------------------------------------------------------------------------
+
+  fs.emit:
+    tier: 3
+    category: fs
+    description: |
+      Emit content or entity to filesystem.
+      Serializes entity based on format (yaml, json, markdown, text).
+    rust_method: "HostContext::emit"
+    rust_file: "crates/kosmos/src/host.rs:1427"
+    params:
+      - name: entity_id
+        type: string | null
+        description: "Entity to serialize and emit"
+      - name: content
+        type: string | null
+        description: "Direct content to emit"
+      - name: path
+        type: string
+        description: "Filesystem path"
+      - name: format
+        type: string
+        enum: [yaml, json, markdown, text]
+        default: yaml
+    returns:
+      type: json
+      description: "Emit result with path and bytes written"
+    side_effects:
+      - "Writes to filesystem"
+      - "Creates directories if needed"
+    wasm_import:
+      name: fs_emit
+      params:
+        - { name: entity_ptr, type: i32 }
+        - { name: entity_len, type: i32 }
+        - { name: content_ptr, type: i32 }
+        - { name: content_len, type: i32 }
+        - { name: path_ptr, type: i32 }
+        - { name: path_len, type: i32 }
+        - { name: format_ptr, type: i32 }
+        - { name: format_len, type: i32 }
+      results:
+        - { type: i32 }
+        - { type: i32 }
+
+# =============================================================================
+# UTILITY IMPORTS
+# Low-level utilities provided to WASM
+# =============================================================================
+
+  util.log:
+    tier: 1
+    category: util
+    description: |
+      Log a message for debugging.
+    params:
+      - name: message
+        type: string
+    returns:
+      type: void
+    side_effects:
+      - "Writes to stderr"
+    wasm_import:
+      name: log
+      params:
+        - { name: msg_ptr, type: i32 }
+        - { name: msg_len, type: i32 }
+      results: []
+
+  util.timestamp:
+    tier: 0
+    category: util
+    description: |
+      Get current Unix timestamp in milliseconds.
+    params: []
+    returns:
+      type: i64
+    side_effects: []
+    wasm_import:
+      name: timestamp
+      params: []
+      results:
+        - { type: i64 }
+
+# =============================================================================
+# MEMORY MANAGEMENT
+# How WASM and Rust share data
+# =============================================================================
+
+memory_protocol:
+  description: |
+    WASM modules export memory. Rust writes results to WASM memory
+    and returns (ptr, len) pairs. WASM reads from those locations.
+
+    For inputs: WASM writes strings/JSON to its memory, passes (ptr, len).
+    For outputs: Rust allocates in WASM memory via exported alloc function,
+    writes result, returns (ptr, len).
+
+  wasm_exports:
+    - name: memory
+      description: "Linear memory exported by WASM module"
+    - name: alloc
+      description: "fn(size: i32) -> i32 — allocate bytes, return pointer"
+    - name: dealloc
+      description: "fn(ptr: i32, size: i32) — free allocated memory"
+
+  string_encoding: utf-8
+  json_encoding: utf-8
+
+# =============================================================================
+# CAPABILITY SUMMARY
+# =============================================================================
+
+summary:
+  total_capabilities: 19
+  by_tier:
+    tier_0: 1   # Pure computation (timestamp)
+    tier_1: 1   # In-memory (log)
+    tier_2: 9   # Local substrate (db.*, polis.visible_to)
+    tier_3: 8   # External world (aisthesis.*, manteia.*, energeia.*, aither.*, fs.*)
+  by_category:
+    db: 8
+    polis: 1
+    aisthesis: 3
+    manteia: 1
+    energeia: 3
+    aither: 1
+    fs: 1
+    util: 2
+
+# =============================================================================
+# VALIDATION
+# =============================================================================
+
+validation:
+  # Every oikos manifest requires_dynamis entry must map to a capability here
+  manifest_validation: true
+
+  # Every capability here must have implementation in HostContext
+  implementation_validation: true
+
+  # Signature match: WASM import params must match Rust method
+  signature_validation: true

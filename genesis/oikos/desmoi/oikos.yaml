@@ -1,0 +1,141 @@
+# Oikos Desmoi
+# Intimate dwelling bonds — sessions, conversations, notes, insights
+#
+# Extracted from spora.yaml stage-1-desmoi
+
+entities:
+  # within — containment within session/conversation
+  - eidos: desmos
+    id: desmos/within
+    data:
+      name: within
+      description: "Containment within session/conversation"
+      from_eidos: any
+      to_eidos: any
+      cardinality: many-to-one
+      symmetric: false
+
+  # authored-by — persona authored this segment/note
+  - eidos: desmos
+    id: desmos/authored-by
+    data:
+      name: authored-by
+      description: "Persona authored this segment/note"
+      from_eidos: any
+      to_eidos: persona
+      cardinality: many-to-one
+      symmetric: false
+
+  # surfaced-in — insight surfaced in circle
+  - eidos: desmos
+    id: desmos/surfaced-in
+    data:
+      name: surfaced-in
+      description: "Insight surfaced in circle"
+      from_eidos: insight
+      to_eidos: circle
+      cardinality: many-to-one
+      symmetric: false
+
+  # about — note is about an entity
+  - eidos: desmos
+    id: desmos/about
+    data:
+      name: about
+      description: "Note is about an entity"
+      from_eidos: note
+      to_eidos: any
+      cardinality: many-to-one
+      symmetric: false
+
+  # crystallizes — insight crystallizes into theoria
+  - eidos: desmos
+    id: desmos/crystallizes
+    data:
+      name: crystallizes
+      description: "Insight crystallizes into theoria"
+      from_eidos: insight
+      to_eidos: theoria
+      cardinality: one-to-one
+      symmetric: false
+
+  # surfaces — note surfaces into insight
+  - eidos: desmos
+    id: desmos/surfaces
+    data:
+      name: surfaces
+      description: "Note surfaces into insight"
+      from_eidos: note
+      to_eidos: insight
+      cardinality: many-to-one
+      symmetric: false
+
+  # --- Oikos Ecosystem Desmoi ---
+  # For production oikos publishing, attestation, and distribution
+
+  # published-by — production oikos was published by persona
+  - eidos: desmos
+    id: desmos/published-by
+    data:
+      name: published-by
+      description: "Production oikos was published by a persona."
+      from_eidos: oikos-prod
+      to_eidos: persona
+      cardinality: many-to-one
+      symmetric: false
+
+  # baked-from — production oikos was baked from development oikos
+  - eidos: desmos
+    id: desmos/baked-from
+    data:
+      name: baked-from
+      description: "Production oikos was baked from a development oikos."
+      from_eidos: oikos-prod
+      to_eidos: oikos-dev
+      cardinality: one-to-one
+      symmetric: false
+
+  # attests-to — publish attestation attests to production oikos
+  - eidos: desmos
+    id: desmos/attests-to
+    data:
+      name: attests-to
+      description: "Publish attestation attests to a production oikos."
+      from_eidos: publish-attestation
+      to_eidos: oikos-prod
+      cardinality: one-to-one
+      symmetric: false
+
+  # distributes — circle distributes an oikos
+  - eidos: desmos
+    id: desmos/distributes
+    data:
+      name: distributes
+      description: "Circle distributes an oikos (commons or premium)."
+      from_eidos: circle
+      to_eidos: oikos-prod
+      cardinality: one-to-many
+      symmetric: false
+
+  # oikos-derives-from — oikos-dev derives from another oikos-dev
+  # NOTE: Named differently to avoid collision with thyra derives-from
+  - eidos: desmos
+    id: desmos/oikos-derives-from
+    data:
+      name: oikos-derives-from
+      description: "Oikos-dev derives from another oikos-dev (fork/adaptation). Tracks generative-commons lineage."
+      from_eidos: oikos-dev
+      to_eidos: oikos-dev
+      cardinality: many-to-one
+      symmetric: false
+
+  # uses-oikos — circle has installed/activated an oikos
+  - eidos: desmos
+    id: desmos/uses-oikos
+    data:
+      name: uses-oikos
+      description: "Circle has installed/activated an oikos-prod. Tracks which oikoi are active for a dwelling."
+      from_eidos: circle
+      to_eidos: oikos-prod
+      cardinality: many-to-many
+      symmetric: false

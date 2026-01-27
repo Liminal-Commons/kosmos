@@ -1,0 +1,414 @@
+# Arche: Stoicheion Definitions
+# The primitive operations that can be performed.
+#
+# Stoicheia are organized by tier:
+#   Tier 0 (Elemental)      — Pure data flow, no side effects
+#   Tier 1 (Aggregate)      — Collection operations
+#   Tier 2 (Compositional)  — Calling praxeis, control flow
+#   Tier 3 (Generative)     — Inference, external systems
+#
+# A praxis's tier is the maximum tier of its stoicheia.
+# Definitions constrain which tiers can be used.
+
+# =============================================================================
+# TIER 0: ELEMENTAL — Pure data flow
+# =============================================================================
+
+- id: set
+  tier: 0
+  description: |
+    Bind values to names in scope.
+  params:
+    bindings:
+      type: object
+      required: true
+      description: Map of name → expression
+
+- id: return
+  tier: 0
+  description: |
+    Return a value from the praxis.
+  params:
+    value:
+      type: any
+      required: true
+
+- id: assert
+  tier: 0
+  description: |
+    Assert a condition. Fails execution if false.
+  params:
+    condition:
+      type: expression
+      required: true
+    message:
+      type: string
+      required: false
+
+# =============================================================================
+# TIER 1: AGGREGATE — Collection and entity operations
+# =============================================================================
+
+- id: find
+  tier: 1
+  description: |
+    Find an entity by ID. Returns null if not found.
+  params:
+    id:
+      type: string
+      required: true
+  effects: [read]
+
+- id: gather
+  tier: 1
+  description: |
+    Gather entities by eidos, with optional filtering.
+  params:
+    eidos:
+      type: string
+      required: true
+    where:
+      type: expression
+      required: false
+    limit:
+      type: number
+      required: false
+      default: 100
+  effects: [read]
+
+- id: trace
+  tier: 1
+  description: |
+    Trace bonds from/to an entity.
+  params:
+    from_id:
+      type: string
+      required: false
+    to_id:
+      type: string
+      required: false
+    desmos:
+      type: string
+      required: false
+    resolve:
+      type: string
+      enum: [from, to, both]
+      required: false
+  effects: [read]
+
+- id: traverse
+  tier: 2
+  description: |
+    Traverse the graph from a root entity, following specified bond types.
+    Performs breadth-first search up to a specified depth.
+    Returns all entities reachable through the specified desmoi.
+  params:
+    root_id:
+      type: string
+      required: true
+      description: Starting entity ID
+    desmoi:
+      type: array
+      required: true
+      description: Bond types to follow
+    depth:
+      type: number
+      required: false
+      default: 10
+      description: Maximum traversal depth
+    direction:
+      type: string
+      enum: [outward, inward, both]
+      required: false
+      default: outward
+      description: Direction to traverse bonds
+    eidos:
+      type: string
+      required: false
+      description: Only return entities of this eidos
+  effects: [read]
+  notes: |
+    Traverse enables graph-aware operations like:
+    - Dependency trees for validation reports
+    - Provenance chains
+    - Circle membership graphs
+    - Knowledge network navigation
+
+- id: filter
+  tier: 1
+  description: |
+    Filter an array by predicate.
+  params:
+    in:
+      type: array
+      required: true
+    where:
+      type: expression
+      required: true
+
+- id: map
+  tier: 1
+  description: |
+    Transform each element of an array.
+  params:
+    in:
+      type: array
+      required: true
+    as:
+      type: string
+      required: true
+    to:
+      type: expression
+      required: true
+
+- id: reduce
+  tier: 1
+  description: |
+    Reduce an array to a single value.
+  params:
+    in:
+      type: array
+      required: true
+    as:
+      type: string
+      required: true
+    accumulator:
+      type: string
+      required: true
+    initial:
+      type: any
+      required: true
+    to:
+      type: expression
+      required: true
+
+# =============================================================================
+# TIER 2: COMPOSITIONAL — Creation, control flow
+# =============================================================================
+
+- id: compose
+  tier: 2
+  description: |
+    Compose an entity from a typos (mold/template).
+    This is THE way entities are created. No bypass.
+    Automatically establishes provenance chain.
+  params:
+    typos_id:
+      type: string
+      required: true
+    inputs:
+      type: object
+      required: false
+    id:
+      type: string
+      required: false
+      description: Override generated ID
+  effects: [write]
+  notes: |
+    Compose automatically:
+    - Creates composed-from bond to typos
+    - Computes content hash for ID
+    - Bonds to dwelling context (_circle, etc.) per typos
+
+- id: bind
+  tier: 2
+  description: |
+    Create a bond between entities.
+  params:
+    from_id:
+      type: string
+      required: true
+    to_id:
+      type: string
+      required: true
+    desmos:
+      type: string
+      required: true
+    data:
+      type: object
+      required: false
+  effects: [write]
+
+- id: loose
+  tier: 2
+  description: |
+    Dissolve a bond. This is revocation.
+    Downstream paths through this bond are severed.
+  params:
+    from_id:
+      type: string
+      required: true
+    to_id:
+      type: string
+      required: true
+    desmos:
+      type: string
+      required: true
+  effects: [write]
+
+- id: update
+  tier: 2
+  description: |
+    Update an entity's data.
+    Creates a new version (content-addressed).
+  params:
+    id:
+      type: string
+      required: true
+    data:
+      type: object
+      required: true
+  effects: [write]
+
+- id: call
+  tier: 2
+  description: |
+    Call another praxis.
+  params:
+    praxis:
+      type: string
+      required: true
+    params:
+      type: object
+      required: false
+
+- id: switch
+  tier: 2
+  description: |
+    Conditional execution.
+  params:
+    cases:
+      type: array
+      required: true
+      description: |
+        Array of { when: expression, then: steps }
+
+- id: for_each
+  tier: 2
+  description: |
+    Iterate over array.
+  params:
+    in:
+      type: array
+      required: true
+    as:
+      type: string
+      required: true
+    do:
+      type: array
+      required: true
+      description: Steps to execute for each element
+
+# =============================================================================
+# TIER 3: GENERATIVE — External systems, inference
+# =============================================================================
+
+- id: infer
+  tier: 3
+  description: |
+    Call language model for inference.
+  params:
+    prompt:
+      type: string
+      required: true
+    system:
+      type: string
+      required: false
+    model:
+      type: string
+      required: false
+    temperature:
+      type: number
+      required: false
+  effects: [external]
+
+- id: embed
+  tier: 3
+  description: |
+    Generate embeddings for semantic search.
+  params:
+    text:
+      type: string
+      required: true
+    model:
+      type: string
+      required: false
+  effects: [external]
+
+- id: http
+  tier: 3
+  description: |
+    Make HTTP request.
+  params:
+    method:
+      type: string
+      required: true
+      enum: [GET, POST, PUT, DELETE]
+    url:
+      type: string
+      required: true
+    headers:
+      type: object
+      required: false
+    body:
+      type: any
+      required: false
+  effects: [external]
+
+- id: emit
+  tier: 3
+  description: |
+    Emit content or entity to file system (ekthesis).
+
+    If entity_id is provided, the entity is serialized based on format.
+    If content is provided directly, it's written as-is.
+    One of entity_id or content must be provided.
+  params:
+    path:
+      type: string
+      required: true
+      description: File path to write to
+    entity_id:
+      type: string
+      required: false
+      description: Entity ID to emit (serialized based on format)
+    content:
+      type: string
+      required: false
+      description: Direct content to write (if entity_id not provided)
+    format:
+      type: string
+      enum: [yaml, json, markdown, text]
+      default: yaml
+      required: false
+      description: Output format for entity serialization
+  effects: [external, write]
+
+- id: spawn
+  tier: 3
+  description: |
+    Spawn external process.
+  params:
+    command:
+      type: string
+      required: true
+    args:
+      type: array
+      required: false
+  effects: [external]
+
+# =============================================================================
+# DWELLING CONTEXT
+# =============================================================================
+
+# All stoicheia execute within dwelling context.
+# The interpreter provides ambient bindings:
+#
+#   _animus   — the dwelling animus (if any)
+#   _persona  — the persona behind the animus
+#   _circle   — the circle being dwelled in
+#   _session  — the current session
+#   _genesis  — the genesis root
+#
+# These are derived from bond graph position, not passed as parameters.
+# Compose automatically uses these for definition-declared bonds.

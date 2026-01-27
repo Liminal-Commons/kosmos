@@ -1,0 +1,277 @@
+# Oikos Eide
+# Intimate dwelling eide — sessions, conversations, notes, insights
+#
+# Extracted from spora.yaml stage-2-presence
+
+eide:
+  # session — current presence instance
+  - id: eidos/session
+    data:
+      name: session
+      description: "Current presence instance"
+      fields:
+        animus_id:
+          type: string
+          required: true
+        started_at:
+          type: timestamp
+          required: true
+
+  # conversation — dialogue within session
+  - id: eidos/conversation
+    data:
+      name: conversation
+      description: "A dialogue within a session. Conversations have participants and unfold through segments."
+      fields:
+        title:
+          type: string
+          required: false
+        opened_at:
+          type: timestamp
+          required: true
+        closed_at:
+          type: timestamp
+          required: false
+        status:
+          type: enum
+          values: [active, closed]
+          required: true
+
+  # segment — unit within conversation
+  - id: eidos/segment
+    data:
+      name: segment
+      description: "A unit within a conversation. A turn of dialogue, a moment of work."
+      fields:
+        kind:
+          type: enum
+          values: [message, action, observation, reflection]
+          required: true
+        content:
+          type: string
+          required: true
+        author_kind:
+          type: enum
+          values: [human, ai, system]
+          required: true
+        created_at:
+          type: timestamp
+          required: true
+        metadata:
+          type: object
+          required: false
+
+  # note — attention marker
+  - id: eidos/note
+    data:
+      name: note
+      description: "An attention marker. Notes mark something as worthy of attention."
+      fields:
+        content:
+          type: string
+          required: true
+        reason:
+          type: string
+          required: false
+        kind:
+          type: enum
+          values: [observation, question, concern, insight, todo]
+          required: true
+        created_at:
+          type: timestamp
+          required: true
+
+  # insight — emerging understanding
+  - id: eidos/insight
+    data:
+      name: insight
+      description: "Emerging understanding. Not yet crystallized into theoria, but surfaced from notes."
+      fields:
+        content:
+          type: string
+          required: true
+        domain:
+          type: string
+          required: true
+        confidence:
+          type: number
+          required: false
+        surfaced_at:
+          type: timestamp
+          required: true
+
+  # =========================================================================
+  # Oikos Packaging Eide (extracted from spora.yaml stage-1-archai)
+  # =========================================================================
+
+  # oikos-manifest — oikos package declaration
+  - id: eidos/oikos-manifest
+    data:
+      name: oikos-manifest
+      description: "Declaration of what an oikos requires and provides. The contract between oikos and substrate."
+      fields:
+        oikos_id:
+          type: string
+          required: true
+          description: "Oikos identifier (e.g., soma, nous, demiurge)"
+        version:
+          type: string
+          required: true
+        description:
+          type: string
+          required: false
+        requires_dynamis:
+          type: array
+          required: false
+          description: "Array of dynamis functions required (e.g., ['db.arise', 'db.find'])"
+        provides:
+          type: object
+          required: false
+          description: "Object with eide, desmoi, praxeis arrays"
+        stoicheia_form:
+          type: object
+          required: false
+          description: "Map of stoicheion to form (arche or wasm)"
+        actuality_modes:
+          type: object
+          required: false
+          description: "Actuality mode configurations for dual-mode entities"
+
+  # oikos-dev — Development oikos package (can have generation specs)
+  - id: eidos/oikos-dev
+    data:
+      name: oikos-dev
+      description: "Development oikos package. Can contain generation specs (generated slots, inference steps). Mutable during development."
+      fields:
+        oikos_id:
+          type: string
+          required: true
+          description: "Oikos identifier"
+        version:
+          type: string
+          required: true
+        description:
+          type: string
+          required: false
+        manifest:
+          type: object
+          required: true
+          description: "The oikos-manifest (requires_dynamis, provides)"
+        content:
+          type: object
+          required: true
+          description: "Object with eide, desmoi, praxeis, stoicheia content"
+        generation_specs:
+          type: array
+          required: false
+          description: "Array of generation specifications to be baked into literals"
+        status:
+          type: string
+          enum: [draft, reviewed, ready_to_publish]
+          default: draft
+        distribution:
+          type: string
+          enum: [generative-commons, binary-only, private]
+          default: binary-only
+          description: |
+            How this oikos-dev may be shared:
+            - generative-commons: Share source (generation specs). Others can bake locally.
+            - binary-only: Share only baked oikos-prod. Generation specs stay private.
+            - private: Not shared at all. Internal use only.
+        author_persona:
+          type: string
+          required: false
+          description: "Persona ID of the author"
+        created_at:
+          type: integer
+          required: false
+
+  # oikos-prod — Production oikos package (frozen, signed, no generation)
+  - id: eidos/oikos-prod
+    data:
+      name: oikos-prod
+      description: "Production oikos package. Frozen, signed, no generation specs. Ready for distribution."
+      fields:
+        oikos_id:
+          type: string
+          required: true
+          description: "Oikos identifier"
+        version:
+          type: string
+          required: true
+        locale:
+          type: string
+          required: false
+          description: "BCP 47 locale code (e.g., 'en-US', 'zh-CN'). 'und' if locale-agnostic."
+        description:
+          type: string
+          required: false
+        manifest:
+          type: object
+          required: true
+          description: "The oikos-manifest (requires_dynamis, provides)"
+        content:
+          type: object
+          required: true
+          description: "Object with eide, desmoi, praxeis, stoicheia content (all literals)"
+        content_hash:
+          type: string
+          required: true
+          description: "BLAKE3 hash of the content"
+        signature:
+          type: string
+          required: true
+          description: "Ed25519 signature of content_hash by publisher"
+        publisher_pubkey:
+          type: string
+          required: true
+          description: "Public key of the publisher"
+        baked_from:
+          type: string
+          required: false
+          description: "ID of the oikos-dev this was baked from"
+        published_at:
+          type: integer
+          required: true
+
+  # publish-attestation — Record of who published what
+  - id: eidos/publish-attestation
+    data:
+      name: publish-attestation
+      description: "Attestation record for oikos publication. Provides audit trail for provenance."
+      fields:
+        dev_oikos_id:
+          type: string
+          required: true
+          description: "ID of the source oikos-dev"
+        prod_oikos_id:
+          type: string
+          required: true
+          description: "ID of the resulting oikos-prod"
+        publisher_persona:
+          type: string
+          required: true
+          description: "Persona ID of the publisher"
+        publisher_pubkey:
+          type: string
+          required: true
+          description: "Public key used to sign"
+        attestation:
+          type: string
+          required: false
+          description: "Optional attestation statement"
+        published_at:
+          type: integer
+          required: true
+        dev_version:
+          type: string
+          required: true
+          description: "Version of the dev-oikos at time of publish"
+        locale:
+          type: string
+          required: false
+          description: "BCP 47 locale code of the baked oikos-prod. 'und' if locale-agnostic."
+        generation_hashes:
+          type: array
+          required: false
+          description: "Hashes of generated content that was baked"

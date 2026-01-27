@@ -1,0 +1,109 @@
+# Oikos Manifest: Politeia
+# πολιτεία — the constitution, governance and capability.
+#
+# How circles govern and grant capabilities. The layer where
+# "being in a circle" translates to "being able to do things."
+#
+# Manifest v2.1 — oikos metadata for entity composition
+
+format_version: "2.1"
+oikos_id: politeia
+version: "0.1.0"
+
+# Oikos metadata (v2.1)
+oikos_name: Politeia
+oikos_description: |
+  The constitution, governance and capability. How circles govern
+  and grant capabilities. The layer where "being in a circle"
+  translates to "being able to do things."
+oikos_scale: polis
+
+# =============================================================================
+# CONTENT PATHS — Where this oikos sources content from
+# =============================================================================
+# Each path becomes a sources-content-from bond from this oikos
+# to the corresponding content-root entity.
+
+content_paths:
+  - path: eide/
+    content_types: [eidos]
+  - path: desmoi/
+    content_types: [desmos]
+  - path: praxeis/
+    content_types: [praxis]
+
+requires_dynamis:
+  - db.arise
+  - db.find
+  - db.bind
+  - db.trace
+  - db.update
+  - db.loose
+  - db.gather
+
+provides:
+  eide:
+    # NOTE: animus, persona, circle are foundational (defined in spora.yaml)
+    # Politeia operates on them but doesn't define them
+    - attainment
+    - affordance
+    - hud-region
+    - invitation
+    - membership-event
+
+  desmoi:
+    # Governance bonds
+    - sovereign-to
+    - member-of
+    - dwells-in
+    - embodies
+    # Capability bonds
+    - grants-attainment
+    - has-attainment
+    - granted-by
+    # Surface bonds
+    - surfaces-as
+    - enabled-by
+    - renders-in
+    # Structure bonds
+    - child-of
+    - invited-to
+
+  praxeis:
+    # Circle operations
+    - politeia/create-circle
+    - politeia/invite-to-circle
+    - politeia/accept-invitation
+    - politeia/decline-invitation
+    - politeia/dwell-in-circle
+    - politeia/leave-circle
+    - politeia/list-circles
+    # Attainment operations
+    - politeia/create-attainment
+    - politeia/grant-attainment
+    - politeia/revoke-attainment
+    - politeia/derive-attainments
+    - politeia/list-attainments
+    # Affordance operations
+    - politeia/create-affordance
+    - politeia/gather-affordances
+    - politeia/render-hud
+    - politeia/invoke-affordance
+    # HUD operations
+    - politeia/create-hud-region
+    - politeia/list-hud-regions
+    # Membership history
+    - politeia/list-membership-events
+    # Oikos distribution (K4)
+    - politeia/create-distribution-circle
+    - politeia/distribute-oikos
+    - politeia/list-distributed-oikoi
+    - politeia/list-oikos-distributors
+    - politeia/install-oikos
+    - politeia/uninstall-oikos
+    - politeia/list-installed-oikoi
+
+stoicheia_form:
+  # All operations via praxeis
+  # No special stoicheia
+

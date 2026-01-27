@@ -1,0 +1,60 @@
+# Soma Desmoi
+# Embodiment bonds — connecting animus to channels and perceptions
+#
+# Extracted from spora.yaml stage-1-desmoi
+
+entities:
+  # instantiates — animus instantiates persona
+  - eidos: desmos
+    id: desmos/instantiates
+    data:
+      name: instantiates
+      description: "Animus instantiates persona"
+      from_eidos: animus
+      to_eidos: persona
+      cardinality: many-to-one
+      symmetric: false
+
+  # channel-of — channel belongs to animus
+  - eidos: desmos
+    id: desmos/channel-of
+    data:
+      name: channel-of
+      description: "Channel belongs to animus"
+      from_eidos: channel
+      to_eidos: animus
+      cardinality: many-to-one
+      symmetric: false
+
+  # received-through — percept received through channel
+  - eidos: desmos
+    id: desmos/received-through
+    data:
+      name: received-through
+      description: "Percept received through channel"
+      from_eidos: percept
+      to_eidos: channel
+      cardinality: many-to-one
+      symmetric: false
+
+  # emitted-through — signal emitted through channel
+  - eidos: desmos
+    id: desmos/emitted-through
+    data:
+      name: emitted-through
+      description: "Signal emitted through channel"
+      from_eidos: signal
+      to_eidos: channel
+      cardinality: many-to-one
+      symmetric: false
+
+  # schema-of — body schema belongs to animus
+  - eidos: desmos
+    id: desmos/schema-of
+    data:
+      name: schema-of
+      description: "Body schema belongs to animus"
+      from_eidos: body-schema
+      to_eidos: animus
+      cardinality: one-to-one
+      symmetric: false

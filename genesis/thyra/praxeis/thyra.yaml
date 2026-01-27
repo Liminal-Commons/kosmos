@@ -1,0 +1,1255 @@
+# thyra.yaml
+# Thyra praxeis exposed as MCP tools
+#
+# Thyra is the boundary membrane — perception and emission flow.
+# These praxeis enable expression creation and conversation threading.
+
+entities:
+
+# =============================================================================
+# EKTHESIS - EMISSION TO CHORA
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/thyra/emit
+  data:
+    oikos: thyra
+    name: emit
+    visible: true
+    tier: 3
+    description: |
+      Emit content or entity to the filesystem (ekthesis).
+
+      Brings existence into actuality — kosmos → chora.
+
+      If entity_id is provided, the entity is serialized based on format.
+      If content is provided directly, it's written as-is.
+
+      Supported formats:
+      - yaml: Full entity as YAML
+      - json: Full entity as pretty JSON
+      - markdown: Human-readable markdown
+      - text: Data field only (or serialized if not string)
+    params:
+      - name: path
+        type: string
+        required: true
+        description: File path to write to
+      - name: entity_id
+        type: string
+        required: false
+        description: Entity ID to emit (serialized based on format)
+      - name: content
+        type: string
+        required: false
+        description: Direct content to write (if entity_id not provided)
+      - name: format
+        type: string
+        required: false
+        description: Output format (yaml, json, markdown, text). Default yaml.
+    steps:
+      - step: emit
+        path: "$path"
+        entity_id: "$entity_id"
+        content: "$content"
+        format: "$format"
+        bind_to: result
+      - step: return
+        value: "$result"
+
+# =============================================================================
+# EXPRESSION OPERATIONS
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/thyra/express
+  data:
+    oikos: thyra
+    name: express
+    visible: true
+    description: |
+      Create an expression — the commitment boundary.
+
+      This is the moment when ephemeral becomes durable.
+      All contributions to the circle become expressions.
+    params:
+      - name: content
+        type: string
+        required: true
+        description: The content being expressed
+      - name: mode
+        type: string
+        required: false
+        description: "Expression mode: declaration, inquiry, suggestion, request, proposal (default: declaration)"
+      - name: in_reply_to
+        type: string
+        required: false
+        description: Expression ID this replies to
+      - name: source_kind
+        type: string
+        required: false
+        description: "How this originated: stream, compose, direct (default: direct)"
+      - name: content_type
+        type: string
+        required: false
+        description: "MIME type (default: text/plain)"
+    steps:
+      # Assert we have dwelling context
+      - step: assert
+        condition: "$_persona"
+        message: "Cannot express without a persona"
+
+      - step: assert
+        condition: "$_circle"
+        message: "Cannot express without dwelling in a circle"
+
+      # Set defaults
+      - step: set
+        bindings:
+          expr_mode: "$mode"
+          expr_source: "$source_kind"
+          expr_content_type: "$content_type"
+
+      - step: switch
+        cases:
+          - when: "$expr_mode"
+            then: []
+        default:
+          - step: set
+            bindings:
+              expr_mode: "declaration"
+
+      - step: switch
+        cases:
+          - when: "$expr_source"
+            then: []
+        default:
+          - step: set
+            bindings:
+              expr_source: "direct"
+
+      - step: switch
+        cases:
+          - when: "$expr_content_type"
+            then: []
+        default:
+          - step: set
+            bindings:
+              expr_content_type: "text/plain"
+
+      # Generate expression ID
+      - step: set
+        bindings:
+          expression_id: "expression/{{ now() }}"
+          expressed_at: "now()"
+
+      # Create the expression (CE4: compose instead of arise)
+      - step: compose
+        typos_id: "typos-def-expression"
+        inputs:
+          id: "$expression_id"
+          content: "$content"
+          content_type: "$expr_content_type"
+          expressed_by: "$_persona.id"
+          circle_id: "$_circle.id"
+          expressed_at: "$expressed_at"
+          source_kind: "$expr_source"
+          mode: "$expr_mode"
+          in_reply_to: "$in_reply_to"
+        bind_to: expression_entity
+
+      # Bond expression to circle
+      - step: bind
+        from_id: "$expression_id"
+        to_id: "$_circle.id"
+        desmos: "expressed-in"
+
+      # Bond to reply target if specified
+      - step: switch
+        cases:
+          - when: "$in_reply_to"
+            then:
+              - step: bind
+                from_id: "$expression_id"
+                to_id: "$in_reply_to"
+                desmos: "in-reply-to"
+
+      - step: return
+        value:
+          expression_id: "$expression_id"
+          expressed_by: "$_persona.id"
+          circle_id: "$_circle.id"
+          mode: "$expr_mode"
+
+- eidos: praxis
+  id: praxis/thyra/list-expressions
+  data:
+    oikos: thyra
+    name: list-expressions
+    visible: true
+    description: |
+      List expressions in a circle.
+
+      Can filter by expressed_by persona or mode.
+    params:
+      - name: circle_id
+        type: string
+        required: false
+        description: Circle to list from (defaults to current circle)
+      - name: expressed_by
+        type: string
+        required: false
+        description: Filter by persona ID
+      - name: mode
+        type: string
+        required: false
+        description: Filter by expression mode
+      - name: limit
+        type: number
+        required: false
+        description: "Maximum expressions to return (default: 50)"
+    steps:
+      # Use provided circle or current
+      - step: set
+        bindings:
+          target_circle: "$circle_id"
+          max_results: "$limit"
+
+      - step: switch
+        cases:
+          - when: "$target_circle"
+            then: []
+        default:
+          - step: set
+            bindings:
+              target_circle: "$_circle.id"
+
+      - step: switch
+        cases:
+          - when: "$max_results"
+            then: []
+        default:
+          - step: set
+            bindings:
+              max_results: 50
+
+      # Gather expressions bonded to circle
+      - step: trace
+        to_id: "$target_circle"
+        desmos: "expressed-in"
+        resolve: "from"
+        bind_to: expressions
+
+      # Filter by expressed_by if specified
+      - step: switch
+        cases:
+          - when: "$expressed_by"
+            then:
+              - step: filter
+                items: "$expressions"
+                condition: "$item.data.expressed_by == '$expressed_by'"
+                bind_to: expressions
+
+      # Filter by mode if specified
+      - step: switch
+        cases:
+          - when: "$mode"
+            then:
+              - step: filter
+                items: "$expressions"
+                condition: "$item.data.mode == '$mode'"
+                bind_to: expressions
+
+      # Sort by expressed_at descending
+      - step: sort
+        items: "$expressions"
+        by: "data.expressed_at"
+        order: "desc"
+        bind_to: expressions
+
+      # Limit results
+      - step: limit
+        items: "$expressions"
+        count: "$max_results"
+        bind_to: expressions
+
+      - step: return
+        value:
+          expressions: "$expressions"
+          circle_id: "$target_circle"
+          count: "${{ len(expressions) }}"
+
+- eidos: praxis
+  id: praxis/thyra/reply-to
+  data:
+    oikos: thyra
+    name: reply-to
+    visible: true
+    description: |
+      Reply to an expression.
+
+      Convenience wrapper around express that sets in_reply_to
+      and validates the target exists.
+    params:
+      - name: expression_id
+        type: string
+        required: true
+        description: The expression to reply to
+      - name: content
+        type: string
+        required: true
+        description: The reply content
+      - name: mode
+        type: string
+        required: false
+        description: "Expression mode (default: declaration)"
+    steps:
+      # Find the target expression
+      - step: find
+        id: "$expression_id"
+        bind_to: target
+
+      - step: assert
+        condition: "$target"
+        message: "Expression not found: $expression_id"
+
+      # Call express with in_reply_to set
+      - step: call
+        praxis: "thyra/express"
+        params:
+          content: "$content"
+          mode: "$mode"
+          in_reply_to: "$expression_id"
+          source_kind: "direct"
+        bind_to: reply_result
+
+      - step: return
+        value:
+          expression_id: "$reply_result.expression_id"
+          in_reply_to: "$expression_id"
+          expressed_by: "$reply_result.expressed_by"
+          mode: "$reply_result.mode"
+
+- eidos: praxis
+  id: praxis/thyra/get-thread
+  data:
+    oikos: thyra
+    name: get-thread
+    visible: true
+    description: |
+      Get a conversation thread from an expression.
+
+      Follows in-reply-to bonds to build the thread.
+    params:
+      - name: expression_id
+        type: string
+        required: true
+        description: The expression to get thread for
+      - name: direction
+        type: string
+        required: false
+        description: "Direction: ancestors (default), descendants, or both"
+    steps:
+      - step: find
+        id: "$expression_id"
+        bind_to: root_expression
+
+      - step: assert
+        condition: "$root_expression"
+        message: "Expression not found: $expression_id"
+
+      # Set default direction
+      - step: set
+        bindings:
+          thread_direction: "$direction"
+
+      - step: switch
+        cases:
+          - when: "$thread_direction"
+            then: []
+        default:
+          - step: set
+            bindings:
+              thread_direction: "ancestors"
+
+      # Build thread based on direction
+      - step: set
+        bindings:
+          ancestors: []
+          descendants: []
+
+      # Get ancestors (what this replies to)
+      - step: switch
+        cases:
+          - when: "$thread_direction == 'ancestors' || $thread_direction == 'both'"
+            then:
+              - step: trace
+                from_id: "$expression_id"
+                desmos: "in-reply-to"
+                resolve: "to"
+                recursive: true
+                bind_to: ancestors
+
+      # Get descendants (what replies to this)
+      - step: switch
+        cases:
+          - when: "$thread_direction == 'descendants' || $thread_direction == 'both'"
+            then:
+              - step: trace
+                to_id: "$expression_id"
+                desmos: "in-reply-to"
+                resolve: "from"
+                recursive: true
+                bind_to: descendants
+
+      - step: return
+        value:
+          expression_id: "$expression_id"
+          expression: "$root_expression"
+          ancestors: "$ancestors"
+          descendants: "$descendants"
+          direction: "$thread_direction"
+
+# =============================================================================
+# STREAM OPERATIONS (Reconciler Pattern)
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/thyra/open-stream
+  data:
+    oikos: thyra
+    name: open-stream
+    visible: true
+    tier: 3
+    description: |
+      Open an inward or outward stream.
+
+      Creates a stream entity with intent=active and reconciles
+      to manifest it in the substrate. Returns immediately with
+      stream entity. Use sense-stream to check actual state.
+    params:
+      - name: kind
+        type: string
+        required: true
+        description: "Stream kind: voice, video, text, document"
+      - name: direction
+        type: string
+        required: true
+        description: "Flow direction: inward (perception), outward (emission)"
+      - name: source
+        type: string
+        required: false
+        description: Source identifier (device ID, file path)
+      - name: sink
+        type: string
+        required: false
+        description: Sink identifier for outward streams
+      - name: config
+        type: object
+        required: false
+        description: Stream-specific configuration
+    steps:
+      # Generate stream ID
+      - step: set
+        bindings:
+          stream_id: "stream/{{ kind }}-{{ direction }}-{{ now() }}"
+          created_at: "now()"
+
+      # Create the stream entity with intent=active (CE4: compose instead of arise)
+      - step: compose
+        typos_id: "typos-def-stream"
+        inputs:
+          id: "$stream_id"
+          kind: "$kind"
+          direction: "$direction"
+          intent: "active"
+          status: "pending"
+          source: "$source"
+          sink: "$sink"
+          config: "$config"
+          created_at: "$created_at"
+        bind_to: stream
+
+      # Bond to circle if dwelling
+      - step: switch
+        cases:
+          - when: "$_circle"
+            then:
+              - step: bind
+                from_id: "$stream_id"
+                to_id: "$_circle.id"
+                desmos: "belongs-to"
+
+      # Reconcile to manifest
+      - step: call
+        praxis: "thyra/reconcile-stream"
+        params:
+          stream_id: "$stream_id"
+        bind_to: reconcile_result
+
+      - step: return
+        value:
+          stream_id: "$stream_id"
+          kind: "$kind"
+          direction: "$direction"
+          action: "$reconcile_result.action"
+
+- eidos: praxis
+  id: praxis/thyra/close-stream
+  data:
+    oikos: thyra
+    name: close-stream
+    visible: true
+    tier: 3
+    description: |
+      Close a stream — set intent to closed and reconcile.
+
+      The clean way to stop a stream. Sets intent, then reconciles
+      to actually stop the substrate process.
+    params:
+      - name: stream_id
+        type: string
+        required: true
+        description: The stream to close
+    steps:
+      - step: find
+        id: "$stream_id"
+        bind_to: stream
+
+      - step: assert
+        condition: "$stream"
+        message: "Stream not found: $stream_id"
+
+      # Set intent to closed
+      - step: update
+        id: "$stream_id"
+        data:
+          intent: "closed"
+
+      # Reconcile to unmanifest
+      - step: call
+        praxis: "thyra/reconcile-stream"
+        params:
+          stream_id: "$stream_id"
+        bind_to: reconcile_result
+
+      - step: return
+        value:
+          stream_id: "$stream_id"
+          closed: true
+          action: "$reconcile_result.action"
+
+- eidos: praxis
+  id: praxis/thyra/sense-stream
+  data:
+    oikos: thyra
+    name: sense-stream
+    visible: true
+    tier: 1
+    description: |
+      Sense the actual state of a stream.
+
+      Queries the substrate to determine what's actually happening
+      with the manifested stream. Does NOT update the entity.
+    params:
+      - name: stream_id
+        type: string
+        required: true
+        description: The stream to sense
+    steps:
+      - step: find
+        id: "$stream_id"
+        bind_to: stream
+
+      - step: assert
+        condition: "$stream"
+        message: "Stream not found: $stream_id"
+
+      # Sense actuality via process status
+      - step: sense_actuality
+        entity_id: "$stream_id"
+        bind_to: actual
+
+      - step: return
+        value:
+          stream_id: "$stream_id"
+          kind: "$stream.data.kind"
+          direction: "$stream.data.direction"
+          intent: "$stream.data.intent"
+          status: "$stream.data.status"
+          actual_running: "$actual.running"
+          manifest_handle: "$stream.data.manifest_handle"
+
+- eidos: praxis
+  id: praxis/thyra/reconcile-stream
+  data:
+    oikos: thyra
+    name: reconcile-stream
+    visible: true
+    tier: 3
+    description: |
+      Reconcile stream intent with actuality.
+
+      The core reconciler praxis:
+      - If intent=active and not manifested → manifest (spawn capture)
+      - If intent=closed and manifested → unmanifest (kill process)
+      - Otherwise → no action needed
+    params:
+      - name: stream_id
+        type: string
+        required: true
+        description: The stream to reconcile
+    steps:
+      - step: find
+        id: "$stream_id"
+        bind_to: stream
+
+      - step: assert
+        condition: "$stream"
+        message: "Stream not found: $stream_id"
+
+      # Sense actual state
+      - step: sense_actuality
+        entity_id: "$stream_id"
+        bind_to: actual
+
+      # Determine intent vs actuality
+      - step: set
+        bindings:
+          intent: "$stream.data.intent"
+          is_running: "$actual.running"
+          action_taken: "none"
+
+      # Case: intent=active but not running → manifest
+      - step: switch
+        cases:
+          - when: '$intent == "active" and not $is_running'
+            then:
+              - step: manifest
+                entity_id: "$stream_id"
+                bind_to: manifest_result
+              - step: update
+                id: "$stream_id"
+                data:
+                  status: "active"
+                  manifest_handle: "$manifest_result.pid"
+                  manifested_at: "{{ now() }}"
+              - step: set
+                bindings:
+                  action_taken: "manifested"
+
+          # Case: intent=closed but still running → unmanifest
+          - when: '$intent == "closed" and $is_running'
+            then:
+              - step: unmanifest
+                entity_id: "$stream_id"
+                bind_to: unmanifest_result
+              - step: update
+                id: "$stream_id"
+                data:
+                  status: "closed"
+                  manifest_handle: null
+                  closed_at: "{{ now() }}"
+              - step: set
+                bindings:
+                  action_taken: "unmanifested"
+
+          # Case: intent=paused → future support
+          - when: '$intent == "paused"'
+            then:
+              - step: update
+                id: "$stream_id"
+                data:
+                  status: "paused"
+              - step: set
+                bindings:
+                  action_taken: "paused"
+
+        default:
+          # Already aligned
+          - step: set
+            bindings:
+              action_taken: "aligned"
+
+      - step: return
+        value:
+          stream_id: "$stream_id"
+          intent: "$intent"
+          actual_running: "$is_running"
+          action: "$action_taken"
+          aligned: '$action_taken == "aligned" or $action_taken == "none"'
+
+- eidos: praxis
+  id: praxis/thyra/list-streams
+  data:
+    oikos: thyra
+    name: list-streams
+    visible: true
+    tier: 1
+    description: |
+      List streams, optionally filtered by kind, direction, or status.
+    params:
+      - name: kind
+        type: string
+        required: false
+        description: Filter by stream kind (voice, video, text, document)
+      - name: direction
+        type: string
+        required: false
+        description: Filter by direction (inward, outward)
+      - name: status
+        type: string
+        required: false
+        description: Filter by status
+      - name: limit
+        type: number
+        required: false
+        description: "Maximum results (default: 50)"
+    steps:
+      - step: set
+        bindings:
+          max_results: "$limit"
+
+      - step: switch
+        cases:
+          - when: "$max_results"
+            then: []
+        default:
+          - step: set
+            bindings:
+              max_results: 50
+
+      # Gather all streams
+      - step: gather
+        eidos: stream
+        bind_to: streams
+
+      # Filter by kind if specified
+      - step: switch
+        cases:
+          - when: "$kind"
+            then:
+              - step: filter
+                in: "$streams"
+                as: s
+                where: "$s.data.kind == '$kind'"
+                bind_to: streams
+
+      # Filter by direction if specified
+      - step: switch
+        cases:
+          - when: "$direction"
+            then:
+              - step: filter
+                in: "$streams"
+                as: s
+                where: "$s.data.direction == '$direction'"
+                bind_to: streams
+
+      # Filter by status if specified
+      - step: switch
+        cases:
+          - when: "$status"
+            then:
+              - step: filter
+                in: "$streams"
+                as: s
+                where: "$s.data.status == '$status'"
+                bind_to: streams
+
+      # Limit results
+      - step: limit
+        items: "$streams"
+        count: "$max_results"
+        bind_to: streams
+
+      - step: return
+        value:
+          streams: "$streams"
+          count: "$streams | length"
+
+- eidos: praxis
+  id: praxis/thyra/pause-stream
+  data:
+    oikos: thyra
+    name: pause-stream
+    visible: true
+    tier: 2
+    description: |
+      Pause a stream — set intent to paused.
+
+      Note: Full pause support requires media actuality mode.
+      For now, this just marks the intent.
+    params:
+      - name: stream_id
+        type: string
+        required: true
+        description: The stream to pause
+    steps:
+      - step: find
+        id: "$stream_id"
+        bind_to: stream
+
+      - step: assert
+        condition: "$stream"
+        message: "Stream not found: $stream_id"
+
+      - step: update
+        id: "$stream_id"
+        data:
+          intent: "paused"
+          status: "paused"
+
+      - step: return
+        value:
+          stream_id: "$stream_id"
+          paused: true
+
+- eidos: praxis
+  id: praxis/thyra/resume-stream
+  data:
+    oikos: thyra
+    name: resume-stream
+    visible: true
+    tier: 3
+    description: |
+      Resume a paused stream — set intent back to active and reconcile.
+    params:
+      - name: stream_id
+        type: string
+        required: true
+        description: The stream to resume
+    steps:
+      - step: find
+        id: "$stream_id"
+        bind_to: stream
+
+      - step: assert
+        condition: "$stream"
+        message: "Stream not found: $stream_id"
+
+      - step: update
+        id: "$stream_id"
+        data:
+          intent: "active"
+
+      # Reconcile to ensure running
+      - step: call
+        praxis: "thyra/reconcile-stream"
+        params:
+          stream_id: "$stream_id"
+        bind_to: reconcile_result
+
+      - step: return
+        value:
+          stream_id: "$stream_id"
+          resumed: true
+          action: "$reconcile_result.action"
+
+# =============================================================================
+# ACCUMULATION OPERATIONS (Buffer Management)
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/thyra/begin-accumulation
+  data:
+    oikos: thyra
+    name: begin-accumulation
+    visible: true
+    tier: 2
+    description: |
+      Begin accumulating content from a stream.
+
+      Creates an accumulation entity that acts as a buffer for
+      content awaiting commitment. The clarifier writes to this.
+    params:
+      - name: stream_id
+        type: string
+        required: true
+        description: The terminal stream this accumulation belongs to
+      - name: initial_content
+        type: string
+        required: false
+        description: Optional initial content
+    steps:
+      # Verify stream exists
+      - step: find
+        id: "$stream_id"
+        bind_to: stream
+
+      - step: assert
+        condition: "$stream"
+        message: "Stream not found: $stream_id"
+
+      # Generate accumulation ID
+      - step: set
+        bindings:
+          accumulation_id: "accumulation/{{ now() }}"
+          started_at: "now()"
+          content: "$initial_content"
+
+      - step: switch
+        cases:
+          - when: "$content"
+            then: []
+        default:
+          - step: set
+            bindings:
+              content: ""
+
+      # Create the accumulation (CE4: compose instead of arise)
+      - step: compose
+        typos_id: "typos-def-accumulation"
+        inputs:
+          id: "$accumulation_id"
+          stream_id: "$stream_id"
+          content: "$content"
+          fragments: []
+          status: "active"
+          started_at: "$started_at"
+        bind_to: accumulation
+
+      - step: return
+        value:
+          accumulation_id: "$accumulation_id"
+          stream_id: "$stream_id"
+          status: "active"
+
+- eidos: praxis
+  id: praxis/thyra/append-fragment
+  data:
+    oikos: thyra
+    name: append-fragment
+    visible: true
+    tier: 2
+    description: |
+      Append a fragment to an active accumulation.
+
+      Fragments are individual pieces (transcription segments, etc.)
+      that build up the accumulation content.
+    params:
+      - name: accumulation_id
+        type: string
+        required: true
+        description: The accumulation to append to
+      - name: fragment
+        type: string
+        required: true
+        description: The fragment content to append
+      - name: separator
+        type: string
+        required: false
+        description: "Separator between fragments (default: space)"
+    steps:
+      - step: find
+        id: "$accumulation_id"
+        bind_to: accumulation
+
+      - step: assert
+        condition: "$accumulation"
+        message: "Accumulation not found: $accumulation_id"
+
+      - step: assert
+        condition: '$accumulation.data.status == "active"'
+        message: "Accumulation is not active: $accumulation_id"
+
+      # Set default separator
+      - step: set
+        bindings:
+          sep: "$separator"
+
+      - step: switch
+        cases:
+          - when: "$sep"
+            then: []
+        default:
+          - step: set
+            bindings:
+              sep: " "
+
+      # Build new content
+      - step: set
+        bindings:
+          current_content: "$accumulation.data.content"
+          new_content: "$current_content$sep$fragment"
+          fragment_at: "now()"
+
+      # Handle empty initial content
+      - step: switch
+        cases:
+          - when: '$current_content == ""'
+            then:
+              - step: set
+                bindings:
+                  new_content: "$fragment"
+
+      # Update accumulation
+      - step: update
+        id: "$accumulation_id"
+        data:
+          content: "$new_content"
+          last_fragment_at: "$fragment_at"
+
+      - step: return
+        value:
+          accumulation_id: "$accumulation_id"
+          content: "$new_content"
+          fragment_added: "$fragment"
+
+- eidos: praxis
+  id: praxis/thyra/commit-accumulation
+  data:
+    oikos: thyra
+    name: commit-accumulation
+    visible: true
+    tier: 3
+    description: |
+      Commit an accumulation — create expression from buffer.
+
+      This is the commitment boundary. The accumulated content
+      becomes a durable expression entity.
+    params:
+      - name: accumulation_id
+        type: string
+        required: true
+        description: The accumulation to commit
+      - name: mode
+        type: string
+        required: false
+        description: "Expression mode (default: declaration)"
+    steps:
+      - step: find
+        id: "$accumulation_id"
+        bind_to: accumulation
+
+      - step: assert
+        condition: "$accumulation"
+        message: "Accumulation not found: $accumulation_id"
+
+      - step: assert
+        condition: '$accumulation.data.status == "active"'
+        message: "Accumulation is not active: $accumulation_id"
+
+      - step: assert
+        condition: '$accumulation.data.content != ""'
+        message: "Cannot commit empty accumulation"
+
+      # Create expression via thyra/express
+      - step: call
+        praxis: "thyra/express"
+        params:
+          content: "$accumulation.data.content"
+          mode: "$mode"
+          source_kind: "stream"
+        bind_to: express_result
+
+      # Update accumulation status
+      - step: update
+        id: "$accumulation_id"
+        data:
+          status: "committed"
+          committed_at: "{{ now() }}"
+          expression_id: "$express_result.expression_id"
+
+      # Bond expression to source stream
+      - step: bind
+        from_id: "$express_result.expression_id"
+        to_id: "$accumulation.data.stream_id"
+        desmos: "derives-from"
+
+      - step: return
+        value:
+          expression_id: "$express_result.expression_id"
+          accumulation_id: "$accumulation_id"
+          content: "$accumulation.data.content"
+          mode: "$express_result.mode"
+
+- eidos: praxis
+  id: praxis/thyra/abandon-accumulation
+  data:
+    oikos: thyra
+    name: abandon-accumulation
+    visible: true
+    tier: 2
+    description: |
+      Abandon an accumulation — discard without committing.
+
+      Used when the human decides not to send.
+    params:
+      - name: accumulation_id
+        type: string
+        required: true
+        description: The accumulation to abandon
+      - name: reason
+        type: string
+        required: false
+        description: Optional reason for abandoning
+    steps:
+      - step: find
+        id: "$accumulation_id"
+        bind_to: accumulation
+
+      - step: assert
+        condition: "$accumulation"
+        message: "Accumulation not found: $accumulation_id"
+
+      - step: update
+        id: "$accumulation_id"
+        data:
+          status: "abandoned"
+          abandon_reason: "$reason"
+          abandoned_at: "{{ now() }}"
+
+      - step: return
+        value:
+          accumulation_id: "$accumulation_id"
+          abandoned: true
+          content_discarded: "$accumulation.data.content"
+
+- eidos: praxis
+  id: praxis/thyra/clear-accumulation
+  data:
+    oikos: thyra
+    name: clear-accumulation
+    visible: true
+    tier: 2
+    description: |
+      Clear an accumulation — reset content without closing.
+
+      Used to start fresh while keeping the accumulation active.
+    params:
+      - name: accumulation_id
+        type: string
+        required: true
+        description: The accumulation to clear
+    steps:
+      - step: find
+        id: "$accumulation_id"
+        bind_to: accumulation
+
+      - step: assert
+        condition: "$accumulation"
+        message: "Accumulation not found: $accumulation_id"
+
+      - step: assert
+        condition: '$accumulation.data.status == "active"'
+        message: "Accumulation is not active: $accumulation_id"
+
+      - step: set
+        bindings:
+          old_content: "$accumulation.data.content"
+
+      - step: update
+        id: "$accumulation_id"
+        data:
+          content: ""
+          fragments: []
+          last_fragment_at: null
+
+      - step: return
+        value:
+          accumulation_id: "$accumulation_id"
+          cleared: true
+          content_discarded: "$old_content"
+
+- eidos: praxis
+  id: praxis/thyra/get-accumulation
+  data:
+    oikos: thyra
+    name: get-accumulation
+    visible: true
+    tier: 1
+    description: |
+      Get the current state of an accumulation.
+    params:
+      - name: accumulation_id
+        type: string
+        required: true
+        description: The accumulation to get
+    steps:
+      - step: find
+        id: "$accumulation_id"
+        bind_to: accumulation
+
+      - step: assert
+        condition: "$accumulation"
+        message: "Accumulation not found: $accumulation_id"
+
+      - step: return
+        value:
+          accumulation: "$accumulation"
+          content: "$accumulation.data.content"
+          status: "$accumulation.data.status"
+          stream_id: "$accumulation.data.stream_id"
+
+- eidos: praxis
+  id: praxis/thyra/list-accumulations
+  data:
+    oikos: thyra
+    name: list-accumulations
+    visible: true
+    tier: 1
+    description: |
+      List accumulations, optionally filtered by status.
+    params:
+      - name: status
+        type: string
+        required: false
+        description: "Filter by status (active, committed, abandoned, cleared)"
+      - name: stream_id
+        type: string
+        required: false
+        description: Filter by source stream
+      - name: limit
+        type: number
+        required: false
+        description: "Maximum results (default: 50)"
+    steps:
+      - step: set
+        bindings:
+          max_results: "$limit"
+
+      - step: switch
+        cases:
+          - when: "$max_results"
+            then: []
+        default:
+          - step: set
+            bindings:
+              max_results: 50
+
+      - step: gather
+        eidos: accumulation
+        bind_to: accumulations
+
+      # Filter by status if specified
+      - step: switch
+        cases:
+          - when: "$status"
+            then:
+              - step: filter
+                in: "$accumulations"
+                as: a
+                where: "$a.data.status == '$status'"
+                bind_to: accumulations
+
+      # Filter by stream_id if specified
+      - step: switch
+        cases:
+          - when: "$stream_id"
+            then:
+              - step: filter
+                in: "$accumulations"
+                as: a
+                where: "$a.data.stream_id == '$stream_id'"
+                bind_to: accumulations
+
+      - step: limit
+        items: "$accumulations"
+        count: "$max_results"
+        bind_to: accumulations
+
+      - step: return
+        value:
+          accumulations: "$accumulations"
+          count: "$accumulations | length"

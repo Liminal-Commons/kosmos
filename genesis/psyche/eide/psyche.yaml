@@ -1,0 +1,179 @@
+# Psyche Eide
+# Inner life eide — attention, intention, mood, thyra, prospect, kairos
+#
+# The experiencing self has these dimensions:
+# - Attention: where focus rests
+# - Intention: what is being pursued
+# - Mood: how the world shows up (attunement)
+# - Thyra: the portal through which experience flows
+# - Prospect: anticipated possibilities
+# - Kairos: opportune moments
+
+entities:
+  # attention — where focus rests
+  - eidos: eidos
+    id: eidos/attention
+    data:
+      name: attention
+      description: "Where focus currently rests. The beam of awareness."
+      fields:
+        target_id:
+          type: string
+          required: true
+          description: What is being attended to
+        weight:
+          type: number
+          required: true
+          description: Focus intensity 0.0 to 1.0
+        reason:
+          type: string
+          required: false
+          description: Why attending to this
+        since:
+          type: timestamp
+          required: true
+          description: When attention began
+
+  # intention — what is being pursued
+  - eidos: eidos
+    id: eidos/intention
+    data:
+      name: intention
+      description: "What is being pursued. The directedness of will."
+      fields:
+        description:
+          type: string
+          required: true
+          description: What the intention is about
+        status:
+          type: enum
+          values: [forming, active, suspended, fulfilled, abandoned]
+          required: true
+          description: Current state of the intention
+        priority:
+          type: number
+          required: false
+          description: Higher means more important
+        formed_at:
+          type: timestamp
+          required: true
+          description: When the intention was formed
+        fulfilled_at:
+          type: timestamp
+          required: false
+          description: When fulfilled (if applicable)
+
+  # mood — attunement
+  - eidos: eidos
+    id: eidos/mood
+    data:
+      name: mood
+      description: "The coloring of experience. Not emotion but attunement — how the world shows up."
+      fields:
+        quality:
+          type: string
+          required: true
+          description: The mood quality (focused, scattered, anxious, calm, curious, etc.)
+        intensity:
+          type: number
+          required: false
+          description: Intensity 0.0 to 1.0
+        disclosed_at:
+          type: timestamp
+          required: true
+          description: When this mood was disclosed
+        notes:
+          type: string
+          required: false
+          description: Additional context about the mood
+
+  # thyra — the portal
+  - eidos: eidos
+    id: eidos/thyra
+    data:
+      name: thyra
+      description: "The portal. Interface through which experience flows. Manages what can be shown and what interactions are possible."
+      fields:
+        name:
+          type: string
+          required: true
+          description: Name of the thyra
+        kind:
+          type: enum
+          values: [cli, web, api, ambient]
+          required: true
+          description: Type of interface
+        visibility_scope:
+          type: array
+          required: false
+          description: Circle IDs this thyra can perceive
+        capabilities:
+          type: array
+          required: true
+          description: What can be done through this thyra
+        status:
+          type: enum
+          values: [open, closed, suspended]
+          required: true
+          description: Current state
+        opened_at:
+          type: timestamp
+          required: true
+          description: When the thyra was opened
+
+  # prospect — anticipated possibility
+  - eidos: eidos
+    id: eidos/prospect
+    data:
+      name: prospect
+      description: "What lies ahead. Anticipated possibility. Not prediction but sense of what might unfold."
+      fields:
+        description:
+          type: string
+          required: true
+          description: What is anticipated
+        likelihood:
+          type: number
+          required: false
+          description: Subjective sense 0.0 to 1.0
+        valence:
+          type: enum
+          values: [positive, negative, neutral, mixed]
+          required: false
+          description: Feeling tone of the prospect
+        horizon:
+          type: string
+          required: false
+          description: Temporal horizon (immediate, near, far)
+        noted_at:
+          type: timestamp
+          required: true
+          description: When the prospect was noted
+
+  # kairos — opportune moment
+  - eidos: eidos
+    id: eidos/kairos
+    data:
+      name: kairos
+      description: "The opportune moment. When conditions align for action. Not clock time but right time."
+      fields:
+        description:
+          type: string
+          required: true
+          description: What makes this moment opportune
+        for_intention:
+          type: string
+          required: false
+          description: Intention ID this is opportune for
+        conditions:
+          type: array
+          required: false
+          description: What conditions have aligned
+        recognized_at:
+          type: timestamp
+          required: true
+          description: When the kairos was recognized
+        expires_at:
+          type: timestamp
+          required: false
+          description: When the opportunity closes (if known)

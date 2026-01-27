@@ -1,0 +1,145 @@
+# Dynamis Desmoi
+# Bonds for existence-actuality relationships
+#
+# Traces to: genesis/dynamis/DESIGN.md
+# Authorized by: expression/genesis-root
+
+entities:
+  # =========================================================================
+  # Release Structure
+  # =========================================================================
+
+  # release → release-artifact
+  - eidos: desmos
+    id: desmos/contains-artifact
+    data:
+      name: contains-artifact
+      description: "Release contains this artifact (binary, checksum, etc.)"
+      from_eidos: release
+      to_eidos: release-artifact
+      cardinality: one-to-many
+      inverse: artifact-of
+
+  # release → substrate
+  - eidos: desmos
+    id: desmos/targets-substrate
+    data:
+      name: targets-substrate
+      description: "Release targets this substrate (platform)"
+      from_eidos: release
+      to_eidos: substrate
+      cardinality: many-to-many
+
+  # release → distribution-channel
+  - eidos: desmos
+    id: desmos/distributed-via
+    data:
+      name: distributed-via
+      description: "Release is distributed through this channel"
+      from_eidos: release
+      to_eidos: distribution-channel
+      cardinality: many-to-many
+
+  # =========================================================================
+  # Substrate Hierarchy
+  # =========================================================================
+
+  # substrate → substrate
+  - eidos: desmos
+    id: desmos/substrate-of
+    data:
+      name: substrate-of
+      description: "Substrate is a specialization of parent substrate"
+      from_eidos: substrate
+      to_eidos: substrate
+      cardinality: many-to-one
+      inverse: has-substrate
+      note: "Forms substrate taxonomy (e.g., mac-arm64 is substrate-of mac)"
+
+  # =========================================================================
+  # Deployment Relationships
+  # =========================================================================
+
+  # deployment → release
+  - eidos: desmos
+    id: desmos/deploys-release
+    data:
+      name: deploys-release
+      description: "Deployment deploys this release"
+      from_eidos: deployment
+      to_eidos: release
+      cardinality: many-to-one
+      inverse: deployed-as
+
+  # deployment → substrate
+  - eidos: desmos
+    id: desmos/targets
+    data:
+      name: targets
+      description: "Deployment targets this substrate"
+      from_eidos: deployment
+      to_eidos: substrate
+      cardinality: many-to-one
+
+  # deployment → distribution-channel
+  - eidos: desmos
+    id: desmos/through-channel
+    data:
+      name: through-channel
+      description: "Deployment uses this distribution channel"
+      from_eidos: deployment
+      to_eidos: distribution-channel
+      cardinality: many-to-one
+
+  # =========================================================================
+  # Actuality Tracking
+  # =========================================================================
+
+  # entity → actuality-record (generic, applies to any entity with actuality)
+  - eidos: desmos
+    id: desmos/has-actuality
+    data:
+      name: has-actuality
+      description: "Entity has this sensed actuality record"
+      from_eidos: "*"
+      to_eidos: actuality-record
+      cardinality: one-to-many
+      note: "Creates audit trail of sensed states"
+
+  # actuality-record → journey (when drift triggers learning)
+  - eidos: desmos
+    id: desmos/triggered-journey
+    data:
+      name: triggered-journey
+      description: "Actuality drift triggered this learning journey"
+      from_eidos: actuality-record
+      to_eidos: journey
+      cardinality: one-to-one
+      note: "When reconciliation reveals surprise, a journey may begin"
+
+  # =========================================================================
+  # Version Relationships
+  # =========================================================================
+
+  # release → release
+  - eidos: desmos
+    id: desmos/succeeds-release
+    data:
+      name: succeeds-release
+      description: "This release succeeds (is a newer version of) another"
+      from_eidos: release
+      to_eidos: release
+      cardinality: many-to-one
+      inverse: preceded-by
+      note: "Forms release version chain"
+
+  # release → release
+  - eidos: desmos
+    id: desmos/supersedes-release
+    data:
+      name: supersedes-release
+      description: "This release supersedes another (deprecates it)"
+      from_eidos: release
+      to_eidos: release
+      cardinality: many-to-many
+      note: "Different from succeeds — supersedes implies the old should not be used"

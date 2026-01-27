@@ -1,0 +1,146 @@
+# DNS Eide
+# Infrastructure actualization eide — DNS zones and records with dual existence
+#
+# Extracted from spora.yaml stage-2-presence (thyra phase 17.7)
+
+eide:
+  # dns-zone — managed DNS zone
+  - id: eidos/dns-zone
+    data:
+      name: dns-zone
+      description: "A DNS zone managed by a circle. Zones are sovereignty boundaries."
+      fields:
+        name:
+          type: string
+          required: true
+          description: "Zone name (e.g., liminalcommons.com)"
+        status:
+          type: enum
+          values: [active, pending, suspended]
+          required: true
+          default: pending
+          description: "Zone operational status"
+        provider:
+          type: enum
+          values: [cloudflare, route53, manual]
+          required: true
+          description: "DNS provider for this zone"
+        provider_zone_id:
+          type: string
+          required: false
+          description: "Provider's zone identifier"
+        record_count:
+          type: number
+          required: false
+          default: 0
+          description: "Cached count of records in zone"
+        last_synced_at:
+          type: timestamp
+          required: false
+          description: "Last full sync with provider"
+        created_at:
+          type: timestamp
+          required: true
+
+  # dns-record — DNS record with dual existence (intent + actuality)
+  - id: eidos/dns-record
+    data:
+      name: dns-record
+      description: "A DNS record with dual existence. Entity represents intent, actuality represents provider state. Reconciler aligns them."
+      fields:
+        record_type:
+          type: enum
+          values: [A, AAAA, CNAME, TXT, MX, SRV, NS, CAA]
+          required: true
+          description: "DNS record type"
+        name:
+          type: string
+          required: true
+          description: "Record name (subdomain part). For root, use @."
+        content:
+          type: string
+          required: true
+          description: "Record value (IP, hostname, text, etc.)"
+        ttl:
+          type: number
+          required: false
+          default: 1
+          description: "Time-to-live in seconds (1 = auto for Cloudflare)"
+        priority:
+          type: number
+          required: false
+          description: "Priority for MX/SRV records"
+        proxied:
+          type: boolean
+          required: false
+          default: true
+          description: "Cloudflare proxy (orange cloud). Ignored for other providers."
+        desired_state:
+          type: enum
+          values: [present, absent]
+          required: true
+          default: present
+          description: "What we want the record to be"
+        actual_state:
+          type: enum
+          values: [present, absent, unknown, diverged]
+          required: false
+          default: unknown
+          description: "What the record actually is at provider"
+        provider_record_id:
+          type: string
+          required: false
+          description: "Provider's record identifier (for updates/deletes)"
+        last_sensed_at:
+          type: timestamp
+          required: false
+          description: "When we last checked actual state"
+        last_reconciled_at:
+          type: timestamp
+          required: false
+          description: "When we last aligned intent with actuality"
+        divergence:
+          type: object
+          required: false
+          description: "When diverged, describes the difference"
+        created_at:
+          type: timestamp
+          required: true
+      actuality:
+        mode: dns
+
+  # dns-provider-binding — connection to provider with credentials
+  - id: eidos/dns-provider-binding
+    data:
+      name: dns-provider-binding
+      description: "Binds a zone to its provider with credentials. Credentials are referenced, not stored."
+      fields:
+        provider:
+          type: enum
+          values: [cloudflare, route53]
+          required: true
+          description: "DNS provider type"
+        zone_id:
+          type: string
+          required: true
+          description: "Provider's zone identifier"
+        account_id:
+          type: string
+          required: false
+          description: "Provider account (Cloudflare account ID, AWS account)"
+        credential_ref:
+          type: string
+          required: true
+          description: "Reference to credential store (secret://... or env://...)"
+        endpoint:
+          type: string
+          required: false
+          description: "Custom API endpoint (for testing/mocking)"
+        status:
+          type: enum
+          values: [active, invalid, suspended]
+          required: true
+          default: active
+        created_at:
+          type: timestamp
+          required: true

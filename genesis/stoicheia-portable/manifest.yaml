@@ -1,0 +1,40 @@
+# Oikos Manifest: Stoicheia Portable
+# στοιχεῖον — elements, the atomic operations that praxeis compose
+#
+# Contains the step vocabulary (stoicheion eide) for constrained praxis generation.
+# The stoicheion eide define the interpreter step vocabulary with full field schemas.
+#
+# Manifest v2.1 — oikos metadata for entity composition
+
+format_version: "2.1"
+oikos_id: stoicheia-portable
+version: "0.1.0"
+
+# Oikos metadata (v2.1)
+oikos_name: Stoicheia Portable
+oikos_description: |
+  The atomic operations that praxeis compose. Contains the step vocabulary
+  (stoicheion eide) for constrained praxis generation and portable WASM
+  implementations of tier-2 stoicheia.
+oikos_scale: cross-scale
+
+content_paths:
+  - path: eide/
+    content_types: [eidos, stoicheion]
+  # NOTE: Tier 3 attainment gating bonds (stoicheion → requires-attainment →
+  # attainment) are defined in genesis/spora/spora.yaml stage-3-politeia.
+  # See: crates/kosmos/src/interpreter/steps.rs get_required_attainment()
+
+description: |
+  Portable stoicheia — the atomic operations that praxeis compose.
+
+  This oikos contains:
+  - Step eide: Schema definitions for all interpreter steps (set, return, find, etc.)
+  - WASM modules: Portable implementations of tier-2 stoicheia
+
+  The step eide enable constrained praxis generation via manteia structured outputs.
+  When an LLM generates praxeis, the JSON schema derived from these eide ensures
+  only valid step structures are produced.
+
+klimax_level: 2
+depends_on: []

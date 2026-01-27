@@ -1,0 +1,311 @@
+# Thyra Desmoi
+# Boundary membrane bonds — expressions, streams, and transformations
+#
+# Extracted from spora.yaml stage-1-desmoi
+
+entities:
+  # expressed-in — expression expressed in circle
+  - eidos: desmos
+    id: desmos/expressed-in
+    data:
+      name: expressed-in
+      description: "Expression expressed in circle. The dwelling context."
+      from_eidos: expression
+      to_eidos: circle
+      cardinality: many-to-one
+      symmetric: false
+
+  # transforms-to — stream transformation relationship
+  - eidos: desmos
+    id: desmos/transforms-to
+    data:
+      name: transforms-to
+      description: "Stream transformation relationship. Audio → transcription → clarified."
+      from_eidos: stream
+      to_eidos: stream
+      cardinality: one-to-one
+      symmetric: false
+
+  # produces — daemon produces stream content
+  - eidos: desmos
+    id: desmos/produces
+    data:
+      name: produces
+      description: "Daemon produces stream content."
+      from_eidos: daemon
+      to_eidos: stream
+      cardinality: one-to-many
+      symmetric: false
+
+  # consumes — daemon consumes stream content
+  - eidos: desmos
+    id: desmos/consumes
+    data:
+      name: consumes
+      description: "Daemon consumes stream content."
+      from_eidos: daemon
+      to_eidos: stream
+      cardinality: one-to-many
+      symmetric: false
+
+  # in-reply-to — expression threading
+  - eidos: desmos
+    id: desmos/in-reply-to
+    data:
+      name: in-reply-to
+      description: "Expression threading — conversation structure."
+      from_eidos: expression
+      to_eidos: expression
+      cardinality: many-to-one
+      symmetric: false
+
+  # derives-from — expression derives from stream or artifact
+  - eidos: desmos
+    id: desmos/derives-from
+    data:
+      name: derives-from
+      description: "Expression derives from stream or artifact. Provenance."
+      from_eidos: expression
+      to_eidos: any
+      cardinality: many-to-one
+      symmetric: false
+
+  # contributes-to — utterance contributes to expression
+  - eidos: desmos
+    id: desmos/contributes-to
+    data:
+      name: contributes-to
+      description: "Utterance contributes to expression."
+      from_eidos: utterance
+      to_eidos: expression
+      cardinality: many-to-one
+      symmetric: false
+
+  # ─────────────────────────────────────────────────────────────
+  # RENDERING DESMOI — Visual emission bonds
+  # ─────────────────────────────────────────────────────────────
+
+  # renders-in — panel renders in region
+  - eidos: desmos
+    id: desmos/renders-in
+    data:
+      name: renders-in
+      description: "Panel renders in a HUD region. Binding content to visual location."
+      from_eidos: panel
+      to_eidos: hud-region
+      cardinality: many-to-one
+      symmetric: false
+
+  # styled-by — entity styled by theme
+  - eidos: desmos
+    id: desmos/styled-by
+    data:
+      name: styled-by
+      description: "Entity styled by a theme. Visual appearance binding."
+      from_eidos: any
+      to_eidos: style-theme
+      cardinality: many-to-one
+      symmetric: false
+
+  # shows — panel shows entity
+  - eidos: desmos
+    id: desmos/shows
+    data:
+      name: shows
+      description: "Panel shows entity. What is surfaced in visual space."
+      from_eidos: panel
+      to_eidos: any
+      cardinality: one-to-many
+      symmetric: false
+
+  # child-of — region child of layout
+  - eidos: desmos
+    id: desmos/child-of
+    data:
+      name: child-of
+      description: "HUD region is child of layout. Structural composition."
+      from_eidos: hud-region
+      to_eidos: layout
+      cardinality: many-to-one
+      symmetric: false
+
+  # active-layout — circle uses layout
+  - eidos: desmos
+    id: desmos/active-layout
+    data:
+      name: active-layout
+      description: "Circle uses this layout as its active HUD structure."
+      from_eidos: circle
+      to_eidos: layout
+      cardinality: one-to-one
+      symmetric: false
+
+  # active-theme — circle uses theme
+  - eidos: desmos
+    id: desmos/active-theme
+    data:
+      name: active-theme
+      description: "Circle uses this theme as its active visual styling."
+      from_eidos: circle
+      to_eidos: style-theme
+      cardinality: one-to-one
+      symmetric: false
+
+  # ─────────────────────────────────────────────────────────────
+  # HOMOICONIC RENDERING DESMOI — Graph-traversable display config
+  # ─────────────────────────────────────────────────────────────
+
+  # renders-with — render-type rendered by renderer
+  - eidos: desmos
+    id: desmos/renders-with
+    data:
+      name: renders-with
+      description: "Render type rendered by this renderer component. Makes display implementation traversable."
+      from_eidos: render-type
+      to_eidos: renderer
+      cardinality: many-to-one
+      symmetric: false
+
+  # displays-as — field displays as widget
+  - eidos: desmos
+    id: desmos/displays-as
+    data:
+      name: displays-as
+      description: "Field definition displays as this widget. Field-level display customization."
+      from_eidos: field-def
+      to_eidos: widget
+      cardinality: many-to-one
+      symmetric: false
+
+  # sources-content-from — entity sources content from root
+  - eidos: desmos
+    id: desmos/sources-content-from
+    data:
+      name: sources-content-from
+      description: "Entity sources content from this content-root. Makes content provenance traversable."
+      from_eidos: any
+      to_eidos: content-root
+      cardinality: many-to-one
+      symmetric: false
+
+  # applies-to-eidos — render-type applies to eidos
+  - eidos: desmos
+    id: desmos/applies-to-eidos
+    data:
+      name: applies-to-eidos
+      description: "Render type applies to this eidos. Links display configuration to type definition."
+      from_eidos: render-type
+      to_eidos: eidos
+      cardinality: many-to-one
+      symmetric: false
+
+  # ─────────────────────────────────────────────────────────────
+  # WORKSPACE DESMOI — Artifact focus and tabs
+  # ─────────────────────────────────────────────────────────────
+
+  # workspace-of — workspace belongs to animus
+  - eidos: desmos
+    id: desmos/workspace-of
+    data:
+      name: workspace-of
+      description: "Workspace belongs to animus. Each animus has one active workspace."
+      from_eidos: workspace
+      to_eidos: animus
+      cardinality: one-to-one
+      symmetric: false
+
+  # has-open — workspace has open artifact
+  - eidos: desmos
+    id: desmos/has-open
+    data:
+      name: has-open
+      description: "Workspace has artifact open (in tabs)."
+      from_eidos: workspace
+      to_eidos: artifact
+      cardinality: one-to-many
+      symmetric: false
+
+  # focused-on — workspace focused on artifact
+  - eidos: desmos
+    id: desmos/focused-on
+    data:
+      name: focused-on
+      description: "Workspace focused on specific artifact (active tab)."
+      from_eidos: workspace
+      to_eidos: artifact
+      cardinality: one-to-one
+      symmetric: false
+
+  # ─────────────────────────────────────────────────────────────
+  # VOICE PIPELINE DESMOI
+  # ─────────────────────────────────────────────────────────────
+
+  # active-voice-config — animus uses voice config
+  - eidos: desmos
+    id: desmos/active-voice-config
+    data:
+      name: active-voice-config
+      description: "Animus uses this voice pipeline configuration."
+      from_eidos: animus
+      to_eidos: voice-pipeline-config
+      cardinality: one-to-one
+      symmetric: false
+
+  # clarified-by — accumulation clarified by generation
+  - eidos: desmos
+    id: desmos/clarified-by
+    data:
+      name: clarified-by
+      description: "Accumulation clarified by manteia generation. Audit trail."
+      from_eidos: accumulation
+      to_eidos: generation
+      cardinality: many-to-one
+      symmetric: false
+
+  # ─────────────────────────────────────────────────────────────
+  # NAVIGATION DESMOI — Flow between panels/waypoints
+  # ─────────────────────────────────────────────────────────────
+
+  # leads-to — linear navigation between waypoints
+  - eidos: desmos
+    id: desmos/leads-to
+    data:
+      name: leads-to
+      description: "Waypoint leads to next waypoint. Linear navigation flow."
+      from_eidos: waypoint
+      to_eidos: waypoint
+      cardinality: one-to-one
+      symmetric: false
+
+  # branches-to — conditional navigation fork
+  - eidos: desmos
+    id: desmos/branches-to
+    data:
+      name: branches-to
+      description: "Waypoint branches to alternatives based on condition. Fork in the journey."
+      from_eidos: waypoint
+      to_eidos: waypoint
+      cardinality: one-to-many
+      symmetric: false
+
+  # displays-panel — waypoint displays this panel
+  - eidos: desmos
+    id: desmos/displays-panel
+    data:
+      name: displays-panel
+      description: "Waypoint displays this panel for rendering."
+      from_eidos: waypoint
+      to_eidos: panel
+      cardinality: one-to-one
+      symmetric: false
+
+  # uses-form — panel uses form definition for input
+  - eidos: desmos
+    id: desmos/uses-form
+    data:
+      name: uses-form
+      description: "Panel uses this typos for form rendering."
+      from_eidos: panel
+      to_eidos: typos
+      cardinality: one-to-one
+      symmetric: false

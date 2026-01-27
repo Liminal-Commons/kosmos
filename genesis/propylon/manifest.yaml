@@ -1,0 +1,75 @@
+# Oikos Manifest: Propylon
+# πρόπυλον — the gateway, the entrance before the entrance.
+#
+# The narrow passage through which beings enter the kosmos.
+# Authenticate, exchange, hand off, forget.
+#
+# Manifest v2.1 — oikos metadata for entity composition
+
+format_version: "2.1"
+oikos_id: propylon
+version: "0.1.0"
+
+# Oikos metadata (v2.1)
+oikos_name: Propylon
+oikos_description: |
+  The gateway, the entrance before the entrance. The narrow passage
+  through which beings enter the kosmos. Authenticate, exchange, hand off, forget.
+oikos_scale: soma
+
+content_paths:
+  - path: eide/
+    content_types: [eidos]
+  - path: desmoi/
+    content_types: [desmos]
+  - path: praxeis/
+    content_types: [praxis]
+  - path: seeds/
+    content_types: [seed]
+
+dependencies:
+  - soma         # For dwelling context (create-self-link)
+  - hypostasis   # For key derivation and signing (create-self-link)
+
+requires_dynamis:
+  - db.arise
+  - db.find
+  - db.bind
+  - db.update
+  - db.gather
+  - crypto.random     # Cryptographic random for nonces
+  - crypto.sign       # Ed25519 signing
+  - crypto.verify     # Ed25519 verification
+
+provides:
+  eide:
+    - propylon-link
+    - propylon-session
+    - propylon-relay
+
+  seeds:
+    - propylon-relay/liminal-primary
+
+  desmoi:
+    - grants-entry-to
+    - authenticated-via
+    - used-link
+    - operates-relay
+    - connects-via
+
+  praxeis:
+    - propylon/create-link
+    - propylon/decode-link
+    - propylon/validate-link
+    - propylon/challenge-entry
+    - propylon/verify-entry
+    - propylon/revoke-link
+    - propylon/list-entry-audit
+    - propylon/approve-entry
+    - propylon/reject-entry
+    - propylon/create-self-link
+
+stoicheia_form:
+  # Uses crypto dynamis for authentication
+  # Link encoding via interpreter functions
+

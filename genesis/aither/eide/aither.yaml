@@ -1,0 +1,288 @@
+# Aither Eide
+# WebRTC connectivity eide — signaling and data channels
+#
+# Extracted from spora.yaml stage-2-presence
+
+eide:
+  # signaling-session — WebSocket connection for SDP exchange
+  - id: eidos/signaling-session
+    data:
+      name: signaling-session
+      description: "WebSocket connection to propylon-relay for WebRTC signaling."
+      fields:
+        room_id:
+          type: string
+          required: true
+          description: "The room to join on the relay"
+        relay_url:
+          type: string
+          required: true
+          description: "WebSocket URL of propylon-relay"
+        role:
+          type: string
+          required: true
+          description: "Role in the room: offerer, answerer"
+        intent:
+          type: string
+          required: true
+          description: "Desired state: connected, disconnected"
+        status:
+          type: string
+          required: true
+          description: "Actual state: connecting, connected, disconnected, failed"
+        session_handle:
+          type: string
+          required: false
+          description: "Internal session ID when connected"
+        connected_at:
+          type: timestamp
+          required: false
+        disconnected_at:
+          type: timestamp
+          required: false
+      actuality:
+        mode: signaling
+
+  # data-channel — WebRTC P2P data channel
+  - id: eidos/data-channel
+    data:
+      name: data-channel
+      description: "WebRTC peer-to-peer data channel for entity synchronization."
+      fields:
+        channel_id:
+          type: string
+          required: true
+          description: "Unique channel identifier"
+        remote_chora:
+          type: string
+          required: false
+          description: "ID of the remote chora"
+        intent:
+          type: string
+          required: true
+          description: "Desired state: connected, disconnected"
+        status:
+          type: string
+          required: true
+          description: "Actual state: new, connecting, connected, disconnected, failed"
+        sdp_offer:
+          type: string
+          required: false
+          description: "SDP offer (if we're offerer)"
+        sdp_answer:
+          type: string
+          required: false
+          description: "SDP answer (if we're answerer)"
+        signaling_session_id:
+          type: string
+          required: false
+          description: "The signaling session used to establish this channel"
+        created_at:
+          type: timestamp
+          required: true
+        connected_at:
+          type: timestamp
+          required: false
+        disconnected_at:
+          type: timestamp
+          required: false
+        last_message_at:
+          type: timestamp
+          required: false
+      actuality:
+        mode: network
+
+  # syndesmos — desired connection to peer/room with reconciliation
+  - id: eidos/syndesmos
+    data:
+      name: syndesmos
+      description: |
+        A desired connection to another peer or room.
+        Reconciles intent with actual network state via the dynamis pattern.
+        Handles reconnection with exponential backoff.
+      fields:
+        peer_id:
+          type: string
+          required: false
+          description: "Remote peer identifier (if known)"
+        room_id:
+          type: string
+          required: true
+          description: "Signaling room ID for the connection"
+        circle_id:
+          type: string
+          required: false
+          description: "Circle context for this connection"
+        intent:
+          type: string
+          required: true
+          enum: [connected, disconnected, suspended]
+          default: connected
+          description: "Desired connection state"
+        status:
+          type: string
+          required: true
+          enum: [disconnected, connecting, connected, reconnecting, failed, suspended]
+          default: disconnected
+          description: "Actual connection state"
+        retry_count:
+          type: integer
+          default: 0
+          description: "Number of reconnection attempts"
+        next_retry_at:
+          type: timestamp
+          required: false
+          description: "Next scheduled reconnection attempt (exponential backoff)"
+        max_retries:
+          type: integer
+          default: 10
+          description: "Maximum reconnection attempts before giving up"
+        backoff_ms:
+          type: integer
+          default: 1000
+          description: "Current backoff interval in milliseconds"
+        last_connected_at:
+          type: timestamp
+          required: false
+        last_error:
+          type: string
+          required: false
+          description: "Last error message if failed"
+        created_at:
+          type: timestamp
+          required: true
+      actuality:
+        mode: network
+
+  # outbound-message — queued message for offline delivery
+  - id: eidos/outbound-message
+    data:
+      name: outbound-message
+      description: |
+        Message queued for delivery when offline or channel unavailable.
+        Created when send fails, delivered when connection restores.
+      fields:
+        target_peer:
+          type: string
+          required: true
+          description: "Peer ID or room ID to deliver to"
+        message_type:
+          type: string
+          required: true
+          enum: [phoreta, content-sync, presence-update, expression]
+          description: "Type of message for routing"
+        content:
+          type: string
+          required: true
+          description: "JSON-encoded message payload"
+        status:
+          type: string
+          required: true
+          enum: [pending, sending, delivered, failed, expired]
+          default: pending
+        attempts:
+          type: integer
+          default: 0
+        max_attempts:
+          type: integer
+          default: 3
+        created_at:
+          type: timestamp
+          required: true
+        expires_at:
+          type: timestamp
+          required: false
+          description: "Message TTL (default 24h)"
+        delivered_at:
+          type: timestamp
+          required: false
+        last_attempt_at:
+          type: timestamp
+          required: false
+        last_error:
+          type: string
+          required: false
+
+  # presence-record — ephemeral presence in room/circle
+  - id: eidos/presence-record
+    data:
+      name: presence-record
+      description: |
+        Ephemeral presence in a room or circle.
+        Updated via heartbeat, expires after timeout.
+      fields:
+        persona_id:
+          type: string
+          required: true
+          description: "Persona whose presence this represents"
+        circle_id:
+          type: string
+          required: false
+          description: "Circle where present"
+        room_id:
+          type: string
+          required: false
+          description: "Signaling room where present"
+        status:
+          type: string
+          required: true
+          enum: [online, away, busy, offline]
+          default: online
+        last_heartbeat:
+          type: timestamp
+          required: true
+        connected_at:
+          type: timestamp
+          required: false
+        heartbeat_interval_ms:
+          type: integer
+          default: 30000
+          description: "Heartbeat interval in milliseconds"
+        expire_after_ms:
+          type: integer
+          default: 90000
+          description: "Expire presence after this many ms without heartbeat"
+
+  # sync-message — P2P sync envelope for real-time updates (C8.4/C8.5)
+  - id: eidos/sync-message
+    data:
+      name: sync-message
+      description: |
+        Envelope for P2P synchronization messages.
+        Used for real-time entity updates between peers (C8.4)
+        and catch-up sync after reconnection (C8.5).
+      fields:
+        type:
+          type: string
+          required: true
+          enum: [expression, entity, presence, catch-up-request, catch-up-response]
+          description: "Type of sync message"
+        action:
+          type: string
+          required: true
+          enum: [create, update, delete, request, response]
+          description: "Action being synced"
+        entity:
+          type: object
+          required: false
+          description: "The entity being synced (for create/update)"
+        entities:
+          type: array
+          required: false
+          description: "Multiple entities (for catch-up-response)"
+        circle_id:
+          type: string
+          required: true
+          description: "Circle context for this sync"
+        timestamp:
+          type: timestamp
+          required: true
+          description: "When the sync message was created"
+        sender_id:
+          type: string
+          required: true
+          description: "Persona ID of the sender"
+        since:
+          type: timestamp
+          required: false
+          description: "For catch-up-request: fetch entities since this time"

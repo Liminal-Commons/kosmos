@@ -1,0 +1,458 @@
+# soma.yaml
+# Soma praxeis exposed as MCP tools
+#
+# Soma is the embodied interface — animus lifecycle, channels, perception/action.
+# These praxeis enable Claude to manage dwelling presence and interface with the world.
+#
+# NOTE: Timestamps (created_at, updated_at) are handled by the DB layer automatically.
+# The entity.data may not include explicit timestamps, but the row-level timestamps exist.
+
+entities:
+
+# =============================================================================
+# ANIMUS LIFECYCLE
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/soma/arise-animus
+  data:
+    oikos: soma
+    name: arise-animus
+    visible: true
+    description: |
+      Bring an animus into being. The animus instantiates a persona.
+
+      Creates:
+      - animus entity (status: dwelling)
+      - body-schema entity (default capabilities)
+      - instantiates bond to persona
+      - schema-of bond to animus
+
+      Returns the animus_id. Use this ID for channel operations.
+    params:
+      - name: persona_id
+        type: string
+        required: true
+        description: The persona this animus instantiates
+      - name: animus_id
+        type: string
+        required: true
+        description: ID for the new animus (e.g., animus/uuid)
+    steps:
+      # Verify persona exists
+      - step: find
+        id: "$persona_id"
+        bind_to: persona
+
+      - step: assert
+        condition: "$persona"
+        message: "Persona not found: $persona_id"
+
+      # Create the animus (CE4: compose instead of arise)
+      - step: compose
+        typos_id: "typos-def-animus"
+        inputs:
+          id: "$animus_id"
+          status: "dwelling"
+          persona_id: "$persona_id"
+        bind_to: animus_entity
+
+      # Create instantiates bond
+      - step: bind
+        from_id: "$animus_id"
+        to_id: "$persona_id"
+        desmos: "instantiates"
+
+      # Create default body schema
+      - step: set
+        bindings:
+          schema_id: "body-schema/$animus_id"
+
+      # CE4: compose instead of arise
+      - step: compose
+        typos_id: "typos-def-body-schema"
+        inputs:
+          id: "$schema_id"
+          channels: []
+          capabilities: ["perceive", "emit", "dwell"]
+        bind_to: schema_entity
+
+      # Create schema-of bond
+      - step: bind
+        from_id: "$schema_id"
+        to_id: "$animus_id"
+        desmos: "schema-of"
+
+      - step: return
+        value:
+          animus_id: "$animus_id"
+          body_schema_id: "$schema_id"
+          status: "dwelling"
+
+- eidos: praxis
+  id: praxis/soma/depart-animus
+  data:
+    oikos: soma
+    name: depart-animus
+    visible: true
+    description: |
+      Have an animus depart (end dwelling).
+
+      Marks the animus as departed and closes all open channels.
+    params:
+      - name: animus_id
+        type: string
+        required: true
+        description: The animus to depart
+    steps:
+      # Find the animus
+      - step: find
+        id: "$animus_id"
+        bind_to: animus
+
+      - step: assert
+        condition: "$animus"
+        message: "Animus not found: $animus_id"
+
+      # Mark as departed
+      - step: update
+        id: "$animus_id"
+        data:
+          status: "departed"
+
+      # Find and close all channels
+      - step: trace
+        to_id: "$animus_id"
+        desmos: "channel-of"
+        resolve: "from"
+        bind_to: channels
+
+      - step: for_each
+        items: "$channels"
+        item_var: channel
+        steps:
+          - step: switch
+            cases:
+              - when: "$channel.data.status == 'open'"
+                then:
+                  - step: update
+                    id: "$channel.id"
+                    data:
+                      status: "closed"
+
+      - step: return
+        value:
+          departed: true
+          animus_id: "$animus_id"
+
+# =============================================================================
+# CHANNEL MANAGEMENT
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/soma/open-channel
+  data:
+    oikos: soma
+    name: open-channel
+    visible: true
+    description: |
+      Open a channel for an animus.
+
+      Channels are interfaces for perception or action:
+      - perception: receives input (text, voice, vision)
+      - action: emits output (text, file, signal)
+      - bidirectional: both
+    params:
+      - name: animus_id
+        type: string
+        required: true
+        description: The animus to open a channel for
+      - name: channel_id
+        type: string
+        required: true
+        description: ID for the new channel (e.g., channel/uuid)
+      - name: name
+        type: string
+        required: true
+        description: Channel name
+      - name: modality
+        type: string
+        required: true
+        description: What type of data (text, voice, vision, file, etc.)
+      - name: kind
+        type: string
+        required: false
+        description: Channel kind (perception, action, bidirectional)
+    steps:
+      # Find the animus
+      - step: find
+        id: "$animus_id"
+        bind_to: animus
+
+      - step: assert
+        condition: "$animus"
+        message: "Animus not found: $animus_id"
+
+      # Default kind to bidirectional
+      - step: set
+        bindings:
+          channel_kind: "$kind"
+
+      - step: switch
+        cases:
+          - when: "$channel_kind"
+            then: []
+        default:
+          - step: set
+            bindings:
+              channel_kind: "bidirectional"
+
+      # Create the channel (CE4: compose instead of arise)
+      - step: compose
+        typos_id: "typos-def-channel"
+        inputs:
+          id: "$channel_id"
+          name: "$name"
+          modality: "$modality"
+          kind: "$channel_kind"
+          status: "open"
+        bind_to: channel_entity
+
+      # Create channel-of bond to animus
+      - step: bind
+        from_id: "$channel_id"
+        to_id: "$animus_id"
+        desmos: "channel-of"
+
+      - step: return
+        value:
+          channel_id: "$channel_id"
+          name: "$name"
+          modality: "$modality"
+          kind: "$channel_kind"
+          status: "open"
+
+- eidos: praxis
+  id: praxis/soma/close-channel
+  data:
+    oikos: soma
+    name: close-channel
+    visible: true
+    description: |
+      Close a channel.
+    params:
+      - name: channel_id
+        type: string
+        required: true
+        description: The channel to close
+    steps:
+      - step: find
+        id: "$channel_id"
+        bind_to: channel
+
+      - step: assert
+        condition: "$channel"
+        message: "Channel not found: $channel_id"
+
+      - step: update
+        id: "$channel_id"
+        data:
+          status: "closed"
+
+      - step: return
+        value:
+          closed: true
+          channel_id: "$channel_id"
+
+# =============================================================================
+# PERCEPTION AND ACTION
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/soma/perceive
+  data:
+    oikos: soma
+    name: perceive
+    visible: true
+    description: |
+      Record a perception through a channel.
+
+      Creates a percept entity bonded to the channel.
+    params:
+      - name: channel_id
+        type: string
+        required: true
+        description: The channel to perceive through
+      - name: percept_id
+        type: string
+        required: true
+        description: ID for the new percept (e.g., percept/uuid)
+      - name: content
+        type: any
+        required: true
+        description: The perceived content
+      - name: metadata
+        type: object
+        required: false
+        description: Optional metadata about the perception
+    steps:
+      - step: find
+        id: "$channel_id"
+        bind_to: channel
+
+      - step: assert
+        condition: "$channel"
+        message: "Channel not found: $channel_id"
+
+      - step: assert
+        condition: "$channel.data.status == 'open'"
+        message: "Channel is not open"
+
+      - step: assert
+        condition: "$channel.data.kind != 'action'"
+        message: "Cannot perceive through action-only channel"
+
+      # Create the percept (CE4: compose instead of arise)
+      - step: compose
+        typos_id: "typos-def-percept"
+        inputs:
+          id: "$percept_id"
+          modality: "$channel.data.modality"
+          content: "$content"
+          metadata: "$metadata"
+        bind_to: percept_entity
+
+      # Create received-through bond
+      - step: bind
+        from_id: "$percept_id"
+        to_id: "$channel_id"
+        desmos: "received-through"
+
+      - step: return
+        value:
+          percept_id: "$percept_id"
+          modality: "$channel.data.modality"
+
+- eidos: praxis
+  id: praxis/soma/emit
+  data:
+    oikos: soma
+    name: emit
+    visible: true
+    description: |
+      Emit a signal through a channel.
+
+      Creates a signal entity bonded to the channel.
+    params:
+      - name: channel_id
+        type: string
+        required: true
+        description: The channel to emit through
+      - name: signal_id
+        type: string
+        required: true
+        description: ID for the new signal (e.g., signal/uuid)
+      - name: content
+        type: any
+        required: true
+        description: The content to emit
+      - name: metadata
+        type: object
+        required: false
+        description: Optional metadata about the signal
+    steps:
+      - step: find
+        id: "$channel_id"
+        bind_to: channel
+
+      - step: assert
+        condition: "$channel"
+        message: "Channel not found: $channel_id"
+
+      - step: assert
+        condition: "$channel.data.status == 'open'"
+        message: "Channel is not open"
+
+      - step: assert
+        condition: "$channel.data.kind != 'perception'"
+        message: "Cannot emit through perception-only channel"
+
+      # Create the signal (CE4: compose instead of arise)
+      - step: compose
+        typos_id: "typos-def-signal"
+        inputs:
+          id: "$signal_id"
+          modality: "$channel.data.modality"
+          content: "$content"
+          metadata: "$metadata"
+        bind_to: signal_entity
+
+      # Create emitted-through bond
+      - step: bind
+        from_id: "$signal_id"
+        to_id: "$channel_id"
+        desmos: "emitted-through"
+
+      - step: return
+        value:
+          signal_id: "$signal_id"
+          modality: "$channel.data.modality"
+
+# =============================================================================
+# BODY AWARENESS
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/soma/sense-body
+  data:
+    oikos: soma
+    name: sense-body
+    visible: true
+    description: |
+      Sense the current body schema (idioaisthesis).
+
+      Returns the animus's sense of its own shape and capacity:
+      - Available channels
+      - Capabilities
+      - Limits
+    params:
+      - name: animus_id
+        type: string
+        required: true
+        description: The animus to sense
+    steps:
+      # Find the body schema
+      - step: trace
+        to_id: "$animus_id"
+        desmos: "schema-of"
+        resolve: "from"
+        bind_to: schemas
+
+      - step: switch
+        cases:
+          - when: "$schemas"
+            then:
+              - step: set
+                bindings:
+                  schema: "$schemas[0]"
+        default:
+          - step: return
+            value:
+              found: false
+              animus_id: "$animus_id"
+
+      # Get channel states
+      - step: trace
+        to_id: "$animus_id"
+        desmos: "channel-of"
+        resolve: "from"
+        bind_to: channels
+
+      - step: return
+        value:
+          found: true
+          animus_id: "$animus_id"
+          schema: "$schema"
+          channels: "$channels"
+          capabilities: "$schema.data.capabilities"
+          limits: "$schema.data.limits"

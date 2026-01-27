@@ -1,0 +1,90 @@
+# Agora Desmoi
+# Bond types for spatial gathering relationships
+
+entities:
+
+# ─────────────────────────────────────────────────────────────────
+# hosts-territory — Circle owns a territory
+# ─────────────────────────────────────────────────────────────────
+
+- eidos: desmos
+  id: desmos/hosts-territory
+  data:
+    name: hosts-territory
+    oikos: agora
+    description: A circle hosts (owns) a territory
+    from_eidos: circle
+    to_eidos: eidos/agora/territory
+    cardinality: one-to-many
+
+# ─────────────────────────────────────────────────────────────────
+# operates-server — Circle operates infrastructure
+# ─────────────────────────────────────────────────────────────────
+
+- eidos: desmos
+  id: desmos/operates-server
+  data:
+    name: operates-server
+    oikos: agora
+    description: A circle operates a LiveKit server
+    from_eidos: circle
+    to_eidos: eidos/agora/livekit-server
+    cardinality: one-to-many
+
+# ─────────────────────────────────────────────────────────────────
+# present-in — Animus presence in territory
+# ─────────────────────────────────────────────────────────────────
+
+- eidos: desmos
+  id: desmos/present-in
+  data:
+    name: present-in
+    oikos: agora
+    description: A presence exists within a territory
+    from_eidos: eidos/agora/presence
+    to_eidos: eidos/agora/territory
+    cardinality: many-to-one
+    ephemeral: true  # Presence is destroyed when bond breaks
+
+# ─────────────────────────────────────────────────────────────────
+# uses-room — Territory uses a communication room
+# ─────────────────────────────────────────────────────────────────
+
+- eidos: desmos
+  id: desmos/uses-room
+  data:
+    name: uses-room
+    oikos: agora
+    description: A territory uses a LiveKit room for communication
+    from_eidos: eidos/agora/territory
+    to_eidos: eidos/agora/room
+    cardinality: one-to-one
+
+# ─────────────────────────────────────────────────────────────────
+# served-by — Room runs on a server
+# ─────────────────────────────────────────────────────────────────
+
+- eidos: desmos
+  id: desmos/served-by
+  data:
+    name: served-by
+    oikos: agora
+    description: A room is served by a LiveKit server
+    from_eidos: eidos/agora/room
+    to_eidos: eidos/agora/livekit-server
+    cardinality: many-to-one
+
+# ─────────────────────────────────────────────────────────────────
+# instantiates-presence — Animus instantiates a presence
+# ─────────────────────────────────────────────────────────────────
+
+- eidos: desmos
+  id: desmos/instantiates-presence
+  data:
+    name: instantiates-presence
+    oikos: agora
+    description: An animus instantiates a presence in a territory
+    from_eidos: animus
+    to_eidos: eidos/agora/presence
+    cardinality: one-to-one
+    ephemeral: true

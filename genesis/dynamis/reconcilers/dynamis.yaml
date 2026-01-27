@@ -1,0 +1,77 @@
+# Dynamis Reconcilers
+# Declarative reconciliation rules for dynamis entities
+#
+# Each reconciler defines transition rules that map intent/actuality
+# pairs to actions. The generic ergon/reconcile praxis interprets these.
+#
+# Traces to: genesis/dynamis/DESIGN.md
+# Phase 4 of pillar alignment (declarative reconciliation)
+
+entities:
+
+  # ===========================================================================
+  # Deployment Reconciler
+  # ===========================================================================
+
+  - eidos: reconciler
+    id: reconciler/deployment
+    data:
+      target_eidos: deployment
+      intent_field: desired_state
+      actuality_field: actual_state
+      transitions:
+        # Want running, but not running → manifest
+        - intent: running
+          actual: [stopped, unknown, failed]
+          action: manifest
+
+        # Want stopped, but running → unmanifest
+        - intent: stopped
+          actual: running
+          action: unmanifest
+
+        # Want removed, still exists → unmanifest
+        - intent: removed
+          actual: [running, stopped]
+          action: unmanifest
+
+        # Want running, already running → none
+        - intent: running
+          actual: running
+          action: none
+
+        # Want stopped, already stopped → none
+        - intent: stopped
+          actual: [stopped, unknown]
+          action: none
+
+  # ===========================================================================
+  # Release Artifact Reconciler
+  # ===========================================================================
+
+  - eidos: reconciler
+    id: reconciler/release-artifact
+    data:
+      target_eidos: release-artifact
+      intent_field: uploaded
+      actuality_field: _sensed.exists
+      transitions:
+        # Should be uploaded, but not present → manifest (upload)
+        - intent: true
+          actual: false
+          action: manifest
+
+        # Should not be uploaded, but present → unmanifest (delete)
+        - intent: false
+          actual: true
+          action: unmanifest
+
+        # Should be uploaded, and is → none
+        - intent: true
+          actual: true
+          action: none
+
+        # Should not be uploaded, and isn't → none
+        - intent: false
+          actual: false
+          action: none

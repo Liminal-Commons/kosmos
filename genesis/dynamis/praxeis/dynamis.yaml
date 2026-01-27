@@ -1,0 +1,918 @@
+# Dynamis Praxeis
+# Release, deployment, and actuality management
+#
+# Follows the Energeia actuality pattern:
+# - Entities exist in kosmos (intent)
+# - Actuality exists in chora (R2, processes, etc.)
+# - Reconciler aligns intent with actuality (phylax pattern)
+#
+# Traces to: genesis/dynamis/DESIGN.md
+# Authorized by: expression/genesis-root
+
+entities:
+
+# =============================================================================
+# RELEASE LIFECYCLE
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/dynamis/create-release
+  data:
+    oikos: dynamis
+    name: create-release
+    visible: true
+    tier: 2
+    description: |
+      Create a new release in draft state.
+
+      A release represents a versioned build artifact. It exists in kosmos
+      as intention. Distribution actualizes it in chora.
+    params:
+      - name: name
+        type: string
+        required: true
+        description: "Release name (e.g., 'thyra')"
+      - name: version
+        type: string
+        required: true
+        description: "Semantic version (e.g., '0.1.0')"
+      - name: description
+        type: string
+        required: false
+        description: Release description or notes
+      - name: changelog
+        type: string
+        required: false
+        description: What changed in this version
+      - name: build_commit
+        type: string
+        required: false
+        description: Git commit SHA
+    steps:
+      # Cache-driven: Use compose for provenance tracking.
+      # Creates composed-from bond to definition.
+      - step: compose
+        typos_id: "typos-def-release"
+        id: "release/{{ $name }}-{{ $version }}"
+        inputs:
+          name: "$name"
+          version: "$version"
+          description: "$description"
+          changelog: "$changelog"
+          build_commit: "$build_commit"
+          created_at: "{{ now() }}"
+          created_by: "$_persona"
+        bind_to: release
+
+      - step: return
+        value:
+          release: "$release"
+          release_id: "$release.id"
+
+- eidos: praxis
+  id: praxis/dynamis/register-artifact
+  data:
+    oikos: dynamis
+    name: register-artifact
+    visible: true
+    tier: 2
+    description: |
+      Register a build artifact with a release.
+
+      Creates a release-artifact entity and bonds it to the release.
+      The artifact is not yet uploaded — that happens in distribute-release.
+    params:
+      - name: release_id
+        type: string
+        required: true
+        description: Release entity ID
+      - name: filename
+        type: string
+        required: true
+        description: "Artifact filename (e.g., 'thyra-0.1.0-mac-arm64.dmg')"
+      - name: artifact_type
+        type: string
+        required: true
+        description: "Type: binary, checksum, signature, archive, installer"
+      - name: platform
+        type: string
+        required: false
+        description: "Target platform (e.g., 'mac-arm64')"
+      - name: local_path
+        type: string
+        required: false
+        description: Local filesystem path to the built artifact
+      - name: size_bytes
+        type: integer
+        required: false
+      - name: content_hash
+        type: string
+        required: false
+        description: BLAKE3 hash of contents
+    steps:
+      - step: find
+        id: "$release_id"
+        bind_to: release
+
+      - step: switch
+        cases:
+          - when: "!$release"
+            then:
+              - step: return
+                value:
+                  error: "Release not found"
+
+      # Cache-driven: Use compose for provenance tracking
+      - step: compose
+        typos_id: "typos-def-release-artifact"
+        id: "release-artifact/{{ $release.data.name }}-{{ $release.data.version }}-{{ $filename | replace('.', '-') }}"
+        inputs:
+          filename: "$filename"
+          artifact_type: "$artifact_type"
+          platform: "$platform"
+          local_path: "$local_path"
+          size_bytes: "$size_bytes"
+          content_hash: "$content_hash"
+          built_at: "{{ now() }}"
+        bind_to: artifact
+
+      # Explicit bond: release contains this artifact
+      - step: bind
+        from_id: "$release.id"
+        to_id: "$artifact.id"
+        desmos: contains-artifact
+
+      - step: return
+        value:
+          artifact: "$artifact"
+          artifact_id: "$artifact.id"
+          release_id: "$release.id"
+
+- eidos: praxis
+  id: praxis/dynamis/mark-release-built
+  data:
+    oikos: dynamis
+    name: mark-release-built
+    visible: true
+    tier: 2
+    description: |
+      Mark a release as built (ready for distribution).
+    params:
+      - name: release_id
+        type: string
+        required: true
+    steps:
+      - step: find
+        id: "$release_id"
+        bind_to: release
+
+      - step: update
+        id: "$release.id"
+        data:
+          status: built
+          build_timestamp: "{{ now() }}"
+
+      - step: return
+        value:
+          release_id: "$release.id"
+          status: built
+
+# =============================================================================
+# SUBSTRATE MANAGEMENT
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/dynamis/create-substrate
+  data:
+    oikos: dynamis
+    name: create-substrate
+    visible: true
+    tier: 2
+    description: |
+      Create a substrate (target platform/environment).
+
+      Substrates are conceptual categories — they don't have direct actuality.
+      Releases target substrates. Deployments deploy to substrates.
+    params:
+      - name: name
+        type: string
+        required: true
+        description: "Substrate identifier (e.g., 'mac-arm64')"
+      - name: kind
+        type: string
+        required: true
+        description: "Kind: platform, runtime, or environment"
+      - name: description
+        type: string
+        required: false
+      - name: os
+        type: string
+        required: false
+        description: "OS for platform substrates"
+      - name: arch
+        type: string
+        required: false
+        description: "Architecture for platform substrates"
+      - name: parent_substrate
+        type: string
+        required: false
+        description: "Parent substrate ID for hierarchy"
+    steps:
+      # Cache-driven: Use compose for provenance tracking
+      - step: compose
+        typos_id: "typos-def-substrate"
+        id: "substrate/{{ $name }}"
+        inputs:
+          name: "$name"
+          kind: "$kind"
+          description: "$description"
+          os: "$os"
+          arch: "$arch"
+        bind_to: substrate
+
+      # Bond to parent if specified (graph-driven)
+      - step: switch
+        cases:
+          - when: "$parent_substrate"
+            then:
+              - step: bind
+                from_id: "$substrate.id"
+                to_id: "$parent_substrate"
+                desmos: substrate-of
+
+      - step: return
+        value:
+          substrate: "$substrate"
+          substrate_id: "$substrate.id"
+
+# =============================================================================
+# DISTRIBUTION CHANNEL MANAGEMENT
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/dynamis/create-distribution-channel
+  data:
+    oikos: dynamis
+    name: create-distribution-channel
+    visible: true
+    tier: 2
+    description: |
+      Create a distribution channel for releases.
+
+      Channels are how releases reach users — R2, GitHub Releases, etc.
+    params:
+      - name: name
+        type: string
+        required: true
+        description: "Channel identifier (e.g., 'thyra-r2')"
+      - name: provider
+        type: string
+        required: true
+        description: "Provider: r2, github, homebrew, npm, crates, direct"
+      - name: description
+        type: string
+        required: false
+      - name: config
+        type: object
+        required: true
+        description: Provider-specific configuration
+      - name: base_url
+        type: string
+        required: false
+        description: Base URL for downloads
+    steps:
+      # Cache-driven: Use compose for provenance tracking
+      - step: compose
+        typos_id: "typos-def-distribution-channel"
+        id: "distribution-channel/{{ $name }}"
+        inputs:
+          name: "$name"
+          provider: "$provider"
+          description: "$description"
+          config: "$config"
+          base_url: "$base_url"
+          created_at: "{{ now() }}"
+        bind_to: channel
+
+      - step: return
+        value:
+          channel: "$channel"
+          channel_id: "$channel.id"
+
+# =============================================================================
+# DISTRIBUTION (ACTUALITY)
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/dynamis/distribute-release
+  data:
+    oikos: dynamis
+    name: distribute-release
+    visible: true
+    tier: 3
+    description: |
+      Distribute a release through a channel.
+
+      This is the manifest operation — bringing release artifacts into
+      actuality in the distribution channel (e.g., uploading to R2).
+    params:
+      - name: release_id
+        type: string
+        required: true
+      - name: channel_id
+        type: string
+        required: true
+    steps:
+      - step: find
+        id: "$release_id"
+        bind_to: release
+
+      - step: find
+        id: "$channel_id"
+        bind_to: channel
+
+      - step: switch
+        cases:
+          - when: "!$release"
+            then:
+              - step: return
+                value:
+                  error: "Release not found"
+          - when: "!$channel"
+            then:
+              - step: return
+                value:
+                  error: "Channel not found"
+
+      # Update release status
+      - step: update
+        id: "$release.id"
+        data:
+          status: distributing
+
+      # Get all artifacts for this release
+      - step: trace
+        from_id: "$release.id"
+        desmos: contains-artifact
+        bind_to: artifact_bonds
+
+      # Manifest each artifact (upload to R2)
+      - step: for_each
+        items: "$artifact_bonds"
+        as: bond
+        do:
+          - step: find
+            id: "$bond.to_id"
+            bind_to: artifact
+
+          - step: manifest
+            entity_id: "$artifact.id"
+            bind_to: manifest_result
+
+          - step: update
+            id: "$artifact.id"
+            data:
+              uploaded: true
+              uploaded_at: "{{ now() }}"
+              upload_url: "$manifest_result.url"
+
+      # Create distribution bond
+      - step: bind
+        from_id: "$release.id"
+        to_id: "$channel.id"
+        desmos: distributed-via
+
+      # Update release status
+      - step: update
+        id: "$release.id"
+        data:
+          status: distributed
+          distributed_at: "{{ now() }}"
+
+      - step: return
+        value:
+          release_id: "$release.id"
+          channel_id: "$channel.id"
+          status: distributed
+
+- eidos: praxis
+  id: praxis/dynamis/sense-release
+  data:
+    oikos: dynamis
+    name: sense-release
+    visible: true
+    tier: 3
+    description: |
+      Sense the actual state of a release in its distribution channels.
+
+      Queries the provider (R2, GitHub, etc.) to check what actually exists.
+      Creates actuality-record entities for audit trail.
+    params:
+      - name: release_id
+        type: string
+        required: true
+    steps:
+      - step: find
+        id: "$release_id"
+        bind_to: release
+
+      # Get all artifacts
+      - step: trace
+        from_id: "$release.id"
+        desmos: contains-artifact
+        bind_to: artifact_bonds
+
+      # Sense each artifact
+      - step: for_each
+        items: "$artifact_bonds"
+        as: bond
+        do:
+          - step: find
+            id: "$bond.to_id"
+            bind_to: artifact
+
+          - step: sense_actuality
+            entity_id: "$artifact.id"
+            bind_to: sense_result
+
+          # Create actuality record (cache-driven: compose for provenance)
+          - step: compose
+            typos_id: "typos-def-actuality-record"
+            id: "actuality-record/{{ $artifact.id }}-{{ now() }}"
+            inputs:
+              entity_id: "$artifact.id"
+              sensed_at: "{{ now() }}"
+              actual_state: "$sense_result.status"
+              details: "$sense_result"
+              expected_state: "$artifact.data.uploaded"
+              aligned: "$sense_result.exists == $artifact.data.uploaded"
+              drift_type: "{{ if $sense_result.exists != $artifact.data.uploaded then (if $sense_result.exists then 'extra' else 'missing') else 'none' }}"
+            bind_to: record
+
+          - step: bind
+            from_id: "$artifact.id"
+            to_id: "$record.id"
+            desmos: has-actuality
+
+      - step: return
+        value:
+          release_id: "$release.id"
+          sensed_at: "{{ now() }}"
+
+- eidos: praxis
+  id: praxis/dynamis/reconcile-release
+  data:
+    oikos: dynamis
+    name: reconcile-release
+    visible: true
+    tier: 3
+    description: |
+      Reconcile a release's intent with its actuality.
+
+      Iterates over all artifacts and delegates to generic reconciler.
+      The phylax pattern (sense → compare → act) is now declarative.
+    params:
+      - name: release_id
+        type: string
+        required: true
+    steps:
+      - step: find
+        id: "$release_id"
+        bind_to: release
+
+      # Get all artifacts
+      - step: trace
+        from_id: "$release.id"
+        desmos: contains-artifact
+        bind_to: artifact_bonds
+
+      # Reconcile each artifact using declarative reconciler
+      - step: for_each
+        items: "$artifact_bonds"
+        as: bond
+        do:
+          - step: call
+            praxis: dynamis/reconcile
+            params:
+              reconciler_id: reconciler/release-artifact
+              entity_id: "$bond.to_id"
+
+      - step: return
+        value:
+          release_id: "$release.id"
+          artifact_count: "{{ $artifact_bonds | length }}"
+          reconciled_at: "{{ now() }}"
+
+# =============================================================================
+# DEPLOYMENT MANAGEMENT
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/dynamis/create-deployment
+  data:
+    oikos: dynamis
+    name: create-deployment
+    visible: true
+    tier: 2
+    description: |
+      Create a deployment target.
+
+      Deployments track where releases are running — useful for services,
+      not just static file distribution.
+    params:
+      - name: name
+        type: string
+        required: true
+      - name: release_id
+        type: string
+        required: true
+      - name: substrate_id
+        type: string
+        required: true
+      - name: channel_id
+        type: string
+        required: false
+      - name: config
+        type: object
+        required: false
+    steps:
+      - step: find
+        id: "$release_id"
+        bind_to: release
+
+      - step: find
+        id: "$substrate_id"
+        bind_to: substrate
+
+      # Cache-driven: Use compose for provenance tracking.
+      # Graph-driven: No embedded reference fields — relationships via bonds only.
+      - step: compose
+        typos_id: "typos-def-deployment"
+        id: "deployment/{{ $name }}"
+        inputs:
+          name: "$name"
+          config: "$config"
+        bind_to: deployment
+
+      # Bond: deployment → deploys-release → release
+      - step: bind
+        from_id: "$deployment.id"
+        to_id: "$release.id"
+        desmos: deploys-release
+
+      # Bond: deployment → targets → substrate
+      - step: bind
+        from_id: "$deployment.id"
+        to_id: "$substrate.id"
+        desmos: targets
+
+      # Bond: deployment → uses-channel → channel (if provided)
+      - step: switch
+        cases:
+          - when: "$channel_id"
+            then:
+              - step: find
+                id: "$channel_id"
+                bind_to: channel
+              - step: bind
+                from_id: "$deployment.id"
+                to_id: "$channel.id"
+                desmos: uses-channel
+
+      - step: return
+        value:
+          deployment: "$deployment"
+          deployment_id: "$deployment.id"
+
+- eidos: praxis
+  id: praxis/dynamis/manifest-deployment
+  data:
+    oikos: dynamis
+    name: manifest-deployment
+    visible: true
+    tier: 3
+    description: |
+      Bring a deployment into actuality.
+
+      Sets desired_state to running and manifests via energeia.
+    params:
+      - name: deployment_id
+        type: string
+        required: true
+    steps:
+      - step: find
+        id: "$deployment_id"
+        bind_to: deployment
+
+      - step: update
+        id: "$deployment.id"
+        data:
+          desired_state: running
+
+      - step: manifest
+        entity_id: "$deployment.id"
+        bind_to: manifest_result
+
+      - step: update
+        id: "$deployment.id"
+        data:
+          actual_state: "$manifest_result.status"
+          manifest_handle: "$manifest_result.handle"
+          deployed_at: "{{ now() }}"
+          deployed_by: "$_persona"
+
+      - step: return
+        value:
+          deployment_id: "$deployment.id"
+          status: "$manifest_result.status"
+
+- eidos: praxis
+  id: praxis/dynamis/sense-deployment
+  data:
+    oikos: dynamis
+    name: sense-deployment
+    visible: true
+    tier: 3
+    description: |
+      Sense the actual state of a deployment.
+    params:
+      - name: deployment_id
+        type: string
+        required: true
+    steps:
+      - step: find
+        id: "$deployment_id"
+        bind_to: deployment
+
+      - step: sense_actuality
+        entity_id: "$deployment.id"
+        bind_to: sense_result
+
+      - step: update
+        id: "$deployment.id"
+        data:
+          actual_state: "$sense_result.status"
+          last_sensed_at: "{{ now() }}"
+
+      - step: return
+        value:
+          deployment_id: "$deployment.id"
+          actual_state: "$sense_result.status"
+          aligned: "$deployment.data.desired_state == $sense_result.status"
+
+- eidos: praxis
+  id: praxis/dynamis/reconcile-deployment
+  data:
+    oikos: dynamis
+    name: reconcile-deployment
+    visible: true
+    tier: 3
+    description: |
+      Reconcile deployment intent with actuality.
+
+      Delegates to generic dynamis/reconcile with deployment reconciler.
+      The phylax pattern (sense → compare → act) is now declarative.
+    params:
+      - name: deployment_id
+        type: string
+        required: true
+    steps:
+      # Declarative: Use generic reconciler with deployment rules
+      - step: call
+        praxis: dynamis/reconcile
+        params:
+          reconciler_id: reconciler/deployment
+          entity_id: "$deployment_id"
+        bind_to: result
+
+      - step: return
+        value:
+          deployment_id: "$deployment_id"
+          action_taken: "$result.action_taken"
+          reconciled_at: "$result.reconciled_at"
+
+# =============================================================================
+# LIST/QUERY OPERATIONS
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/dynamis/list-releases
+  data:
+    oikos: dynamis
+    name: list-releases
+    visible: true
+    tier: 2
+    description: List all releases, optionally filtered by status.
+    params:
+      - name: status
+        type: string
+        required: false
+        description: Filter by status (draft, built, distributed, etc.)
+      - name: limit
+        type: integer
+        required: false
+        default: 50
+    steps:
+      - step: gather
+        eidos: release
+        limit: "$limit"
+        bind_to: releases
+
+      - step: switch
+        cases:
+          - when: "$status"
+            then:
+              - step: filter
+                items: "$releases"
+                where: "$item.data.status == $status"
+                bind_to: releases
+
+      - step: return
+        value:
+          releases: "$releases"
+          count: "{{ $releases | length }}"
+
+- eidos: praxis
+  id: praxis/dynamis/list-substrates
+  data:
+    oikos: dynamis
+    name: list-substrates
+    visible: true
+    tier: 2
+    description: List all substrates, optionally filtered by kind.
+    params:
+      - name: kind
+        type: string
+        required: false
+        description: Filter by kind (platform, runtime, environment)
+      - name: limit
+        type: integer
+        required: false
+        default: 50
+    steps:
+      - step: gather
+        eidos: substrate
+        limit: "$limit"
+        bind_to: substrates
+
+      - step: switch
+        cases:
+          - when: "$kind"
+            then:
+              - step: filter
+                items: "$substrates"
+                where: "$item.data.kind == $kind"
+                bind_to: substrates
+
+      - step: return
+        value:
+          substrates: "$substrates"
+          count: "{{ $substrates | length }}"
+
+- eidos: praxis
+  id: praxis/dynamis/list-distribution-channels
+  data:
+    oikos: dynamis
+    name: list-distribution-channels
+    visible: true
+    tier: 2
+    description: List all distribution channels.
+    params:
+      - name: provider
+        type: string
+        required: false
+        description: Filter by provider (r2, github, etc.)
+      - name: limit
+        type: integer
+        required: false
+        default: 50
+    steps:
+      - step: gather
+        eidos: distribution-channel
+        limit: "$limit"
+        bind_to: channels
+
+      - step: switch
+        cases:
+          - when: "$provider"
+            then:
+              - step: filter
+                items: "$channels"
+                where: "$item.data.provider == $provider"
+                bind_to: channels
+
+      - step: return
+        value:
+          channels: "$channels"
+          count: "{{ $channels | length }}"
+
+# =============================================================================
+# GENERIC RECONCILIATION
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/dynamis/reconcile
+  data:
+    oikos: dynamis
+    name: reconcile
+    visible: true
+    tier: 3
+    description: |
+      Generic reconciliation using declarative reconciler definition.
+
+      The phylax pattern (sense → compare → act) made declarative.
+      Adding reconciliation logic means editing reconciler entities, not code.
+
+      Steps:
+      1. Load reconciler definition
+      2. Load target entity
+      3. Sense actuality
+      4. Match transition rules
+      5. Execute action
+      6. Update entity state
+    params:
+      - name: reconciler_id
+        type: string
+        required: true
+        description: Reconciler entity ID (e.g., reconciler/deployment)
+      - name: entity_id
+        type: string
+        required: true
+        description: Entity to reconcile
+    steps:
+      # Load reconciler and entity
+      - step: find
+        id: "$reconciler_id"
+        bind_to: reconciler
+
+      - step: find
+        id: "$entity_id"
+        bind_to: entity
+
+      # Sense current actuality
+      - step: sense_actuality
+        entity_id: "$entity.id"
+        bind_to: sensed
+
+      # Extract intent and actual values from entity
+      # Uses the field paths defined in the reconciler
+      - step: set
+        bindings:
+          intent: "$entity.data[$reconciler.data.intent_field]"
+          actual: "$sensed.status"
+
+      # Find matching transition rule
+      - step: filter
+        items: "$reconciler.data.transitions"
+        where: |
+          (($item.intent == $intent) || ($intent in $item.intent)) &&
+          (($item.actual == $actual) || ($actual in $item.actual))
+        bind_to: matches
+
+      # Execute action if match found
+      - step: switch
+        cases:
+          - when: "{{ $matches | length }} > 0"
+            then:
+              - step: set
+                bindings:
+                  action: "$matches[0].action"
+
+              # Manifest action
+              - step: switch
+                cases:
+                  - when: "$action == 'manifest'"
+                    then:
+                      - step: manifest
+                        entity_id: "$entity.id"
+                        bind_to: action_result
+
+                  - when: "$action == 'unmanifest'"
+                    then:
+                      - step: unmanifest
+                        id: "$entity.id"
+                        bind_to: action_result
+
+                  - when: "$action == 'none'"
+                    then:
+                      - step: set
+                        bindings:
+                          action_result:
+                            status: aligned
+                            action: none
+
+      # Update entity with sensed state and reconciliation timestamp
+      - step: update
+        id: "$entity.id"
+        data:
+          actual_state: "$sensed.status"
+          last_reconciled_at: "{{ now() }}"
+
+      - step: return
+        value:
+          entity_id: "$entity.id"
+          reconciler_id: "$reconciler.id"
+          intent: "$intent"
+          actual: "$actual"
+          action_taken: "$matches[0].action"
+          reconciled_at: "{{ now() }}"

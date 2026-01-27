@@ -1,0 +1,220 @@
+# onboarding.yaml
+# Homoiconic entities for the onboarding flow
+#
+# These entities represent the app's own structure as kosmos entities.
+# The TSX components become renderers of this structure, not the source of truth.
+#
+# Three Pillars Application:
+#   Schema-driven: Form validation from slot schemas
+#   Graph-driven: Navigation as bonds between panels
+#   Cache-driven: Panel rendering cached by composition
+
+entities:
+
+# =============================================================================
+# ONBOARDING JOURNEY — The teleological container
+# =============================================================================
+
+- eidos: journey
+  id: journey/onboarding
+  data:
+    desire: "Establish identity and dwelling in the kosmos"
+    description: |
+      The onboarding journey guides a new user from first launch
+      to sovereign dwelling in their own circle.
+
+      This journey branches: users either create a new identity
+      or restore an existing one from mnemonic.
+    status: potential
+    current_waypoint: 0
+  bonds:
+    - desmos: contains-waypoint
+      to: waypoint/onboarding-welcome
+    - desmos: contains-waypoint
+      to: waypoint/onboarding-create
+    - desmos: contains-waypoint
+      to: waypoint/onboarding-restore
+    - desmos: contains-waypoint
+      to: waypoint/onboarding-confirm
+    - desmos: contains-waypoint
+      to: waypoint/onboarding-name
+    - desmos: contains-waypoint
+      to: waypoint/onboarding-complete
+
+# =============================================================================
+# WAYPOINTS — Steps in the onboarding journey
+# =============================================================================
+
+# Waypoint 0: Welcome
+- eidos: waypoint
+  id: waypoint/onboarding-welcome
+  data:
+    ordinal: 0
+    description: "Welcome to Thyra — choose create or restore"
+    status: pending
+    panel_id: panel/onboarding-welcome
+    branches:
+      - condition: "action == 'create'"
+        target: waypoint/onboarding-create
+      - condition: "action == 'restore'"
+        target: waypoint/onboarding-restore
+
+# Waypoint 1a: Create new identity
+- eidos: waypoint
+  id: waypoint/onboarding-create
+  data:
+    ordinal: 1
+    description: "Generate mnemonic for new identity"
+    status: pending
+    panel_id: panel/onboarding-create
+    next: waypoint/onboarding-confirm
+
+# Waypoint 1b: Restore from mnemonic (branch)
+- eidos: waypoint
+  id: waypoint/onboarding-restore
+  data:
+    ordinal: 1
+    description: "Enter mnemonic to restore identity"
+    status: pending
+    panel_id: panel/onboarding-restore
+    form_typos_id: typos/mnemonic-entry-form
+    next: waypoint/onboarding-name
+
+# Waypoint 2: Confirm mnemonic
+- eidos: waypoint
+  id: waypoint/onboarding-confirm
+  data:
+    ordinal: 2
+    description: "Verify understanding of mnemonic importance"
+    status: pending
+    panel_id: panel/onboarding-confirm
+    form_typos_id: typos/mnemonic-confirm-form
+    next: waypoint/onboarding-name
+
+# Waypoint 3: Name persona
+- eidos: waypoint
+  id: waypoint/onboarding-name
+  data:
+    ordinal: 3
+    description: "Name your persona for this circle"
+    status: pending
+    panel_id: panel/onboarding-name
+    form_typos_id: typos/persona-name-form
+    next: waypoint/onboarding-complete
+
+# Waypoint 4: Journey complete
+- eidos: waypoint
+  id: waypoint/onboarding-complete
+  data:
+    ordinal: 4
+    description: "Identity established, dwelling begun"
+    status: pending
+    panel_id: panel/onboarding-complete
+    yields:
+      - persona
+      - circle
+
+# =============================================================================
+# PANELS — Visual rendering of waypoints
+# =============================================================================
+
+- eidos: panel
+  id: panel/onboarding-welcome
+  data:
+    name: "Welcome"
+    render_type: onboarding-step
+    visible: true
+    priority: 100
+    config:
+      title: "Welcome to Thyra"
+      subtitle: "Your sovereign communication space"
+      description: |
+        Thyra is where you create circles for trusted conversation.
+        Your identity is yours alone — backed by a recovery phrase
+        that only you possess.
+      actions:
+        - id: create
+          label: "Create New Identity"
+          primary: true
+        - id: restore
+          label: "Restore from Phrase"
+          variant: secondary
+
+- eidos: panel
+  id: panel/onboarding-create
+  data:
+    name: "Create Identity"
+    render_type: onboarding-step
+    visible: true
+    priority: 100
+    config:
+      title: "Your Recovery Phrase"
+      warning: |
+        This phrase is the ONLY way to recover your identity.
+        Write it down and store it somewhere safe. Never share it.
+      show_mnemonic: true
+      actions:
+        - id: continue
+          label: "I've Saved My Phrase"
+          primary: true
+
+- eidos: panel
+  id: panel/onboarding-confirm
+  data:
+    name: "Confirm Phrase"
+    render_type: onboarding-step
+    visible: true
+    priority: 100
+    config:
+      title: "Confirm Understanding"
+      description: "Paste your full phrase, or enter words 1, 12, and 24:"
+      actions:
+        - id: continue
+          label: "Confirm"
+          primary: true
+
+- eidos: panel
+  id: panel/onboarding-restore
+  data:
+    name: "Restore Identity"
+    render_type: onboarding-step
+    visible: true
+    priority: 100
+    config:
+      title: "Enter Recovery Phrase"
+      description: "Enter your 24-word recovery phrase to restore your identity."
+      actions:
+        - id: continue
+          label: "Restore Identity"
+          primary: true
+
+- eidos: panel
+  id: panel/onboarding-name
+  data:
+    name: "Name Persona"
+    render_type: onboarding-step
+    visible: true
+    priority: 100
+    config:
+      title: "What should we call you?"
+      description: "This name will be visible to others in your circles."
+      actions:
+        - id: complete
+          label: "Enter the Kosmos"
+          primary: true
+
+- eidos: panel
+  id: panel/onboarding-complete
+  data:
+    name: "Complete"
+    render_type: onboarding-step
+    visible: true
+    priority: 100
+    config:
+      title: "You're Ready"
+      description: "Your identity is established. Welcome to your home circle."
+      celebration: true
+      actions:
+        - id: enter
+          label: "Begin"
+          primary: true

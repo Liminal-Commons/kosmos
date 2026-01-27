@@ -1,0 +1,283 @@
+# thyra.yaml
+# Artifact definitions for thyra — rendering, voice pipeline, workspace
+#
+# These definitions enable composition of thyra-specific entities.
+
+entities:
+
+# =============================================================================
+# VOICE PIPELINE
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-voice-pipeline-config
+  data:
+    name: voice-pipeline-config
+    description: |
+      Configure the voice capture and clarification pipeline.
+
+      Controls: audio capture, VAD, transcription provider, clarification.
+      Homoiconic — the configuration is itself an entity in the kosmos.
+    target_eidos: voice-pipeline-config
+    defaults:
+      audio_input_device: "default"
+      vad_enabled: true
+      vad_silence_duration_ms: 2000
+      input_mode: toggle
+      transcription_provider: deepgram
+      transcription_language: "en"
+      transcription_streaming: true
+      clarification_enabled: true
+      clarification_model: "claude-3-haiku"
+      active: false
+    bonds:
+      - desmos: belongs-to
+        from_self: true
+        to_literal: oikos/thyra
+
+# Default voice config instance
+- eidos: typos
+  id: typos-def-default-voice-config
+  data:
+    name: default-voice-config
+    description: |
+      The default voice pipeline configuration.
+
+      Fast clarification with Haiku, Deepgram for transcription,
+      2-second VAD silence threshold, toggle activation.
+    target_eidos: voice-pipeline-config
+    defaults:
+      name: "default"
+      audio_input_device: "default"
+      vad_enabled: true
+      vad_silence_duration_ms: 2000
+      input_mode: toggle
+      transcription_provider: deepgram
+      transcription_language: "en"
+      transcription_model: "nova-2"
+      transcription_streaming: true
+      clarification_enabled: true
+      clarification_model: "claude-3-haiku"
+      clarification_system_prompt: |
+        You are a speech clarifier. Receive raw transcripts of spoken text.
+        Output only the clarified version. Remove disfluencies (um, ah, uh).
+        Fix grammar and punctuation. Preserve the speaker's distinct voice and intent.
+        Do not add conversational filler. Do not explain. Just output the clarified text.
+      active: true
+    bonds:
+      - desmos: belongs-to
+        from_self: true
+        to_literal: oikos/thyra
+
+# =============================================================================
+# WORKSPACE
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-workspace
+  data:
+    name: workspace
+    description: |
+      Create a workspace for an animus.
+
+      Workspaces track open artifacts (tabs) and current focus.
+    target_eidos: workspace
+    defaults:
+      open_artifact_ids: []
+      focused_artifact_id: null
+    bonds:
+      - desmos: workspace-of
+        from_self: true
+        to_context: _animus
+        optional: true
+
+# =============================================================================
+# LAYOUTS
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-layout
+  data:
+    name: layout
+    description: |
+      Define a HUD layout.
+
+      Layouts specify the arrangement of regions.
+    target_eidos: layout
+    defaults:
+      active: false
+    bonds:
+      - desmos: belongs-to
+        from_self: true
+        to_literal: oikos/thyra
+
+# Default layout for the chora thyra
+- eidos: typos
+  id: typos-def-chora-default-layout
+  data:
+    name: chora-default-layout
+    description: |
+      The default layout for chora thyra.
+
+      Sidebar (circles, journeys), Main (artifact tabs),
+      Contextual (expressions), Input (voice bar).
+    target_eidos: layout
+    defaults:
+      name: "chora-default"
+      description: "Standard layout: sidebar + artifacts + expressions + voice bar"
+      regions:
+        - kind: sidebar
+          position: { slot: left, width: 240 }
+          name: "navigation"
+        - kind: main
+          position: { slot: center }
+          name: "artifacts"
+        - kind: contextual
+          position: { slot: right, width: 320 }
+          name: "expressions"
+        - kind: toolbar
+          position: { slot: bottom, height: 80 }
+          name: "input"
+      active: true
+    bonds:
+      - desmos: belongs-to
+        from_self: true
+        to_literal: oikos/thyra
+
+# =============================================================================
+# STYLE THEMES
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-style-theme
+  data:
+    name: style-theme
+    description: |
+      Define a visual style theme.
+
+      Controls palette, density, typography.
+    target_eidos: style-theme
+    defaults:
+      density: comfortable
+      active: false
+    bonds:
+      - desmos: belongs-to
+        from_self: true
+        to_literal: oikos/thyra
+
+# Dark theme
+- eidos: typos
+  id: typos-def-dark-theme
+  data:
+    name: dark-theme
+    description: |
+      Dark mode theme for chora.
+    target_eidos: style-theme
+    defaults:
+      name: "dark"
+      palette:
+        background: "#1a1a2e"
+        foreground: "#eaeaea"
+        accent: "#7b68ee"
+        muted: "#4a4a6a"
+        surface: "#25253a"
+        border: "#3a3a5a"
+        error: "#ff6b6b"
+        success: "#69db7c"
+      density: comfortable
+      typography:
+        font_family: "Inter, system-ui, sans-serif"
+        font_size_base: 14
+        line_height: 1.5
+      world_context: self
+      active: true
+    bonds:
+      - desmos: belongs-to
+        from_self: true
+        to_literal: oikos/thyra
+
+# =============================================================================
+# PANELS
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-panel
+  data:
+    name: panel
+    description: |
+      Define a panel for rendering content in a region.
+    target_eidos: panel
+    defaults:
+      visible: true
+      priority: 0
+    bonds:
+      - desmos: belongs-to
+        from_self: true
+        to_literal: oikos/thyra
+
+# Voice bar panel
+- eidos: typos
+  id: typos-def-voice-bar-panel
+  data:
+    name: voice-bar-panel
+    description: |
+      The voice bar panel — accumulation buffer with visual feedback.
+    target_eidos: panel
+    defaults:
+      name: "voice-bar"
+      render_type: accumulation-buffer
+      visible: true
+      priority: 100
+      config:
+        show_capture_state: true
+        show_raw_toggle: false
+        show_clarification_status: true
+        show_target_circle: true
+    bonds:
+      - desmos: belongs-to
+        from_self: true
+        to_literal: oikos/thyra
+
+# Expression thread panel
+- eidos: typos
+  id: typos-def-expression-thread-panel
+  data:
+    name: expression-thread-panel
+    description: |
+      Panel for displaying expression thread (chat).
+    target_eidos: panel
+    defaults:
+      name: "expression-thread"
+      render_type: expression-thread
+      source_query: "gather expression where circle_id = $_circle order by expressed_at desc limit 100"
+      visible: true
+      priority: 50
+      config:
+        show_modes: true
+        auto_scroll: true
+        group_by_thread: false
+    bonds:
+      - desmos: belongs-to
+        from_self: true
+        to_literal: oikos/thyra
+
+# Artifact preview panel
+- eidos: typos
+  id: typos-def-artifact-preview-panel
+  data:
+    name: artifact-preview-panel
+    description: |
+      Panel for rendering artifact content.
+    target_eidos: panel
+    defaults:
+      name: "artifact-preview"
+      render_type: artifact-preview
+      visible: true
+      priority: 50
+      config:
+        live_update: true
+        show_provenance: false
+    bonds:
+      - desmos: belongs-to
+        from_self: true
+        to_literal: oikos/thyra

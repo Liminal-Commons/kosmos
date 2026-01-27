@@ -1,0 +1,161 @@
+# Nous Eide
+# Understanding eide — journeys, inquiries, and synthesis
+#
+# Extracted from spora.yaml stage-2-presence
+# Note: theoria stays in spora.yaml stage-1-archai as foundational
+
+entities:
+  # journey — teleological container
+  - eidos: eidos
+    id: eidos/journey
+    data:
+      name: journey
+      description: "A teleological container — movement toward a desire (hodos)."
+      fields:
+        desire:
+          type: string
+          required: true
+          description: "What we're moving toward (the telos)"
+        description:
+          type: string
+          required: false
+          description: "Extended description of the journey"
+        status:
+          type: string
+          required: true
+          enum: [potential, active, paused, arrived, abandoned]
+          default: potential
+        current_waypoint:
+          type: number
+          required: false
+          default: 0
+        embarked_at:
+          type: timestamp
+          required: false
+        arrived_at:
+          type: timestamp
+          required: false
+        abandoned_at:
+          type: timestamp
+          required: false
+        abandon_reason:
+          type: string
+          required: false
+        # Leverage modeling — how work compounds
+        leverage_type:
+          type: string
+          required: false
+          enum: [meta, compound, additive, terminal]
+          description: |
+            How this journey's completion affects future work:
+            - meta: Validates/enables all other work (e.g., full-circle verification)
+            - compound: Creates feedback loops, value multiplies (e.g., MCP dispatch)
+            - additive: One-time benefit per consumer (e.g., TypeScript types)
+            - terminal: No downstream effect (e.g., UI polish)
+        leverage_multiplier:
+          type: string
+          required: false
+          description: "What entity type multiplies value when this completes (e.g., 'praxis' for MCP dispatch)"
+        feedback_loop:
+          type: boolean
+          required: false
+          default: false
+          description: "Does completing this journey make it easier to create more of what it enables?"
+
+  # waypoint — consolidation point
+  - eidos: eidos
+    id: eidos/waypoint
+    data:
+      name: waypoint
+      description: "A consolidation point on a journey. Supports navigation via hodos praxeis."
+      fields:
+        journey_id:
+          type: string
+          required: false
+          description: "Parent journey ID (optional if using contains-waypoint bond)"
+        ordinal:
+          type: number
+          required: true
+          description: "Position in journey (0-indexed)"
+        description:
+          type: string
+          required: true
+        status:
+          type: string
+          required: true
+          enum: [pending, reached]
+          default: pending
+        reached_at:
+          type: timestamp
+          required: false
+        artifact_id:
+          type: string
+          required: false
+          description: "Optional artifact this waypoint yields"
+        # Hodos navigation fields
+        panel_id:
+          type: string
+          required: false
+          description: "Panel to render for this waypoint"
+        form_typos_id:
+          type: string
+          required: false
+          description: "Typos for form validation"
+        next:
+          type: string
+          required: false
+          description: "Explicit next waypoint (overrides ordinal+1)"
+        branches:
+          type: array
+          required: false
+          description: "Conditional branches [{condition, target}]"
+        yields:
+          type: array
+          required: false
+          description: "Entity types this waypoint yields on completion"
+
+  # inquiry — open question
+  - eidos: eidos
+    id: eidos/inquiry
+    data:
+      name: inquiry
+      description: "An open question. Inquiries drive understanding forward."
+      fields:
+        question:
+          type: string
+          required: true
+        domain:
+          type: string
+          required: true
+        status:
+          type: string
+          required: true
+          enum: [open, exploring, answered, dissolved]
+          default: open
+        opened_at:
+          type: timestamp
+          required: true
+        answered_at:
+          type: timestamp
+          required: false
+
+  # synthesis — combining understanding
+  - eidos: eidos
+    id: eidos/synthesis
+    data:
+      name: synthesis
+      description: "A bringing-together of multiple theoria into higher understanding."
+      fields:
+        insight:
+          type: string
+          required: true
+        sources:
+          type: array
+          required: true
+          description: "Theoria IDs that were synthesized"
+        domain:
+          type: string
+          required: true
+        synthesized_at:
+          type: timestamp
+          required: true

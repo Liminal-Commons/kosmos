@@ -1,0 +1,78 @@
+# Oikos Manifest: Demiurge
+# δημιουργός — the craftsman, the compositor.
+#
+# One verb. One tool. The compositor is simple.
+# Complexity lives in the definition.
+#
+# Manifest v2.1 — oikos metadata for entity composition
+
+format_version: "2.1"
+oikos_id: demiurge
+version: "0.1.0"
+
+# Oikos metadata (v2.1)
+oikos_name: Demiurge
+oikos_description: |
+  The craftsman, the compositor. One verb — compose. One tool.
+  The compositor is simple; complexity lives in the definition.
+oikos_scale: cross-scale
+
+content_paths:
+  - path: eide/
+    content_types: [eidos]
+  - path: desmoi/
+    content_types: [desmos]
+  - path: praxeis/
+    content_types: [praxis]
+
+requires_dynamis:
+  - db.arise
+  - db.find
+  - db.bind
+  - db.gather
+  - db.update
+
+provides:
+  eide:
+    - typos
+    - artifact
+
+  desmoi:
+    - composed-from
+    - authorized-by
+    - depends-on
+    - packages
+    - baked-from
+    - published-by
+    - attests-to
+    - derives-from
+
+  praxeis:
+    - demiurge/compose
+    - demiurge/compose-cached
+    - demiurge/check-cache
+    - demiurge/bind-dependencies
+    - demiurge/mark-dependents-stale
+    - demiurge/invalidate-artifact
+    - demiurge/list-stale-artifacts
+    - demiurge/refresh-stale
+    - demiurge/compose-indexed
+    - demiurge/compose-definition-indexed
+    - demiurge/generate-domain-definitions
+    - demiurge/compose-oikos-dev
+    - demiurge/compose-all-oikoi-dev
+    - demiurge/bake-oikos
+    - demiurge/publish-oikos
+    - demiurge/verify-oikos
+    - demiurge/publish-oikos-multilocale
+    - demiurge/set-distribution-mode
+    - demiurge/fork-oikos
+    - demiurge/list-generative-commons
+    - demiurge/list-oikos-derivations
+    - demiurge/emit-genesis
+    - demiurge/verify-full-circle
+    - demiurge/emit-single-stream
+
+stoicheia_form:
+  # Demiurge stoicheia interpreted by host
+  # render, fill_slots, render_graph — all arche-level

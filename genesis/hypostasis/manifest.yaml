@@ -1,0 +1,102 @@
+# Oikos Manifest: Hypostasis
+# ὑπόστασις — underlying reality, substrate replication.
+#
+# The kosmos that can replicate itself. Phoreta are the universal
+# format: federation, backup, and recovery all use signed bundles.
+#
+# Manifest v2.1 — oikos metadata for entity composition
+
+format_version: "2.1"
+oikos_id: hypostasis
+version: "0.1.0"
+
+# Oikos metadata (v2.1)
+oikos_name: Hypostasis
+oikos_description: |
+  Underlying reality, substrate replication. The kosmos that can
+  replicate itself. Phoreta are the universal format: federation,
+  backup, and recovery all use signed bundles.
+oikos_scale: cross-scale
+
+content_paths:
+  - path: eide/
+    content_types: [eidos]
+  - path: desmoi/
+    content_types: [desmos]
+  - path: praxeis/
+    content_types: [praxis]
+
+requires_dynamis:
+  - db.arise
+  - db.find
+  - db.bind
+  - db.trace
+  - db.gather
+  - db.update
+  - crypto.digest     # BLAKE3 hashing
+  - crypto.sign       # Ed25519 signing
+  - crypto.verify     # Ed25519 verification
+  - crypto.derive     # Key derivation (BIP-39 + HKDF)
+
+provides:
+  eide:
+    - kleidoura       # Encrypted keyring for password-protected key access
+    - genesis-record  # Multi-signature genesis ceremony
+    - credential      # Encrypted external service credentials
+
+  desmoi:
+    - composed-from
+    - signed-by
+    - secures-key-for   # kleidoura → persona
+    - credential-of     # credential → persona (ownership)
+    - shared-with       # credential → circle (team access)
+    - unlocks-attainment  # credential → attainment (capability grant)
+    - enables-function  # credential → function (what it enables)
+
+  praxeis:
+    # Content-addressed operations
+    - hypostasis/compute-hash
+    - hypostasis/verify-chain
+    - hypostasis/verify-genesis
+    # Phoreta operations
+    - hypostasis/export-phoreta
+    - hypostasis/import-phoreta
+    - hypostasis/create-snapshot
+    - hypostasis/restore-snapshot
+    - hypostasis/sync-delta
+    # Key operations
+    - hypostasis/generate-mnemonic
+    - hypostasis/derive-circle-key
+    - hypostasis/sign-content
+    - hypostasis/verify-signature
+    # Encrypted keyring operations
+    - hypostasis/create-keyring
+    - hypostasis/unlock-keyring
+    - hypostasis/lock-keyring
+    - hypostasis/check-keyring-status
+    - hypostasis/change-keyring-password
+    - hypostasis/sign-with-session
+    - hypostasis/derive-key-from-session
+    # Persona operations
+    - hypostasis/export-persona
+    - hypostasis/import-persona
+    - hypostasis/sync-devices
+    # Genesis ceremony
+    - hypostasis/begin-genesis-ceremony
+    - hypostasis/add-genesis-signature
+    - hypostasis/finalize-genesis
+    - hypostasis/get-genesis-status
+    # Credential operations
+    - hypostasis/add-credential
+    - hypostasis/unlock-credentials
+    - hypostasis/get-credential-value
+    - hypostasis/list-credentials
+    - hypostasis/remove-credential
+    - hypostasis/check-session-attainment
+
+stoicheia_form:
+  digest: arche       # BLAKE3 via host function
+  sign: arche         # Ed25519 via host function
+  verify: arche       # Ed25519 via host function
+  derive: arche       # Key derivation via host function
+

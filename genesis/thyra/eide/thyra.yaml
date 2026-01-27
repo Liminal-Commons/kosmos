@@ -1,0 +1,896 @@
+# Thyra Eide
+# Portal/interface eide — streams, expressions, accumulation, signaling
+#
+# Extracted from spora.yaml stage-2-presence
+
+eide:
+  # stream — bounded media flow
+  - id: eidos/stream
+    data:
+      name: stream
+      description: "Bounded media flow — voice, video, text, or document. Streams follow the reconciler pattern."
+      fields:
+        kind:
+          type: enum
+          values: [voice, video, text, document]
+          required: true
+          description: "The modality of the stream"
+        direction:
+          type: enum
+          values: [inward, outward]
+          required: true
+          description: "Flow direction — inward is perception, outward is emission"
+        intent:
+          type: enum
+          values: [active, paused, closed]
+          required: true
+          default: active
+          description: "Desired state"
+        status:
+          type: enum
+          values: [pending, manifesting, active, paused, closing, closed, failed]
+          required: false
+          default: pending
+          description: "Current lifecycle state"
+        source:
+          type: string
+          required: false
+          description: "Source identifier (device ID, file path, channel ID)"
+        sink:
+          type: string
+          required: false
+          description: "Destination identifier for outward streams"
+        config:
+          type: object
+          required: false
+          description: "Stream-specific configuration"
+        manifest_handle:
+          type: string
+          required: false
+          description: "Substrate handle for manifested stream (e.g., PID)"
+        created_at:
+          type: timestamp
+          required: false
+        manifested_at:
+          type: timestamp
+          required: false
+        closed_at:
+          type: timestamp
+          required: false
+        last_error:
+          type: string
+          required: false
+      actuality:
+        mode: process  # Will be media when implemented
+
+  # expression — intentional contribution (commitment boundary)
+  - id: eidos/expression
+    data:
+      name: expression
+      description: "Intentional contribution — the commitment boundary. When ephemeral becomes durable."
+      fields:
+        content:
+          type: string
+          required: true
+          description: "The content being expressed"
+        content_type:
+          type: string
+          required: false
+          default: text/plain
+          description: "MIME type of the content"
+        expressed_by:
+          type: string
+          required: true
+          description: "Persona ID of who expressed this"
+        circle_id:
+          type: string
+          required: true
+          description: "Circle ID where this was expressed"
+        expressed_at:
+          type: timestamp
+          required: true
+        source_kind:
+          type: enum
+          values: [stream, compose, direct]
+          required: false
+          description: "How this expression originated"
+        source_stream_id:
+          type: string
+          required: false
+          description: "Terminal stream ID if source_kind is stream"
+        source_artifact_id:
+          type: string
+          required: false
+          description: "Artifact ID if originated from composition"
+        mode:
+          type: enum
+          values: [declaration, inquiry, suggestion, invitation, request, proposal]
+          required: false
+          description: "Expression mode — how the expression should be received"
+        in_reply_to:
+          type: string
+          required: false
+          description: "Expression ID this replies to, if any"
+        metadata:
+          type: object
+          required: false
+
+  # accumulation — buffer state for stream content
+  - id: eidos/accumulation
+    data:
+      name: accumulation
+      description: "Buffer state for stream content awaiting commitment. Tracks raw transcripts, clarified content, and visual state."
+      fields:
+        stream_id:
+          type: string
+          required: true
+          description: "The terminal stream this accumulation belongs to"
+
+        # Raw transcript chain (from STT)
+        raw_content:
+          type: string
+          required: false
+          description: "Concatenated raw transcripts — verbatim STT output"
+        raw_fragments:
+          type: array
+          required: false
+          description: "Individual raw transcript fragments [{text, utterance_id, timestamp}]"
+
+        # Clarified content (after LLM)
+        content:
+          type: string
+          required: true
+          description: "Clarified content — after disfluency removal, ready for edit/commit"
+
+        # Clarification pipeline state
+        clarification_status:
+          type: enum
+          values: [pending, clarifying, clarified, manual, failed]
+          required: true
+          default: pending
+          description: "State of clarification: pending (raw only), clarifying (LLM in flight), clarified (LLM done), manual (user edited), failed"
+        clarification_generation_id:
+          type: string
+          required: false
+          description: "Manteia generation ID for audit trail and redo"
+
+        # Visual state for voice bar rendering
+        capture_state:
+          type: enum
+          values: [inactive, listening, processing]
+          required: true
+          default: inactive
+          description: "Voice capture state for UI feedback"
+
+        # Lifecycle
+        status:
+          type: enum
+          values: [active, committed, abandoned, cleared]
+          required: true
+          default: active
+        started_at:
+          type: timestamp
+          required: true
+        last_fragment_at:
+          type: timestamp
+          required: false
+        clarified_at:
+          type: timestamp
+          required: false
+        committed_at:
+          type: timestamp
+          required: false
+        expression_id:
+          type: string
+          required: false
+          description: "Expression ID if committed"
+
+  # utterance — VAD-bounded speech segment
+  - id: eidos/utterance
+    data:
+      name: utterance
+      description: "VAD-bounded speech segment — atomic unit of voice perception."
+      fields:
+        stream_id:
+          type: string
+          required: true
+          description: "The audio stream this utterance came from"
+        started_at:
+          type: timestamp
+          required: true
+          description: "VAD speech start"
+        ended_at:
+          type: timestamp
+          required: false
+          description: "VAD speech end"
+        duration_ms:
+          type: number
+          required: false
+        audio_hash:
+          type: string
+          required: false
+          description: "Hash of audio segment if captured"
+        transcription:
+          type: string
+          required: false
+        transcribed_at:
+          type: timestamp
+          required: false
+        contributed_to:
+          type: string
+          required: false
+          description: "Expression ID this utterance contributed to"
+
+  # ─────────────────────────────────────────────────────────────
+  # RENDERING EIDE — Visual emission (ekthesis)
+  # ─────────────────────────────────────────────────────────────
+
+  # layout — top-level HUD structure
+  - id: eidos/layout
+    data:
+      name: layout
+      description: "Top-level HUD structure — defines the arrangement of regions. Composed, not raw."
+      fields:
+        name:
+          type: string
+          required: true
+          description: "Layout identifier (e.g., 'default', 'minimal', 'focused')"
+        description:
+          type: string
+          required: false
+        regions:
+          type: array
+          required: true
+          description: "Region specifications [{kind, position, config}]"
+        active:
+          type: boolean
+          required: true
+          default: false
+          description: "Whether this layout is currently active"
+        composed_from:
+          type: string
+          required: false
+          description: "Definition ID this layout was composed from"
+        created_at:
+          type: timestamp
+          required: true
+
+  # panel — renderable content area
+  - id: eidos/panel
+    data:
+      name: panel
+      description: "Renderable content area — surfaces entities within a region. The bridge between kosmos state and visual form."
+      fields:
+        name:
+          type: string
+          required: true
+          description: "Panel identifier"
+        render_type:
+          type: enum
+          values:
+            - entity-list          # Generic list of entities
+            - expression-thread    # Conversation/chat view
+            - presence-list        # Who's here (animi in circle)
+            - journey-view         # Journey with waypoints
+            - theoria-card         # Single theoria display
+            - affordance-bar       # Available actions
+            - accumulation-buffer  # Voice bar / input buffer
+            - artifact-preview     # Rendered artifact content
+            - artifact-tabs        # Tab bar for switching artifacts
+            - workspace-view       # Open artifacts grid/list
+            - onboarding-step      # Onboarding journey step
+            - custom               # Custom render component
+          required: true
+          description: "How this panel renders its content"
+        source_query:
+          type: string
+          required: false
+          description: "Query to gather entities (e.g., 'gather animus where dwells-in = $_circle')"
+        source_entity_id:
+          type: string
+          required: false
+          description: "Specific entity ID if rendering single entity"
+        region_id:
+          type: string
+          required: true
+          description: "The hud-region this panel renders in"
+        priority:
+          type: number
+          required: false
+          default: 0
+          description: "Rendering priority within region"
+        visible:
+          type: boolean
+          required: true
+          default: true
+        config:
+          type: object
+          required: false
+          description: "Panel-specific rendering configuration"
+        created_at:
+          type: timestamp
+          required: true
+
+  # style-theme — visual styling
+  - id: eidos/style-theme
+    data:
+      name: style-theme
+      description: "Visual styling — palette, density, and contextual appearance. Substrate interprets, chora receives."
+      fields:
+        name:
+          type: string
+          required: true
+          description: "Theme identifier (e.g., 'light', 'dark', 'focused')"
+        palette:
+          type: object
+          required: true
+          description: "Color definitions {background, foreground, accent, muted, ...}"
+        density:
+          type: enum
+          values: [compact, comfortable, spacious]
+          required: true
+          default: comfortable
+          description: "Visual density — how much space between elements"
+        typography:
+          type: object
+          required: false
+          description: "Font family, sizes, weights"
+        world_context:
+          type: enum
+          values: [self, intimate, community, public]
+          required: false
+          description: "Intended circle kind — themes may vary by context"
+        active:
+          type: boolean
+          required: true
+          default: false
+          description: "Whether this theme is currently active"
+        created_at:
+          type: timestamp
+          required: true
+
+  # render-intent — reconciler intent for rendering
+  - id: eidos/render-intent
+    data:
+      name: render-intent
+      description: "Reconciler intent for rendering — declares what should be visible. Follows the pattern: intent → sense → reconcile → render."
+      fields:
+        target_region_id:
+          type: string
+          required: true
+          description: "The region this intent targets"
+        visible_entities:
+          type: array
+          required: true
+          description: "Entity IDs that should be visible"
+        panel_states:
+          type: object
+          required: false
+          description: "Desired state of panels in the region"
+        layout_id:
+          type: string
+          required: false
+          description: "Active layout ID"
+        theme_id:
+          type: string
+          required: false
+          description: "Active theme ID"
+        intent_status:
+          type: enum
+          values: [pending, reconciling, rendered, stale]
+          required: true
+          default: pending
+        created_at:
+          type: timestamp
+          required: true
+        reconciled_at:
+          type: timestamp
+          required: false
+
+  # workspace — open artifacts and focus state
+  - id: eidos/workspace
+    data:
+      name: workspace
+      description: "Open artifacts and focus state — what the animus is working on. Tracks tabs and active focus."
+      fields:
+        name:
+          type: string
+          required: true
+          description: "Workspace identifier"
+        open_artifact_ids:
+          type: array
+          required: true
+          description: "Artifact IDs currently open (tab order)"
+        focused_artifact_id:
+          type: string
+          required: false
+          description: "Currently focused artifact (active tab)"
+        animus_id:
+          type: string
+          required: true
+          description: "Animus this workspace belongs to"
+        created_at:
+          type: timestamp
+          required: true
+        updated_at:
+          type: timestamp
+          required: false
+
+  # ─────────────────────────────────────────────────────────────
+  # HOMOICONIC RENDERING EIDE — Configuration as entities
+  # ─────────────────────────────────────────────────────────────
+
+  # render-type — how an eidos should render (homoiconic)
+  - id: eidos/render-type
+    data:
+      name: render-type
+      description: "How an eidos should render — makes display configuration traversable. Bonds to renderer via renders-with."
+      fields:
+        name:
+          type: string
+          required: true
+          description: "Render type identifier (e.g., 'expression-thread', 'entity-list')"
+        description:
+          type: string
+          required: false
+        source_eidos:
+          type: string
+          required: false
+          description: "The eidos this render type applies to (optional for input-only render types)"
+        grouping:
+          type: string
+          required: false
+          description: "How to group instances (e.g., 'in-reply-to-chains', 'by-date')"
+        sort_by:
+          type: string
+          required: false
+          description: "Default sort field"
+        sort_order:
+          type: enum
+          values: [ascending, descending]
+          required: false
+          default: descending
+        filters:
+          type: array
+          required: false
+          description: "Available filter options [{field, label, options}]"
+        created_at:
+          type: timestamp
+          required: true
+
+  # renderer — component that implements a render-type (homoiconic)
+  #
+  # Renderers can be provided via four strategies:
+  #   - core: Built-in Solid/React components (static imports)
+  #   - declarative: Graph-driven rendering from render_spec
+  #   - web-component: Dynamic Web Components (Custom Elements)
+  #   - wasm: WebAssembly modules for cross-platform rendering
+  #
+  # This enables oikoi to bring their own renderers without core changes.
+  #
+  - id: eidos/renderer
+    data:
+      name: renderer
+      description: |
+        Component that implements a render-type — maps graph structure to visual form.
+        Homoiconic: the mapping is an entity.
+
+        Renderers follow one of four strategies:
+        - core: Static imports from the Thyra core (bundled at build time)
+        - declarative: Graph-driven rendering from a render_spec entity
+        - web-component: Dynamic Custom Elements loaded at runtime
+        - wasm: WebAssembly modules for cross-platform rendering
+
+        The render_strategy field determines which strategy-specific fields are used.
+        This architecture enables oikoi to provide their own renderers.
+      fields:
+        name:
+          type: string
+          required: true
+          description: "Renderer identifier"
+        render_strategy:
+          type: enum
+          values: [core, declarative, web-component, wasm]
+          required: true
+          default: core
+          description: |
+            How this renderer is loaded and executed:
+            - core: Built-in component (component_path required)
+            - declarative: Render spec defines structure (render_spec_id required)
+            - web-component: Custom Element (component_url required)
+            - wasm: WebAssembly module (wasm_module required)
+        substrate:
+          type: enum
+          values: [web, native, terminal, universal]
+          required: true
+          description: "Target substrate. 'universal' for wasm/declarative that work everywhere."
+        accepts_render_types:
+          type: array
+          required: true
+          description: "Render type IDs this renderer can handle"
+
+        # Strategy-specific fields (exactly one required based on render_strategy)
+
+        component_path:
+          type: string
+          required: false
+          description: "Path to core component (render_strategy=core). e.g., 'panels/ExpressionThread'"
+        render_spec_id:
+          type: string
+          required: false
+          description: "Entity ID of render-spec (render_strategy=declarative). Graph-driven template."
+        component_url:
+          type: string
+          required: false
+          description: "URL to Web Component bundle (render_strategy=web-component). Loaded dynamically."
+        wasm_module:
+          type: string
+          required: false
+          description: "Path or URL to WASM module (render_strategy=wasm). Cross-platform rendering."
+
+        # Common optional fields
+
+        props_schema:
+          type: object
+          required: false
+          description: "JSON schema for component props"
+        fallback_renderer_id:
+          type: string
+          required: false
+          description: "Renderer to use if this one fails to load (graceful degradation)"
+        created_at:
+          type: timestamp
+          required: true
+
+  # render-spec — declarative rendering specification
+  #
+  # Enables graph-driven rendering without code. The spec declares:
+  #   - What entity data to display
+  #   - How to structure it (layout template)
+  #   - What styles to apply
+  #   - Child render-specs for nested rendering
+  #
+  - id: eidos/render-spec
+    data:
+      name: render-spec
+      description: |
+        Declarative rendering specification — defines how to render entities
+        without custom code. Used by renderers with render_strategy=declarative.
+
+        A render-spec declares:
+        - fields_to_display: Which entity fields to show
+        - layout_template: Structural template (HTML-like)
+        - style_bindings: CSS class or style mappings
+        - children: Nested render-specs for complex structures
+
+        This enables oikoi to define visual presentation as data, making
+        rendering graph-traversable and inspectable.
+      fields:
+        name:
+          type: string
+          required: true
+          description: "Render spec identifier"
+        description:
+          type: string
+          required: false
+        target_eidos:
+          type: string
+          required: true
+          description: "The eidos this spec renders (e.g., 'expression', 'theoria')"
+        fields_to_display:
+          type: array
+          required: true
+          description: "Entity fields to render [{field, label?, widget_id?}]"
+        layout_template:
+          type: string
+          required: true
+          description: |
+            Structural template using simple markup. Supports:
+            - {field_name} for field interpolation
+            - <slot name="x"/> for child render-spec slots
+            - <if field="x"> for conditional rendering
+            - <for field="x"> for array iteration
+        style_bindings:
+          type: object
+          required: false
+          description: "CSS class or style mappings by element"
+        children:
+          type: array
+          required: false
+          description: "Child render-spec IDs for nested structures"
+        created_at:
+          type: timestamp
+          required: true
+
+  # widget — field-level display component (homoiconic)
+  - id: eidos/widget
+    data:
+      name: widget
+      description: "Field-level display component — how individual fields render. Bonds to field-def via displays-as."
+      fields:
+        name:
+          type: string
+          required: true
+          description: "Widget identifier (e.g., 'markdown-text', 'timestamp-relative')"
+        description:
+          type: string
+          required: false
+        field_types:
+          type: array
+          required: true
+          description: "Field types this widget can render ['string', 'timestamp', ...]"
+        component_path:
+          type: string
+          required: true
+          description: "Path to widget component"
+        editable:
+          type: boolean
+          required: false
+          default: false
+          description: "Whether this widget supports editing"
+        config_schema:
+          type: object
+          required: false
+          description: "Configuration options for the widget"
+        created_at:
+          type: timestamp
+          required: true
+
+  # content-root — where content comes from (homoiconic)
+  - id: eidos/content-root
+    data:
+      name: content-root
+      description: "Where content comes from — makes content origin traversable. Used by bootstrap to discover content locations."
+      constitutional: true
+      fields:
+        name:
+          type: string
+          required: true
+          description: "Content root identifier"
+        path:
+          type: string
+          required: true
+          description: "Filesystem path relative to repo root"
+        constitutional:
+          type: boolean
+          required: false
+          default: false
+          description: "Whether this content is constitutional (literal-only)"
+        order:
+          type: number
+          required: true
+          description: "Loading order (0 = first)"
+        content_kinds:
+          type: array
+          required: false
+          description: "What kinds of content (eide, desmoi, praxeis, etc.)"
+        description:
+          type: string
+          required: false
+
+  # ─────────────────────────────────────────────────────────────
+  # VOICE PIPELINE EIDE — Configuration and state
+  # ─────────────────────────────────────────────────────────────
+
+  # voice-pipeline-config — homoiconic configuration for voice capture
+  - id: eidos/voice-pipeline-config
+    data:
+      name: voice-pipeline-config
+      description: "Configuration for the voice capture and clarification pipeline. Homoiconic — the config is an entity."
+      fields:
+        name:
+          type: string
+          required: true
+          description: "Config identifier (e.g., 'default', 'high-quality')"
+
+        # Audio capture settings
+        audio_input_device:
+          type: string
+          required: false
+          default: "default"
+          description: "Audio input device ID or 'default'"
+        vad_enabled:
+          type: boolean
+          required: true
+          default: true
+          description: "Enable Voice Activity Detection"
+        vad_silence_duration_ms:
+          type: number
+          required: true
+          default: 2000
+          description: "Silence duration (ms) that ends an utterance"
+        input_mode:
+          type: enum
+          values: [push-to-talk, toggle, always-on]
+          required: true
+          default: toggle
+          description: "How voice capture is activated"
+
+        # Transcription settings
+        transcription_provider:
+          type: enum
+          values: [deepgram, whisper-local, whisper-cloud, assembly-ai]
+          required: true
+          default: deepgram
+          description: "Speech-to-text provider"
+        transcription_language:
+          type: string
+          required: true
+          default: "en"
+        transcription_model:
+          type: string
+          required: false
+          description: "Provider-specific model (e.g., 'nova-2')"
+        transcription_streaming:
+          type: boolean
+          required: true
+          default: true
+          description: "Stream transcripts as they arrive"
+
+        # Clarification settings
+        clarification_enabled:
+          type: boolean
+          required: true
+          default: true
+          description: "Enable LLM clarification of transcripts"
+        clarification_model:
+          type: string
+          required: false
+          default: "claude-3-haiku"
+          description: "Fast model for clarification"
+        clarification_system_prompt:
+          type: string
+          required: false
+          description: "System prompt for clarifier (overrides default)"
+
+        # Activation
+        active:
+          type: boolean
+          required: true
+          default: false
+          description: "Whether this config is currently active"
+        created_at:
+          type: timestamp
+          required: true
+
+  # ─────────────────────────────────────────────────────────────
+  # DISTRIBUTION EIDE — Releases and artifacts
+  # ─────────────────────────────────────────────────────────────
+
+  # release — a versioned release of the application
+  - id: eidos/release
+    data:
+      name: release
+      description: "A versioned release of the Thyra application. Tracks version, artifacts, and deployment status."
+      fields:
+        version:
+          type: string
+          required: true
+          description: "Semantic version (e.g., '0.9.0-beta.1')"
+        release_type:
+          type: enum
+          values: [alpha, beta, rc, stable]
+          required: true
+          default: stable
+          description: "Release type"
+        changelog:
+          type: string
+          required: false
+          description: "What's new in this release"
+        git_tag:
+          type: string
+          required: false
+          description: "Git tag for this release"
+        git_commit:
+          type: string
+          required: false
+          description: "Git commit SHA"
+        published:
+          type: boolean
+          required: true
+          default: false
+          description: "Whether this release is publicly available"
+        published_at:
+          type: timestamp
+          required: false
+        created_at:
+          type: timestamp
+          required: true
+
+  # release-artifact — platform-specific binary for a release
+  - id: eidos/release-artifact
+    data:
+      name: release-artifact
+      description: "Platform-specific binary artifact for a release. Tracks hash, size, and storage location."
+      fields:
+        platform:
+          type: enum
+          values: [mac, windows, linux]
+          required: true
+          description: "Target platform"
+        arch:
+          type: string
+          required: true
+          description: "Target architecture (e.g., 'universal', 'x64', 'amd64')"
+        filename:
+          type: string
+          required: true
+          description: "Artifact filename (e.g., 'Thyra_0.9.0_universal.dmg')"
+        content_hash:
+          type: string
+          required: true
+          description: "BLAKE3 hash of the artifact content"
+        size_bytes:
+          type: number
+          required: true
+          description: "Artifact size in bytes"
+        storage_path:
+          type: string
+          required: true
+          description: "R2 storage path (e.g., 'v0.9.0/Thyra_0.9.0_universal.dmg')"
+        download_url:
+          type: string
+          required: false
+          description: "Public download URL"
+        uploaded_at:
+          type: timestamp
+          required: true
+
+  # =============================================================================
+  # APPLICATION CONFIGURATION — Homoiconic app settings
+  # =============================================================================
+
+  # app-config — Application configuration entity
+  - id: eidos/app-config
+    data:
+      name: app-config
+      description: |
+        Application configuration for Thyra. Makes tauri.conf.json settings
+        homoiconic — queryable, bondable, with provenance. The active config
+        is composed from this eidos and emitted to chora as tauri.conf.json.
+      fields:
+        product_name:
+          type: string
+          required: true
+          description: "Application display name"
+        version:
+          type: string
+          required: true
+          description: "Semantic version (e.g., '0.9.0-beta.1')"
+        identifier:
+          type: string
+          required: true
+          description: "Reverse domain identifier (e.g., 'io.chora.app')"
+        window_title:
+          type: string
+          required: true
+          description: "Default window title"
+        window_width:
+          type: number
+          required: true
+          description: "Default window width in pixels"
+        window_height:
+          type: number
+          required: true
+          description: "Default window height in pixels"
+        window_resizable:
+          type: boolean
+          required: true
+          description: "Whether the window can be resized"
+        window_fullscreen:
+          type: boolean
+          required: false
+          description: "Start in fullscreen mode"
+        deep_link_schemes:
+          type: list
+          item_type: string
+          required: false
+          description: "Custom URL schemes for deep linking (e.g., ['thyra'])"
+        frontend_dist:
+          type: string
+          required: true
+          description: "Path to built frontend assets"
+        dev_url:
+          type: string
+          required: false
+          description: "Development server URL"

@@ -1,0 +1,168 @@
+# Journey: Kosmos Handover
+# Composed via the creative journey pattern
+#
+# This journey separates Kosmos (the world) from Chora (the implementation).
+# It exists as actual entities in the kosmos, not descriptions of future work.
+
+entities:
+  # =============================================================================
+  # THE INTENTION
+  # =============================================================================
+
+  - eidos: intention
+    id: intention/kosmos-handover
+    data:
+      description: |
+        Separate Kosmos (the world) from Chora (the implementation).
+        Create conditions where the ontology can evolve independently,
+        where creative journeys happen within Kosmos itself.
+      status: active
+      priority: 1
+      formed_at: 2026-01-27T00:00:00Z
+
+  # =============================================================================
+  # THE JOURNEY
+  # =============================================================================
+
+  - eidos: journey
+    id: journey/kosmos-handover
+    data:
+      desire: "Separate Kosmos from Chora so creative journeys can happen within the world itself"
+      description: |
+        This is the foundational journey for the creative journey infrastructure.
+        Completing it enables all future oikos development to happen cleanly,
+        with the world (Kosmos) existing independently of implementation (Chora).
+      status: active
+      current_waypoint: 0
+      embarked_at: 2026-01-27T00:00:00Z
+      leverage_type: compound
+      leverage_multiplier: oikos
+      feedback_loop: true
+
+  # =============================================================================
+  # THE WAYPOINTS
+  # =============================================================================
+
+  - eidos: waypoint
+    id: waypoint/kosmos-handover-0
+    data:
+      journey_id: journey/kosmos-handover
+      ordinal: 0
+      description: "Understand what exists, what moves, what stays"
+      status: reached
+      reached_at: 2026-01-27T00:00:00Z
+
+  - eidos: waypoint
+    id: waypoint/kosmos-handover-1
+    data:
+      journey_id: journey/kosmos-handover
+      ordinal: 1
+      description: "Create kosmos repository with constitutional content"
+      status: pending
+
+  - eidos: waypoint
+    id: waypoint/kosmos-handover-2
+    data:
+      journey_id: journey/kosmos-handover
+      ordinal: 2
+      description: "Make Chora depend on Kosmos"
+      status: pending
+
+  - eidos: waypoint
+    id: waypoint/kosmos-handover-3
+    data:
+      journey_id: journey/kosmos-handover
+      ordinal: 3
+      description: "Establish where different work happens"
+      status: pending
+
+  - eidos: waypoint
+    id: waypoint/kosmos-handover-4
+    data:
+      journey_id: journey/kosmos-handover
+      ordinal: 4
+      description: "CI/CD for both repos working together"
+      status: pending
+
+  # =============================================================================
+  # THE PROSPECTS
+  # =============================================================================
+
+  - eidos: prospect
+    id: prospect/multiple-implementations
+    data:
+      description: "Other languages could interpret Kosmos"
+      likelihood: 0.7
+      valence: positive
+      horizon: far
+      noted_at: 2026-01-27T00:00:00Z
+
+  - eidos: prospect
+    id: prospect/oikos-marketplace
+    data:
+      description: "Oikoi shared as packages between circles"
+      likelihood: 0.8
+      valence: positive
+      horizon: near
+      noted_at: 2026-01-27T00:00:00Z
+
+  - eidos: prospect
+    id: prospect/documentation-first
+    data:
+      description: "World described before implemented becomes the norm"
+      likelihood: 0.9
+      valence: positive
+      horizon: immediate
+      noted_at: 2026-01-27T00:00:00Z
+
+  # =============================================================================
+  # THE KAIROS
+  # =============================================================================
+
+  - eidos: kairos
+    id: kairos/v9-complete
+    data:
+      description: "V9 migration complete — clean break point for separation"
+      for_intention: intention/kosmos-handover
+      conditions:
+        - "Phase 7 structural normalization done"
+        - "Psyche oikos completed"
+        - "Creative journey pattern documented"
+        - "journeys-toward desmos bridges nous and psyche"
+      recognized_at: 2026-01-27T00:00:00Z
+
+# =============================================================================
+# BONDS
+# =============================================================================
+
+bonds:
+  # Journey serves the intention
+  - from: journey/kosmos-handover
+    to: intention/kosmos-handover
+    desmos: journeys-toward
+
+  # Journey contains waypoints
+  - from: journey/kosmos-handover
+    to: waypoint/kosmos-handover-0
+    desmos: contains-waypoint
+
+  - from: journey/kosmos-handover
+    to: waypoint/kosmos-handover-1
+    desmos: contains-waypoint
+
+  - from: journey/kosmos-handover
+    to: waypoint/kosmos-handover-2
+    desmos: contains-waypoint
+
+  - from: journey/kosmos-handover
+    to: waypoint/kosmos-handover-3
+    desmos: contains-waypoint
+
+  - from: journey/kosmos-handover
+    to: waypoint/kosmos-handover-4
+    desmos: contains-waypoint
+
+  # Kairos is opportune for the intention
+  - from: kairos/v9-complete
+    to: intention/kosmos-handover
+    desmos: opportune-for

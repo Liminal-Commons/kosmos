@@ -1,0 +1,92 @@
+# dynamis.yaml
+# Seed entities for dynamis oikos
+#
+# These entities exist from the moment dynamis is loaded.
+# They establish the infrastructure for release distribution.
+#
+# Traces to: oikoi/dynamis/manifest.yaml
+# Authorized by: expression/genesis-root
+
+entities:
+
+# =============================================================================
+# SUBSTRATES — Target platforms
+# =============================================================================
+
+# macOS Universal (arm64 + x64)
+- eidos: substrate
+  id: substrate/mac-universal
+  data:
+    name: mac-universal
+    kind: platform
+    os: macos
+    arch: arm64
+    description: |
+      macOS Universal binary — runs natively on both Apple Silicon and Intel Macs.
+      Built with Rust's universal-apple-darwin target.
+    active: true
+
+# Windows x64
+- eidos: substrate
+  id: substrate/windows-x64
+  data:
+    name: windows-x64
+    kind: platform
+    os: windows
+    arch: x64
+    description: |
+      Windows 64-bit binary — runs on Windows 10/11 x64 systems.
+      Built with Rust's x86_64-pc-windows-msvc target.
+    active: true
+
+# Linux x64
+- eidos: substrate
+  id: substrate/linux-x64
+  data:
+    name: linux-x64
+    kind: platform
+    os: linux
+    arch: x64
+    description: |
+      Linux 64-bit AppImage — runs on most Linux distributions.
+      Built with Rust's x86_64-unknown-linux-gnu target.
+    active: true
+
+# =============================================================================
+# DISTRIBUTION CHANNELS — How releases reach users
+# =============================================================================
+
+# Thyra R2 Channel — Primary distribution for Thyra releases
+- eidos: distribution-channel
+  id: distribution-channel/thyra-r2
+  data:
+    name: thyra-r2
+    provider: r2
+    description: |
+      Primary distribution channel for Thyra releases.
+      Files stored in Cloudflare R2, served via thyra.liminalcommons.com.
+    config:
+      bucket: thyra-releases
+      endpoint: env://R2_ENDPOINT
+      key_pattern: "v{{ version }}/{{ filename }}"
+      credential_ref: env://R2_ACCESS_KEY_ID,env://R2_SECRET_ACCESS_KEY
+    base_url: https://thyra.liminalcommons.com/download
+    status: active
+    created_at: "{{ now() }}"
+
+# GitHub Releases Channel — Secondary distribution
+- eidos: distribution-channel
+  id: distribution-channel/github-releases
+  data:
+    name: github-releases
+    provider: github
+    description: |
+      Secondary distribution channel via GitHub Releases.
+      Provides direct download links and release notes.
+    config:
+      owner: liminalcommons
+      repo: chora
+      credential_ref: env://GITHUB_TOKEN
+    base_url: https://github.com/liminalcommons/chora/releases
+    status: active
+    created_at: "{{ now() }}"

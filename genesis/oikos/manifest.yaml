@@ -1,0 +1,69 @@
+# Oikos Manifest: Oikos
+# οἶκος — the intimate — sessions, conversations, notes, insights.
+#
+# Manifest v2.1 — oikos metadata for entity composition
+
+format_version: "2.1"
+oikos_id: oikos
+version: "0.1.0"
+
+# Oikos metadata (v2.1)
+oikos_name: Oikos
+oikos_description: |
+  The intimate scale — sessions, conversations, notes, insights.
+  Where personal knowledge work happens within a dwelling.
+oikos_scale: oikos
+
+content_paths:
+  - path: eide/
+    content_types: [eidos]
+  - path: desmoi/
+    content_types: [desmos]
+  - path: praxeis/
+    content_types: [praxis]
+
+requires_dynamis:
+  - db.arise
+  - db.find
+  - db.bind
+  - db.trace
+  - db.update
+  - db.loose
+  - db.gather
+
+provides:
+  eide:
+    - session
+    - conversation
+    - segment
+    - note
+    - insight
+
+  desmoi:
+    # Session/conversation bonds
+    - within
+    - authored-by
+    - surfaced-in
+    - about
+    - crystallizes
+    - surfaces
+    # Oikos ecosystem bonds (K3-K4)
+    - published-by
+    - baked-from
+    - attests-to
+    - distributes
+    - oikos-derives-from
+    - uses-oikos
+
+  praxeis:
+    - oikos/open-session
+    - oikos/close-session
+    - oikos/open-conversation
+    - oikos/add-segment
+    - oikos/take-note
+    - oikos/list-notes
+    - oikos/surface-insight
+    - oikos/crystallize-insight
+
+stoicheia_form:
+  # All stoicheia currently arche-level

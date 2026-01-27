@@ -1,0 +1,111 @@
+# Manteia Eide
+# Governed generation types — verdicts, envelopes, criteria
+#
+# Μαντεία provides governed inference with quality evaluation.
+# These types embody the V4 insight: "Generation without evaluation is incomplete."
+
+eide:
+  # governed-envelope — result of governed generation with evaluation
+  - id: eidos/governed-envelope
+    data:
+      name: governed-envelope
+      description: |
+        Result of governed generation with quality evaluation.
+
+        Contains the generated content alongside its verdict and evaluation results.
+        The envelope carries both what was generated AND whether it's good enough.
+
+        Verdicts:
+        - TRUE: All critical criteria pass — safe to emit/realize
+        - FALSE: Critical criterion failed — return guidance for fix
+        - UNDECIDABLE: Cannot determine — human review required
+      fields:
+        content:
+          type: any
+          required: true
+          description: "The generated content (JSON, text, code, etc.)"
+        verdict:
+          type: enum
+          values: [TRUE, FALSE, UNDECIDABLE]
+          required: true
+          description: "Quality gate verdict"
+        criteria_results:
+          type: array
+          required: true
+          description: "Per-criterion evaluation results [{name, status, reason}]"
+        guidance:
+          type: object
+          required: false
+          description: |
+            Resolution guidance when verdict != TRUE.
+            Contains: resolution_hint, gap_kind (missing/incomplete/incoherent)
+        provenance:
+          type: object
+          required: true
+          description: |
+            Generation provenance tracking.
+            Contains: action, timestamp, prompt_hash, schema_hash, model
+        created_at:
+          type: timestamp
+          required: true
+
+  # evaluation-criterion — quality gate definition
+  - id: eidos/evaluation-criterion
+    data:
+      name: evaluation-criterion
+      description: |
+        A criterion for evaluating generated content quality.
+
+        Criteria are checked during the evaluation phase of governed generation.
+        Critical criteria must pass for verdict=TRUE; desired criteria are advisory.
+      fields:
+        name:
+          type: string
+          required: true
+          description: "Criterion identifier (e.g., 'compiles', 'handles_errors')"
+        description:
+          type: string
+          required: true
+          description: "What this criterion checks for"
+        weight:
+          type: enum
+          values: [critical, desired, advisory]
+          required: true
+          default: desired
+          description: |
+            How failures affect verdict:
+            - critical: failure → verdict=FALSE
+            - desired: failure noted, doesn't force FALSE
+            - advisory: informational only
+        check_prompt:
+          type: string
+          required: false
+          description: "Custom prompt for checking this criterion (optional)"
+        created_at:
+          type: timestamp
+          required: true
+
+  # criterion-result — single criterion evaluation result
+  - id: eidos/criterion-result
+    data:
+      name: criterion-result
+      description: |
+        Result of evaluating a single criterion.
+        Embedded in governed-envelope.criteria_results array.
+      fields:
+        name:
+          type: string
+          required: true
+          description: "Criterion name that was evaluated"
+        status:
+          type: enum
+          values: [PASS, FAIL, UNDECIDABLE]
+          required: true
+          description: "Did the content meet this criterion?"
+        reason:
+          type: string
+          required: true
+          description: "Explanation of why this status was determined"
+        created_at:
+          type: timestamp
+          required: true

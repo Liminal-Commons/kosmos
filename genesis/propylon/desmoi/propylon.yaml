@@ -1,0 +1,53 @@
+# Propylon Desmoi
+# Gateway entry bonds
+#
+# Extracted from spora.yaml stage-2-propylon
+
+desmoi:
+  # grants-entry-to — link grants entry to circle
+  - id: desmos/grants-entry-to
+    data:
+      name: grants-entry-to
+      description: "A propylon-link grants entry to a circle"
+      from_eidos: propylon-link
+      to_eidos: circle
+      cardinality: many-to-one
+
+  # authenticated-via — how animus entered
+  - id: desmos/authenticated-via
+    data:
+      name: authenticated-via
+      description: "Animus authenticated through a propylon-session"
+      from_eidos: animus
+      to_eidos: propylon-session
+      cardinality: one-to-one
+
+  # used-link — session used a link
+  - id: desmos/used-link
+    data:
+      name: used-link
+      description: "A propylon-session used a propylon-link for entry"
+      from_eidos: propylon-session
+      to_eidos: propylon-link
+      cardinality: many-to-one
+
+  # operates-relay — circle operates relay infrastructure
+  - id: desmos/operates-relay
+    data:
+      name: operates-relay
+      description: |
+        A circle operates a propylon-relay. The relay is commons infrastructure
+        owned and maintained by the operating circle. Entry links from this
+        circle's invitations use this relay's bootstrap URL.
+      from_eidos: circle
+      to_eidos: propylon-relay
+      cardinality: one-to-many
+
+  # connects-via — session connected through relay
+  - id: desmos/connects-via
+    data:
+      name: connects-via
+      description: "A propylon-session connected through a propylon-relay"
+      from_eidos: propylon-session
+      to_eidos: propylon-relay
+      cardinality: many-to-one

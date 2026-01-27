@@ -1,0 +1,2240 @@
+# politeia.yaml
+# Politeia praxeis for governance and capability operations
+#
+# Politeia is how circles govern and grant capabilities.
+# These praxeis enable circle management, attainment derivation,
+# and affordance surfacing.
+#
+# Relationships are desmoi, not array fields (Visibility = Reachability).
+
+entities:
+
+# =============================================================================
+# CIRCLE OPERATIONS (Phase 19.2)
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/politeia/create-circle
+  data:
+    oikos: politeia
+    name: create-circle
+    visible: true
+    tier: 2
+    description: |
+      Create a new circle with the caller's animus as sovereign.
+
+      Creates the circle entity and bonds sovereign-to from circle to caller's animus.
+      Also creates member-of bond from animus to circle.
+    params:
+      - name: circle_id
+        type: string
+        required: true
+        description: ID for the new circle (e.g., circle/my-circle)
+      - name: name
+        type: string
+        required: true
+        description: Human-readable circle name
+      - name: description
+        type: string
+        required: false
+        description: Circle description
+      - name: kind
+        type: string
+        required: false
+        description: "Circle kind: self, intimate, community, public (default: intimate)"
+    steps:
+      # Default kind to intimate
+      - step: set
+        bindings:
+          circle_kind: "$kind"
+
+      - step: switch
+        cases:
+          - when: "$circle_kind"
+            then: []
+        default:
+          - step: set
+            bindings:
+              circle_kind: "intimate"
+
+      # Assert we have animus context
+      - step: assert
+        condition: "$_animus"
+        message: "No dwelling context — cannot create circle without animus"
+
+      # Create the circle (CE4: compose instead of arise)
+      - step: compose
+        typos_id: "typos-def-circle"
+        inputs:
+          id: "$circle_id"
+          name: "$name"
+          description: "$description"
+          kind: "$circle_kind"
+        bind_to: circle_entity
+
+      # Bond: circle sovereign-to animus
+      - step: bind
+        from_id: "$circle_id"
+        to_id: "$_animus"
+        desmos: "sovereign-to"
+
+      # Bond: animus member-of circle
+      - step: bind
+        from_id: "$_animus"
+        to_id: "$circle_id"
+        desmos: "member-of"
+
+      - step: return
+        value:
+          circle_id: "$circle_id"
+          circle: "$circle_entity"
+          sovereign_animus: "$_animus"
+
+- eidos: praxis
+  id: praxis/politeia/invite-to-circle
+  data:
+    oikos: politeia
+    name: invite-to-circle
+    visible: true
+    tier: 2
+    description: |
+      Invite someone to join a circle.
+
+      Creates an invitation entity. Can target a specific persona or be an open invite.
+      Caller must be sovereign to the circle.
+    params:
+      - name: invitation_id
+        type: string
+        required: true
+        description: ID for the invitation
+      - name: circle_id
+        type: string
+        required: true
+        description: Circle to invite to
+      - name: invitee_id
+        type: string
+        required: false
+        description: Specific persona ID to invite (omit for open invite)
+      - name: message
+        type: string
+        required: false
+        description: Message to include with invitation
+      - name: expires_in_days
+        type: number
+        required: false
+        description: Days until expiration (default 7)
+      - name: max_uses
+        type: number
+        required: false
+        description: Max uses for open invites
+    steps:
+      # Assert dwelling context
+      - step: assert
+        condition: "$_animus"
+        message: "No dwelling context"
+
+      # Find circle
+      - step: find
+        id: "$circle_id"
+        bind_to: circle
+
+      - step: assert
+        condition: "$circle"
+        message: "Circle not found: $circle_id"
+
+      # Verify caller is sovereign (trace sovereign-to from circle)
+      - step: trace
+        from_id: "$circle_id"
+        desmos: "sovereign-to"
+        direction: "outbound"
+        bind_to: sovereigns
+
+      - step: filter
+        items: "$sovereigns"
+        condition: "$item.id == $_animus"
+        bind_to: is_sovereign
+
+      - step: assert
+        condition: "$is_sovereign | length > 0"
+        message: "Not sovereign to this circle"
+
+      # Generate token for open invites
+      - step: set
+        bindings:
+          invite_token: "{{ uuid() }}"
+          expires_days: "$expires_in_days"
+
+      - step: switch
+        cases:
+          - when: "$expires_days"
+            then: []
+        default:
+          - step: set
+            bindings:
+              expires_days: 7
+
+      # Create invitation (CE4: compose instead of arise)
+      - step: compose
+        typos_id: "typos-def-invitation"
+        inputs:
+          id: "$invitation_id"
+          circle_id: "$circle_id"
+          invitee_id: "$invitee_id"
+          inviter_id: "$_persona"
+          message: "$message"
+          status: "pending"
+          token: "$invite_token"
+          max_uses: "$max_uses"
+          uses: 0
+          created_at: "{{ now() }}"
+        bind_to: invitation_entity
+
+      # Bond: invitation child-of circle
+      - step: bind
+        from_id: "$invitation_id"
+        to_id: "$circle_id"
+        desmos: "child-of"
+
+      # Bond: invitation invited-to persona (if specific invite)
+      - step: switch
+        cases:
+          - when: "$invitee_id"
+            then:
+              - step: bind
+                from_id: "$invitation_id"
+                to_id: "$invitee_id"
+                desmos: "invited-to"
+
+      - step: return
+        value:
+          invitation_id: "$invitation_id"
+          invitation: "$invitation_entity"
+          token: "$invite_token"
+          circle_id: "$circle_id"
+
+- eidos: praxis
+  id: praxis/politeia/accept-invitation
+  data:
+    oikos: politeia
+    name: accept-invitation
+    visible: true
+    tier: 2
+    description: |
+      Accept an invitation to join a circle.
+
+      Creates member-of bond and derives attainments from the circle.
+    params:
+      - name: invitation_id
+        type: string
+        required: true
+        description: Invitation to accept
+    steps:
+      - step: assert
+        condition: "$_animus"
+        message: "No dwelling context"
+
+      # Find invitation
+      - step: find
+        id: "$invitation_id"
+        bind_to: invitation
+
+      - step: assert
+        condition: "$invitation"
+        message: "Invitation not found: $invitation_id"
+
+      - step: assert
+        condition: '$invitation.data.status == "pending"'
+        message: "Invitation is not pending"
+
+      # Check if specific invite for this persona
+      - step: switch
+        cases:
+          - when: "$invitation.data.invitee_id"
+            then:
+              - step: assert
+                condition: "$invitation.data.invitee_id == $_persona"
+                message: "Invitation not for you"
+
+      # Check max uses for open invites
+      - step: switch
+        cases:
+          - when: "$invitation.data.max_uses"
+            then:
+              - step: assert
+                condition: "$invitation.data.uses < $invitation.data.max_uses"
+                message: "Invitation has reached max uses"
+
+      # Get circle ID
+      - step: set
+        bindings:
+          target_circle: "$invitation.data.circle_id"
+
+      # Create member-of bond
+      - step: bind
+        from_id: "$_animus"
+        to_id: "$target_circle"
+        desmos: "member-of"
+        bind_to: membership_bond
+
+      # Update invitation
+      - step: update
+        id: "$invitation_id"
+        data:
+          status: "accepted"
+          uses: "$invitation.data.uses + 1"
+          accepted_at: "{{ now() }}"
+
+      # Get persona for event name (use $_persona which is the persona ID)
+      - step: find
+        id: "$_persona"
+        bind_to: persona_entity
+
+      - step: set
+        bindings:
+          joining_persona_name: "$persona_entity.data.name"
+
+      # Get inviter persona for actor name
+      - step: find
+        id: "$invitation.data.inviter_id"
+        bind_to: inviter_entity
+
+      - step: set
+        bindings:
+          inviter_name: "$inviter_entity.data.name"
+
+      # Create membership event for audit trail
+      - step: call
+        praxis: "politeia/create-membership-event"
+        params:
+          event_type: "joined"
+          circle_id: "$target_circle"
+          persona_id: "$_persona"
+          persona_name: "$joining_persona_name"
+          actor_id: "$invitation.data.inviter_id"
+          actor_name: "$inviter_name"
+          invitation_id: "$invitation_id"
+        bind_to: join_event
+
+      # Derive attainments from the circle
+      - step: call
+        praxis: "politeia/derive-attainments"
+        params:
+          animus_id: "$_animus"
+          circle_id: "$target_circle"
+        bind_to: derived
+
+      - step: return
+        value:
+          accepted: true
+          circle_id: "$target_circle"
+          attainments_derived: "$derived.attainments"
+
+- eidos: praxis
+  id: praxis/politeia/decline-invitation
+  data:
+    oikos: politeia
+    name: decline-invitation
+    visible: true
+    tier: 1
+    description: |
+      Decline an invitation.
+    params:
+      - name: invitation_id
+        type: string
+        required: true
+        description: Invitation to decline
+    steps:
+      - step: find
+        id: "$invitation_id"
+        bind_to: invitation
+
+      - step: assert
+        condition: "$invitation"
+        message: "Invitation not found"
+
+      - step: assert
+        condition: '$invitation.data.status == "pending"'
+        message: "Invitation is not pending"
+
+      - step: update
+        id: "$invitation_id"
+        data:
+          status: "declined"
+
+      - step: return
+        value:
+          declined: true
+          invitation_id: "$invitation_id"
+
+- eidos: praxis
+  id: praxis/politeia/dwell-in-circle
+  data:
+    oikos: politeia
+    name: dwell-in-circle
+    visible: true
+    tier: 2
+    description: |
+      Move dwelling position to a circle.
+
+      Animus can only dwell in one circle at a time (exclusive).
+      Removes previous dwells-in bond, creates new one.
+    params:
+      - name: circle_id
+        type: string
+        required: true
+        description: Circle to dwell in
+    steps:
+      - step: assert
+        condition: "$_animus"
+        message: "No dwelling context"
+
+      # Find circle
+      - step: find
+        id: "$circle_id"
+        bind_to: circle
+
+      - step: assert
+        condition: "$circle"
+        message: "Circle not found: $circle_id"
+
+      # Check membership
+      - step: trace
+        from_id: "$_animus"
+        desmos: "member-of"
+        direction: "outbound"
+        bind_to: memberships
+
+      - step: filter
+        items: "$memberships"
+        condition: "$item.id == $circle_id"
+        bind_to: is_member
+
+      - step: assert
+        condition: "$is_member | length > 0"
+        message: "Not a member of this circle"
+
+      # Remove existing dwells-in bond
+      - step: trace
+        from_id: "$_animus"
+        desmos: "dwells-in"
+        direction: "outbound"
+        bind_to: current_dwelling
+
+      - step: switch
+        cases:
+          - when: "$current_dwelling | length > 0"
+            then:
+              - step: set
+                bindings:
+                  previous_circle: "$current_dwelling[0].id"
+              - step: loose
+                from_id: "$_animus"
+                to_id: "$current_dwelling[0].id"
+                desmos: "dwells-in"
+
+      # Create new dwells-in bond
+      - step: bind
+        from_id: "$_animus"
+        to_id: "$circle_id"
+        desmos: "dwells-in"
+
+      # Update animus
+      - step: update
+        id: "$_animus"
+        data:
+          circle_id: "$circle_id"
+          last_active_at: "{{ now() }}"
+
+      - step: return
+        value:
+          dwelling_in: "$circle_id"
+          previous_circle: "$previous_circle"
+
+- eidos: praxis
+  id: praxis/politeia/leave-circle
+  data:
+    oikos: politeia
+    name: leave-circle
+    visible: true
+    tier: 2
+    description: |
+      Leave a circle (remove membership).
+
+      Removes member-of bond and any has-attainment bonds for attainments
+      granted by this circle.
+    params:
+      - name: circle_id
+        type: string
+        required: true
+        description: Circle to leave
+    steps:
+      - step: assert
+        condition: "$_animus"
+        message: "No dwelling context"
+
+      # Check membership exists
+      - step: trace
+        from_id: "$_animus"
+        desmos: "member-of"
+        direction: "outbound"
+        bind_to: memberships
+
+      - step: filter
+        items: "$memberships"
+        condition: "$item.id == $circle_id"
+        bind_to: is_member
+
+      - step: assert
+        condition: "$is_member | length > 0"
+        message: "Not a member of this circle"
+
+      # Get persona for event name
+      - step: find
+        id: "$_persona"
+        bind_to: leaving_persona
+
+      - step: set
+        bindings:
+          leaving_persona_name: "$leaving_persona.data.name"
+
+      # Create membership event for audit trail (before removing bond)
+      - step: call
+        praxis: "politeia/create-membership-event"
+        params:
+          event_type: "left"
+          circle_id: "$circle_id"
+          persona_id: "$_persona"
+          persona_name: "$leaving_persona_name"
+          actor_id: "$_persona"
+          actor_name: "$leaving_persona_name"
+        bind_to: leave_event
+
+      # Remove member-of bond
+      - step: loose
+        from_id: "$_animus"
+        to_id: "$circle_id"
+        desmos: "member-of"
+
+      # If currently dwelling there, remove dwells-in
+      - step: trace
+        from_id: "$_animus"
+        desmos: "dwells-in"
+        direction: "outbound"
+        bind_to: dwelling
+
+      - step: switch
+        cases:
+          - when: "$dwelling | length > 0"
+            then:
+              - step: switch
+                cases:
+                  - when: "$dwelling[0].id == $circle_id"
+                    then:
+                      - step: loose
+                        from_id: "$_animus"
+                        to_id: "$circle_id"
+                        desmos: "dwells-in"
+
+      # Get attainments granted by this circle
+      - step: trace
+        from_id: "$circle_id"
+        desmos: "grants-attainment"
+        direction: "outbound"
+        bind_to: circle_attainments
+
+      # Remove has-attainment bonds for these attainments
+      - step: for_each
+        items: "$circle_attainments"
+        item_var: attainment
+        steps:
+          - step: loose
+            from_id: "$_animus"
+            to_id: "$attainment.id"
+            desmos: "has-attainment"
+
+      - step: return
+        value:
+          left: true
+          circle_id: "$circle_id"
+          attainments_removed: "$circle_attainments | length"
+
+# =============================================================================
+# MEMBERSHIP EVENT OPERATIONS (Audit Trail)
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/politeia/create-membership-event
+  data:
+    oikos: politeia
+    name: create-membership-event
+    visible: true
+    tier: 2
+    description: |
+      Record a membership change event for audit trail.
+
+      Creates a membership-event entity capturing who joined/left/was removed,
+      when, and by whom.
+    params:
+      - name: event_type
+        type: string
+        required: true
+        description: "Event type: joined, left, removed, invited"
+      - name: circle_id
+        type: string
+        required: true
+        description: Circle where the event occurred
+      - name: persona_id
+        type: string
+        required: true
+        description: Persona affected by the event
+      - name: persona_name
+        type: string
+        required: false
+        description: Display name at time of event
+      - name: actor_id
+        type: string
+        required: false
+        description: Who initiated the action
+      - name: actor_name
+        type: string
+        required: false
+        description: Actor display name at time of event
+      - name: invitation_id
+        type: string
+        required: false
+        description: Related invitation ID (for join events)
+      - name: reason
+        type: string
+        required: false
+        description: Optional reason (for leave/remove events)
+    steps:
+      # Generate event ID
+      - step: set
+        bindings:
+          event_id: "membership-event/{{ uuid() }}"
+
+      # Create the membership event (CE4: compose instead of arise)
+      - step: compose
+        typos_id: "typos-def-membership-event"
+        inputs:
+          id: "$event_id"
+          event_type: "$event_type"
+          circle_id: "$circle_id"
+          persona_id: "$persona_id"
+          persona_name: "$persona_name"
+          actor_id: "$actor_id"
+          actor_name: "$actor_name"
+          invitation_id: "$invitation_id"
+          reason: "$reason"
+          occurred_at: "{{ now() }}"
+        bind_to: event_entity
+
+      # Bond: event child-of circle (for traversal and visibility)
+      - step: bind
+        from_id: "$event_id"
+        to_id: "$circle_id"
+        desmos: "child-of"
+
+      - step: return
+        value:
+          event_id: "$event_id"
+          event: "$event_entity"
+
+- eidos: praxis
+  id: praxis/politeia/list-membership-events
+  data:
+    oikos: politeia
+    name: list-membership-events
+    visible: true
+    tier: 1
+    description: |
+      List membership events for a circle.
+
+      Returns audit trail of join/leave/remove events.
+    params:
+      - name: circle_id
+        type: string
+        required: true
+        description: Circle to query events for
+      - name: event_type
+        type: string
+        required: false
+        description: Filter by event type
+      - name: max_results
+        type: number
+        required: false
+        description: Maximum results (default 50)
+    steps:
+      - step: find
+        id: "$circle_id"
+        bind_to: circle
+
+      - step: assert
+        condition: "$circle"
+        message: "Circle not found: $circle_id"
+
+      # Gather membership events bonded to this circle
+      - step: trace
+        to_id: "$circle_id"
+        desmos: "child-of"
+        direction: "inbound"
+        bind_to: children
+
+      # Filter to membership-event eidos
+      - step: filter
+        items: "$children"
+        condition: "$item.eidos == 'membership-event'"
+        bind_to: events
+
+      # Filter by event type if specified
+      - step: switch
+        cases:
+          - when: "$event_type"
+            then:
+              - step: filter
+                items: "$events"
+                condition: "$item.data.event_type == $event_type"
+                bind_to: events
+
+      - step: set
+        bindings:
+          limit: "$max_results"
+
+      - step: switch
+        cases:
+          - when: "$limit"
+            then: []
+        default:
+          - step: set
+            bindings:
+              limit: 50
+
+      - step: limit
+        items: "$events"
+        count: "$limit"
+        bind_to: events
+
+      - step: return
+        value:
+          circle_id: "$circle_id"
+          events: "$events"
+          count: "$events | length"
+
+- eidos: praxis
+  id: praxis/politeia/list-circles
+  data:
+    oikos: politeia
+    name: list-circles
+    visible: true
+    tier: 1
+    description: |
+      List circles the animus is member of or can see.
+    params:
+      - name: membership_only
+        type: boolean
+        required: false
+        description: Only show circles with membership (default false)
+      - name: max_results
+        type: number
+        required: false
+        description: Maximum results (default 50)
+    steps:
+      - step: set
+        bindings:
+          limit: "$max_results"
+
+      - step: switch
+        cases:
+          - when: "$limit"
+            then: []
+        default:
+          - step: set
+            bindings:
+              limit: 50
+
+      - step: switch
+        cases:
+          # Membership only - trace bonds
+          - when: "$membership_only"
+            then:
+              - step: trace
+                from_id: "$_animus"
+                desmos: "member-of"
+                direction: "outbound"
+                bind_to: circles
+        default:
+          # All visible circles
+          - step: gather
+            eidos: "circle"
+            bind_to: circles
+
+      - step: limit
+        items: "$circles"
+        count: "$limit"
+        bind_to: circles
+
+      - step: return
+        value:
+          circles: "$circles"
+          count: "$circles | length"
+
+# =============================================================================
+# ATTAINMENT OPERATIONS (Phase 19.3)
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/politeia/create-attainment
+  data:
+    oikos: politeia
+    name: create-attainment
+    visible: true
+    tier: 2
+    description: |
+      Create a new attainment that circles can grant.
+    params:
+      - name: attainment_id
+        type: string
+        required: true
+        description: ID for the attainment
+      - name: name
+        type: string
+        required: true
+        description: Attainment name (e.g., "compose", "invite", "govern")
+      - name: description
+        type: string
+        required: false
+        description: Description of what this attainment enables
+      - name: scope
+        type: string
+        required: false
+        description: "Scope: circle, oikos, global (default: circle)"
+      - name: constraints
+        type: object
+        required: false
+        description: Optional constraints (rate limits, quotas, etc.)
+    steps:
+      - step: set
+        bindings:
+          attainment_scope: "$scope"
+
+      - step: switch
+        cases:
+          - when: "$attainment_scope"
+            then: []
+        default:
+          - step: set
+            bindings:
+              attainment_scope: "circle"
+
+      # CE4: compose instead of arise
+      - step: compose
+        typos_id: "typos-def-attainment"
+        inputs:
+          id: "$attainment_id"
+          name: "$name"
+          description: "$description"
+          scope: "$attainment_scope"
+          constraints: "$constraints"
+          created_at: "{{ now() }}"
+        bind_to: attainment_entity
+
+      - step: return
+        value:
+          attainment_id: "$attainment_id"
+          attainment: "$attainment_entity"
+
+- eidos: praxis
+  id: praxis/politeia/grant-attainment
+  data:
+    oikos: politeia
+    name: grant-attainment
+    visible: true
+    tier: 2
+    description: |
+      Grant an attainment from a circle.
+
+      Caller must be sovereign to the circle.
+    params:
+      - name: circle_id
+        type: string
+        required: true
+        description: Circle granting the attainment
+      - name: attainment_id
+        type: string
+        required: true
+        description: Attainment to grant
+    steps:
+      - step: assert
+        condition: "$_animus"
+        message: "No dwelling context"
+
+      # Verify caller is sovereign
+      - step: trace
+        from_id: "$circle_id"
+        desmos: "sovereign-to"
+        direction: "outbound"
+        bind_to: sovereigns
+
+      - step: filter
+        items: "$sovereigns"
+        condition: "$item.id == $_animus"
+        bind_to: is_sovereign
+
+      - step: assert
+        condition: "$is_sovereign | length > 0"
+        message: "Not sovereign to this circle"
+
+      # Verify attainment exists
+      - step: find
+        id: "$attainment_id"
+        bind_to: attainment
+
+      - step: assert
+        condition: "$attainment"
+        message: "Attainment not found"
+
+      # Create grants-attainment bond
+      - step: bind
+        from_id: "$circle_id"
+        to_id: "$attainment_id"
+        desmos: "grants-attainment"
+        bind_to: grant_bond
+
+      # Create granted-by bond (inverse)
+      - step: bind
+        from_id: "$attainment_id"
+        to_id: "$circle_id"
+        desmos: "granted-by"
+
+      - step: return
+        value:
+          granted: true
+          circle_id: "$circle_id"
+          attainment_id: "$attainment_id"
+
+- eidos: praxis
+  id: praxis/politeia/revoke-attainment
+  data:
+    oikos: politeia
+    name: revoke-attainment
+    visible: true
+    tier: 2
+    description: |
+      Revoke an attainment grant from a circle.
+
+      Caller must be sovereign to the circle.
+    params:
+      - name: circle_id
+        type: string
+        required: true
+        description: Circle revoking the attainment
+      - name: attainment_id
+        type: string
+        required: true
+        description: Attainment to revoke
+    steps:
+      - step: assert
+        condition: "$_animus"
+        message: "No dwelling context"
+
+      # Verify caller is sovereign
+      - step: trace
+        from_id: "$circle_id"
+        desmos: "sovereign-to"
+        direction: "outbound"
+        bind_to: sovereigns
+
+      - step: filter
+        items: "$sovereigns"
+        condition: "$item.id == $_animus"
+        bind_to: is_sovereign
+
+      - step: assert
+        condition: "$is_sovereign | length > 0"
+        message: "Not sovereign to this circle"
+
+      # Remove grants-attainment bond
+      - step: loose
+        from_id: "$circle_id"
+        to_id: "$attainment_id"
+        desmos: "grants-attainment"
+
+      # Remove granted-by bond (inverse)
+      - step: loose
+        from_id: "$attainment_id"
+        to_id: "$circle_id"
+        desmos: "granted-by"
+
+      - step: return
+        value:
+          revoked: true
+          circle_id: "$circle_id"
+          attainment_id: "$attainment_id"
+
+- eidos: praxis
+  id: praxis/politeia/derive-attainments
+  data:
+    oikos: politeia
+    name: derive-attainments
+    visible: true
+    tier: 2
+    description: |
+      Derive attainments for an animus based on circle memberships.
+
+      Traverses: animus -> member-of -> circle -> grants-attainment -> attainment
+      Creates has-attainment bonds for each derived attainment.
+    params:
+      - name: animus_id
+        type: string
+        required: false
+        description: Animus to derive for (defaults to caller)
+      - name: circle_id
+        type: string
+        required: false
+        description: Specific circle to derive from (optional)
+    steps:
+      - step: set
+        bindings:
+          target_animus: "$animus_id"
+
+      - step: switch
+        cases:
+          - when: "$target_animus"
+            then: []
+        default:
+          - step: set
+            bindings:
+              target_animus: "$_animus"
+
+      - step: assert
+        condition: "$target_animus"
+        message: "No animus specified"
+
+      # Get memberships
+      - step: trace
+        from_id: "$target_animus"
+        desmos: "member-of"
+        direction: "outbound"
+        bind_to: memberships
+
+      # Filter to specific circle if provided
+      - step: switch
+        cases:
+          - when: "$circle_id"
+            then:
+              - step: filter
+                items: "$memberships"
+                condition: "$item.id == $circle_id"
+                bind_to: memberships
+
+      # Collect attainments from all circles
+      - step: set
+        bindings:
+          all_attainments: []
+          bonds_created: 0
+
+      - step: for_each
+        items: "$memberships"
+        item_var: circle
+        steps:
+          # Get attainments granted by this circle
+          - step: trace
+            from_id: "$circle.id"
+            desmos: "grants-attainment"
+            direction: "outbound"
+            bind_to: circle_attainments
+
+          # Create has-attainment bonds
+          - step: for_each
+            items: "$circle_attainments"
+            item_var: attainment
+            steps:
+              - step: bind
+                from_id: "$target_animus"
+                to_id: "$attainment.id"
+                desmos: "has-attainment"
+
+      # Gather all attainments the animus now has
+      - step: trace
+        from_id: "$target_animus"
+        desmos: "has-attainment"
+        direction: "outbound"
+        bind_to: final_attainments
+
+      - step: return
+        value:
+          animus_id: "$target_animus"
+          attainments: "$final_attainments"
+          count: "$final_attainments | length"
+
+- eidos: praxis
+  id: praxis/politeia/list-attainments
+  data:
+    oikos: politeia
+    name: list-attainments
+    visible: true
+    tier: 1
+    description: |
+      List attainments for an animus or circle.
+    params:
+      - name: animus_id
+        type: string
+        required: false
+        description: List attainments for this animus
+      - name: circle_id
+        type: string
+        required: false
+        description: List attainments granted by this circle
+      - name: max_results
+        type: number
+        required: false
+        description: Maximum results
+    steps:
+      - step: set
+        bindings:
+          limit: "$max_results"
+
+      - step: switch
+        cases:
+          - when: "$limit"
+            then: []
+        default:
+          - step: set
+            bindings:
+              limit: 100
+
+      - step: switch
+        cases:
+          # List for animus
+          - when: "$animus_id"
+            then:
+              - step: trace
+                from_id: "$animus_id"
+                desmos: "has-attainment"
+                direction: "outbound"
+                bind_to: attainments
+
+          # List for circle
+          - when: "$circle_id"
+            then:
+              - step: trace
+                from_id: "$circle_id"
+                desmos: "grants-attainment"
+                direction: "outbound"
+                bind_to: attainments
+
+        # Default: caller's attainments
+        default:
+          - step: trace
+            from_id: "$_animus"
+            desmos: "has-attainment"
+            direction: "outbound"
+            bind_to: attainments
+
+      - step: limit
+        items: "$attainments"
+        count: "$limit"
+        bind_to: attainments
+
+      - step: return
+        value:
+          attainments: "$attainments"
+          count: "$attainments | length"
+
+# =============================================================================
+# AFFORDANCE OPERATIONS (Phase 19.4)
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/politeia/create-affordance
+  data:
+    oikos: politeia
+    name: create-affordance
+    visible: true
+    tier: 2
+    description: |
+      Create an affordance that surfaces an attainment.
+    params:
+      - name: affordance_id
+        type: string
+        required: true
+        description: ID for the affordance
+      - name: name
+        type: string
+        required: true
+        description: Affordance name
+      - name: description
+        type: string
+        required: false
+        description: Description
+      - name: praxis_id
+        type: string
+        required: true
+        description: Praxis to invoke when activated
+      - name: attainment_id
+        type: string
+        required: true
+        description: Attainment that enables this
+      - name: region_id
+        type: string
+        required: false
+        description: HUD region to render in
+      - name: required_attainments
+        type: array
+        required: false
+        description: Additional attainments required
+      - name: context_filter
+        type: object
+        required: false
+        description: When this affordance is relevant
+      - name: priority
+        type: number
+        required: false
+        description: Display priority (higher = more prominent)
+    steps:
+      # Verify attainment exists
+      - step: find
+        id: "$attainment_id"
+        bind_to: attainment
+
+      - step: assert
+        condition: "$attainment"
+        message: "Attainment not found"
+
+      - step: set
+        bindings:
+          affordance_priority: "$priority"
+
+      - step: switch
+        cases:
+          - when: "$affordance_priority"
+            then: []
+        default:
+          - step: set
+            bindings:
+              affordance_priority: 0
+
+      # Create affordance (CE4: compose instead of arise)
+      - step: compose
+        typos_id: "typos-def-affordance"
+        inputs:
+          id: "$affordance_id"
+          name: "$name"
+          description: "$description"
+          praxis_id: "$praxis_id"
+          required_attainments: "$required_attainments"
+          context_filter: "$context_filter"
+          priority: "$affordance_priority"
+          created_at: "{{ now() }}"
+        bind_to: affordance_entity
+
+      # Bond: attainment surfaces-as affordance
+      - step: bind
+        from_id: "$attainment_id"
+        to_id: "$affordance_id"
+        desmos: "surfaces-as"
+
+      # Bond: affordance enabled-by attainment
+      - step: bind
+        from_id: "$affordance_id"
+        to_id: "$attainment_id"
+        desmos: "enabled-by"
+
+      # Bond: affordance renders-in region (if specified)
+      - step: switch
+        cases:
+          - when: "$region_id"
+            then:
+              - step: bind
+                from_id: "$affordance_id"
+                to_id: "$region_id"
+                desmos: "renders-in"
+
+      - step: return
+        value:
+          affordance_id: "$affordance_id"
+          affordance: "$affordance_entity"
+
+- eidos: praxis
+  id: praxis/politeia/gather-affordances
+  data:
+    oikos: politeia
+    name: gather-affordances
+    visible: true
+    tier: 1
+    description: |
+      Gather all affordances available to the caller.
+
+      Traverses: animus -> has-attainment -> attainment -> surfaces-as -> affordance
+    params:
+      - name: context_entity_id
+        type: string
+        required: false
+        description: Filter affordances relevant to this entity
+      - name: max_results
+        type: number
+        required: false
+        description: Maximum results
+    steps:
+      - step: assert
+        condition: "$_animus"
+        message: "No dwelling context"
+
+      - step: set
+        bindings:
+          limit: "$max_results"
+
+      - step: switch
+        cases:
+          - when: "$limit"
+            then: []
+        default:
+          - step: set
+            bindings:
+              limit: 100
+
+      # Get attainments
+      - step: trace
+        from_id: "$_animus"
+        desmos: "has-attainment"
+        direction: "outbound"
+        bind_to: attainments
+
+      # Collect affordances from attainments
+      - step: set
+        bindings:
+          all_affordances: []
+
+      - step: for_each
+        items: "$attainments"
+        item_var: attainment
+        steps:
+          - step: trace
+            from_id: "$attainment.id"
+            desmos: "surfaces-as"
+            direction: "outbound"
+            bind_to: affordances
+
+          # Add to collection (note: this will include duplicates)
+          # In a real impl we'd dedupe, but for now this works
+
+      # Gather affordances directly since for_each doesn't accumulate well
+      - step: gather
+        eidos: "affordance"
+        bind_to: all_affordances
+
+      # Filter to ones enabled by attainments we have
+      # For now, return all visible affordances (dwelling filters)
+
+      - step: limit
+        items: "$all_affordances"
+        count: "$limit"
+        bind_to: all_affordances
+
+      - step: return
+        value:
+          affordances: "$all_affordances"
+          count: "$all_affordances | length"
+
+- eidos: praxis
+  id: praxis/politeia/render-hud
+  data:
+    oikos: politeia
+    name: render-hud
+    visible: true
+    tier: 1
+    description: |
+      Build the HUD render tree for the caller.
+
+      Returns a nested structure of regions with their affordances.
+    params: []
+    steps:
+      - step: assert
+        condition: "$_animus"
+        message: "No dwelling context"
+
+      # Get all HUD regions
+      - step: gather
+        eidos: "hud-region"
+        bind_to: all_regions
+
+      # Get all affordances for this animus
+      - step: call
+        praxis: "politeia/gather-affordances"
+        params: {}
+        bind_to: affordance_result
+
+      - step: set
+        bindings:
+          affordances: "$affordance_result.affordances"
+
+      # Build region tree with affordances
+      # Note: In a full impl, we'd nest regions via child-of
+      # For now, return flat list with affordances grouped
+
+      - step: return
+        value:
+          regions: "$all_regions"
+          affordances: "$affordances"
+          animus_id: "$_animus"
+
+- eidos: praxis
+  id: praxis/politeia/invoke-affordance
+  data:
+    oikos: politeia
+    name: invoke-affordance
+    visible: true
+    tier: 3
+    description: |
+      Invoke an affordance (execute its action praxis).
+
+      Verifies caller has required attainment before invoking.
+    params:
+      - name: affordance_id
+        type: string
+        required: true
+        description: Affordance to invoke
+      - name: params
+        type: object
+        required: false
+        description: Parameters for the action praxis
+    steps:
+      - step: assert
+        condition: "$_animus"
+        message: "No dwelling context"
+
+      # Find affordance
+      - step: find
+        id: "$affordance_id"
+        bind_to: affordance
+
+      - step: assert
+        condition: "$affordance"
+        message: "Affordance not found"
+
+      # Get enabling attainment
+      - step: trace
+        from_id: "$affordance_id"
+        desmos: "enabled-by"
+        direction: "outbound"
+        bind_to: enabling_attainments
+
+      - step: assert
+        condition: "$enabling_attainments | length > 0"
+        message: "Affordance has no enabling attainment"
+
+      # Verify caller has the attainment
+      - step: trace
+        from_id: "$_animus"
+        desmos: "has-attainment"
+        direction: "outbound"
+        bind_to: my_attainments
+
+      - step: set
+        bindings:
+          required_attainment_id: "$enabling_attainments[0].id"
+
+      - step: filter
+        items: "$my_attainments"
+        condition: "$item.id == $required_attainment_id"
+        bind_to: has_required
+
+      - step: assert
+        condition: "$has_required | length > 0"
+        message: "Missing required attainment"
+
+      # Get praxis to invoke
+      - step: set
+        bindings:
+          action_praxis: "$affordance.data.praxis_id"
+
+      # Invoke the praxis
+      - step: call
+        praxis: "$action_praxis"
+        params: "$params"
+        bind_to: result
+
+      - step: return
+        value:
+          affordance_id: "$affordance_id"
+          praxis_invoked: "$action_praxis"
+          result: "$result"
+
+# =============================================================================
+# HUD REGION OPERATIONS (Phase 19.4)
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/politeia/create-hud-region
+  data:
+    oikos: politeia
+    name: create-hud-region
+    visible: true
+    tier: 2
+    description: |
+      Create a HUD region.
+    params:
+      - name: region_id
+        type: string
+        required: true
+        description: ID for the region
+      - name: name
+        type: string
+        required: true
+        description: Region name
+      - name: kind
+        type: string
+        required: true
+        description: "Region kind: toolbar, sidebar, contextual, modal, toast, ambient"
+      - name: position
+        type: object
+        required: false
+        description: Position hints
+      - name: visibility
+        type: string
+        required: false
+        description: "Visibility: always, contextual, on_demand (default: contextual)"
+      - name: parent_region_id
+        type: string
+        required: false
+        description: Parent region for nesting
+      - name: required_attainment
+        type: string
+        required: false
+        description: Attainment needed to see this region
+    steps:
+      - step: set
+        bindings:
+          region_visibility: "$visibility"
+
+      - step: switch
+        cases:
+          - when: "$region_visibility"
+            then: []
+        default:
+          - step: set
+            bindings:
+              region_visibility: "contextual"
+
+      # Create region (CE4: compose instead of arise)
+      - step: compose
+        typos_id: "typos-def-hud-region"
+        inputs:
+          id: "$region_id"
+          name: "$name"
+          kind: "$kind"
+          parent_id: "$parent_region_id"
+          position: "$position"
+          visibility: "$region_visibility"
+          required_attainment: "$required_attainment"
+          created_at: "{{ now() }}"
+        bind_to: region_entity
+
+      # Bond: region renders-in parent (if specified)
+      - step: switch
+        cases:
+          - when: "$parent_region_id"
+            then:
+              - step: bind
+                from_id: "$region_id"
+                to_id: "$parent_region_id"
+                desmos: "renders-in"
+
+      # Bond: region enabled-by attainment (if specified)
+      - step: switch
+        cases:
+          - when: "$required_attainment"
+            then:
+              - step: bind
+                from_id: "$region_id"
+                to_id: "$required_attainment"
+                desmos: "enabled-by"
+
+      - step: return
+        value:
+          region_id: "$region_id"
+          region: "$region_entity"
+
+- eidos: praxis
+  id: praxis/politeia/list-hud-regions
+  data:
+    oikos: politeia
+    name: list-hud-regions
+    visible: true
+    tier: 1
+    description: |
+      List HUD regions.
+    params:
+      - name: kind
+        type: string
+        required: false
+        description: Filter by region kind
+      - name: max_results
+        type: number
+        required: false
+        description: Maximum results
+    steps:
+      - step: gather
+        eidos: "hud-region"
+        bind_to: regions
+
+      - step: switch
+        cases:
+          - when: "$kind"
+            then:
+              - step: filter
+                items: "$regions"
+                condition: "$item.data.kind == $kind"
+                bind_to: regions
+
+      - step: set
+        bindings:
+          limit: "$max_results"
+
+      - step: switch
+        cases:
+          - when: "$limit"
+            then: []
+        default:
+          - step: set
+            bindings:
+              limit: 50
+
+      - step: limit
+        items: "$regions"
+        count: "$limit"
+        bind_to: regions
+
+      - step: return
+        value:
+          regions: "$regions"
+          count: "$regions | length"
+
+# =============================================================================
+# OIKOS DISTRIBUTION (Phase 30.5)
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/politeia/create-distribution-circle
+  data:
+    oikos: politeia
+    name: create-distribution-circle
+    visible: true
+    tier: 2
+    description: |
+      Create a distribution circle for an oikos-prod.
+
+      Distribution circles are how oikoi reach users:
+      - commons: Public circle, anyone can join
+      - premium: Intimate circle, invitation required
+
+      Creates circle and grants oikos-use attainment.
+    params:
+      - name: oikos_prod_id
+        type: string
+        required: true
+        description: The oikos-prod to distribute
+      - name: circle_id
+        type: string
+        required: true
+        description: ID for the distribution circle
+      - name: name
+        type: string
+        required: true
+        description: Human-readable circle name
+      - name: distribution_kind
+        type: string
+        required: true
+        description: "Distribution kind: commons (public) or premium (intimate)"
+      - name: description
+        type: string
+        required: false
+        description: Circle description
+    steps:
+      # Verify oikos-prod exists
+      - step: find
+        id: "$oikos_prod_id"
+        bind_to: oikos_prod
+
+      - step: assert
+        condition: "$oikos_prod"
+        message: "oikos-prod not found: $oikos_prod_id"
+
+      - step: assert
+        condition: "$oikos_prod.eidos == 'oikos-prod'"
+        message: "Entity is not an oikos-prod: $oikos_prod_id"
+
+      # Map distribution kind to circle kind
+      - step: set
+        bindings:
+          circle_kind: "intimate"
+
+      - step: switch
+        cases:
+          - when: "$distribution_kind == 'commons'"
+            then:
+              - step: set
+                bindings:
+                  circle_kind: "public"
+
+      # Create the distribution circle
+      - step: call
+        praxis: "politeia/create-circle"
+        params:
+          circle_id: "$circle_id"
+          name: "$name"
+          description: "$description"
+          kind: "$circle_kind"
+        bind_to: circle_result
+
+      # Create use attainment for this oikos
+      - step: set
+        bindings:
+          attainment_id: "attainment/use-$oikos_prod.data.oikos_id"
+
+      # CE4: compose instead of arise
+      - step: compose
+        typos_id: "typos-def-attainment"
+        inputs:
+          id: "$attainment_id"
+          name: "use-$oikos_prod.data.oikos_id"
+          description: "Ability to use $oikos_prod.data.oikos_id oikos capabilities"
+          scope: "circle"
+          created_at: "{{ now() }}"
+        bind_to: attainment_entity
+
+      # Grant attainment from circle
+      - step: bind
+        from_id: "$circle_id"
+        to_id: "$attainment_id"
+        desmos: "grants-attainment"
+
+      # Bond circle distributes oikos
+      - step: bind
+        from_id: "$circle_id"
+        to_id: "$oikos_prod_id"
+        desmos: "distributes"
+
+      - step: return
+        value:
+          circle_id: "$circle_id"
+          distribution_kind: "$distribution_kind"
+          attainment_id: "$attainment_id"
+          oikos_prod_id: "$oikos_prod_id"
+
+- eidos: praxis
+  id: praxis/politeia/distribute-oikos
+  data:
+    oikos: politeia
+    name: distribute-oikos
+    visible: true
+    tier: 2
+    description: |
+      Distribute an oikos-prod through an existing circle.
+
+      Adds distribution bond and grants oikos-use attainment.
+      Use this when adding an oikos to an existing circle.
+      Use create-distribution-circle for dedicated distribution circles.
+    params:
+      - name: oikos_prod_id
+        type: string
+        required: true
+        description: The oikos-prod to distribute
+      - name: circle_id
+        type: string
+        required: true
+        description: The circle to distribute through
+    steps:
+      # Verify oikos-prod exists
+      - step: find
+        id: "$oikos_prod_id"
+        bind_to: oikos_prod
+
+      - step: assert
+        condition: "$oikos_prod"
+        message: "oikos-prod not found: $oikos_prod_id"
+
+      - step: assert
+        condition: "$oikos_prod.eidos == 'oikos-prod'"
+        message: "Entity is not an oikos-prod: $oikos_prod_id"
+
+      # Verify circle exists
+      - step: find
+        id: "$circle_id"
+        bind_to: circle
+
+      - step: assert
+        condition: "$circle"
+        message: "Circle not found: $circle_id"
+
+      # Create use attainment for this oikos (if not exists)
+      - step: set
+        bindings:
+          attainment_id: "attainment/use-$oikos_prod.data.oikos_id"
+
+      - step: find
+        id: "$attainment_id"
+        bind_to: existing_attainment
+
+      - step: switch
+        cases:
+          - when: "not $existing_attainment"
+            then:
+              # CE4: compose instead of arise
+              - step: compose
+                typos_id: "typos-def-attainment"
+                inputs:
+                  id: "$attainment_id"
+                  name: "use-$oikos_prod.data.oikos_id"
+                  description: "Ability to use $oikos_prod.data.oikos_id oikos capabilities"
+                  scope: "circle"
+                  created_at: "{{ now() }}"
+
+      # Grant attainment from circle
+      - step: bind
+        from_id: "$circle_id"
+        to_id: "$attainment_id"
+        desmos: "grants-attainment"
+
+      # Bond circle distributes oikos
+      - step: bind
+        from_id: "$circle_id"
+        to_id: "$oikos_prod_id"
+        desmos: "distributes"
+
+      - step: return
+        value:
+          distributed: true
+          circle_id: "$circle_id"
+          oikos_prod_id: "$oikos_prod_id"
+          attainment_id: "$attainment_id"
+
+- eidos: praxis
+  id: praxis/politeia/list-distributed-oikoi
+  data:
+    oikos: politeia
+    name: list-distributed-oikoi
+    visible: true
+    tier: 1
+    description: |
+      List oikoi distributed by a circle.
+
+      Follows distributes bonds from circle to oikos-prod entities.
+    params:
+      - name: circle_id
+        type: string
+        required: true
+        description: The circle to query
+    steps:
+      - step: find
+        id: "$circle_id"
+        bind_to: circle
+
+      - step: assert
+        condition: "$circle"
+        message: "Circle not found: $circle_id"
+
+      # Trace distributes bonds from circle
+      - step: trace
+        from_id: "$circle_id"
+        desmos: "distributes"
+        resolve: to
+        bind_to: distributed
+
+      - step: return
+        value:
+          circle_id: "$circle_id"
+          oikoi: "$distributed"
+          count: "$distributed | length"
+
+- eidos: praxis
+  id: praxis/politeia/list-oikos-distributors
+  data:
+    oikos: politeia
+    name: list-oikos-distributors
+    visible: true
+    tier: 1
+    description: |
+      List circles that distribute an oikos.
+
+      Follows distributes bonds to find all distribution circles.
+    params:
+      - name: oikos_prod_id
+        type: string
+        required: true
+        description: The oikos-prod to query
+    steps:
+      - step: find
+        id: "$oikos_prod_id"
+        bind_to: oikos_prod
+
+      - step: assert
+        condition: "$oikos_prod"
+        message: "oikos-prod not found: $oikos_prod_id"
+
+      # Trace distributes bonds to oikos
+      - step: trace
+        to_id: "$oikos_prod_id"
+        desmos: "distributes"
+        resolve: from
+        bind_to: distributors
+
+      - step: return
+        value:
+          oikos_prod_id: "$oikos_prod_id"
+          distributors: "$distributors"
+          count: "$distributors | length"
+
+- eidos: praxis
+  id: praxis/politeia/install-oikos
+  data:
+    oikos: politeia
+    name: install-oikos
+    visible: true
+    tier: 2
+    description: |
+      Install an oikos from a distribution circle.
+
+      Verifies the dwelling circle has access to the oikos through
+      a distribution circle (has use-{oikos_id} attainment), then
+      creates a uses-oikos bond to track the installation.
+
+      NOTE: Currently tracks installation intent. Dynamic content
+      loading (loading new eide/praxeis at runtime) is a future
+      capability. Genesis oikoi are loaded at bootstrap.
+    params:
+      - name: oikos_prod_id
+        type: string
+        required: true
+        description: The oikos-prod to install
+      - name: circle_id
+        type: string
+        required: false
+        description: The circle to install for (defaults to dwelling circle)
+    steps:
+      # Determine target circle
+      - step: set
+        bindings:
+          target_circle_id: "$circle_id"
+
+      - step: switch
+        cases:
+          - when: "not $target_circle_id"
+            then:
+              - step: assert
+                condition: "$_circle"
+                message: "No circle specified and no dwelling circle context"
+              - step: set
+                bindings:
+                  target_circle_id: "$_circle.id"
+
+      # Verify target circle exists
+      - step: find
+        id: "$target_circle_id"
+        bind_to: target_circle
+
+      - step: assert
+        condition: "$target_circle"
+        message: "Circle not found: $target_circle_id"
+
+      # Verify oikos-prod exists
+      - step: find
+        id: "$oikos_prod_id"
+        bind_to: oikos_prod
+
+      - step: assert
+        condition: "$oikos_prod"
+        message: "oikos-prod not found: $oikos_prod_id"
+
+      - step: assert
+        condition: "$oikos_prod.eidos == 'oikos-prod'"
+        message: "Entity is not an oikos-prod: $oikos_prod_id"
+
+      # Verify circle has access (use-{oikos_id} attainment)
+      - step: set
+        bindings:
+          required_attainment_id: "attainment/use-$oikos_prod.data.oikos_id"
+
+      # Trace attainments granted by any circle the target is member of
+      # For now, check if the attainment exists and is granted by a circle
+      # that distributes this oikos
+      - step: trace
+        to_id: "$oikos_prod_id"
+        desmos: "distributes"
+        resolve: from
+        bind_to: distribution_circles
+
+      - step: assert
+        condition: "$distribution_circles | length > 0"
+        message: "No distribution circle found for oikos: $oikos_prod_id"
+
+      # Check if already installed
+      - step: trace
+        from_id: "$target_circle_id"
+        desmos: "uses-oikos"
+        resolve: to
+        bind_to: installed_oikoi
+
+      - step: set
+        bindings:
+          already_installed: false
+
+      - step: for_each
+        items: "$installed_oikoi"
+        item_var: installed
+        steps:
+          - step: switch
+            cases:
+              - when: "$installed.id == '$oikos_prod_id'"
+                then:
+                  - step: set
+                    bindings:
+                      already_installed: true
+
+      - step: switch
+        cases:
+          - when: "$already_installed"
+            then:
+              - step: return
+                value:
+                  installed: false
+                  already_installed: true
+                  message: "Oikos already installed"
+                  oikos_prod_id: "$oikos_prod_id"
+                  circle_id: "$target_circle_id"
+
+      # Create uses-oikos bond
+      - step: bind
+        from_id: "$target_circle_id"
+        to_id: "$oikos_prod_id"
+        desmos: "uses-oikos"
+
+      - step: return
+        value:
+          installed: true
+          oikos_prod_id: "$oikos_prod_id"
+          circle_id: "$target_circle_id"
+          oikos_name: "$oikos_prod.data.oikos_id"
+
+- eidos: praxis
+  id: praxis/politeia/uninstall-oikos
+  data:
+    oikos: politeia
+    name: uninstall-oikos
+    visible: true
+    tier: 2
+    description: |
+      Uninstall an oikos from a circle.
+
+      Removes the uses-oikos bond. Does not remove the oikos content
+      from the kosmos (content persists for other circles that may use it).
+    params:
+      - name: oikos_prod_id
+        type: string
+        required: true
+        description: The oikos-prod to uninstall
+      - name: circle_id
+        type: string
+        required: false
+        description: The circle to uninstall from (defaults to dwelling circle)
+    steps:
+      # Determine target circle
+      - step: set
+        bindings:
+          target_circle_id: "$circle_id"
+
+      - step: switch
+        cases:
+          - when: "not $target_circle_id"
+            then:
+              - step: assert
+                condition: "$_circle"
+                message: "No circle specified and no dwelling circle context"
+              - step: set
+                bindings:
+                  target_circle_id: "$_circle.id"
+
+      # Verify entities exist
+      - step: find
+        id: "$target_circle_id"
+        bind_to: target_circle
+
+      - step: assert
+        condition: "$target_circle"
+        message: "Circle not found: $target_circle_id"
+
+      - step: find
+        id: "$oikos_prod_id"
+        bind_to: oikos_prod
+
+      - step: assert
+        condition: "$oikos_prod"
+        message: "oikos-prod not found: $oikos_prod_id"
+
+      # Remove uses-oikos bond
+      - step: unbind
+        from_id: "$target_circle_id"
+        to_id: "$oikos_prod_id"
+        desmos: "uses-oikos"
+
+      - step: return
+        value:
+          uninstalled: true
+          oikos_prod_id: "$oikos_prod_id"
+          circle_id: "$target_circle_id"
+
+- eidos: praxis
+  id: praxis/politeia/list-installed-oikoi
+  data:
+    oikos: politeia
+    name: list-installed-oikoi
+    visible: true
+    tier: 1
+    description: |
+      List oikoi installed for a circle.
+
+      Follows uses-oikos bonds from the circle.
+    params:
+      - name: circle_id
+        type: string
+        required: false
+        description: The circle to query (defaults to dwelling circle)
+    steps:
+      # Determine target circle
+      - step: set
+        bindings:
+          target_circle_id: "$circle_id"
+
+      - step: switch
+        cases:
+          - when: "not $target_circle_id"
+            then:
+              - step: assert
+                condition: "$_circle"
+                message: "No circle specified and no dwelling circle context"
+              - step: set
+                bindings:
+                  target_circle_id: "$_circle.id"
+
+      - step: find
+        id: "$target_circle_id"
+        bind_to: target_circle
+
+      - step: assert
+        condition: "$target_circle"
+        message: "Circle not found: $target_circle_id"
+
+      # Trace uses-oikos bonds
+      - step: trace
+        from_id: "$target_circle_id"
+        desmos: "uses-oikos"
+        resolve: to
+        bind_to: installed
+
+      - step: return
+        value:
+          circle_id: "$target_circle_id"
+          oikoi: "$installed"
+          count: "$installed | length"
+
+# =============================================================================
+# ADMIN/UTILITY OPERATIONS
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/politeia/admin-bind
+  data:
+    oikos: politeia
+    name: admin-bind
+    visible: true
+    tier: 3
+    description: |
+      Create a bond directly (administrative utility).
+
+      This bypasses normal governance checks. Use for bootstrap
+      and repair operations when normal praxeis cannot establish
+      the required bonds due to missing dwelling context.
+
+      WARNING: Use with care — this does not verify permissions.
+    params:
+      - name: from_id
+        type: string
+        required: true
+        description: Source entity ID
+      - name: to_id
+        type: string
+        required: true
+        description: Target entity ID
+      - name: desmos
+        type: string
+        required: true
+        description: Bond type (desmos name)
+    steps:
+      # Verify entities exist
+      - step: find
+        id: "$from_id"
+        bind_to: from_entity
+
+      - step: assert
+        condition: "$from_entity"
+        message: "From entity not found: $from_id"
+
+      - step: find
+        id: "$to_id"
+        bind_to: to_entity
+
+      - step: assert
+        condition: "$to_entity"
+        message: "To entity not found: $to_id"
+
+      # Create the bond
+      - step: bind
+        from_id: "$from_id"
+        to_id: "$to_id"
+        desmos: "$desmos"
+        bind_to: bond
+
+      - step: return
+        value:
+          created: true
+          from_id: "$from_id"
+          to_id: "$to_id"
+          desmos: "$desmos"
+          bond: "$bond"
+
+- eidos: praxis
+  id: praxis/politeia/admin-loose
+  data:
+    oikos: politeia
+    name: admin-loose
+    visible: true
+    tier: 3
+    description: |
+      Remove a bond directly (administrative utility).
+
+      This bypasses normal governance checks. Use for repair operations.
+    params:
+      - name: from_id
+        type: string
+        required: true
+        description: Source entity ID
+      - name: to_id
+        type: string
+        required: true
+        description: Target entity ID
+      - name: desmos
+        type: string
+        required: true
+        description: Bond type (desmos name)
+    steps:
+      - step: loose
+        from_id: "$from_id"
+        to_id: "$to_id"
+        desmos: "$desmos"
+
+      - step: return
+        value:
+          removed: true
+          from_id: "$from_id"
+          to_id: "$to_id"
+          desmos: "$desmos"

@@ -1,0 +1,60 @@
+# Oikos Manifest: Soma
+# The embodied — presence, sensing, and the interface with world.
+#
+# Manifest v2.1 — oikos metadata for entity composition
+
+format_version: "2.1"
+oikos_id: soma
+version: "0.1.0"
+
+# Oikos metadata (v2.1)
+oikos_name: Soma
+oikos_description: |
+  The embodied. Presence, sensing, and the interface with world.
+  Manages channels, percepts, signals, and the body schema.
+oikos_scale: soma
+
+content_paths:
+  - path: eide/
+    content_types: [eidos]
+  - path: desmoi/
+    content_types: [desmos]
+  - path: praxeis/
+    content_types: [praxis]
+
+requires_dynamis:
+  # Database operations for entity/bond management
+  - db.arise
+  - db.find
+  - db.bind
+  - db.trace
+  - db.update
+  - db.loose
+
+provides:
+  eide:
+    # NOTE: animus is foundational (defined in spora.yaml stage-2-presence)
+    # Soma provides praxeis that operate on animus, but doesn't define it
+    - channel
+    - percept
+    - body-signal
+    - body-schema
+
+  desmoi:
+    - channel-of
+    - received-through
+    - emitted-through
+    - schema-of
+
+  praxeis:
+    - soma/arise-animus
+    - soma/depart-animus
+    - soma/open-channel
+    - soma/close-channel
+    - soma/perceive
+    - soma/emit
+    - soma/sense-body
+
+stoicheia_form:
+  # All stoicheia used by soma are currently arche-level (interpreted by host)
+  # No WASM modules yet — Tier 2 operations require host dynamis

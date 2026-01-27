@@ -1,0 +1,176 @@
+# Hypostasis Eide
+# Cryptographic identity and key management entities
+#
+# Kleidoura (κλειδωρός = key-keeper): Encrypted keyring for session-based key access
+
+eide:
+  # kleidoura — encrypted keyring
+  - id: eidos/kleidoura
+    data:
+      name: kleidoura
+      description: |
+        Encrypted keyring storing master seed material.
+        Password-derived key encrypts the seed using AES-256-GCM.
+        Never stores raw mnemonic or password — security through encryption.
+
+        Session unlock flow:
+        1. Password → Argon2id → encryption key
+        2. Decrypt master seed
+        3. Seed lives in process memory (chora), not kosmos
+        4. All circle keys derived on-demand from unlocked seed
+
+        This enables signing operations without re-entering mnemonic.
+      fields:
+        encrypted_seed:
+          type: string
+          required: true
+          description: "AES-256-GCM encrypted master seed (base64)"
+        encryption_salt:
+          type: string
+          required: true
+          description: "Salt for password → key derivation (base64, 32 bytes)"
+        kdf_algorithm:
+          type: enum
+          values: [pbkdf2-sha256, argon2id]
+          required: true
+          default: argon2id
+          description: "Key derivation function algorithm"
+        kdf_params:
+          type: object
+          required: true
+          description: |
+            KDF parameters object:
+            - argon2id: {memory_cost: 65536, time_cost: 3, parallelism: 4}
+            - pbkdf2: {iterations: 600000}
+        public_key:
+          type: string
+          required: true
+          description: "Master Ed25519 public key (base64) for verification"
+        version:
+          type: number
+          required: true
+          default: 1
+          description: "Keyring format version for future migration"
+        created_at:
+          type: timestamp
+          required: true
+        locked_at:
+          type: timestamp
+          required: false
+          description: "When last locked (null if never unlocked)"
+        password_hint:
+          type: string
+          required: false
+          description: "Optional user-provided hint for password recovery"
+
+  # genesis-record — multi-signature genesis tracking
+  # (Moved here from implicit definition, now explicit)
+  - id: eidos/genesis-record
+    data:
+      name: genesis-record
+      description: |
+        Multi-signature genesis record for threshold signing.
+        Tracks the genesis ceremony where multiple signers attest to constitutional content.
+      fields:
+        content:
+          type: string
+          required: true
+          description: "The constitutional content being signed"
+        content_hash:
+          type: string
+          required: true
+          description: "BLAKE3 hash of the content"
+        threshold:
+          type: number
+          required: true
+          default: 3
+          description: "Number of signatures required (e.g., 3-of-5)"
+        signatures:
+          type: array
+          required: true
+          description: |
+            Array of signature records:
+            - signer_pubkey: Ed25519 public key
+            - signature: Ed25519 signature
+            - attestation: Optional attestation statement
+            - signed_at: Timestamp
+        verified:
+          type: boolean
+          required: true
+          default: false
+          description: "Whether threshold has been reached"
+        created_at:
+          type: timestamp
+          required: true
+        finalized_at:
+          type: timestamp
+          required: false
+          description: "When threshold was reached"
+
+  # credential — encrypted external service credential
+  - id: eidos/credential
+    data:
+      name: credential
+      description: |
+        An encrypted external service credential. Follows the kleidoura pattern:
+        stored encrypted at rest, unlocked into session memory when needed.
+
+        When unlocked, the credential grants an attainment (e.g., "use-embedding-api").
+        Praxeis requiring the service check for the attainment before executing.
+        This integrates capability (credential) with governance (attainment).
+
+        Session flow:
+        1. User provides password → session unlocks
+        2. Credentials decrypt into memory (chora, not kosmos)
+        3. Session gains attainments from unlocked credentials
+        4. Praxeis check attainments before using services
+        5. Session lock → credentials cleared → attainments removed
+      fields:
+        service:
+          type: string
+          required: true
+          description: "Service provider (e.g., 'openai', 'anthropic', 'cloudflare')"
+        credential_type:
+          type: enum
+          values: [api-key, oauth-token, bearer-token, access-key]
+          required: true
+          default: api-key
+          description: "Type of credential"
+        encrypted_value:
+          type: string
+          required: true
+          description: "AES-256-GCM encrypted credential value (base64)"
+        salt:
+          type: string
+          required: true
+          description: "Per-credential salt for encryption key derivation (base64)"
+        label:
+          type: string
+          required: true
+          description: "Human-readable label (e.g., 'My OpenAI Key')"
+        scope:
+          type: enum
+          values: [persona, circle]
+          required: true
+          default: persona
+          description: "Who can use this credential"
+        grants_attainment:
+          type: string
+          required: true
+          description: "Attainment name granted when unlocked (e.g., 'use-embedding-api')"
+        status:
+          type: enum
+          values: [active, revoked, expired]
+          required: true
+          default: active
+        created_at:
+          type: timestamp
+          required: true
+        last_used_at:
+          type: timestamp
+          required: false
+          description: "When this credential was last used"
+        expires_at:
+          type: timestamp
+          required: false
+          description: "Optional expiration for time-limited tokens"

@@ -1,0 +1,394 @@
+# Dynamis Eide
+# Existence-actuality bridging eide — releases, substrates, deployments
+#
+# Traces to: genesis/dynamis/DESIGN.md
+# Authorized by: expression/genesis-root
+
+entities:
+  # =========================================================================
+  # Release — versioned build artifact
+  # =========================================================================
+
+  - eidos: eidos
+    id: eidos/release
+    data:
+      name: release
+      description: |
+        A versioned build artifact. Exists in kosmos as intention,
+        actualizes in chora as downloadable binary. Follows the
+        existence/actuality distinction — the entity is authoritative,
+        actuality is sensed and reconciled.
+      fields:
+        name:
+          type: string
+          required: true
+          description: "Release name (e.g., 'thyra')"
+        version:
+          type: string
+          required: true
+          description: "Semantic version (e.g., '0.1.0')"
+        status:
+          type: enum
+          values: [draft, building, built, distributing, distributed, failed, deprecated]
+          required: true
+          default: draft
+          description: "Release lifecycle state"
+        description:
+          type: string
+          required: false
+          description: "Release notes or description"
+        changelog:
+          type: string
+          required: false
+          description: "What changed in this version"
+
+        # Build information
+        build_commit:
+          type: string
+          required: false
+          description: "Git commit SHA this release was built from"
+        build_timestamp:
+          type: timestamp
+          required: false
+          description: "When the build completed"
+        build_command:
+          type: string
+          required: false
+          description: "Command used to build"
+
+        # Distribution state (actuality tracking)
+        distributed_at:
+          type: timestamp
+          required: false
+          description: "When distribution completed"
+        distribution_channels:
+          type: array
+          required: false
+          description: "Channel IDs where this release is distributed"
+
+        # Metadata
+        created_at:
+          type: timestamp
+          required: true
+        created_by:
+          type: string
+          required: false
+          description: "Persona ID who created this release"
+
+      actuality:
+        mode: object-storage
+        provider: r2
+        config:
+          bucket: thyra-releases
+          key_pattern: "{name}/{version}/{artifact_filename}"
+
+  # =========================================================================
+  # Release Artifact — individual file within a release
+  # =========================================================================
+
+  - eidos: eidos
+    id: eidos/release-artifact
+    data:
+      name: release-artifact
+      description: |
+        An individual file within a release — a platform-specific binary,
+        checksum file, or signature. Linked to release via contains-artifact.
+      fields:
+        filename:
+          type: string
+          required: true
+          description: "Artifact filename (e.g., 'thyra-0.1.0-mac-arm64.dmg')"
+        artifact_type:
+          type: enum
+          values: [binary, checksum, signature, archive, installer, metadata]
+          required: true
+          description: "Type of artifact"
+        platform:
+          type: string
+          required: false
+          description: "Target platform (e.g., 'mac-arm64', 'windows-x64')"
+        size_bytes:
+          type: integer
+          required: false
+          description: "File size in bytes"
+        content_hash:
+          type: string
+          required: false
+          description: "BLAKE3 hash of file contents"
+        mime_type:
+          type: string
+          required: false
+          description: "MIME type (e.g., 'application/octet-stream')"
+
+        # Actuality tracking
+        uploaded:
+          type: boolean
+          required: true
+          default: false
+          description: "Whether artifact has been uploaded to distribution"
+        uploaded_at:
+          type: timestamp
+          required: false
+        upload_url:
+          type: string
+          required: false
+          description: "URL where artifact is accessible"
+
+        # Build origin
+        local_path:
+          type: string
+          required: false
+          description: "Local filesystem path if built locally"
+        built_at:
+          type: timestamp
+          required: false
+
+      actuality:
+        mode: object-storage
+        provider: r2
+        config:
+          bucket: thyra-releases
+
+  # =========================================================================
+  # Substrate — target platform/environment
+  # =========================================================================
+
+  - eidos: eidos
+    id: eidos/substrate
+    data:
+      name: substrate
+      description: |
+        A target platform or environment where software runs. Substrates
+        form a taxonomy: platform, runtime, environment. No direct actuality —
+        substrates are conceptual categories that releases target.
+      fields:
+        name:
+          type: string
+          required: true
+          description: "Substrate identifier (e.g., 'mac-arm64', 'production')"
+        kind:
+          type: enum
+          values: [platform, runtime, environment]
+          required: true
+          description: "Substrate category"
+        description:
+          type: string
+          required: false
+
+        # Platform-specific
+        os:
+          type: enum
+          values: [macos, windows, linux, web, ios, android]
+          required: false
+          description: "Operating system (for platform substrates)"
+        arch:
+          type: enum
+          values: [arm64, x64, x86, wasm]
+          required: false
+          description: "Architecture (for platform substrates)"
+
+        # Runtime-specific
+        runtime_type:
+          type: enum
+          values: [native, electron, tauri, wasm]
+          required: false
+          description: "Runtime type (for runtime substrates)"
+
+        # Environment-specific
+        environment_type:
+          type: enum
+          values: [production, staging, development, testing]
+          required: false
+          description: "Environment type (for environment substrates)"
+
+        # Hierarchy
+        parent_substrate:
+          type: string
+          required: false
+          description: "Parent substrate ID for hierarchy"
+
+        active:
+          type: boolean
+          required: true
+          default: true
+          description: "Whether this substrate is actively targeted"
+
+  # =========================================================================
+  # Distribution Channel — pathway for releases to reach users
+  # =========================================================================
+
+  - eidos: eidos
+    id: eidos/distribution-channel
+    data:
+      name: distribution-channel
+      description: |
+        A pathway for releases to reach users. Channels have providers
+        (R2, GitHub, Homebrew) and actuality modes. The channel is the
+        "where" of distribution.
+      fields:
+        name:
+          type: string
+          required: true
+          description: "Channel identifier (e.g., 'thyra-r2', 'github-releases')"
+        provider:
+          type: enum
+          values: [r2, github, homebrew, npm, crates, direct]
+          required: true
+          description: "Distribution provider"
+        description:
+          type: string
+          required: false
+
+        # Provider configuration
+        config:
+          type: object
+          required: true
+          description: "Provider-specific configuration"
+
+        # URLs
+        base_url:
+          type: string
+          required: false
+          description: "Base URL for downloads (e.g., 'https://thyra.liminalcommons.com/download')"
+
+        # State
+        status:
+          type: enum
+          values: [active, paused, deprecated]
+          required: true
+          default: active
+
+        created_at:
+          type: timestamp
+          required: true
+
+      actuality:
+        mode: provider-specific
+        note: "Actuality depends on provider — R2 uses object-storage, GitHub uses API"
+
+  # =========================================================================
+  # Deployment — manifestation of release to target
+  # =========================================================================
+
+  - eidos: eidos
+    id: eidos/deployment
+    data:
+      name: deployment
+      description: |
+        A manifestation of a release to a specific target. Deployments
+        track the relationship between a release and where it's running.
+        Used for services, not just static files.
+
+        Relationships via bonds only (graph-driven):
+        - deploys-release → release being deployed
+        - targets → substrate being deployed to
+        - uses-channel → distribution channel (optional)
+      fields:
+        name:
+          type: string
+          required: true
+          description: "Deployment identifier"
+
+        # Relationships are bonds, not embedded fields.
+        # Query via trace: deployment → deploys-release → release
+        #                  deployment → targets → substrate
+        #                  deployment → uses-channel → channel
+
+        # State (intent vs actual)
+        desired_state:
+          type: enum
+          values: [running, stopped, removed]
+          required: true
+          default: stopped
+          description: "Desired deployment state"
+        actual_state:
+          type: enum
+          values: [unknown, running, stopped, degraded, failed, removed]
+          required: true
+          default: unknown
+          description: "Sensed actual state"
+
+        # Actuality tracking
+        manifest_handle:
+          type: string
+          required: false
+          description: "Handle for manifested deployment (process ID, deployment ID, etc.)"
+        last_sensed_at:
+          type: timestamp
+          required: false
+        last_reconciled_at:
+          type: timestamp
+          required: false
+
+        # Metadata
+        deployed_at:
+          type: timestamp
+          required: false
+        deployed_by:
+          type: string
+          required: false
+          description: "Persona ID who deployed"
+
+        # Configuration
+        config:
+          type: object
+          required: false
+          description: "Deployment-specific configuration"
+
+      actuality:
+        mode: process
+        note: "Actuality mode depends on target — process for services, object-storage for static"
+
+  # =========================================================================
+  # Actuality Record — snapshot of sensed state
+  # =========================================================================
+
+  - eidos: eidos
+    id: eidos/actuality-record
+    data:
+      name: actuality-record
+      description: |
+        A snapshot of sensed actuality. When sense() is called, the result
+        is recorded as an actuality-record. Provides audit trail and
+        enables drift detection over time.
+      fields:
+        entity_id:
+          type: string
+          required: true
+          description: "Entity this actuality was sensed for"
+
+        sensed_at:
+          type: timestamp
+          required: true
+
+        # What was sensed
+        actual_state:
+          type: string
+          required: true
+          description: "The sensed state"
+        details:
+          type: object
+          required: false
+          description: "Provider-specific sensing details"
+
+        # Comparison
+        expected_state:
+          type: string
+          required: false
+          description: "What we expected to find"
+        aligned:
+          type: boolean
+          required: true
+          description: "Whether actual matched expected"
+        drift_type:
+          type: enum
+          values: [none, missing, extra, different]
+          required: false
+          description: "Type of drift if not aligned"
+
+        # Response
+        reconciliation_action:
+          type: enum
+          values: [none, manifest, update, unmanifest, alert, journey]
+          required: false
+          description: "Action taken (or to be taken) in response"

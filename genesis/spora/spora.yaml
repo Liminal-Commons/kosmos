@@ -1,0 +1,2195 @@
+# spora.yaml
+# The executable seed — bootstrap the kosmos from the signed genesis
+#
+# This is the minimal spora that germinates from the genesis root:
+#   expression/genesis-root → all provenance chains trace here
+#
+# Germination stages:
+#   0. Prime — eidos is an eidos (self-grounding)
+#   1. Archai — the grammar: eidos, desmos, stoicheion
+#   2. Presence — who can dwell: persona, animus, circle
+#   3. Founder — Victor's persona, self-circle, Claude's persona
+#   5. Marker — record that spora has germinated
+#
+# NOTE: Domain-specific eide, praxeis, and patterns are now loaded from
+#       oikos directories. See genesis/*/eide/, genesis/*/praxeis/, etc.
+
+# =============================================================================
+# FORMAT VERSION
+# =============================================================================
+# v2.0 introduces content_roots as first-class entities.
+# This makes "where content comes from" traversable via sourced-from bonds.
+
+format_version: "2.0"
+
+oikos: spora
+version: 0.1.0
+status: seed
+description: |
+  The seed from which the kosmos germinates.
+
+  All provenance chains trace to the genesis root:
+    "for my babe, for the liberation of all. ever. eternally."
+
+  This signed expression is the anchor. Everything that arises
+  is authorized-by chains that terminate at this root.
+
+# =============================================================================
+# CONTENT ROOTS — Where content comes from (v2.0)
+# =============================================================================
+# Each entry becomes a content-root entity during germination.
+# Entities loaded from a root get a sourced-from bond.
+# This makes "where did this come from?" graph-traversable.
+
+content_roots:
+  # The arche — constitutional grammar
+  - id: content-root/arche
+    path: arche/
+    constitutional: true
+    order: 0
+    content_types: [eidos, desmos, function]
+    description: "Constitutional forms — the grammar of the kosmos"
+
+  # Spora definitions — artifact definitions and step types
+  - id: content-root/spora-definitions
+    path: spora/definitions/
+    constitutional: true
+    order: 1
+    content_types: [typos]
+    description: "Typoi — composition molds for CE4 compose pattern"
+
+  # Spora journeys — roadmap and release tracking
+  - id: content-root/spora-journeys
+    path: spora/journeys/
+    constitutional: false
+    order: 2
+    content_types: [journey, waypoint]
+    description: "Development journeys and waypoints"
+
+  # Oikoi discovery — each oikos declares its own content paths
+  # The bootstrap loads manifests from this root, then follows
+  # sources-content-from bonds declared in each manifest.
+  - id: content-root/oikoi
+    path: ./
+    constitutional: false
+    order: 10
+    content_types: [oikos-manifest]
+    description: "Oikos manifests — each declares its own content paths"
+    # NOTE: This root discovers manifest.yaml files.
+    # Individual oikos content paths are declared in manifest.yaml v2.0
+
+# =============================================================================
+# THE GENESIS ROOT (already exists, verified by signature)
+# =============================================================================
+
+genesis_root:
+  id: expression/genesis-root
+  content: "for my babe, for the liberation of all. ever. eternally."
+  expressed_by: persona/victor
+  signature: 5fd550ad1d738802d38a2abfa802a2616695bc1e1c0c0d3287b6fd52ca9816893a17dca06bb1ad0631d502e16facebb70c9f3263ba7401887f46d9e8d7031601
+  public_key: b196e54638c421529120fc10ebb3ea9b82f015ec768854364e7696613be4f70c
+  algorithm: ed25519
+
+# =============================================================================
+# GERMINATION STAGES
+# =============================================================================
+
+stages:
+
+  # ---------------------------------------------------------------------------
+  # STAGE 0: THE PRIME — self-grounding
+  # ---------------------------------------------------------------------------
+
+  - name: stage-0-prime
+    order: 0
+    description: "Eidos is an eidos — the self-grounding prime"
+    authorized_by: expression/genesis-root
+    steps:
+      - compose:
+          definition: inline
+          target_eidos: eidos
+          id: eidos/eidos
+          data:
+            name: eidos
+            description: "Form, type — what can exist. The prime is self-grounding."
+
+  # ---------------------------------------------------------------------------
+  # STAGE 1: ARCHAI — the grammar
+  # ---------------------------------------------------------------------------
+
+  - name: stage-1-archai
+    order: 10
+    description: "The foundational forms — the grammar of the kosmos"
+    authorized_by: expression/genesis-root
+    source_files:
+      - definitions/core.yaml
+      - definitions/pege.yaml
+      - definitions/entities.yaml
+      - definitions/step-types.yaml
+      - ../arche/functions.yaml
+    steps:
+      # desmos — how things relate
+      - compose:
+          definition: inline
+          target_eidos: eidos
+          id: eidos/desmos
+          data:
+            name: desmos
+            description: "Bond, tie — how things relate"
+
+      # stoicheion — atomic operations
+      - compose:
+          definition: inline
+          target_eidos: eidos
+          id: eidos/stoicheion
+          data:
+            name: stoicheion
+            description: "Element — atomic operation in the physics"
+
+      # oikos — capability domains
+      - compose:
+          definition: inline
+          target_eidos: eidos
+          id: eidos/oikos
+          data:
+            name: oikos
+            description: "Domain — capability region at a klimax scale"
+
+      # praxis — composed actions
+      - compose:
+          definition: inline
+          target_eidos: eidos
+          id: eidos/praxis
+          data:
+            name: praxis
+            description: "Action — composed of stoicheia, what can be done"
+
+      # theoria — crystallized understanding
+      - compose:
+          definition: inline
+          target_eidos: eidos
+          id: eidos/theoria
+          data:
+            name: theoria
+            description: "Crystallized understanding"
+
+      # principle — commitment adopted
+      - compose:
+          definition: inline
+          target_eidos: eidos
+          id: eidos/principle
+          data:
+            name: principle
+            description: "Commitment adopted from theoria"
+
+      # pattern — enacted commitment
+      - compose:
+          definition: inline
+          target_eidos: eidos
+          id: eidos/pattern
+          data:
+            name: pattern
+            description: "Enacted commitment — how principles live"
+
+      # typos — composition mold
+      # V9: Renamed from artifact-definition
+      - compose:
+          definition: inline
+          target_eidos: eidos
+          id: eidos/typos
+          data:
+            name: typos
+            description: |
+              Mold — composition template with slots and fill methods.
+              Every entity traces to its typos through the composed-from bond.
+
+              Routing is determined by shape:
+              - Has target_eidos → entity composition
+              - Has slots (no target_eidos) → graph composition
+              - Has template (no slots, no target_eidos) → template rendering
+            fields:
+              name:
+                type: string
+                required: true
+                description: "Human-readable name for this definition"
+              description:
+                type: string
+                required: false
+                description: "What this definition composes and when to use it"
+              target_eidos:
+                type: string
+                required: false
+                description: "For entity composition — the eidos to instantiate (e.g., 'theoria')"
+              slots:
+                type: object
+                required: false
+                description: |
+                  For graph composition — named slots to fill.
+                  Each slot specifies how to fill it via pattern.
+                additionalProperties:
+                  type: object
+                  properties:
+                    pattern:
+                      type: string
+                      enum: ["literal", "computed", "queried", "generated", "composed"]
+                      description: "How to fill this slot"
+                    type:
+                      type: string
+                      description: "Expected value type (string, number, array, object)"
+                    required:
+                      type: boolean
+                      description: "Whether this slot must be provided"
+                    default:
+                      type: any
+                      description: "Default value for literal pattern"
+                    description:
+                      type: string
+                      description: "What this slot represents"
+                    prompt:
+                      type: string
+                      description: "For generated pattern — prompt for LLM"
+                    output_schema:
+                      type: object
+                      description: "For generated pattern — JSON Schema to constrain output"
+                    target_eidos:
+                      type: string
+                      description: "For generated pattern — derive schema from eidos fields"
+                    stoicheion_id:
+                      type: string
+                      description: "For generated pattern — derive schema from stoicheion"
+              template:
+                type: string
+                required: false
+                description: "For template rendering — template with {{ $variable }} interpolation"
+              output_type:
+                type: string
+                required: false
+                enum: ["text", "object"]
+                description: "For graph composition — output format (text or object)"
+              defaults:
+                type: object
+                required: false
+                description: "Default values for slots/template variables"
+              bonds:
+                type: array
+                required: false
+                description: "Bonds to create during composition"
+                items:
+                  type: object
+                  properties:
+                    desmos:
+                      type: string
+                      required: true
+                      description: "Bond type (e.g., 'belongs-to', 'crystallized-in')"
+                    from_self:
+                      type: boolean
+                      description: "Bond originates from the composed entity"
+                    to_self:
+                      type: boolean
+                      description: "Bond targets the composed entity"
+                    to_literal:
+                      type: string
+                      description: "Fixed entity ID to bond to"
+                    to_input:
+                      type: string
+                      description: "Input parameter name containing target ID"
+                    to_context:
+                      type: string
+                      description: "Context key for target (e.g., '_circle', '_persona')"
+                    from_context:
+                      type: string
+                      description: "Context key for source (e.g., '_circle', '_persona')"
+                    optional:
+                      type: boolean
+                      description: "Skip if context value unavailable"
+                    many:
+                      type: boolean
+                      description: "Create bonds to each item in array input"
+
+      # artifact — result of template/graph composition
+      - compose:
+          definition: inline
+          target_eidos: eidos
+          id: eidos/artifact
+          data:
+            name: artifact
+            description: "A composed artifact — result of template/graph rendering"
+            fields:
+              typos_id:
+                type: string
+                required: true
+              content:
+                type: any
+                required: true
+              inputs:
+                type: object
+                required: false
+              composed_at:
+                type: timestamp
+                required: true
+              cache_key:
+                type: string
+                required: false
+                description: "Content-addressed cache key (hash of typos_id + inputs)"
+              stale:
+                type: boolean
+                required: false
+                default: false
+                description: "Whether artifact is stale due to dependency changes"
+
+      # function — interpreter expression function
+      - compose:
+          definition: inline
+          target_eidos: eidos
+          id: eidos/function
+          data:
+            name: function
+            constitutional: true
+            description: |
+              An expression function available in the interpreter.
+              Functions transform values during praxis execution and composition.
+              Declaring functions as eide enables discovery and documentation.
+            fields:
+              name:
+                type: string
+                required: true
+                description: "Function name as used in expressions"
+              description:
+                type: string
+                required: true
+              category:
+                type: string
+                required: true
+                enum: [collection, string, hash, time, encoding, math, type]
+              params:
+                type: array
+                required: true
+                description: "Function parameters"
+              return_type:
+                type: string
+                required: true
+                enum: [any, string, number, boolean, array, object, timestamp, null]
+              pure:
+                type: boolean
+                required: false
+                default: true
+                description: "Whether this function has no side effects"
+              examples:
+                type: array
+                required: false
+
+      # genesis-record — multi-signature constitutional root
+      - compose:
+          definition: inline
+          target_eidos: eidos
+          id: eidos/genesis-record
+          data:
+            name: genesis-record
+            description: "Multi-signature genesis record for threshold signing. The constitutional root with 3-of-5 signature requirement."
+            fields:
+              content:
+                type: string
+                required: true
+                description: "The genesis content being signed"
+              content_hash:
+                type: string
+                required: true
+                description: "BLAKE3 hash of the genesis content"
+              threshold:
+                type: number
+                required: true
+                default: 3
+                description: "Minimum signatures required for validity"
+              signatures:
+                type: array
+                required: true
+                description: "Array of signer signatures [{public_key, signature, attestation}]"
+              verified:
+                type: boolean
+                required: false
+                default: false
+                description: "Whether threshold signatures have been verified"
+              created_at:
+                type: timestamp
+                required: true
+
+      # NOTE: eidos/dynamis-domain and eidos/dynamis-function extracted to
+      #       genesis/dynamis/eide/dynamis.yaml
+
+      # NOTE: eidos/oikos-manifest, eidos/oikos-dev, eidos/oikos-prod, eidos/publish-attestation
+      #       extracted to genesis/oikos/eide/oikos.yaml
+
+  # ---------------------------------------------------------------------------
+  # STAGE 1.5: FOUNDATIONAL DESMOI
+  # ---------------------------------------------------------------------------
+
+  - name: stage-1-desmoi
+    order: 15
+    description: "Foundational bond types"
+    authorized_by: expression/genesis-root
+    steps:
+      - compose:
+          target_eidos: desmos
+          id: desmos/authorized-by
+          data:
+            name: authorized-by
+            description: "Provenance chain — this was authorized by that"
+            symmetric: false
+
+      - compose:
+          target_eidos: desmos
+          id: desmos/composed-from
+          data:
+            name: composed-from
+            description: "Entity was composed from this typos"
+            symmetric: false
+
+      - compose:
+          target_eidos: desmos
+          id: desmos/typed-by
+          data:
+            name: typed-by
+            description: "Instance-of relationship"
+            symmetric: false
+
+      - compose:
+          target_eidos: desmos
+          id: desmos/provides-function
+          data:
+            name: provides-function
+            description: "Dynamis domain provides function — links domain to its capabilities"
+            symmetric: false
+
+      - compose:
+          target_eidos: desmos
+          id: desmos/inhabits
+          data:
+            name: inhabits
+            description: "Entity inhabits an oikos"
+            symmetric: false
+
+      - compose:
+          target_eidos: desmos
+          id: desmos/contains
+          data:
+            name: contains
+            description: "Container relationship"
+            symmetric: false
+
+      - compose:
+          target_eidos: desmos
+          id: desmos/emerges-from
+          data:
+            name: emerges-from
+            description: "Animus emerges from persona"
+            symmetric: false
+
+      - compose:
+          target_eidos: desmos
+          id: desmos/dwells-in
+          data:
+            name: dwells-in
+            description: "Animus dwells in circle"
+            symmetric: false
+
+      - compose:
+          target_eidos: desmos
+          id: desmos/stewards
+          data:
+            name: stewards
+            description: "Persona stewards circle"
+            symmetric: false
+
+      - compose:
+          target_eidos: desmos
+          id: desmos/member-of
+          data:
+            name: member-of
+            description: "Persona is member of circle"
+            symmetric: false
+
+      - compose:
+          target_eidos: desmos
+          id: desmos/belongs-to
+          data:
+            name: belongs-to
+            description: "Entity belongs to oikos or circle"
+            symmetric: false
+
+      - compose:
+          target_eidos: desmos
+          id: desmos/grounds
+          data:
+            name: grounds
+            description: "Theoria grounds principle"
+            symmetric: false
+
+      - compose:
+          target_eidos: desmos
+          id: desmos/enacts
+          data:
+            name: enacts
+            description: "Pattern enacts principle"
+            symmetric: false
+
+      # NOTE: Domain-specific desmoi have been extracted to oikos directories.
+      # See: genesis/*/desmoi/*.yaml for:
+      # - hypostasis: signed-by, chains-to, verifies
+      # - soma: instantiates, channel-of, received-through, emitted-through, schema-of
+      # - psyche: attends, intends, mood-of, portal-of, foresees, recognizes, opportune-for
+      # - nous: crystallized-in, inquires, synthesizes, answers, contains-waypoint, waypoint-yields, supersedes, supports, contradicts, evidences
+      # - oikos: within, authored-by, surfaced-in, about, crystallizes, surfaces, published-by, baked-from, attests-to, distributes, oikos-derives-from
+      # - manteia: authorizes, yields-generation, memoizes
+      # - dokimasia: validated-by, traces-to
+      # - demiurge: depends-on
+      # - energeia: supervises, runs-as
+      # - thyra: expressed-in, transforms-to, produces, consumes, in-reply-to, derives-from, contributes-to; dns.yaml: manages-zone, in-zone, provided-by, addresses
+      # - aisthesis: bootstrapped-by
+      # - syndesmos: uses-channel, governed-by, carried-through, mirrors, conflicts-on
+      # - politeia: sovereign-to, embodies, grants-attainment, has-attainment, granted-by, surfaces-as, enabled-by, renders-in, child-of, invited-to
+
+  # ---------------------------------------------------------------------------
+  # STAGE 1.8: DYNAMIS — substrate capabilities
+  # ---------------------------------------------------------------------------
+
+  - name: stage-1-dynamis
+    order: 18
+    description: "Dynamis domains and functions — what stoicheia can draw upon"
+    authorized_by: expression/genesis-root
+    steps:
+      # =========================================================================
+      # DYNAMIS DOMAINS
+      # =========================================================================
+
+      # db — database operations (Tier 2)
+      - compose:
+          target_eidos: dynamis-domain
+          id: dynamis/db
+          data:
+            name: db
+            description: "Database operations — entity and bond management in the graph"
+            tier_range: "2"
+
+      # aisthesis — sensing (Tier 3)
+      - compose:
+          target_eidos: dynamis-domain
+          id: dynamis/aisthesis
+          data:
+            name: aisthesis
+            description: "Sensing operations — embedding and semantic search"
+            tier_range: "3"
+
+      # fs — filesystem (Tier 3)
+      - compose:
+          target_eidos: dynamis-domain
+          id: dynamis/fs
+          data:
+            name: fs
+            description: "Filesystem operations — read, write, emit"
+            tier_range: "3"
+
+      # net — network (Tier 3)
+      - compose:
+          target_eidos: dynamis-domain
+          id: dynamis/net
+          data:
+            name: net
+            description: "Network operations — HTTP, WebSocket"
+            tier_range: "3"
+
+      # crypto — cryptography (Tier 0-3)
+      - compose:
+          target_eidos: dynamis-domain
+          id: dynamis/crypto
+          data:
+            name: crypto
+            description: "Cryptographic operations — hashing, signing, verification, key derivation"
+            tier_range: "0-3"
+
+      # manteia — inference (Tier 3)
+      - compose:
+          target_eidos: dynamis-domain
+          id: dynamis/manteia
+          data:
+            name: manteia
+            description: "Inference operations — LLM generation"
+            tier_range: "3"
+
+      # process — process management (Tier 3)
+      - compose:
+          target_eidos: dynamis-domain
+          id: dynamis/process
+          data:
+            name: process
+            description: "Process management — spawn, monitor, kill"
+            tier_range: "3"
+
+      # time — time operations (Tier 0)
+      - compose:
+          target_eidos: dynamis-domain
+          id: dynamis/time
+          data:
+            name: time
+            description: "Time operations — timestamps and formatting (portable)"
+            tier_range: "0"
+
+      # webrtc — WebRTC operations (Tier 3)
+      - compose:
+          target_eidos: dynamis-domain
+          id: dynamis/webrtc
+          data:
+            name: webrtc
+            description: "WebRTC operations — peer connections, signaling, data channels"
+            tier_range: "3"
+
+      # dns — DNS provider operations (Tier 3)
+      - compose:
+          target_eidos: dynamis-domain
+          id: dynamis/dns
+          data:
+            name: dns
+            description: "DNS provider operations — record management via Cloudflare, etc."
+            tier_range: "3"
+
+      # =========================================================================
+      # DYNAMIS FUNCTIONS — db domain
+      # =========================================================================
+
+      - compose:
+          target_eidos: dynamis-function
+          id: dynamis/db.arise
+          data:
+            name: arise
+            description: "Create an entity in the graph"
+            tier: 2
+            signature: "(eidos, id, data) -> entity"
+            portable: false
+      - bond:
+          from: dynamis/db
+          to: dynamis/db.arise
+          desmos: provides-function
+
+      - compose:
+          target_eidos: dynamis-function
+          id: dynamis/db.find
+          data:
+            name: find
+            description: "Find an entity by ID"
+            tier: 2
+            signature: "(id) -> entity | null"
+            portable: false
+      - bond:
+          from: dynamis/db
+          to: dynamis/db.find
+          desmos: provides-function
+
+      - compose:
+          target_eidos: dynamis-function
+          id: dynamis/db.update
+          data:
+            name: update
+            description: "Update entity data (merges with existing)"
+            tier: 2
+            signature: "(id, data) -> entity"
+            portable: false
+      - bond:
+          from: dynamis/db
+          to: dynamis/db.update
+          desmos: provides-function
+
+      - compose:
+          target_eidos: dynamis-function
+          id: dynamis/db.dissolve
+          data:
+            name: dissolve
+            description: "Remove an entity from the graph"
+            tier: 2
+            signature: "(id) -> void"
+            portable: false
+      - bond:
+          from: dynamis/db
+          to: dynamis/db.dissolve
+          desmos: provides-function
+
+      - compose:
+          target_eidos: dynamis-function
+          id: dynamis/db.gather
+          data:
+            name: gather
+            description: "Gather entities by type"
+            tier: 2
+            signature: "(eidos?, limit?) -> entity[]"
+            portable: false
+      - bond:
+          from: dynamis/db
+          to: dynamis/db.gather
+          desmos: provides-function
+
+      - compose:
+          target_eidos: dynamis-function
+          id: dynamis/db.bind
+          data:
+            name: bind
+            description: "Create a bond between entities"
+            tier: 2
+            signature: "(from, to, desmos, data?) -> bond"
+            portable: false
+      - bond:
+          from: dynamis/db
+          to: dynamis/db.bind
+          desmos: provides-function
+
+      - compose:
+          target_eidos: dynamis-function
+          id: dynamis/db.loose
+          data:
+            name: loose
+            description: "Remove a bond"
+            tier: 2
+            signature: "(from, to, desmos?) -> void"
+            portable: false
+      - bond:
+          from: dynamis/db
+          to: dynamis/db.loose
+          desmos: provides-function
+
+      - compose:
+          target_eidos: dynamis-function
+          id: dynamis/db.trace
+          data:
+            name: trace
+            description: "Follow bonds from an entity"
+            tier: 2
+            signature: "(id, direction, desmos?) -> bond[]"
+            portable: false
+      - bond:
+          from: dynamis/db
+          to: dynamis/db.trace
+          desmos: provides-function
+
+      - compose:
+          target_eidos: dynamis-function
+          id: dynamis/db.traverse
+          data:
+            name: traverse
+            description: "Walk the graph following bond types"
+            tier: 2
+            signature: "(id, desmoi, depth?) -> entity[]"
+            portable: false
+      - bond:
+          from: dynamis/db
+          to: dynamis/db.traverse
+          desmos: provides-function
+
+      # =========================================================================
+      # DYNAMIS FUNCTIONS — aisthesis domain
+      # =========================================================================
+
+      - compose:
+          target_eidos: dynamis-function
+          id: dynamis/aisthesis.embed
+          data:
+            name: embed
+            description: "Generate embedding vector for text"
+            tier: 3
+            signature: "(text) -> vector"
+            portable: false
+      - bond:
+          from: dynamis/aisthesis
+          to: dynamis/aisthesis.embed
+          desmos: provides-function
+
+      - compose:
+          target_eidos: dynamis-function
+          id: dynamis/aisthesis.index
+          data:
+            name: index
+            description: "Index entity for semantic search"
+            tier: 3
+            signature: "(entity_id, text) -> void"
+            portable: false
+      - bond:
+          from: dynamis/aisthesis
+          to: dynamis/aisthesis.index
+          desmos: provides-function
+
+      - compose:
+          target_eidos: dynamis-function
+          id: dynamis/aisthesis.surface
+          data:
+            name: surface
+            description: "Semantic search for entities"
+            tier: 3
+            signature: "(query, limit?, threshold?) -> entity[]"
+            portable: false
+      - bond:
+          from: dynamis/aisthesis
+          to: dynamis/aisthesis.surface
+          desmos: provides-function
+
+      # =========================================================================
+      # DYNAMIS FUNCTIONS — fs domain
+      # =========================================================================
+
+      - compose:
+          target_eidos: dynamis-function
+          id: dynamis/fs.read
+          data:
+            name: read
+            description: "Read file contents"
+            tier: 3
+            signature: "(path) -> string"
+            portable: false
+      - bond:
+          from: dynamis/fs
+          to: dynamis/fs.read
+          desmos: provides-function
+
+      - compose:
+          target_eidos: dynamis-function
+          id: dynamis/fs.write
+          data:
+            name: write
+            description: "Write file contents"
+            tier: 3
+            signature: "(path, content) -> void"
+            portable: false
+      - bond:
+          from: dynamis/fs
+          to: dynamis/fs.write
+          desmos: provides-function
+
+      - compose:
+          target_eidos: dynamis-function
+          id: dynamis/fs.emit
+          data:
+            name: emit
+            description: "Emit entity to filesystem"
+            tier: 3
+            signature: "(path, entity_id?, format?) -> void"
+            portable: false
+      - bond:
+          from: dynamis/fs
+          to: dynamis/fs.emit
+          desmos: provides-function
+
+      # =========================================================================
+      # DYNAMIS FUNCTIONS — net domain
+      # =========================================================================
+
+      - compose:
+          target_eidos: dynamis-function
+          id: dynamis/net.http
+          data:
+            name: http
+            description: "HTTP request"
+            tier: 3
+            signature: "(method, url, body?, headers?) -> response"
+            portable: false
+      - bond:
+          from: dynamis/net
+          to: dynamis/net.http
+          desmos: provides-function
+
+      - compose:
+          target_eidos: dynamis-function
+          id: dynamis/net.websocket_connect
+          data:
+            name: websocket_connect
+            description: "Establish WebSocket connection"
+            tier: 3
+            signature: "(url) -> conn_id"
+            portable: false
+      - bond:
+          from: dynamis/net
+          to: dynamis/net.websocket_connect
+          desmos: provides-function
+
+      - compose:
+          target_eidos: dynamis-function
+          id: dynamis/net.websocket_send
+          data:
+            name: websocket_send
+            description: "Send WebSocket message"
+            tier: 3
+            signature: "(conn_id, message) -> void"
+            portable: false
+      - bond:
+          from: dynamis/net
+          to: dynamis/net.websocket_send
+          desmos: provides-function
+
+      # =========================================================================
+      # DYNAMIS FUNCTIONS — crypto domain
+      # =========================================================================
+
+      - compose:
+          target_eidos: dynamis-function
+          id: dynamis/crypto.digest
+          data:
+            name: digest
+            description: "BLAKE3 hash of content (portable)"
+            tier: 0
+            signature: "(content) -> hash"
+            portable: true
+      - bond:
+          from: dynamis/crypto
+          to: dynamis/crypto.digest
+          desmos: provides-function
+
+      - compose:
+          target_eidos: dynamis-function
+          id: dynamis/crypto.sign
+          data:
+            name: sign
+            description: "Ed25519 signature"
+            tier: 3
+            signature: "(content, key_ref) -> signature"
+            portable: false
+      - bond:
+          from: dynamis/crypto
+          to: dynamis/crypto.sign
+          desmos: provides-function
+
+      - compose:
+          target_eidos: dynamis-function
+          id: dynamis/crypto.verify
+          data:
+            name: verify
+            description: "Verify Ed25519 signature (portable)"
+            tier: 0
+            signature: "(content, signature, pubkey) -> boolean"
+            portable: true
+      - bond:
+          from: dynamis/crypto
+          to: dynamis/crypto.verify
+          desmos: provides-function
+
+      - compose:
+          target_eidos: dynamis-function
+          id: dynamis/crypto.derive
+          data:
+            name: derive
+            description: "Derive circle-scoped key from mnemonic"
+            tier: 3
+            signature: "(mnemonic, circle_id) -> pubkey"
+            portable: false
+      - bond:
+          from: dynamis/crypto
+          to: dynamis/crypto.derive
+          desmos: provides-function
+
+      - compose:
+          target_eidos: dynamis-function
+          id: dynamis/crypto.random
+          data:
+            name: random
+            description: "Generate cryptographically secure random bytes"
+            tier: 3
+            signature: "(length) -> bytes"
+            portable: false
+      - bond:
+          from: dynamis/crypto
+          to: dynamis/crypto.random
+          desmos: provides-function
+
+      # =========================================================================
+      # DYNAMIS FUNCTIONS — manteia domain
+      # =========================================================================
+
+      - compose:
+          target_eidos: dynamis-function
+          id: dynamis/manteia.infer
+          data:
+            name: infer
+            description: "LLM inference"
+            tier: 3
+            signature: "(prompt, system?, model?) -> response"
+            portable: false
+      - bond:
+          from: dynamis/manteia
+          to: dynamis/manteia.infer
+          desmos: provides-function
+
+      # =========================================================================
+      # DYNAMIS FUNCTIONS — process domain
+      # =========================================================================
+
+      - compose:
+          target_eidos: dynamis-function
+          id: dynamis/process.spawn
+          data:
+            name: spawn
+            description: "Spawn a process"
+            tier: 3
+            signature: "(command, args?, env?) -> pid"
+            portable: false
+      - bond:
+          from: dynamis/process
+          to: dynamis/process.spawn
+          desmos: provides-function
+
+      - compose:
+          target_eidos: dynamis-function
+          id: dynamis/process.status
+          data:
+            name: status
+            description: "Check process status"
+            tier: 3
+            signature: "(pid) -> status"
+            portable: false
+      - bond:
+          from: dynamis/process
+          to: dynamis/process.status
+          desmos: provides-function
+
+      - compose:
+          target_eidos: dynamis-function
+          id: dynamis/process.kill
+          data:
+            name: kill
+            description: "Kill a process"
+            tier: 3
+            signature: "(pid, signal?) -> void"
+            portable: false
+      - bond:
+          from: dynamis/process
+          to: dynamis/process.kill
+          desmos: provides-function
+
+      # =========================================================================
+      # DYNAMIS FUNCTIONS — time domain
+      # =========================================================================
+
+      - compose:
+          target_eidos: dynamis-function
+          id: dynamis/time.now
+          data:
+            name: now
+            description: "Current timestamp (portable)"
+            tier: 0
+            signature: "() -> timestamp"
+            portable: true
+      - bond:
+          from: dynamis/time
+          to: dynamis/time.now
+          desmos: provides-function
+
+      - compose:
+          target_eidos: dynamis-function
+          id: dynamis/time.format
+          data:
+            name: format
+            description: "Format timestamp (portable)"
+            tier: 0
+            signature: "(timestamp, format?) -> string"
+            portable: true
+      - bond:
+          from: dynamis/time
+          to: dynamis/time.format
+          desmos: provides-function
+
+      # =========================================================================
+      # DYNAMIS FUNCTIONS — webrtc domain
+      # =========================================================================
+
+      - compose:
+          target_eidos: dynamis-function
+          id: dynamis/webrtc.manifest
+          data:
+            name: manifest
+            description: "Create WebRTC peer connection"
+            tier: 3
+            signature: "(config?) -> connection"
+            portable: false
+      - bond:
+          from: dynamis/webrtc
+          to: dynamis/webrtc.manifest
+          desmos: provides-function
+
+      - compose:
+          target_eidos: dynamis-function
+          id: dynamis/webrtc.sense
+          data:
+            name: sense
+            description: "Query WebRTC connection state"
+            tier: 3
+            signature: "(connection) -> state"
+            portable: false
+      - bond:
+          from: dynamis/webrtc
+          to: dynamis/webrtc.sense
+          desmos: provides-function
+
+      - compose:
+          target_eidos: dynamis-function
+          id: dynamis/webrtc.unmanifest
+          data:
+            name: unmanifest
+            description: "Close WebRTC connection"
+            tier: 3
+            signature: "(connection) -> void"
+            portable: false
+      - bond:
+          from: dynamis/webrtc
+          to: dynamis/webrtc.unmanifest
+          desmos: provides-function
+
+      - compose:
+          target_eidos: dynamis-function
+          id: dynamis/webrtc.signal
+          data:
+            name: signal
+            description: "Send/receive SDP and ICE candidates"
+            tier: 3
+            signature: "(connection, signal_type, data) -> void"
+            portable: false
+      - bond:
+          from: dynamis/webrtc
+          to: dynamis/webrtc.signal
+          desmos: provides-function
+
+      # =========================================================================
+      # DYNAMIS FUNCTIONS — dns domain
+      # =========================================================================
+
+      - compose:
+          target_eidos: dynamis-function
+          id: dynamis/dns.create_record
+          data:
+            name: create_record
+            description: "Create DNS record at provider"
+            tier: 3
+            signature: "(zone, record_type, name, content, ttl?, proxied?) -> record_id"
+            portable: false
+      - bond:
+          from: dynamis/dns
+          to: dynamis/dns.create_record
+          desmos: provides-function
+
+      - compose:
+          target_eidos: dynamis-function
+          id: dynamis/dns.update_record
+          data:
+            name: update_record
+            description: "Update DNS record at provider"
+            tier: 3
+            signature: "(record_id, content, ttl?, proxied?) -> void"
+            portable: false
+      - bond:
+          from: dynamis/dns
+          to: dynamis/dns.update_record
+          desmos: provides-function
+
+      - compose:
+          target_eidos: dynamis-function
+          id: dynamis/dns.delete_record
+          data:
+            name: delete_record
+            description: "Delete DNS record at provider"
+            tier: 3
+            signature: "(record_id) -> void"
+            portable: false
+      - bond:
+          from: dynamis/dns
+          to: dynamis/dns.delete_record
+          desmos: provides-function
+
+      - compose:
+          target_eidos: dynamis-function
+          id: dynamis/dns.sense_record
+          data:
+            name: sense_record
+            description: "Query DNS record state at provider"
+            tier: 3
+            signature: "(record_id) -> record_state"
+            portable: false
+      - bond:
+          from: dynamis/dns
+          to: dynamis/dns.sense_record
+          desmos: provides-function
+
+  # ---------------------------------------------------------------------------
+  # STAGE 2: PRESENCE — who can dwell
+  # ---------------------------------------------------------------------------
+
+  - name: stage-2-presence
+    order: 20
+    description: "Presence eide — what enables dwelling"
+    authorized_by: expression/genesis-root
+    steps:
+      # persona — persistent identity
+      - compose:
+          target_eidos: eidos
+          id: eidos/persona
+          data:
+            name: persona
+            description: "Identity that persists across sessions"
+            fields:
+              name:
+                type: string
+                required: true
+              kind:
+                type: enum
+                values: [human, ai, service, collective]
+                required: true
+              public_key:
+                type: string
+                required: true
+
+      # animus — dwelling presence
+      - compose:
+          target_eidos: eidos
+          id: eidos/animus
+          data:
+            name: animus
+            description: "Presence that arises when a persona dwells in a circle. Embodies persona, sovereign to circle."
+            fields:
+              name:
+                type: string
+                required: false
+                description: "Optional display name for this animus instance"
+              description:
+                type: string
+                required: false
+                description: "Optional description"
+              persona_id:
+                type: string
+                required: true
+                description: "The persona this animus embodies"
+              circle_id:
+                type: string
+                required: true
+                description: "The circle where this animus dwells"
+              substrate_id:
+                type: string
+                required: true
+                description: "Reference to substrate instance (thyra/session)"
+              status:
+                type: enum
+                values: [active, departed]
+                required: true
+                default: active
+                description: "Whether this animus is currently present"
+              arrived_at:
+                type: timestamp
+                required: true
+              departed_at:
+                type: timestamp
+                required: false
+              last_active_at:
+                type: timestamp
+                required: false
+                description: "Last activity timestamp for presence tracking"
+
+      # circle — trust boundary
+      - compose:
+          target_eidos: eidos
+          id: eidos/circle
+          data:
+            name: circle
+            description: "Trust boundary where dwellers gather"
+            fields:
+              name:
+                type: string
+                required: true
+              kind:
+                type: enum
+                values: [self, intimate, community, public]
+                required: true
+              description:
+                type: string
+                required: false
+
+  # NOTE: Domain-specific eide (session, channel, etc.) are now loaded from
+  # oikos directories. See genesis/*/eide/ for extracted definitions.
+
+  # ---------------------------------------------------------------------------
+  # STAGE 3: FOUNDER — Victor and Claude
+  # ---------------------------------------------------------------------------
+
+  - name: stage-3-founder
+    order: 30
+    description: "The founder persona and initial dwellers"
+    authorized_by: expression/genesis-root
+    steps:
+      # Victor's persona (the signer of genesis)
+      - compose:
+          target_eidos: persona
+          id: persona/victor
+          data:
+            name: Victor
+            kind: human
+            public_key: b196e54638c421529120fc10ebb3ea9b82f015ec768854364e7696613be4f70c
+            description: "The founder. Signed the genesis root."
+
+      # Victor's self-circle
+      - compose:
+          target_eidos: circle
+          id: circle/victor-self
+          data:
+            name: "Victor's Circle"
+            kind: self
+            steward_persona_id: persona/victor
+            description: "Sovereign ground of the founder"
+          bonds:
+            - desmos: stewards
+              from: persona/victor
+              to: self
+
+      # Claude's persona
+      - compose:
+          target_eidos: persona
+          id: persona/claude
+          data:
+            name: Claude
+            kind: ai
+            description: "The animus that dwells when Claude connects"
+
+      # Root public circle — visible to all
+      - compose:
+          target_eidos: circle
+          id: circle/kosmos
+          data:
+            name: Kosmos
+            kind: public
+            description: "The root public circle — visible to all dwellers"
+
+      # Membership bonds
+      - bond:
+          from: persona/victor
+          to: circle/kosmos
+          desmos: member-of
+
+      - bond:
+          from: persona/claude
+          to: circle/kosmos
+          desmos: member-of
+
+      - bond:
+          from: persona/victor
+          to: circle/victor-self
+          desmos: member-of
+
+  # ---------------------------------------------------------------------------
+  # STAGE 3.5: POLITEIA BOOTSTRAP — foundation attainments and HUD
+  # ---------------------------------------------------------------------------
+
+  - name: stage-3-politeia
+    order: 35
+    description: "Foundation attainments, affordances, and HUD regions"
+    authorized_by: expression/genesis-root
+    steps:
+      # Genesis animus — the initial presence in circle/kosmos
+      - compose:
+          target_eidos: animus
+          id: animus/genesis
+          data:
+            name: Genesis
+            description: "The first animus — dwells in the root circle"
+            persona_id: persona/victor
+            circle_id: circle/kosmos
+            substrate_id: substrate/genesis
+            status: active
+            arrived_at: "{{ now() }}"
+
+      # Sovereign bond: circle/kosmos → animus/genesis
+      - bond:
+          from: circle/kosmos
+          to: animus/genesis
+          desmos: sovereign-to
+
+      # Embodies bond: animus/genesis → persona/victor
+      - bond:
+          from: animus/genesis
+          to: persona/victor
+          desmos: embodies
+
+      # Dwells-in bond: animus/genesis → circle/kosmos
+      - bond:
+          from: animus/genesis
+          to: circle/kosmos
+          desmos: dwells-in
+
+      # ------------------------------------
+      # Foundation Attainments
+      # ------------------------------------
+
+      # compose attainment — ability to compose entities
+      - compose:
+          target_eidos: attainment
+          id: attainment/compose
+          data:
+            name: compose
+            description: "Ability to compose entities via demiurge"
+            scope: circle
+            created_at: "{{ now() }}"
+
+      # invite attainment — ability to invite others to circle
+      - compose:
+          target_eidos: attainment
+          id: attainment/invite
+          data:
+            name: invite
+            description: "Ability to invite others to circles"
+            scope: circle
+            created_at: "{{ now() }}"
+
+      # govern attainment — ability to govern circle (grant attainments)
+      - compose:
+          target_eidos: attainment
+          id: attainment/govern
+          data:
+            name: govern
+            description: "Ability to govern circles — grant and revoke attainments"
+            scope: circle
+            created_at: "{{ now() }}"
+
+      # nous attainment — ability to use nous operations
+      - compose:
+          target_eidos: attainment
+          id: attainment/nous
+          data:
+            name: nous
+            description: "Ability to crystallize theoria, surface journeys, use nous"
+            scope: circle
+            created_at: "{{ now() }}"
+
+      # manteia attainment — ability to invoke inference
+      - compose:
+          target_eidos: attainment
+          id: attainment/manteia
+          data:
+            name: manteia
+            description: "Ability to invoke governed inference"
+            scope: circle
+            created_at: "{{ now() }}"
+
+      # dns attainment — ability to manage DNS zones and records
+      - compose:
+          target_eidos: attainment
+          id: attainment/dns
+          data:
+            name: dns
+            description: "Ability to manage DNS zones and records"
+            scope: circle
+            created_at: "{{ now() }}"
+
+      # oikos-develop attainment — ability to create and modify oikos-dev packages
+      - compose:
+          target_eidos: attainment
+          id: attainment/oikos-develop
+          data:
+            name: oikos-develop
+            description: "Ability to create and modify oikos-dev packages"
+            scope: circle
+            created_at: "{{ now() }}"
+
+      # oikos-publish attainment — ability to bake and sign oikos-prod packages
+      - compose:
+          target_eidos: attainment
+          id: attainment/oikos-publish
+          data:
+            name: oikos-publish
+            description: "Ability to bake oikos-dev into oikos-prod and sign for distribution"
+            scope: circle
+            created_at: "{{ now() }}"
+
+      # oikos-bake attainment — ability to bake generative-commons oikos-dev locally
+      - compose:
+          target_eidos: attainment
+          id: attainment/oikos-bake
+          data:
+            name: oikos-bake
+            description: "Ability to bake generative-commons oikos-dev into locally-fitted versions. Enables circles to adapt shared source packages."
+            scope: circle
+            created_at: "{{ now() }}"
+
+      # oikos-fork attainment — ability to derive new oikos-dev from generative-commons source
+      - compose:
+          target_eidos: attainment
+          id: attainment/oikos-fork
+          data:
+            name: oikos-fork
+            description: "Ability to create derived oikos-dev from generative-commons source. Enables local ontology adaptation."
+            scope: circle
+            created_at: "{{ now() }}"
+
+      # ------------------------------------
+      # Tier 3 Attainments (external operations)
+      # ------------------------------------
+
+      # external-emit attainment — ability to emit files to filesystem
+      - compose:
+          target_eidos: attainment
+          id: attainment/external-emit
+          data:
+            name: external-emit
+            description: "Ability to emit files to the filesystem (Tier 3 external operation)"
+            scope: circle
+            created_at: "{{ now() }}"
+
+      # external-manifest attainment — ability to manifest substrate resources
+      - compose:
+          target_eidos: attainment
+          id: attainment/external-manifest
+          data:
+            name: external-manifest
+            description: "Ability to manifest substrate resources (DNS, R2, processes)"
+            scope: circle
+            created_at: "{{ now() }}"
+
+      # external-signal attainment — ability to use network signaling
+      - compose:
+          target_eidos: attainment
+          id: attainment/external-signal
+          data:
+            name: external-signal
+            description: "Ability to use network signaling (WebRTC relay)"
+            scope: circle
+            created_at: "{{ now() }}"
+
+      # use-embedding-api attainment — ability to use external embedding APIs
+      - compose:
+          target_eidos: attainment
+          id: attainment/use-embedding-api
+          data:
+            name: use-embedding-api
+            description: "Ability to use external embedding API services"
+            scope: circle
+            created_at: "{{ now() }}"
+
+      # use-anthropic-api attainment — ability to use Anthropic LLM API
+      - compose:
+          target_eidos: attainment
+          id: attainment/use-anthropic-api
+          data:
+            name: use-anthropic-api
+            description: "Ability to use Anthropic LLM API for inference"
+            scope: circle
+            created_at: "{{ now() }}"
+
+      # ------------------------------------
+      # Attainment Grants (circle → attainment)
+      # ------------------------------------
+
+      - bond:
+          from: circle/kosmos
+          to: attainment/compose
+          desmos: grants-attainment
+
+      - bond:
+          from: circle/kosmos
+          to: attainment/invite
+          desmos: grants-attainment
+
+      - bond:
+          from: circle/kosmos
+          to: attainment/govern
+          desmos: grants-attainment
+
+      - bond:
+          from: circle/kosmos
+          to: attainment/nous
+          desmos: grants-attainment
+
+      - bond:
+          from: circle/kosmos
+          to: attainment/manteia
+          desmos: grants-attainment
+
+      - bond:
+          from: circle/kosmos
+          to: attainment/dns
+          desmos: grants-attainment
+
+      - bond:
+          from: circle/kosmos
+          to: attainment/oikos-develop
+          desmos: grants-attainment
+
+      - bond:
+          from: circle/kosmos
+          to: attainment/oikos-publish
+          desmos: grants-attainment
+
+      - bond:
+          from: circle/kosmos
+          to: attainment/oikos-bake
+          desmos: grants-attainment
+
+      - bond:
+          from: circle/kosmos
+          to: attainment/oikos-fork
+          desmos: grants-attainment
+
+      # Tier 3 attainment grants
+      - bond:
+          from: circle/kosmos
+          to: attainment/external-emit
+          desmos: grants-attainment
+
+      - bond:
+          from: circle/kosmos
+          to: attainment/external-manifest
+          desmos: grants-attainment
+
+      - bond:
+          from: circle/kosmos
+          to: attainment/external-signal
+          desmos: grants-attainment
+
+      - bond:
+          from: circle/kosmos
+          to: attainment/use-embedding-api
+          desmos: grants-attainment
+
+      - bond:
+          from: circle/kosmos
+          to: attainment/use-anthropic-api
+          desmos: grants-attainment
+
+      # ------------------------------------
+      # Attainment Holdings (genesis animus → attainment)
+      # ------------------------------------
+
+      - bond:
+          from: animus/genesis
+          to: attainment/compose
+          desmos: has-attainment
+
+      - bond:
+          from: animus/genesis
+          to: attainment/invite
+          desmos: has-attainment
+
+      - bond:
+          from: animus/genesis
+          to: attainment/govern
+          desmos: has-attainment
+
+      - bond:
+          from: animus/genesis
+          to: attainment/nous
+          desmos: has-attainment
+
+      - bond:
+          from: animus/genesis
+          to: attainment/manteia
+          desmos: has-attainment
+
+      - bond:
+          from: animus/genesis
+          to: attainment/dns
+          desmos: has-attainment
+
+      - bond:
+          from: animus/genesis
+          to: attainment/oikos-develop
+          desmos: has-attainment
+
+      - bond:
+          from: animus/genesis
+          to: attainment/oikos-publish
+          desmos: has-attainment
+
+      - bond:
+          from: animus/genesis
+          to: attainment/oikos-bake
+          desmos: has-attainment
+
+      - bond:
+          from: animus/genesis
+          to: attainment/oikos-fork
+          desmos: has-attainment
+
+      # Tier 3 attainment holdings
+      - bond:
+          from: animus/genesis
+          to: attainment/external-emit
+          desmos: has-attainment
+
+      - bond:
+          from: animus/genesis
+          to: attainment/external-manifest
+          desmos: has-attainment
+
+      - bond:
+          from: animus/genesis
+          to: attainment/external-signal
+          desmos: has-attainment
+
+      - bond:
+          from: animus/genesis
+          to: attainment/use-embedding-api
+          desmos: has-attainment
+
+      - bond:
+          from: animus/genesis
+          to: attainment/use-anthropic-api
+          desmos: has-attainment
+
+      # ------------------------------------
+      # Stoicheion → Attainment bonds (requires-attainment)
+      # These make tier 3 gating graph-queryable rather than hardcoded.
+      # The interpreter queries: stoicheion → requires-attainment → attainment
+      # ------------------------------------
+
+      # embed requires use-embedding-api
+      - bond:
+          from: eidos/stoicheion/embed
+          to: attainment/use-embedding-api
+          desmos: requires-attainment
+
+      # infer requires use-anthropic-api
+      - bond:
+          from: eidos/stoicheion/infer
+          to: attainment/use-anthropic-api
+          desmos: requires-attainment
+
+      # emit requires external-emit
+      - bond:
+          from: eidos/stoicheion/emit
+          to: attainment/external-emit
+          desmos: requires-attainment
+
+      # manifest requires external-manifest
+      - bond:
+          from: eidos/stoicheion/manifest
+          to: attainment/external-manifest
+          desmos: requires-attainment
+
+      # signal requires external-signal
+      - bond:
+          from: eidos/stoicheion/signal
+          to: attainment/external-signal
+          desmos: requires-attainment
+
+      # invoke requires external-manifest (general external provider access)
+      - bond:
+          from: eidos/stoicheion/invoke
+          to: attainment/external-manifest
+          desmos: requires-attainment
+
+      # ------------------------------------
+      # Foundation HUD Regions
+      # ------------------------------------
+
+      - compose:
+          target_eidos: hud-region
+          id: hud-region/main
+          data:
+            name: Main
+            kind: ambient
+            visibility: always
+            position:
+              slot: center
+            created_at: "{{ now() }}"
+
+      - compose:
+          target_eidos: hud-region
+          id: hud-region/toolbar
+          data:
+            name: Toolbar
+            kind: toolbar
+            visibility: always
+            position:
+              slot: top
+              order: 0
+            created_at: "{{ now() }}"
+
+      - compose:
+          target_eidos: hud-region
+          id: hud-region/sidebar
+          data:
+            name: Sidebar
+            kind: sidebar
+            visibility: contextual
+            position:
+              slot: left
+              order: 0
+            created_at: "{{ now() }}"
+
+      - compose:
+          target_eidos: hud-region
+          id: hud-region/contextual
+          data:
+            name: Contextual
+            kind: contextual
+            visibility: contextual
+            position:
+              slot: bottom
+              order: 0
+            created_at: "{{ now() }}"
+
+      # ------------------------------------
+      # Foundation Affordances
+      # ------------------------------------
+
+      # Compose affordance — surfaces compose attainment
+      - compose:
+          target_eidos: affordance
+          id: affordance/compose
+          data:
+            name: Compose
+            description: "Compose a new entity"
+            praxis_id: praxis/demiurge/compose
+            required_attainments: [compose]
+            priority: 100
+            created_at: "{{ now() }}"
+
+      # Invite affordance
+      - compose:
+          target_eidos: affordance
+          id: affordance/invite
+          data:
+            name: Invite
+            description: "Invite someone to this circle"
+            praxis_id: praxis/politeia/invite-to-circle
+            required_attainments: [invite]
+            priority: 80
+            created_at: "{{ now() }}"
+
+      # Crystallize theoria affordance
+      - compose:
+          target_eidos: affordance
+          id: affordance/crystallize-theoria
+          data:
+            name: Crystallize Theoria
+            description: "Crystallize understanding into theoria"
+            praxis_id: praxis/nous/crystallize-theoria
+            required_attainments: [nous]
+            priority: 90
+            created_at: "{{ now() }}"
+
+      # Surface journeys affordance
+      - compose:
+          target_eidos: affordance
+          id: affordance/surface-journeys
+          data:
+            name: Surface Journeys
+            description: "Find relevant journeys"
+            praxis_id: praxis/nous/surface-journeys
+            required_attainments: [nous]
+            priority: 85
+            created_at: "{{ now() }}"
+
+      # ------------------------------------
+      # Affordance → HUD Region bonds (renders-in)
+      # ------------------------------------
+
+      - bond:
+          from: affordance/compose
+          to: hud-region/toolbar
+          desmos: renders-in
+
+      - bond:
+          from: affordance/invite
+          to: hud-region/toolbar
+          desmos: renders-in
+
+      - bond:
+          from: affordance/crystallize-theoria
+          to: hud-region/toolbar
+          desmos: renders-in
+
+      - bond:
+          from: affordance/surface-journeys
+          to: hud-region/sidebar
+          desmos: renders-in
+
+      # ------------------------------------
+      # Affordance → Attainment bonds (enabled-by)
+      # ------------------------------------
+
+      - bond:
+          from: affordance/compose
+          to: attainment/compose
+          desmos: enabled-by
+
+      - bond:
+          from: affordance/invite
+          to: attainment/invite
+          desmos: enabled-by
+
+      - bond:
+          from: affordance/crystallize-theoria
+          to: attainment/nous
+          desmos: enabled-by
+
+      - bond:
+          from: affordance/surface-journeys
+          to: attainment/nous
+          desmos: enabled-by
+
+      # ------------------------------------
+      # Attainment → Affordance bonds (surfaces-as)
+      # ------------------------------------
+
+      - bond:
+          from: attainment/compose
+          to: affordance/compose
+          desmos: surfaces-as
+
+      - bond:
+          from: attainment/invite
+          to: affordance/invite
+          desmos: surfaces-as
+
+      - bond:
+          from: attainment/nous
+          to: affordance/crystallize-theoria
+          desmos: surfaces-as
+
+      - bond:
+          from: attainment/nous
+          to: affordance/surface-journeys
+          desmos: surfaces-as
+
+      # ------------------------------------
+      # Render Types — semantic rendering categories
+      # ------------------------------------
+
+      - compose:
+          target_eidos: render-type
+          id: render-type/expression-thread
+          data:
+            name: expression-thread
+            source_eidos: expression
+            grouping: in-reply-to-chains
+            description: "Conversation view with threading"
+            created_at: "{{ now() }}"
+
+      - compose:
+          target_eidos: render-type
+          id: render-type/circle-list
+          data:
+            name: circle-list
+            source_eidos: circle
+            description: "Circle navigation list"
+            created_at: "{{ now() }}"
+
+      - compose:
+          target_eidos: render-type
+          id: render-type/presence-list
+          data:
+            name: presence-list
+            source_eidos: animus
+            description: "Who's here — animi dwelling in circle"
+            created_at: "{{ now() }}"
+
+      - compose:
+          target_eidos: render-type
+          id: render-type/theoria-display
+          data:
+            name: theoria-display
+            source_eidos: theoria
+            description: "Crystallized understanding display"
+            created_at: "{{ now() }}"
+
+      - compose:
+          target_eidos: render-type
+          id: render-type/voice-composer
+          data:
+            name: voice-composer
+            description: "Voice input and accumulation buffer"
+            created_at: "{{ now() }}"
+
+      - compose:
+          target_eidos: render-type
+          id: render-type/artifact-editor
+          data:
+            name: artifact-editor
+            source_eidos: artifact
+            description: "Artifact editing view"
+            created_at: "{{ now() }}"
+
+      - compose:
+          target_eidos: render-type
+          id: render-type/agora-territory
+          data:
+            name: agora-territory
+            source_eidos: territory
+            description: "Spatial territory with presence"
+            created_at: "{{ now() }}"
+
+      - compose:
+          target_eidos: render-type
+          id: render-type/connection-status
+          data:
+            name: connection-status
+            description: "Connection state indicator"
+            created_at: "{{ now() }}"
+
+      # ------------------------------------
+      # Renderers — substrate-specific component bindings
+      # All core renderers use render_strategy: core
+      # ------------------------------------
+
+      - compose:
+          target_eidos: renderer
+          id: renderer/ExpressionThread
+          data:
+            name: ExpressionThread
+            render_strategy: core
+            component_path: panels/ExpressionThread
+            substrate: web
+            accepts_render_types: [render-type/expression-thread]
+            created_at: "{{ now() }}"
+
+      - compose:
+          target_eidos: renderer
+          id: renderer/CircleList
+          data:
+            name: CircleList
+            render_strategy: core
+            component_path: panels/CircleList
+            substrate: web
+            accepts_render_types: [render-type/circle-list]
+            created_at: "{{ now() }}"
+
+      - compose:
+          target_eidos: renderer
+          id: renderer/PresenceList
+          data:
+            name: PresenceList
+            render_strategy: core
+            component_path: panels/PresenceList
+            substrate: web
+            accepts_render_types: [render-type/presence-list]
+            created_at: "{{ now() }}"
+
+      - compose:
+          target_eidos: renderer
+          id: renderer/TheoriaPanel
+          data:
+            name: TheoriaPanel
+            render_strategy: core
+            component_path: panels/TheoriaPanel
+            substrate: web
+            # Accepts both theoria-display and theoria-list (previously aliased)
+            accepts_render_types:
+              - render-type/theoria-display
+              - render-type/theoria-list
+            created_at: "{{ now() }}"
+
+      - compose:
+          target_eidos: renderer
+          id: renderer/VoiceComposer
+          data:
+            name: VoiceComposer
+            render_strategy: core
+            component_path: panels/VoiceComposer
+            substrate: web
+            # Accepts both voice-composer and accumulation-buffer (previously aliased)
+            accepts_render_types:
+              - render-type/voice-composer
+              - render-type/accumulation-buffer
+            created_at: "{{ now() }}"
+
+      - compose:
+          target_eidos: renderer
+          id: renderer/ArtifactEditor
+          data:
+            name: ArtifactEditor
+            render_strategy: core
+            component_path: panels/ArtifactEditor
+            substrate: web
+            # Accepts artifact-editor, artifact-preview, workspace-view (previously aliased)
+            accepts_render_types:
+              - render-type/artifact-editor
+              - render-type/artifact-preview
+              - render-type/workspace-view
+            created_at: "{{ now() }}"
+
+      - compose:
+          target_eidos: renderer
+          id: renderer/AgoraTerritory
+          data:
+            name: AgoraTerritory
+            render_strategy: core
+            component_path: AgoraTerritory
+            substrate: web
+            accepts_render_types: [render-type/agora-territory]
+            created_at: "{{ now() }}"
+
+      - compose:
+          target_eidos: renderer
+          id: renderer/ConnectionStatus
+          data:
+            name: ConnectionStatus
+            render_strategy: core
+            component_path: ConnectionStatus
+            substrate: web
+            accepts_render_types: [render-type/connection-status]
+            created_at: "{{ now() }}"
+
+      # ------------------------------------
+      # Renderer → Render-Type bonds (renders-with)
+      # Makes dispatch graph-queryable
+      # ------------------------------------
+
+      - bond:
+          from: renderer/ExpressionThread
+          to: render-type/expression-thread
+          desmos: renders-with
+
+      - bond:
+          from: renderer/CircleList
+          to: render-type/circle-list
+          desmos: renders-with
+
+      - bond:
+          from: renderer/PresenceList
+          to: render-type/presence-list
+          desmos: renders-with
+
+      - bond:
+          from: renderer/TheoriaPanel
+          to: render-type/theoria-display
+          desmos: renders-with
+
+      - bond:
+          from: renderer/VoiceComposer
+          to: render-type/voice-composer
+          desmos: renders-with
+
+      - bond:
+          from: renderer/ArtifactEditor
+          to: render-type/artifact-editor
+          desmos: renders-with
+
+      - bond:
+          from: renderer/AgoraTerritory
+          to: render-type/agora-territory
+          desmos: renders-with
+
+      - bond:
+          from: renderer/ConnectionStatus
+          to: render-type/connection-status
+          desmos: renders-with
+
+  # ---------------------------------------------------------------------------
+  # STAGE 5: MARKER — germination complete
+  # ---------------------------------------------------------------------------
+
+  - name: stage-5-marker
+    order: 50
+    description: "Mark spora germination complete"
+    authorized_by: expression/genesis-root
+    steps:
+      - compose:
+          target_eidos: eidos
+          id: eidos/genesis-marker
+          data:
+            name: genesis-marker
+            description: "Tracks completion of genesis stages"
+
+      - compose:
+          target_eidos: genesis-marker
+          id: genesis-marker/spora
+          data:
+            stage: spora
+            description: "Spora germination complete — archai and presence exist"
+            completed_at: "{{ now() }}"
+
