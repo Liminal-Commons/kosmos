@@ -33,7 +33,7 @@ entities:
         Completing it enables all future oikos development to happen cleanly,
         with the world (Kosmos) existing independently of implementation (Chora).
       status: active
-      current_waypoint: 2
+      current_waypoint: 3
       embarked_at: 2026-01-27T00:00:00Z
       leverage_type: compound
       leverage_multiplier: oikos
@@ -76,7 +76,8 @@ entities:
       journey_id: journey/kosmos-handover
       ordinal: 3
       description: "Establish where different work happens"
-      status: pending
+      status: reached
+      reached_at: 2026-01-27T16:00:00Z
 
   - eidos: waypoint
     id: waypoint/kosmos-handover-4

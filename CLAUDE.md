@@ -1,4 +1,23 @@
-# genesis/CLAUDE.md
+# CLAUDE.md
+
+This is **kosmos** — the world as pure ontology (YAML + Markdown).
+
+The implementation lives in [chora](https://github.com/liminalcommons/chora).
+
+---
+
+## The Two Repositories
+
+| Repository | What It Contains |
+|------------|------------------|
+| **kosmos** (here) | The world — eide, desmoi, praxeis, design docs |
+| **chora** | The implementation — interpreter, MCP, UI |
+
+**Kosmos is the world. Chora makes it breathe.**
+
+Chora depends on kosmos via symlink: `chora/genesis → ../kosmos/genesis`
+
+---
 
 ## Context
 
