@@ -16,9 +16,10 @@ entities:
         Separate Kosmos (the world) from Chora (the implementation).
         Create conditions where the ontology can evolve independently,
         where creative journeys happen within Kosmos itself.
-      status: active
+      status: fulfilled
       priority: 1
       formed_at: 2026-01-27T00:00:00Z
+      fulfilled_at: 2026-01-27T16:15:00Z
 
   # =============================================================================
   # THE JOURNEY
@@ -32,8 +33,9 @@ entities:
         This is the foundational journey for the creative journey infrastructure.
         Completing it enables all future oikos development to happen cleanly,
         with the world (Kosmos) existing independently of implementation (Chora).
-      status: active
-      current_waypoint: 3
+      status: completed
+      current_waypoint: 4
+      completed_at: 2026-01-27T16:15:00Z
       embarked_at: 2026-01-27T00:00:00Z
       leverage_type: compound
       leverage_multiplier: oikos
@@ -85,7 +87,8 @@ entities:
       journey_id: journey/kosmos-handover
       ordinal: 4
       description: "CI/CD for both repos working together"
-      status: pending
+      status: reached
+      reached_at: 2026-01-27T16:15:00Z
 
   # =============================================================================
   # THE PROSPECTS
