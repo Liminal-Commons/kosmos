@@ -1,5 +1,13 @@
-
 # Local kosmos state
 .kosmos/
+*.db
+
+# Editor/OS artifacts
 .mcp.json
 *.DS_Store
+*~
+*.swp
+
+# Environment
+.env
+.env.local
