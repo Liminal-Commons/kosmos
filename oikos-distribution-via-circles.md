@@ -17,6 +17,32 @@ This proposal inverts the model: **Thyra becomes a minimal substrate, and oikoi 
 
 ---
 
+## Design Principles
+
+### Whole Oikos Rule
+
+If any part of an oikos is needed in the substrate, include the **entire oikos**. No splitting oikoi between substrate and circle distribution. An oikos is either fully built-in or fully distributed.
+
+### Maturity Migration (Into Thyra)
+
+New oikoi start distributed via circles, where they can iterate quickly. As an oikos matures and stabilizes, it migrates **into** Thyra:
+
+```
+New oikos → distributed via circles (rapid iteration)
+            ↓ (stabilizes over time)
+Mature oikos → built into Thyra (rarely changes)
+```
+
+The substrate grows over time as the kosmos matures. This is the opposite of "extract from app" — it's "graduate into app."
+
+### Clean Breaks, No Backward Compatibility
+
+When changes are needed, prefer clean breaks over backward compatibility shims. No deprecated APIs, no migration layers, no old behavior preserved. Change cleanly.
+
+This keeps the system simple and avoids accumulated cruft.
+
+---
+
 ## The Vision
 
 ### Before (Current)
@@ -57,17 +83,21 @@ User has capabilities
 
 ## Minimal Substrate
 
-What must be built into Thyra (unlikely to change, required before joining any circle):
+What must be built into Thyra (stable, required before joining any circle).
+
+**Per the whole oikos rule:** if any part of an oikos is needed, the entire oikos is included.
 
 | Component | Purpose | Why Built-in |
 |-----------|---------|--------------|
 | **Interpreter** | Executes praxeis | Rust code, can't be distributed as content |
 | **Arche** | Grammar (eidos, desmos, stoicheion) | Interpreter requires these definitions |
 | **Propylon** | Entry via links | Must accept invitations before joining circles |
-| **Hypostasis (core)** | Keys, signatures, mnemonic | Identity must exist before membership |
-| **Politeia (minimal)** | Circle join, membership, dwell | Must join circles to receive oikoi |
+| **Hypostasis** | Keys, signatures, mnemonic, sync | Identity must exist before membership |
+| **Politeia** | Circles, membership, attainments, dwell | Must join circles to receive oikoi |
 
-Everything else moves to circle distribution:
+These oikoi are mature and stable. They form the constitutional layer.
+
+Everything else starts as circle-distributed (may graduate to substrate as they mature):
 - nous (mind, theoria)
 - soma (body, channels)
 - thyra (portal, streams, UI)
@@ -258,15 +288,15 @@ Other circles can distribute subsets or different versions:
 
 ## Open Questions
 
-1. **Exact minimal boundary** — Is "minimal politeia" sufficient, or do we need more to bootstrap the oikos-install flow?
+1. **Update trigger** — Eager, lazy (on-dwell), or prompted? Open to proposals.
 
-2. **Update trigger** — Eager, lazy (on-dwell), or prompted? Recommendation: lazy.
+2. **Offline first-run** — What happens if user has no network? (Answer: they wait until they have connectivity and a link.)
 
-3. **Offline first-run** — What happens if user has no network? (Answer: they wait until they have connectivity and a link.)
+3. **Oikos dependencies** — If oikos A depends on oikos B, how is this expressed and resolved?
 
-4. **Oikos dependencies** — If oikos A depends on oikos B, how is this expressed and resolved?
+4. **Signature verification** — How does bare Thyra verify oikos-prod signatures without already having the signing circle's pubkey?
 
-5. **Signature verification** — How does bare Thyra verify oikos-prod signatures without already having the signing circle's pubkey?
+5. **Graduation criteria** — What makes an oikos "mature enough" to move into the substrate?
 
 ---
 
@@ -283,6 +313,14 @@ You get oikoi by joining circles. This unifies the access model (attainments) wi
 **T30: Social entry is a feature, not a bug**
 
 Requiring invitation before capability is intentional. It ensures human connection precedes tool access. You cannot wield kosmos alone — you must be invited by someone who already dwells there. This aligns with the vision of kosmos as a social fabric, not just a tool.
+
+**T31: Clean breaks over accumulated cruft**
+
+When changing the system, prefer clean breaks over backward compatibility. No deprecated APIs lingering, no migration shims, no old behavior preserved "just in case." Change cleanly, communicate clearly, move forward. Complexity debt compounds; clean breaks keep the system simple.
+
+**T32: Oikoi graduate into the substrate**
+
+New oikoi are experimental — they iterate rapidly via circle distribution. As they stabilize and prove themselves, they graduate into the Thyra substrate. The substrate grows as the kosmos matures, but slowly and deliberately. This inverts the typical "extract from monolith" pattern — here, the monolith grows by absorbing mature modules.
 
 ---
 
