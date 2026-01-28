@@ -1,0 +1,72 @@
+# Ergon Eide — Work Coordination Entity Types
+
+- id: pragma
+  description: |
+    πρᾶγμα — a thing to be done.
+
+    A gap, issue, or work item that signals between circles. Created
+    where the gap is discovered, resolved where the capability exists.
+
+    Pragma flow across the discipline boundary:
+    - Kosmos circle creates pragma (discovery)
+    - Chora circle accepts and resolves (capability)
+    - Resolution propagates back via shared graph
+
+    This is the coordination primitive for the two-repo workflow where
+    dwelling in one context (kosmos) discovers gaps requiring work in
+    another context (chora).
+  constitutional: false
+  fields:
+    title:
+      type: string
+      required: true
+      description: Short description of the gap
+
+    description:
+      type: string
+      required: true
+      description: Full context — what you were trying to do, what failed
+
+    context:
+      type: string
+      required: false
+      description: The situation when gap was encountered
+
+    status:
+      type: string
+      required: true
+      enum: [open, accepted, in_progress, resolved, declined, blocked]
+      default: open
+      description: |
+        Lifecycle state:
+        - open: Newly created, awaiting attention
+        - accepted: Someone has taken ownership
+        - in_progress: Actively being worked on
+        - resolved: Gap has been addressed
+        - declined: Will not be addressed (with reason in resolution)
+        - blocked: Cannot proceed until blocker is resolved
+
+    priority:
+      type: string
+      required: false
+      enum: [critical, high, normal, low]
+      default: normal
+      description: |
+        How urgent:
+        - critical: Blocks current work, needs immediate attention
+        - high: Important, should be addressed soon
+        - normal: Standard priority
+        - low: Nice-to-have, address when convenient
+
+    resolution:
+      type: string
+      required: false
+      description: How the pragma was resolved (filled when status=resolved or declined)
+
+    created_at:
+      type: timestamp
+      required: true
+
+    resolved_at:
+      type: timestamp
+      required: false

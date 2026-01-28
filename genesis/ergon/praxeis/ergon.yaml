@@ -1,0 +1,304 @@
+# ergon.yaml
+# Ergon praxeis for cross-circle work coordination
+#
+# Pragma entities signal gaps discovered in one circle to another
+# circle with the capability to resolve them. This enables the
+# two-repo workflow (kosmos/chora) where gaps discovered during
+# dwelling flow as trackable entities.
+#
+# See: cross-circle-coordination.md for design rationale
+
+entities:
+
+# =============================================================================
+# PRAGMA CREATION
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/ergon/create-pragma
+  data:
+    oikos: ergon
+    name: create-pragma
+    visible: true
+    tier: 2
+    description: |
+      Create a pragma and signal it to a target circle.
+
+      Use this when you encounter a gap that requires work in another
+      context (e.g., kosmos work discovers a gap needing chora work).
+
+      The pragma is bonded to the target circle via signals-to.
+      Optionally provide evidence_ids to link entities that demonstrate the gap.
+    params:
+      - name: pragma_id
+        type: string
+        required: true
+        description: ID for the pragma (e.g., pragma/compose-step-error)
+      - name: title
+        type: string
+        required: true
+        description: Short description of the gap
+      - name: description
+        type: string
+        required: true
+        description: Full context — what you were trying to do, what failed
+      - name: target_circle_id
+        type: string
+        required: true
+        description: Circle to signal (e.g., circle/chora-dev)
+      - name: context
+        type: string
+        required: false
+        description: What you were doing when gap was found
+      - name: priority
+        type: string
+        required: false
+        description: "Priority: critical, high, normal, low (default: normal)"
+      - name: evidence_ids
+        type: array
+        required: false
+        description: Entity IDs that demonstrate the gap
+    steps:
+      # Default priority
+      - step: set
+        bindings:
+          pragma_priority: "$priority"
+
+      - step: switch
+        cases:
+          - when: "$pragma_priority"
+            then: []
+        default:
+          - step: set
+            bindings:
+              pragma_priority: "normal"
+
+      # Verify target circle exists
+      - step: find
+        id: "$target_circle_id"
+        bind_to: target_circle
+
+      - step: assert
+        condition: "$target_circle"
+        message: "Target circle not found: $target_circle_id"
+
+      # Compose the pragma entity
+      - step: compose
+        typos_id: "typos-def-pragma"
+        inputs:
+          id: "$pragma_id"
+          title: "$title"
+          description: "$description"
+          context: "$context"
+          priority: "$pragma_priority"
+          status: "open"
+          created_at: "{{ now() }}"
+        bind_to: pragma_entity
+
+      # Bond pragma to target circle
+      - step: bind
+        from_id: "$pragma_id"
+        to_id: "$target_circle_id"
+        desmos: "signals-to"
+
+      # Optionally bind evidence entities
+      - step: switch
+        cases:
+          - when: "$evidence_ids"
+            then:
+              - step: for_each
+                items: "$evidence_ids"
+                as: evidence_id
+                do:
+                  - step: bind
+                    from_id: "$pragma_id"
+                    to_id: "$evidence_id"
+                    desmos: "evidenced-by"
+
+      - step: return
+        value:
+          pragma_id: "$pragma_id"
+          title: "$title"
+          signaled_to: "$target_circle_id"
+          priority: "$pragma_priority"
+          status: "open"
+
+# =============================================================================
+# PRAGMA LISTING
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/ergon/list-pragma
+  data:
+    oikos: ergon
+    name: list-pragma
+    visible: true
+    tier: 1
+    description: |
+      List pragma signaled to a circle.
+
+      Use to see what work items are waiting for attention.
+      Defaults to the current dwelling circle if not specified.
+    params:
+      - name: circle_id
+        type: string
+        required: false
+        description: Circle to check (defaults to dwelling circle)
+      - name: status
+        type: string
+        required: false
+        description: Filter by status (open, accepted, in_progress, resolved, etc.)
+    steps:
+      # Determine target circle
+      - step: set
+        bindings:
+          target_circle: "$circle_id"
+
+      - step: switch
+        cases:
+          - when: "$target_circle"
+            then: []
+        default:
+          - step: set
+            bindings:
+              target_circle: "$_circle"
+
+      # Trace all pragma that signal to this circle
+      - step: trace
+        to_id: "$target_circle"
+        desmos: "signals-to"
+        direction: "inbound"
+        bind_to: all_pragma
+
+      # Filter by status if provided
+      - step: switch
+        cases:
+          - when: "$status"
+            then:
+              - step: filter
+                items: "$all_pragma"
+                condition: "$item.data.status == $status"
+                bind_to: filtered_pragma
+              - step: return
+                value:
+                  circle_id: "$target_circle"
+                  pragma: "$filtered_pragma"
+                  count: "{{ $filtered_pragma | length }}"
+                  filter_status: "$status"
+
+      - step: return
+        value:
+          circle_id: "$target_circle"
+          pragma: "$all_pragma"
+          count: "{{ $all_pragma | length }}"
+
+# =============================================================================
+# PRAGMA ACCEPTANCE
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/ergon/accept-pragma
+  data:
+    oikos: ergon
+    name: accept-pragma
+    visible: true
+    tier: 2
+    description: |
+      Accept ownership of a pragma.
+
+      Signals that work will be done to resolve it.
+      Changes status from "open" to "accepted".
+    params:
+      - name: pragma_id
+        type: string
+        required: true
+        description: ID of the pragma to accept
+    steps:
+      # Find the pragma
+      - step: find
+        id: "$pragma_id"
+        bind_to: pragma
+
+      - step: assert
+        condition: "$pragma"
+        message: "Pragma not found: $pragma_id"
+
+      - step: assert
+        condition: "$pragma.data.status == 'open'"
+        message: "Pragma is not open (current status: $pragma.data.status)"
+
+      # Update status to accepted
+      - step: update
+        entity_id: "$pragma_id"
+        data:
+          status: "accepted"
+
+      - step: return
+        value:
+          pragma_id: "$pragma_id"
+          previous_status: "open"
+          new_status: "accepted"
+
+# =============================================================================
+# PRAGMA RESOLUTION
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/ergon/resolve-pragma
+  data:
+    oikos: ergon
+    name: resolve-pragma
+    visible: true
+    tier: 2
+    description: |
+      Mark a pragma as resolved.
+
+      Include the resolution description — what was done to address it.
+      Optionally link to the resolving entity (commit, theoria, etc.).
+    params:
+      - name: pragma_id
+        type: string
+        required: true
+        description: ID of the pragma to resolve
+      - name: resolution
+        type: string
+        required: true
+        description: What was done to resolve it
+      - name: resolving_entity_id
+        type: string
+        required: false
+        description: Entity that resolves this (commit, theoria, etc.)
+    steps:
+      # Find the pragma
+      - step: find
+        id: "$pragma_id"
+        bind_to: pragma
+
+      - step: assert
+        condition: "$pragma"
+        message: "Pragma not found: $pragma_id"
+
+      # Update status to resolved with resolution text
+      - step: update
+        entity_id: "$pragma_id"
+        data:
+          status: "resolved"
+          resolution: "$resolution"
+          resolved_at: "{{ now() }}"
+
+      # Optionally bind resolving entity
+      - step: switch
+        cases:
+          - when: "$resolving_entity_id"
+            then:
+              - step: bind
+                from_id: "$resolving_entity_id"
+                to_id: "$pragma_id"
+                desmos: "resolves"
+
+      - step: return
+        value:
+          pragma_id: "$pragma_id"
+          resolution: "$resolution"
+          resolved_by: "$resolving_entity_id"
+          status: "resolved"

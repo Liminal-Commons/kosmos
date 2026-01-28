@@ -1,0 +1,49 @@
+format_version: "2.1"
+oikos_id: ergon
+version: "0.1.0"
+
+oikos_name: Work Coordination
+oikos_description: |
+  Ergon — work coordination across discipline boundaries.
+
+  Pragma entities signal gaps discovered in one circle to another
+  circle with the capability to resolve them. This enables the
+  two-repo workflow (kosmos/chora) where gaps discovered during
+  dwelling flow as trackable entities rather than disappearing
+  into conversation.
+oikos_scale: cross-scale
+
+content_paths:
+  - path: eide/
+    content_types: [eidos]
+  - path: desmoi/
+    content_types: [desmos]
+  - path: praxeis/
+    content_types: [praxis]
+
+depends_on:
+  - politeia
+
+requires_dynamis:
+  - db.arise
+  - db.find
+  - db.bind
+  - db.trace
+  - db.gather
+  - db.update
+
+provides:
+  eide:
+    - pragma
+  desmoi:
+    - signals-to
+    - evidenced-by
+    - blocks
+    - resolves
+  praxeis:
+    - ergon/create-pragma
+    - ergon/list-pragma
+    - ergon/accept-pragma
+    - ergon/resolve-pragma
+
+stoicheia_form: {}
