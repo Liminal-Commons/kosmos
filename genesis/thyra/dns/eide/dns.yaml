@@ -1,11 +1,12 @@
 # DNS Eide
-# Infrastructure actualization eide — DNS zones and records with dual existence
+# Domain Name System — how the kosmos becomes addressable from outside
 #
-# Extracted from spora.yaml stage-2-presence (thyra phase 17.7)
+# Infrastructure actualization eide — DNS zones and records with dual existence
 
-eide:
-  # dns-zone — managed DNS zone
-  - id: eidos/dns-zone
+entities:
+  # dns-zone — managed DNS zone (sovereignty boundary)
+  - eidos: eidos
+    id: eidos/dns-zone
     data:
       name: dns-zone
       description: "A DNS zone managed by a circle. Zones are sovereignty boundaries."
@@ -15,14 +16,14 @@ eide:
           required: true
           description: "Zone name (e.g., liminalcommons.com)"
         status:
-          type: enum
-          values: [active, pending, suspended]
+          type: string
+          enum: [active, pending, suspended]
           required: true
           default: pending
           description: "Zone operational status"
         provider:
-          type: enum
-          values: [cloudflare, route53, manual]
+          type: string
+          enum: [cloudflare, route53, manual]
           required: true
           description: "DNS provider for this zone"
         provider_zone_id:
@@ -43,14 +44,15 @@ eide:
           required: true
 
   # dns-record — DNS record with dual existence (intent + actuality)
-  - id: eidos/dns-record
+  - eidos: eidos
+    id: eidos/dns-record
     data:
       name: dns-record
       description: "A DNS record with dual existence. Entity represents intent, actuality represents provider state. Reconciler aligns them."
       fields:
         record_type:
-          type: enum
-          values: [A, AAAA, CNAME, TXT, MX, SRV, NS, CAA]
+          type: string
+          enum: [A, AAAA, CNAME, TXT, MX, SRV, NS, CAA]
           required: true
           description: "DNS record type"
         name:
@@ -76,14 +78,14 @@ eide:
           default: true
           description: "Cloudflare proxy (orange cloud). Ignored for other providers."
         desired_state:
-          type: enum
-          values: [present, absent]
+          type: string
+          enum: [present, absent]
           required: true
           default: present
           description: "What we want the record to be"
         actual_state:
-          type: enum
-          values: [present, absent, unknown, diverged]
+          type: string
+          enum: [present, absent, unknown, diverged]
           required: false
           default: unknown
           description: "What the record actually is at provider"
@@ -110,14 +112,15 @@ eide:
         mode: dns
 
   # dns-provider-binding — connection to provider with credentials
-  - id: eidos/dns-provider-binding
+  - eidos: eidos
+    id: eidos/dns-provider-binding
     data:
       name: dns-provider-binding
       description: "Binds a zone to its provider with credentials. Credentials are referenced, not stored."
       fields:
         provider:
-          type: enum
-          values: [cloudflare, route53]
+          type: string
+          enum: [cloudflare, route53]
           required: true
           description: "DNS provider type"
         zone_id:
@@ -137,10 +140,59 @@ eide:
           required: false
           description: "Custom API endpoint (for testing/mocking)"
         status:
-          type: enum
-          values: [active, invalid, suspended]
+          type: string
+          enum: [active, invalid, suspended]
           required: true
           default: active
         created_at:
           type: timestamp
           required: true
+
+  # ============================================================================
+  # ATTAINMENTS
+  # ============================================================================
+
+  # dns-read — read-only DNS capability
+  - eidos: attainment
+    id: attainment/dns-read
+    data:
+      name: dns-read
+      oikos: thyra
+      scope: circle
+      description: |
+        Read-only DNS capability — can list zones/records and sense state.
+        Observing DNS state is safe for any circle member.
+      grants:
+        - praxis/thyra/list-zones
+        - praxis/thyra/list-dns-records
+        - praxis/thyra/sense-dns-record
+
+  # dns-write — record management capability
+  - eidos: attainment
+    id: attainment/dns-write
+    data:
+      name: dns-write
+      oikos: thyra
+      scope: circle
+      description: |
+        Record management — can create and delete DNS records.
+        Modifying records requires trust within the circle.
+      grants:
+        - praxis/thyra/create-dns-record
+        - praxis/thyra/delete-dns-record
+
+  # dns-admin — zone and infrastructure management
+  - eidos: attainment
+    id: attainment/dns-admin
+    data:
+      name: dns-admin
+      oikos: thyra
+      scope: circle
+      description: |
+        Zone and infrastructure management — create zones, bind providers, reconcile.
+        Administrative authority required for infrastructure operations.
+      grants:
+        - praxis/thyra/create-zone
+        - praxis/thyra/bind-zone-provider
+        - praxis/thyra/reconcile-dns-record
+        - praxis/thyra/reconcile-zone

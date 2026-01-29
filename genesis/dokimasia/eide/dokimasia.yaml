@@ -1,11 +1,12 @@
 # Dokimasia Eide
-# Validation eide — proving fitness before realization
+# δοκιμασία — examination, testing, scrutiny
 #
-# Extracted from spora.yaml stage-2-presence
+# Validation eide — proving fitness before realization
 
-eide:
+entities:
   # validation-result — dokimasia validation outcome
-  - id: eidos/validation-result
+  - eidos: eidos
+    id: eidos/validation-result
     data:
       name: validation-result
       description: "Result of validating a generation before realization."
@@ -47,7 +48,8 @@ eide:
           required: true
 
   # validation-error — specific validation failure
-  - id: eidos/validation-error
+  - eidos: eidos
+    id: eidos/validation-error
     data:
       name: validation-error
       description: "A specific validation failure."
@@ -55,7 +57,8 @@ eide:
         layer:
           type: string
           required: true
-          description: "Which validation layer failed (provenance, schema, semantic, behavioral)"
+          enum: [provenance, schema, semantic, behavioral]
+          description: "Which validation layer failed"
         code:
           type: string
           required: true
@@ -72,3 +75,25 @@ eide:
           type: object
           required: false
           description: "Additional context about the failure"
+
+  # ============================================================================
+  # ATTAINMENTS
+  # ============================================================================
+
+  # examine — validation capability
+  - eidos: attainment
+    id: attainment/examine
+    data:
+      name: examine
+      oikos: dokimasia
+      scope: circle
+      description: |
+        Validation capability — can run validation operations and verify authenticity.
+        Anyone with circle membership should be able to verify authenticity of
+        entities visible within that circle.
+      grants:
+        - praxis/dokimasia/validate-provenance
+        - praxis/dokimasia/validate-schema
+        - praxis/dokimasia/validate-semantic
+        - praxis/dokimasia/validate-generation
+        - praxis/dokimasia/compose-validation-report

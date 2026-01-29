@@ -38,6 +38,9 @@ provides:
     - validation-result
     - validation-error
 
+  attainments:
+    - examine            # Validation capability — verify authenticity
+
   desmoi:
     - validated-by
     - traces-to

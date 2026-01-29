@@ -1,11 +1,12 @@
 # Aither Eide
-# WebRTC connectivity eide — signaling and data channels
+# αἰθήρ — the upper air, the pure element. Network transport.
 #
-# Extracted from spora.yaml stage-2-presence
+# WebRTC connectivity eide — signaling, channels, syndesmos, presence
 
-eide:
+entities:
   # signaling-session — WebSocket connection for SDP exchange
-  - id: eidos/signaling-session
+  - eidos: eidos
+    id: eidos/signaling-session
     data:
       name: signaling-session
       description: "WebSocket connection to propylon-relay for WebRTC signaling."
@@ -44,7 +45,8 @@ eide:
         mode: signaling
 
   # data-channel — WebRTC P2P data channel
-  - id: eidos/data-channel
+  - eidos: eidos
+    id: eidos/data-channel
     data:
       name: data-channel
       description: "WebRTC peer-to-peer data channel for entity synchronization."
@@ -93,7 +95,8 @@ eide:
         mode: network
 
   # syndesmos — desired connection to peer/room with reconciliation
-  - id: eidos/syndesmos
+  - eidos: eidos
+    id: eidos/syndesmos
     data:
       name: syndesmos
       description: |
@@ -155,7 +158,8 @@ eide:
         mode: network
 
   # outbound-message — queued message for offline delivery
-  - id: eidos/outbound-message
+  - eidos: eidos
+    id: eidos/outbound-message
     data:
       name: outbound-message
       description: |
@@ -204,7 +208,8 @@ eide:
           required: false
 
   # presence-record — ephemeral presence in room/circle
-  - id: eidos/presence-record
+  - eidos: eidos
+    id: eidos/presence-record
     data:
       name: presence-record
       description: |
@@ -243,14 +248,15 @@ eide:
           default: 90000
           description: "Expire presence after this many ms without heartbeat"
 
-  # sync-message — P2P sync envelope for real-time updates (C8.4/C8.5)
-  - id: eidos/sync-message
+  # sync-message — P2P sync envelope for real-time updates
+  - eidos: eidos
+    id: eidos/sync-message
     data:
       name: sync-message
       description: |
         Envelope for P2P synchronization messages.
-        Used for real-time entity updates between peers (C8.4)
-        and catch-up sync after reconnection (C8.5).
+        Used for real-time entity updates between peers
+        and catch-up sync after reconnection.
       fields:
         type:
           type: string
@@ -286,3 +292,95 @@ eide:
           type: timestamp
           required: false
           description: "For catch-up-request: fetch entities since this time"
+
+  # ============================================================================
+  # ATTAINMENTS
+  # ============================================================================
+
+  # connect — establishing and managing network connections
+  - eidos: attainment
+    id: attainment/connect
+    data:
+      name: connect
+      oikos: aither
+      scope: soma
+      description: |
+        Connection capability — establishing and managing network connections.
+        Substrate-local because network interfaces belong to the soma.
+      grants:
+        - praxis/aither/connect-signaling
+        - praxis/aither/disconnect-signaling
+        - praxis/aither/send-offer
+        - praxis/aither/send-answer
+        - praxis/aither/create-channel
+        - praxis/aither/accept-answer
+        - praxis/aither/answer-channel
+        - praxis/aither/close-channel
+        - praxis/aither/reconcile-channel
+        - praxis/aither/ensure-connection
+        - praxis/aither/attempt-reconnect
+        - praxis/aither/disconnect-syndesmos
+
+  # message — sending and receiving through channels
+  - eidos: attainment
+    id: attainment/message
+    data:
+      name: message
+      oikos: aither
+      scope: soma
+      description: |
+        Messaging capability — sending and receiving through channels.
+        Requires an established connection on this substrate.
+      grants:
+        - praxis/aither/send-message
+        - praxis/aither/receive-messages
+        - praxis/aither/queue-message
+        - praxis/aither/flush-queue
+
+  # presence — tracking who is here
+  - eidos: attainment
+    id: attainment/presence
+    data:
+      name: presence
+      oikos: aither
+      scope: circle
+      description: |
+        Presence capability — tracking who is here.
+        Circle-scoped because presence visibility follows membership.
+      grants:
+        - praxis/aither/update-presence
+        - praxis/aither/heartbeat
+        - praxis/aither/expire-stale-presence
+        - praxis/aither/list-presence
+
+  # sync — P2P entity replication
+  - eidos: attainment
+    id: attainment/sync
+    data:
+      name: sync
+      oikos: aither
+      scope: circle
+      description: |
+        Synchronization capability — P2P entity replication.
+        Circle-scoped because sync operates on circle data.
+      grants:
+        - praxis/aither/broadcast-sync
+        - praxis/aither/receive-sync
+        - praxis/aither/request-catch-up
+
+  # sense — reading connection and signaling state
+  - eidos: attainment
+    id: attainment/sense
+    data:
+      name: sense
+      oikos: aither
+      scope: soma
+      description: |
+        Sense capability — reading connection and signaling state.
+        Read-only access for debugging and monitoring.
+      grants:
+        - praxis/aither/sense-signaling
+        - praxis/aither/poll-signaling
+        - praxis/aither/sense-channel
+        - praxis/aither/list-channels
+        - praxis/aither/list-connections

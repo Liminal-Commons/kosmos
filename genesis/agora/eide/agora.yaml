@@ -169,37 +169,75 @@ entities:
 # attainments
 # ─────────────────────────────────────────────────────────────────
 
+# agora-enter — basic participation in territories
 - eidos: attainment
   id: attainment/agora-enter
   data:
     name: agora-enter
-    description: Can enter agora territories in circle
     oikos: agora
+    scope: circle
+    description: |
+      Basic participation — can enter and exist in territories.
+      Entry is circle membership in spatial form.
+    grants:
+      - praxis/agora/enter
+      - praxis/agora/leave
+      - praxis/agora/move
+      - praxis/agora/get-presences
 
+# agora-speak — audio capability
 - eidos: attainment
   id: attainment/agora-speak
   data:
     name: agora-speak
-    description: Can enable audio in agora
     oikos: agora
+    scope: circle
+    description: |
+      Audio capability — can enable voice communication.
+      Voice requires trust; some spaces may be listen-only.
+    grants:
+      - praxis/agora/toggle-audio
 
+# agora-video — video capability
 - eidos: attainment
   id: attainment/agora-video
   data:
     name: agora-video
-    description: Can enable video in agora
     oikos: agora
+    scope: circle
+    description: |
+      Video capability — can enable video streaming.
+      Video is more intimate; separate from audio permission.
+    grants:
+      - praxis/agora/toggle-video
 
+# agora-create — space creation
 - eidos: attainment
   id: attainment/agora-create
   data:
     name: agora-create
-    description: Can create new territories
     oikos: agora
+    scope: circle
+    description: |
+      Space creation — can create new territories.
+      Territory creation shapes the circle's spatial topology.
+    grants:
+      - praxis/agora/create-territory
+      - praxis/agora/list-territories
 
+# agora-admin — territory and infrastructure management
 - eidos: attainment
   id: attainment/agora-admin
   data:
     name: agora-admin
-    description: Can manage territories, moderate presence
     oikos: agora
+    scope: circle
+    description: |
+      Management — can manage territories and infrastructure.
+      Infrastructure requires governance authority.
+    grants:
+      - praxis/agora/delete-territory
+      - praxis/agora/create-livekit-server
+      - praxis/agora/actualize-server
+      - praxis/agora/get-room-token
+      - praxis/agora/update-presence-status

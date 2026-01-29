@@ -46,6 +46,13 @@ provides:
     - presence-record
     - sync-message
 
+  attainments:
+    - connect          # Establish and manage network connections
+    - message          # Send/receive through channels
+    - presence         # Track who is here (circle-scoped)
+    - sync             # P2P entity replication (circle-scoped)
+    - sense            # Read connection state
+
   desmoi:
     - bootstrapped-by
     - queued-for

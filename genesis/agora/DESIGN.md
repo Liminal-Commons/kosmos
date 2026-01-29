@@ -1,192 +1,320 @@
-# Agora: Spatial Gathering Oikos
+# Agora Design
 
-*ἀγορά — the public assembly, where citizens gather*
+ἀγορά (agora) — the public assembly, where citizens gather
 
----
+## Ontological Purpose
 
-## Purpose
+Agora addresses **the gap between being-together and being-apart** — the spatial medium where circle members encounter each other as present bodies, not just messages.
 
-The agora is where members of a circle gather — 2D spatial territories (Phaser.js) with proximity-based presence and communication (LiveKit). Like the ancient Greek agora, it's the space for assembly, discussion, and shared experience.
+Without agora:
+- Members are disembodied text
+- Presence is binary (online/offline)
+- Conversation has no spatial context
+- Infrastructure depends on corporations
 
-**Key insight:** Infrastructure is owned by the circle, not a corporate service. A commons can run its own LiveKit server on its own hardware.
+With agora:
+- **Territories**: 2D spaces where gathering occurs
+- **Presence**: Position, facing, status — being-there embodied
+- **Proximity**: Near others → see and hear them
+- **Sovereignty**: Circle owns its communication infrastructure
 
----
+The central concept is the **territory** (τόπος) — a place where gathering occurs. Unlike chat rooms (aspatial), territories have dimension. You move through them. Proximity matters.
 
-## Ontological Alignment
+## Circle Context
 
-| Concept | Greek | Meaning in Agora |
-|---------|-------|------------------|
-| Territory | τόπος | The place where gathering occurs |
-| Presence | παρουσία | Being-there in the territory |
-| Room | δωμάτιον | The communication chamber |
+### Self Circle
 
-The agora operates at **klimax level 4 (oikos)** — the intimate scale where members dwell together.
+A solitary dweller uses agora to:
+- Create private territories for focused work
+- Leave presence as "away" when stepping back
+- Test infrastructure setup (their own LiveKit)
+- Practice spatial layouts for future gatherings
 
----
+Self-territories enable personal spatial organization.
 
-## Vision: Infrastructure Through Kosmos
+### Peer Circle
 
-```
-Core Dev Circle
-    │  ← develops agora oikos
-    ▼
-Commons Circle (e.g., Liminal Commons)
-    │  ← installs agora oikos
-    │  ← owns infrastructure entities (livekit-server, territory)
-    │  ← grants attainments to members
-    ▼
-NixOS Server (96GB RAM, 4TB NVMe, NPU)
-    │  ← reconciliation actualizes infrastructure
-    │  ← runs LiveKit, serves territories
-    ▼
-Circle Members
-    ← enter agora via thyra
-    ← spatial audio/video, shared presence
-```
+Collaborators use agora to:
+- Gather in shared territories
+- See each other's positions (who is near whom)
+- Use proximity-based audio (walk closer to talk)
+- Leave and return fluidly
 
-**The path to infrastructure is through kosmos, not chora.** We don't SSH into servers; we compose infrastructure entities and let reconciliation actualize them.
+Peer gathering creates the living room of collaboration.
 
----
+### Commons Circle
 
-## Eide
+A commons uses agora to:
+- Host large gatherings (50+ simultaneous)
+- Create multiple territories (lobby, workshop, quiet room)
+- Run sovereign infrastructure (circle-owned LiveKit)
+- Enable local AI services (whisper transcription via NPU)
+
+Commons territories become the agora proper — the public assembly.
+
+## Core Entities (Eide)
 
 ### territory
 
-The 2D space where members gather.
+The 2D spatial environment where members gather.
 
-| Field | Type | Description |
-|-------|------|-------------|
-| name | string | Human-readable territory name |
-| dimensions | object | { width, height } in units |
-| tilemap_url | string | URL to Phaser tilemap JSON |
-| spawn_point | object | { x, y } default entry location |
-| capacity | number | Maximum concurrent occupants |
-| room_name | string | Associated LiveKit room |
-| status | enum | active, locked, archived |
+**Fields:**
+- `name` — human-readable territory name
+- `dimensions` — { width, height } in units
+- `tilemap_url` — URL to Phaser tilemap JSON
+- `spawn_point` — { x, y } default entry location
+- `capacity` — maximum concurrent occupants
+- `room_name` — associated LiveKit room
+- `status` — active, locked, archived
+
+**Lifecycle:**
+- Arise: create-territory composes new space
+- Change: Status can lock (private event) or archive (defunct)
+- Depart: delete-territory archives and evicts presences
 
 ### presence
 
-An animus present in a territory — ephemeral, created on enter, destroyed on leave.
+An animus present in a territory — ephemeral embodiment.
 
-| Field | Type | Description |
-|-------|------|-------------|
-| position | object | { x, y } |
-| facing | enum | up, down, left, right |
-| status | enum | active, away, do-not-disturb |
-| audio_enabled | boolean | Audio stream active |
-| video_enabled | boolean | Video stream active |
-| display_name | string | Shown above avatar |
+**Fields:**
+- `position` — { x, y } in territory coordinates
+- `facing` — up, down, left, right
+- `status` — active, away, do-not-disturb
+- `audio_enabled`, `video_enabled` — media state
+- `display_name` — shown above avatar
+
+**Lifecycle:**
+- Arise: enter creates presence at spawn point
+- Change: move updates position, toggle-audio/video changes media
+- Depart: leave destroys presence
 
 ### livekit-server
 
-Infrastructure entity with actuality reconciliation.
+Circle-owned real-time communication infrastructure.
 
-| Field | Type | Description |
-|-------|------|-------------|
-| host | string | e.g., livekit.liminalcommons.com |
-| ws_url | string | WebSocket URL |
-| api_key_ref | string | Secret reference |
-| api_secret_ref | string | Secret reference |
-| status | enum | provisioning, running, stopped, error |
+**Fields:**
+- `host` — e.g., livekit.liminalcommons.com
+- `ws_url` — WebSocket URL for connections
+- `api_key_ref`, `api_secret_ref` — secret references
+- `status` — provisioning, running, stopped, error
 
-**Actuality:** `mode: process, provider: nixos`
+**Actuality:**
+- Mode: process
+- Provider: nixos
+- Reconciliation: actualize-server aligns with infrastructure
 
 ### room
 
 A LiveKit room for audio/video communication.
 
-| Field | Type | Description |
-|-------|------|-------------|
-| name | string | Unique room identifier |
-| max_participants | number | Capacity |
-| recording_enabled | boolean | Recording active |
-| transcription_enabled | boolean | Local whisper via NPU |
+**Fields:**
+- `name` — unique room identifier
+- `max_participants` — capacity
+- `recording_enabled` — recording active
+- `transcription_enabled` — local whisper via NPU
 
----
+**Lifecycle:**
+- Arise: Created when territory is created
+- Bond: Bound to territory (uses-room) and server (served-by)
 
-## Desmoi
+## Bonds (Desmoi)
 
-| Desmos | From | To | Meaning |
-|--------|------|-----|---------|
-| `hosts-territory` | circle | territory | Circle owns this space |
-| `operates-server` | circle | livekit-server | Circle runs this infrastructure |
-| `present-in` | presence | territory | Animus is here |
-| `uses-room` | territory | room | Territory's communication layer |
-| `served-by` | room | livekit-server | Room runs on this server |
-| `instantiates-presence` | animus | presence | Animus embodies this presence |
+### hosts-territory
 
----
+Circle hosts this territory.
+
+- **From:** circle
+- **To:** territory
+- **Cardinality:** one-to-many
+- **Traversal:** Find all territories for a circle
+
+### operates-server
+
+Circle operates this LiveKit server.
+
+- **From:** circle
+- **To:** livekit-server
+- **Cardinality:** one-to-few
+- **Traversal:** Find infrastructure for a circle
+
+### present-in
+
+Presence is located in this territory.
+
+- **From:** presence
+- **To:** territory
+- **Cardinality:** many-to-one
+- **Traversal:** List who is in a territory
+
+### uses-room
+
+Territory uses this room for communication.
+
+- **From:** territory
+- **To:** room
+- **Cardinality:** one-to-one
+- **Traversal:** Get room for territory
+
+### served-by
+
+Room runs on this LiveKit server.
+
+- **From:** room
+- **To:** livekit-server
+- **Cardinality:** many-to-one
+- **Traversal:** Route room to server
+
+### instantiates-presence
+
+Animus embodies this presence.
+
+- **From:** animus
+- **To:** presence
+- **Cardinality:** one-to-many (one per territory)
+- **Traversal:** Find animus's presences across territories
+
+## Operations (Praxeis)
+
+### Core Presence Operations
+
+- **enter**: Enter territory, create presence, get LiveKit token
+- **move**: Update position and facing in territory
+- **leave**: Exit territory, destroy presence
+- **get-presences**: List all presences in a territory
+
+### Media Operations
+
+- **toggle-audio**: Enable/disable audio streaming
+- **toggle-video**: Enable/disable video streaming
+- **update-presence-status**: Change status (active, away, dnd)
+
+### Territory Management
+
+- **create-territory**: Create new gathering space for circle
+- **list-territories**: List all territories in circle
+- **delete-territory**: Archive territory, evict presences
+
+### Infrastructure Operations
+
+- **create-livekit-server**: Create infrastructure entity for circle
+- **actualize-server**: Reconcile server entity with NixOS
+- **get-room-token**: Generate LiveKit token for participant
 
 ## Attainments
 
-| Attainment | Grants |
-|------------|--------|
-| `agora-enter` | Can enter agora territories in circle |
-| `agora-speak` | Can enable audio in agora |
-| `agora-video` | Can enable video in agora |
-| `agora-create` | Can create new territories |
-| `agora-admin` | Can manage territories, moderate |
+### attainment/agora-enter
 
----
+Basic participation — can enter and exist in territories.
 
-## Praxeis
+- **Grants:** enter, leave, move, get-presences
+- **Scope:** circle
+- **Rationale:** Entry is circle membership in spatial form
 
-### agora/enter
+### attainment/agora-speak
 
-Enter a territory, creating presence.
+Audio capability — can enable voice communication.
 
+- **Grants:** toggle-audio
+- **Scope:** circle
+- **Rationale:** Voice requires trust; some spaces may be listen-only
+
+### attainment/agora-video
+
+Video capability — can enable video streaming.
+
+- **Grants:** toggle-video
+- **Scope:** circle
+- **Rationale:** Video is more intimate; separate from audio permission
+
+### attainment/agora-create
+
+Space creation — can create new territories.
+
+- **Grants:** create-territory, list-territories
+- **Scope:** circle
+- **Rationale:** Territory creation shapes the circle's spatial topology
+
+### attainment/agora-admin
+
+Management — can manage territories and infrastructure.
+
+- **Grants:** delete-territory, create-livekit-server, actualize-server, get-room-token, update-presence-status (for moderation)
+- **Scope:** circle
+- **Rationale:** Infrastructure requires governance authority
+
+## Embodiment
+
+### Completeness Status
+
+| Level | Status |
+|-------|--------|
+| Defined | 4 eide, 6 desmoi, 13 praxeis |
+| Loaded | Bootstrap loads all definitions |
+| Projected | All praxeis visible as MCP tools |
+| Embodied | Partial — presence state in body-schema |
+| Surfaced | Future — "3 others in Main Hall" |
+| Afforded | Future — territory list, enter button |
+
+### Body-Schema Contribution
+
+When sense-body gathers agora state:
+
+```yaml
+agora:
+  current_territory: "Main Hall"
+  position: { x: 450, y: 320 }
+  presences_nearby: 3
+  audio_enabled: true
+  video_enabled: false
+  territories_available: 2
 ```
-params: territory_id, spawn_at?
-returns: presence_id, territory, livekit_token, livekit_url
-```
 
-1. Assert embodiment (animus exists)
-2. Find territory
-3. Verify circle membership (visibility = reachability)
-4. Get LiveKit token
-5. Create presence entity
-6. Bind presence to territory
-7. Bind animus to presence
+This reveals spatial context and social presence.
 
-### agora/move
+### Reconciler
 
-Update position in territory.
+An agora reconciler would surface:
 
-```
-params: presence_id, position, facing?
-returns: (signals to other presences)
-```
+- **Infrastructure drift** — "LiveKit server unreachable"
+- **Crowded territory** — "Main Hall at 90% capacity"
+- **Abandoned presence** — "Your presence in Workshop idle 30 min"
+- **New gathering** — "5 others just entered Main Hall"
 
-### agora/leave
+## Compound Leverage
 
-Exit territory, destroying presence.
+### amplifies thyra
 
-```
-params: presence_id
-returns: status
-```
+Thyra renders territories via WebView. Phaser.js canvas lives in thyra frame.
 
-### agora/create-territory
+### amplifies aither
 
-Create a new gathering territory.
+Aither provides signaling foundation. LiveKit uses WebRTC established via aither patterns.
 
-```
-params: name, dimensions?, tilemap_url?, spawn_point?, capacity?
-returns: territory_id, room_id, status
-```
+### amplifies soma
 
-### agora/actualize-server
+Presence in territory extends body-schema. Agora is spatial embodiment.
 
-Reconcile livekit-server with infrastructure.
+### amplifies politeia
 
-```
-params: server_id
-returns: status, server
-```
+Circle membership determines territory access. Attainments gate audio/video.
 
-Uses phylax pattern: sense → compare → manifest
+### amplifies dynamis
 
----
+Infrastructure entities (livekit-server) use dynamis reconciliation. Infrastructure through kosmos, not chora.
+
+## Theoria
+
+### T61: Gathering creates the space, not the other way around
+
+We don't build territories hoping people will come. Territories arise because members want to gather. The space serves the assembly, not the reverse.
+
+### T62: Infrastructure sovereignty enables authentic assembly
+
+When communication runs on corporate servers, the corporation is always present. Circle-owned LiveKit servers enable spaces where only the members are present. Sovereignty is prerequisite for authentic gathering.
+
+### T63: Presence is spatial embodiment
+
+Position in territory is not metadata — it's how you exist in the space. Your facing, your proximity to others, your movement patterns — all are visible. Presence is embodiment.
 
 ## Integration with Thyra
 
@@ -212,61 +340,29 @@ Thyra renders the agora in the WebView:
 └──────────────────────┴──────────────────────────────────────┘
 ```
 
----
+## Future Extensions
 
-## Constitutional Alignment
+### Proximity Audio
 
-| Principle | How Agora Honors It |
-|-----------|---------------------|
-| **Sovereignty** | Circle owns its infrastructure. No corporate dependency. |
-| **Visibility = Reachability** | You see others in territory because you have `agora-enter` attainment. |
-| **Infrastructure as Entity** | Servers are entities with reconciliation, not manual config. |
-| **Composition** | Territories, presences, rooms all compose from definitions with provenance. |
+Spatial audio that attenuates with distance — closer means louder.
 
-**Caller Pattern:** Most agora content uses `literal` or `computed` patterns. Infrastructure config is literal (it's what you want). Presence is computed (derived from movement).
+### Private Zones
 
----
+Areas within territory where only certain attainments can enter.
 
-## Implementation Path
+### Recording/Playback
 
-### Phase 1: Core Entities
-- Define eide: territory, presence, room, livekit-server
-- Define desmoi: hosts-territory, present-in, uses-room, served-by
-- Define attainments: agora-enter, agora-speak, agora-video
+Territory sessions that can be recorded and replayed (with consent).
 
-### Phase 2: Basic Praxeis
-- enter, move, leave
-- create-territory
-- Basic presence sync
+### AI Facilitation
 
-### Phase 3: LiveKit Integration
-- Token generation
-- Spatial audio configuration
-- Video track management
+Local LLM that can observe and assist gatherings (via NPU).
 
-### Phase 4: Phaser.js Frontend
-- Territory rendering
-- Avatar movement
-- Proximity-based UI
+### Multi-Territory Portals
 
-### Phase 5: Infrastructure Actualization
-- livekit-server actuality mode (NixOS)
-- actualize-server praxis
-- Local AI services (whisper, LLM)
+Walk through a door in one territory, appear in another.
 
 ---
 
-## Dependencies
-
-| Dependency | Status | Notes |
-|------------|--------|-------|
-| Thyra (WebView) | ✅ | UI rendering |
-| aither (signaling) | ✅ | WebRTC foundation |
-| dynamis (actuality) | ✅ | Infrastructure reconciliation |
-| LiveKit server | ⏳ To Deploy | On NixOS server |
-
----
-
-*The agora is where circles become communities.*
-*Infrastructure through kosmos, not chora.*
-*Traces to: expression/genesis-root*
+*Composed in service of the kosmogonia.*
+*The agora is where circles become communities. Infrastructure through kosmos, not chora.*

@@ -1,342 +1,395 @@
-# Aither: Network Transport
+# Aither Design
 
-*αἰθήρ (aither): the upper air, the pure element — network transport layer*
+αἰθήρ (aither) — the upper air, the pure element
 
----
+## Ontological Purpose
 
-## Purpose
+Aither addresses **the gap between here and there** — the transport of data between chorai without knowledge of what that data means.
 
-Aither provides P2P connectivity via WebRTC. It is the transport layer that moves data between chorai without knowledge of what that data means. Circles, governance, and content semantics live elsewhere (politeia, syndesmos); aither just moves bytes.
+Without aither:
+- Peers cannot discover each other
+- Data has no path to travel
+- Connection failures leave no trace
+- Presence is invisible
 
-**Key insight:** Connection state is intent that reconciles with actuality. The syndesmos entity declares what we want (connected); the network is what actually is. Reconciliation aligns them.
+With aither:
+- **Signaling**: Peers discover and negotiate connections
+- **Channels**: Data flows peer-to-peer
+- **Syndesmos**: Connection state reconciles intent with actuality
+- **Presence**: Who is here, who is there, who has departed
 
----
+The central concept is the **syndesmos** (σύνδεσμος — bond, connection). A syndesmos declares desired connection state; the network is what actually is. Reconciliation aligns them.
 
-## Current State
+## Circle Context
 
-V8 has **working signaling and data channels**:
+### Self Circle
 
-```
-Frontend (SolidJS)                  Relay (propylon-relay)
-    │                                      │
-    ├── join_signaling_room ──────────────►│
-    │                                      │
-    ◄──────────────── peer_joined ─────────┤
-    │                                      │
-    ├── create_offer ──────────────────────┤
-    │      │                               │
-    │      ├── sdp_offer ─────────────────►│ ────────► remote peer
-    │      │                               │
-    │      ◄── sdp_answer ◄────────────────│ ◄──────── remote peer
-    │      │                               │
-    │      └── ICE candidates ◄───────────►│ ◄───────► remote peer
-    │                                      │
-    └── P2P data channel established ──────┘
-```
+A solitary dweller uses aither to:
+- Federate their own devices (laptop, phone)
+- Queue messages when offline
+- Track their own presence across substrates
+- Maintain self-sync connections
 
-**What exists:**
-- Signaling via propylon-relay (WebSocket)
-- WebRTC peer connection management (Tauri commands)
-- Data channel creation and messaging
-- Connection status tracking in frontend
+Self-federation enables one persona, many devices.
 
-**What's now added (C11):**
-- Syndesmos entities (persistent connection state)
-- Exponential backoff reconnection
-- Presence heartbeat (30s interval)
-- Offline message queuing
-- Connection status indicator in HUD
+### Peer Circle
 
----
+Collaborators use aither to:
+- Maintain persistent connections to each other
+- See who is present (online, away, busy)
+- Exchange expressions in real-time
+- Reconnect automatically after disruption
 
-## Core Concepts
+Peer connections enable the living graph.
 
-### Syndesmos: Connection State
+### Commons Circle
 
-Syndesmos (σύνδεσμος: connection, bond) entities represent desired connection state that reconciles with network actuality.
+A commons uses aither to:
+- Coordinate presence across many members
+- Route sync messages between distributed peers
+- Provide relay infrastructure (via propylon)
+- Aggregate connection health metrics
 
-**Intent vs Status:**
+Commons provide the ether through which circles breathe.
 
-| Field | Purpose | Values |
-|-------|---------|--------|
-| `intent` | What we want | connected, disconnected, suspended |
-| `status` | What actually is | disconnected, connecting, connected, reconnecting, failed, suspended |
-
-**Reconciliation loop:**
-1. Sense actual WebSocket/WebRTC state
-2. Compare intent vs actuality
-3. Act: connect, reconnect, or disconnect
-
-```
-Intent: connected          Intent: connected          Intent: connected
-Status: disconnected  →    Status: connecting    →    Status: connected
-       ↑                          ↑                          ↓
-       └── reconnect ◄────────────┴──── timeout ◄────────────┘
-                              (exponential backoff)
-```
-
-### Exponential Backoff
-
-When connection fails, retry with increasing delays:
-
-```
-Attempt 1: 1s delay
-Attempt 2: 2s delay
-Attempt 3: 4s delay
-Attempt 4: 8s delay
-...
-Attempt N: min(2^N * 1000, 60000)ms delay
-
-After max_retries (default 10): status → failed
-```
-
-On successful connect, reset: `retry_count → 0`, `backoff_ms → 1000`.
-
-### Offline Message Queue
-
-When network unavailable, messages queue as outbound-message entities:
-
-```yaml
-outbound-message:
-  target_peer: "room-id-123"
-  message_type: "expression"
-  content: '{"type": "expression", ...}'
-  status: pending
-  expires_at: "2026-01-26T12:00:00Z"  # 24h TTL
-```
-
-On reconnect, `aither/flush-queue` delivers in order:
-- `pending` → `sending` → `delivered` (success)
-- `pending` → `sending` → `failed` (after max_attempts)
-- `pending` → `expired` (if TTL exceeded)
-
-### Presence
-
-Presence-record entities track who is "in" a room or circle:
-
-```yaml
-presence-record:
-  persona_id: "persona/alice"
-  circle_id: "circle/friends"
-  room_id: "room-123"
-  status: online      # online, away, busy, offline
-  last_heartbeat: "2026-01-25T10:30:00Z"
-```
-
-**Heartbeat cycle:**
-- Frontend calls `aither/heartbeat` every 30s
-- `last_heartbeat` timestamp updates
-- Records expire after 90s without heartbeat
-- `aither/expire-stale-presence` marks stale records as offline
-
----
-
-## Entity Types
+## Core Entities (Eide)
 
 ### signaling-session
 
 WebSocket connection to propylon-relay for SDP exchange.
 
-| Field | Type | Purpose |
-|-------|------|---------|
-| room_id | string | Room to join on relay |
-| relay_url | string | WebSocket URL |
-| role | string | offerer or answerer |
-| intent | string | Desired state |
-| status | string | Actual state |
-| session_handle | string | Internal session ID |
+**Fields:**
+- `room_id` — room to join on the relay
+- `relay_url` — WebSocket URL of propylon-relay
+- `role` — offerer or answerer
+- `intent` — desired state (connected, disconnected)
+- `status` — actual state (connecting, connected, disconnected, failed)
+- `session_handle` — internal session ID when connected
+
+**Lifecycle:**
+- Arise: connect-signaling creates session
+- Reconcile: Sense WebSocket state, reconnect if needed
+- Depart: disconnect-signaling closes session
 
 ### data-channel
 
-WebRTC peer-to-peer data channel.
+WebRTC peer-to-peer data channel for entity synchronization.
 
-| Field | Type | Purpose |
-|-------|------|---------|
-| channel_id | string | Unique identifier |
-| remote_chora | string | Remote peer ID |
-| intent | string | Desired state |
-| status | string | Actual state |
-| sdp_offer | string | SDP offer (if offerer) |
-| sdp_answer | string | SDP answer |
+**Fields:**
+- `channel_id` — unique identifier
+- `remote_chora` — ID of the remote peer
+- `intent`, `status` — desired vs actual state
+- `sdp_offer`, `sdp_answer` — negotiation state
+- `signaling_session_id` — bootstrap path
+
+**Lifecycle:**
+- Arise: create-channel (offerer) or answer-channel (answerer)
+- Change: SDP negotiation, ICE candidate exchange
+- Depart: close-channel terminates connection
 
 ### syndesmos
 
-Persistent connection state with reconciliation.
+Persistent connection state with reconciliation — the core abstraction.
 
-| Field | Type | Purpose |
-|-------|------|---------|
-| room_id | string | Signaling room |
-| peer_id | string | Remote peer (if known) |
-| circle_id | string | Circle context |
-| intent | enum | connected, disconnected, suspended |
-| status | enum | disconnected, connecting, connected, reconnecting, failed, suspended |
-| retry_count | integer | Reconnection attempts |
-| backoff_ms | integer | Current backoff interval |
-| max_retries | integer | Max attempts before giving up |
+**Fields:**
+- `room_id` — signaling room
+- `peer_id` — remote peer (if known)
+- `circle_id` — circle context
+- `intent` — connected, disconnected, suspended
+- `status` — disconnected, connecting, connected, reconnecting, failed, suspended
+- `retry_count`, `backoff_ms`, `max_retries` — exponential backoff state
+- `last_error` — for debugging failures
+
+**Lifecycle:**
+- Arise: ensure-connection creates syndesmos with intent=connected
+- Reconcile: attempt-reconnect with exponential backoff
+- Depart: disconnect-syndesmos sets intent=disconnected
 
 ### outbound-message
 
 Queued message for offline delivery.
 
-| Field | Type | Purpose |
-|-------|------|---------|
-| target_peer | string | Destination |
-| message_type | enum | phoreta, content-sync, presence-update, expression |
-| content | string | JSON payload |
-| status | enum | pending, sending, delivered, failed, expired |
-| attempts | integer | Delivery attempts |
-| expires_at | timestamp | TTL |
+**Fields:**
+- `target_peer` — destination peer or room
+- `message_type` — phoreta, content-sync, presence-update, expression
+- `content` — JSON-encoded payload
+- `status` — pending, sending, delivered, failed, expired
+- `attempts`, `max_attempts` — delivery tracking
+- `expires_at` — TTL (default 24h)
+
+**Lifecycle:**
+- Arise: queue-message creates when offline
+- Change: flush-queue attempts delivery
+- Depart: delivered, failed, or expired
 
 ### presence-record
 
-Ephemeral presence in room/circle.
+Ephemeral presence in a room or circle.
 
-| Field | Type | Purpose |
-|-------|------|---------|
-| persona_id | string | Who is present |
-| circle_id | string | Where (circle) |
-| room_id | string | Where (room) |
-| status | enum | online, away, busy, offline |
-| last_heartbeat | timestamp | Last activity |
-| heartbeat_interval_ms | integer | Expected interval (30000) |
-| expire_after_ms | integer | Expiry threshold (90000) |
+**Fields:**
+- `persona_id` — whose presence
+- `circle_id`, `room_id` — where present
+- `status` — online, away, busy, offline
+- `last_heartbeat` — last activity timestamp
+- `heartbeat_interval_ms`, `expire_after_ms` — timing
 
----
+**Lifecycle:**
+- Arise: update-presence on join
+- Change: heartbeat bumps timestamp
+- Depart: expire-stale-presence marks offline
 
-## Bond Types
+### sync-message
 
-| Desmos | From | To | Purpose |
-|--------|------|-----|---------|
-| queued-for | outbound-message | syndesmos | Message queued for this connection |
-| present-in | presence-record | circle | Presence in this circle |
-| connected-via | syndesmos | data-channel | Connection uses this channel |
-| presence-of | presence-record | persona | Whose presence this is |
-| targets-peer | syndesmos | persona | Who we're connecting to |
-| bootstrapped-by | data-channel | signaling-session | Channel bootstrapped via this session |
+Envelope for P2P synchronization messages.
 
----
+**Fields:**
+- `type` — expression, entity, presence, catch-up-request, catch-up-response
+- `action` — create, update, delete, request, response
+- `entity`, `entities` — payload(s)
+- `circle_id` — context
+- `sender_id`, `timestamp` — provenance
 
-## Praxeis Summary
+## Bonds (Desmoi)
+
+### bootstrapped-by
+
+Data channel bootstrapped via signaling session.
+
+- **From:** data-channel
+- **To:** signaling-session
+- **Cardinality:** many-to-one
+- **Traversal:** Trace how a channel was established
+
+### connected-via
+
+Syndesmos uses this data channel.
+
+- **From:** syndesmos
+- **To:** data-channel
+- **Cardinality:** many-to-one
+- **Traversal:** Find which channel carries a connection
+
+### queued-for
+
+Outbound message queued for this syndesmos.
+
+- **From:** outbound-message
+- **To:** syndesmos
+- **Cardinality:** many-to-one
+- **Traversal:** Find pending messages for a connection
+
+### targets-peer
+
+Syndesmos targets this persona.
+
+- **From:** syndesmos
+- **To:** persona
+- **Cardinality:** many-to-one
+- **Traversal:** Find connections to a peer
+
+### present-in
+
+Presence record in a circle.
+
+- **From:** presence-record
+- **To:** circle
+- **Cardinality:** many-to-one
+- **Traversal:** List who is present in a circle
+
+### presence-of
+
+Presence record belongs to persona.
+
+- **From:** presence-record
+- **To:** persona
+- **Cardinality:** many-to-one
+- **Traversal:** Find a persona's presence across circles
+
+## Operations (Praxeis)
 
 ### Signaling Operations
 
-| Praxis | Tier | Purpose |
-|--------|------|---------|
-| `aither/connect-signaling` | 3 | Connect to relay, join room |
-| `aither/disconnect-signaling` | 3 | Disconnect from relay |
-| `aither/sense-signaling` | 1 | Query signaling state |
-| `aither/poll-signaling` | 2 | Get pending offers/answers/ICE |
-| `aither/send-offer` | 2 | Send SDP offer |
-| `aither/send-answer` | 2 | Send SDP answer |
+- **connect-signaling**: Join relay room, begin peer discovery
+- **disconnect-signaling**: Leave relay room
+- **sense-signaling**: Query WebSocket state
+- **poll-signaling**: Get pending offers/answers/ICE candidates
+- **send-offer** / **send-answer**: SDP exchange
 
-### Data Channel Operations
+### Channel Operations
 
-| Praxis | Tier | Purpose |
-|--------|------|---------|
-| `aither/create-channel` | 3 | Create channel as offerer |
-| `aither/accept-answer` | 3 | Accept SDP answer (offerer) |
-| `aither/answer-channel` | 3 | Answer offer (answerer) |
-| `aither/close-channel` | 3 | Close channel |
-| `aither/sense-channel` | 1 | Query channel state |
-| `aither/reconcile-channel` | 3 | Align intent with actuality |
-| `aither/send-message` | 2 | Send through channel |
-| `aither/receive-messages` | 2 | Get pending messages |
-| `aither/list-channels` | 1 | List all channels |
+- **create-channel**: Create as offerer, generate SDP offer
+- **accept-answer**: Offerer accepts SDP answer
+- **answer-channel**: Answerer creates channel, generates SDP answer
+- **close-channel**: Terminate data channel
+- **sense-channel**: Query WebRTC state
+- **reconcile-channel**: Align intent with actuality
+- **list-channels**: Query all channels
 
-### Syndesmos Operations
+### Syndesmos Operations (Reconciler Pattern)
 
-| Praxis | Tier | Purpose |
-|--------|------|---------|
-| `aither/ensure-connection` | 3 | Create or update syndesmos |
-| `aither/attempt-reconnect` | 3 | Reconnect with backoff |
-| `aither/disconnect-syndesmos` | 3 | Graceful disconnect |
-| `aither/list-connections` | 1 | List syndesmos entities |
+- **ensure-connection**: Create syndesmos with intent=connected
+- **attempt-reconnect**: Reconnect with exponential backoff
+- **disconnect-syndesmos**: Graceful disconnect
+- **list-connections**: Query syndesmos entities
 
-### Offline Queue Operations
+### Message Operations
 
-| Praxis | Tier | Purpose |
-|--------|------|---------|
-| `aither/queue-message` | 2 | Queue for later delivery |
-| `aither/flush-queue` | 2 | Deliver queued messages |
+- **send-message**: Send through channel
+- **receive-messages**: Get pending messages
+- **queue-message**: Queue for offline delivery
+- **flush-queue**: Deliver queued messages on reconnect
 
 ### Presence Operations
 
-| Praxis | Tier | Purpose |
-|--------|------|---------|
-| `aither/update-presence` | 2 | Create/update presence |
-| `aither/heartbeat` | 1 | Bump heartbeat timestamp |
-| `aither/expire-stale-presence` | 2 | Mark stale as offline |
-| `aither/list-presence` | 1 | List presence records |
+- **update-presence**: Create/update presence record
+- **heartbeat**: Bump heartbeat timestamp
+- **expire-stale-presence**: Mark stale records as offline
+- **list-presence**: Query presence records
 
----
+### Sync Operations
 
-## Frontend Integration
+- **broadcast-sync**: Send entity change to peers
+- **receive-sync**: Process incoming sync message
+- **request-catch-up**: Request missed entities after reconnect
 
-The frontend tracks connection state via signals in [kosmos.ts](../../app/src/store/kosmos.ts):
+## Attainments
 
-```typescript
-interface ConnectionState {
-  status: ConnectionStatus;  // disconnected, connecting, connected, reconnecting, failed
-  retryCount: number;
-  maxRetries: number;
-  backoffMs: number;
-  lastError: string | null;
-  syndesmosId: string | null;  // Kosmos entity tracking this connection
-}
+### attainment/connect
+
+Connection capability — establishing and managing network connections.
+
+- **Grants:** connect-signaling, disconnect-signaling, send-offer, send-answer, create-channel, accept-answer, answer-channel, close-channel, reconcile-channel, ensure-connection, attempt-reconnect, disconnect-syndesmos
+- **Scope:** soma (local substrate)
+- **Rationale:** Connection management is substrate-local; the network interface belongs to the substrate
+
+### attainment/message
+
+Messaging capability — sending and receiving through channels.
+
+- **Grants:** send-message, receive-messages, queue-message, flush-queue
+- **Scope:** soma
+- **Rationale:** Message flow requires an established connection on this substrate
+
+### attainment/presence
+
+Presence capability — tracking who is here.
+
+- **Grants:** update-presence, heartbeat, expire-stale-presence, list-presence
+- **Scope:** circle
+- **Rationale:** Presence is visible within circle context
+
+### attainment/sync
+
+Synchronization capability — P2P entity replication.
+
+- **Grants:** broadcast-sync, receive-sync, request-catch-up
+- **Scope:** circle
+- **Rationale:** Sync operates on circle data; requires membership
+
+### attainment/sense
+
+Sense capability — reading connection and signaling state.
+
+- **Grants:** sense-signaling, poll-signaling, sense-channel, list-channels, list-connections
+- **Scope:** soma
+- **Rationale:** Sensing is read-only; useful for debugging
+
+## Embodiment
+
+### Completeness Status
+
+| Level | Status |
+|-------|--------|
+| Defined | 6 eide, 6 desmoi, 28 praxeis |
+| Loaded | Bootstrap loads all definitions |
+| Projected | All praxeis visible as MCP tools |
+| Embodied | Partial — syndesmos contributes to body-schema |
+| Surfaced | Partial — connection status indicator |
+| Afforded | Partial — presence list |
+
+### Body-Schema Contribution
+
+When sense-body gathers aither state:
+
+```yaml
+network:
+  syndesmos_count: 3          # Active connections
+  connected_peers: 2          # Successfully connected
+  reconnecting: 1             # In backoff
+  presence_online: 5          # Peers present
+  queued_messages: 0          # Pending delivery
 ```
 
-**Connection flow:**
-1. `joinSignalingRoom(roomId, peerId)` → creates syndesmos via `aither/ensure-connection`
-2. Signaling events update `connectionState` signal
-3. On disconnect, `attemptReconnect()` with exponential backoff
-4. `disconnectSignaling()` → calls `aither/disconnect-syndesmos`
+This reveals network health and connectivity.
 
-**Presence flow:**
-1. On join room → `startPresenceHeartbeat()` calls `aither/update-presence`
-2. Every 30s → `aither/heartbeat` updates timestamp
-3. On leave room → `stopPresenceHeartbeat()` marks offline
+### Reconciler
 
-**UI indicator:**
-- [ConnectionStatusIndicator](../../app/src/components/ConnectionStatus.tsx) shows status in HUD header
-- Green dot = connected, yellow = connecting/reconnecting, red = failed, gray = disconnected
+An aither reconciler would surface:
+
+- **Connection failures** — "Connection to alice failed after 10 attempts"
+- **Stale presence** — "3 presence records expired"
+- **Queue backlog** — "5 messages queued for 2+ hours"
+- **Intent mismatch** — "Syndesmos wants connected, actually disconnected"
+
+## Compound Leverage
+
+### amplifies propylon
+
+Propylon provides signaling relay. Aither uses relay for peer discovery before P2P handoff.
+
+### amplifies thyra
+
+Expressions flow through aither channels. Voice streams could use WebRTC media.
+
+### amplifies politeia
+
+Circle membership determines who you connect to. Presence is circle-scoped.
+
+### amplifies hypostasis
+
+Phoreta sync flows through aither channels. Device federation uses sync.
+
+### amplifies nous
+
+Theoria sync could propagate insights across the graph in real-time.
+
+## Theoria
+
+### T58: Connection state is intent reconciling with actuality
+
+The syndesmos declares what we want (intent: connected). The network is what actually is (status: disconnected). Reconciliation aligns them. This is the dynamis pattern applied to network transport.
+
+### T59: The network forgets, the graph remembers
+
+WebRTC connections are ephemeral — they come and go. But syndesmos entities persist, tracking connection history, retry counts, last errors. The substrate forgets; the graph remembers.
+
+### T60: Presence is ephemeral state, syndesmos is durable intent
+
+Presence records expire after 90 seconds without heartbeat — they reflect actual liveness. Syndesmos entities persist — they declare ongoing intent to connect. Different purposes, different lifetimes.
+
+## Future Extensions
+
+### ICE Restart
+
+Reconnection without full re-signaling when network path changes.
+
+### TURN Fallback
+
+Relay through TURN server for restrictive NAT scenarios.
+
+### Multi-Peer Rooms
+
+Beyond 1:1 connections to mesh or selective forwarding.
+
+### Bandwidth Sensing
+
+Adaptive quality based on connection quality metrics.
+
+### Media Channels
+
+WebRTC media tracks for audio/video streams (beyond data channels).
 
 ---
 
-## Constitutional Alignment
-
-Aither follows the three pillars:
-
-| Pillar | How Aither Implements It |
-|--------|--------------------------|
-| **Schema-driven** | Entity types (syndesmos, presence-record) define structure; praxeis define behavior |
-| **Graph-driven** | Bonds connect syndesmos → channel, presence → circle; relationships are navigable |
-| **Cache-driven** | Connection state is entity state; actuality is sensed, not assumed |
-
-**Key theoria:**
-- **T17:** Intent/status pattern enables reconciliation. Declare what you want, sense what is, act to align.
-- The separation of intent from status mirrors the kosmos/chora distinction: intent lives in kosmos (entities), actuality lives in chora (network).
-
----
-
-## Dependencies
-
-- **webrtc dynamis** — Low-level WebRTC operations (manifest, sense, signal)
-- **propylon-relay** — Signaling server for SDP exchange
-- **politeia** — Circle context for presence visibility
-- **thyra** — Stream operations that may use aither channels
-
----
-
-## Future Work
-
-- **ICE restart** — Reconnection without full re-signaling
-- **TURN fallback** — For restrictive NAT scenarios
-- **Multi-peer rooms** — Beyond 1:1 connections
-- **Bandwidth sensing** — Adaptive quality based on connection quality
-- **Mesh networking** — Peer-to-peer relay for unreachable peers
-
----
-
-*Aither is the pure transport — moving data through the network without knowing what it means.*
-*Traces to: expression/genesis-root*
-*Updated: 2026-01-25 — Syndesmos connection state and presence heartbeat*
+*Composed in service of the kosmogonia.*
+*The ether carries what it does not understand. Intent reconciles with actuality. The graph remembers.*
