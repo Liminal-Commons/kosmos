@@ -525,3 +525,105 @@ entities:
           theoria_id: "$theoria_result.theoria_id"
           from_insight: "$insight_id"
           status: "provisional"
+
+# =============================================================================
+# VERSION UTILITIES
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/oikos/compare-semver
+  data:
+    oikos: oikos
+    name: compare-semver
+    visible: true
+    description: |
+      Compare two semantic version strings.
+
+      Returns -1 if a < b, 0 if a == b, 1 if a > b.
+      Handles pre-release suffixes (e.g., "1.2.3-beta.1" compares equal to "1.2.3" for core version).
+    params:
+      - name: a
+        type: string
+        required: true
+        description: First version string (e.g., "1.2.3")
+      - name: b
+        type: string
+        required: true
+        description: Second version string (e.g., "2.0.0")
+    steps:
+      # Parse version a
+      - step: set
+        bindings:
+          # Split by dots
+          a_parts: "{{ $a.split('.') }}"
+          b_parts: "{{ $b.split('.') }}"
+
+      # Extract major, minor, patch (handling pre-release suffixes)
+      - step: set
+        bindings:
+          a_major: "{{ parseInt($a_parts[0]) || 0 }}"
+          a_minor: "{{ parseInt($a_parts[1]) || 0 }}"
+          a_patch_raw: "{{ $a_parts[2] || '0' }}"
+          b_major: "{{ parseInt($b_parts[0]) || 0 }}"
+          b_minor: "{{ parseInt($b_parts[1]) || 0 }}"
+          b_patch_raw: "{{ $b_parts[2] || '0' }}"
+
+      # Strip pre-release suffix from patch
+      - step: set
+        bindings:
+          a_patch: "{{ parseInt($a_patch_raw.split('-')[0]) || 0 }}"
+          b_patch: "{{ parseInt($b_patch_raw.split('-')[0]) || 0 }}"
+
+      # Compare major
+      - step: switch
+        cases:
+          - when: "{{ $a_major > $b_major }}"
+            then:
+              - step: return
+                value:
+                  result: 1
+                  comparison: "greater"
+          - when: "{{ $a_major < $b_major }}"
+            then:
+              - step: return
+                value:
+                  result: -1
+                  comparison: "less"
+
+      # Major equal, compare minor
+      - step: switch
+        cases:
+          - when: "{{ $a_minor > $b_minor }}"
+            then:
+              - step: return
+                value:
+                  result: 1
+                  comparison: "greater"
+          - when: "{{ $a_minor < $b_minor }}"
+            then:
+              - step: return
+                value:
+                  result: -1
+                  comparison: "less"
+
+      # Minor equal, compare patch
+      - step: switch
+        cases:
+          - when: "{{ $a_patch > $b_patch }}"
+            then:
+              - step: return
+                value:
+                  result: 1
+                  comparison: "greater"
+          - when: "{{ $a_patch < $b_patch }}"
+            then:
+              - step: return
+                value:
+                  result: -1
+                  comparison: "less"
+
+      # All components equal
+      - step: return
+        value:
+          result: 0
+          comparison: "equal"

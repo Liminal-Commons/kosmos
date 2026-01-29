@@ -194,21 +194,18 @@ entities:
       kind:
         type: string
         required: true
-        default: intimate
+        default: peer
         description: "Circle type"
-        enum: [self, intimate, community, public]
+        enum: [self, peer, commons]
         ui_hint:
           component: select
           options:
             - value: self
               label: "Self (private)"
               description: "Just you — notes, drafts, personal"
-            - value: intimate
-              label: "Intimate (invitation only)"
-              description: "Close trusted circle — requires invitation"
-            - value: community
-              label: "Community"
-              description: "Larger group with shared purpose"
-            - value: public
-              label: "Public"
-              description: "Open to anyone"
+            - value: peer
+              label: "Peer"
+              description: "Collaborative creation (cannot distribute externally)"
+            - value: commons
+              label: "Commons"
+              description: "Distribution circle (grants oikoi + attainments)"

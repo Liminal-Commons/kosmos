@@ -52,11 +52,11 @@ For completed phases, see [archive/ROADMAP-completed.md](../../archive/ROADMAP-c
 | **E** | **Emission** | **Full-scope genesis emission with headers** | **✅ E7-E12 Complete** |
 | **F** | **Format Consolidation** | **Single-stream genesis (emit = source format)** | **✅ F1-F3 Complete** |
 | **CE** | **Constitutional Enforcement** | **Gate arise/infer, enforce compose/governed-inference** | **✅ CE1-CE4 Complete** |
-| K | Kosmos | Oikos packaging and distribution | ✅ K0-K5 Complete |
+| K | Kosmos | Oikos packaging and distribution | ✅ K0-K5 Complete, ⏳ K6 Planned |
 | S | Commons | Self-sovereign infrastructure for circles | ⏳ Post-MVP |
 | I | Infrastructure | Cloudflare, documentation | ✅ I1 Complete |
 
-**Current Focus:** K0-K5 complete (content roots, oikos packaging, two-repo workflow). S1 kosmos ontology complete (Agora eide/desmoi/praxeis/attainments). Next: S1 chora implementation (LiveKit, Phaser.js) or C8 (Federation).
+**Current Focus:** K0-K5 complete (content roots, oikos packaging, two-repo workflow). K6 (Ekdosis) ontology complete — content publication system. S1 kosmos ontology complete (Agora eide/desmoi/praxeis/attainments). Next: K6 implementation (bake/sign/upload/publish) or S1 chora implementation (LiveKit, Phaser.js).
 
 **MVP Definition:** A friend can join a circle via invitation link. ✅ **MVP ACHIEVED** (Phase T, C7 complete).
 
@@ -386,6 +386,50 @@ kosmos repo (library)
 ```
 
 **Verification:** Same BLAKE3 hash after full cycle proves content integrity.
+
+### K6: Ekdosis — Content Publication ⏳ Planned
+
+**Objective:** Enable developers to publish and release oikoi through kosmos.
+
+Ekdosis (ἔκδοσις — the giving out, publication) is the content release system, complementary to dynamis which handles binary releases. While dynamis releases Thyra app binaries via GitHub Actions, ekdosis releases oikos content packages through kosmos praxeis.
+
+| Task | Description | Status |
+|------|-------------|--------|
+| K6.1 | Create ekdosis oikos structure (manifest, eide, desmoi, praxeis) | ✅ |
+| K6.2 | Implement bake-oikos praxis (oikos-dev → oikos-prod) | ⏳ |
+| K6.3 | Implement sign-oikos praxis (keyring integration) | ⏳ |
+| K6.4 | Implement upload-oikos praxis (R2 dynamis integration) | ⏳ |
+| K6.5 | Implement publish-release praxis (circle distribution) | ⏳ |
+| K6.6 | Implement list-releases, verify-release, rollback-release | ⏳ |
+| K6.7 | End-to-end test: compose → bake → sign → upload → publish → receive | ⏳ |
+
+**Two Release Territories:**
+
+| Territory | What | Where | How |
+|-----------|------|-------|-----|
+| **Dynamis** | Binary artifacts (Thyra app) | GitHub Releases, R2 | GitHub Actions, release-please |
+| **Ekdosis** | Content packages (oikoi) | R2, circle distribution | Kosmos praxeis, baking |
+
+**The Developer Journey:**
+
+```
+Consumer → Developer → Publisher
+   │           │            │
+   │ Join      │ Create     │ Bake, sign,
+   │ circle    │ oikos-dev  │ distribute
+   │ Receive   │            │
+   │ oikoi     │            │
+```
+
+**Implementation:**
+- `genesis/ekdosis/` — eide (release, release-channel, build-attestation), desmoi, praxeis
+- `ekdosis/bake-oikos` — transforms oikos-dev → oikos-prod (resolves generation specs)
+- `ekdosis/sign-oikos` — signs content hash with Ed25519, creates build-attestation
+- `ekdosis/upload-oikos` — uploads to R2 via dynamis, sets fetch_url
+- `ekdosis/publish-release` — creates release entity, distributes to circles
+- `ekdosis/rollback-release` — reverts to previous release via succeeds chain
+
+**Key Insight:** Ekdosis enables OTHER developers to release oikoi — it's the path from consumer to creator within the kosmos ontology.
 
 ---
 

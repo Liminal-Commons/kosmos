@@ -1,0 +1,67 @@
+# Oikos Manifest: Ekdosis
+# ἔκδοσις — content publication and release management
+#
+# Ekdosis governs the publication of kosmos content — oikoi, stoicheia, and
+# composed artifacts. Complementary to dynamis which handles binary releases.
+#
+# Manifest v2.1 — oikos metadata for entity composition
+
+format_version: "2.1"
+oikos_id: ekdosis
+version: "0.1.0"
+
+# Oikos metadata (v2.1)
+oikos_name: Ekdosis
+oikos_description: |
+  The giving out, publication, release. Governs the publication of kosmos
+  content — oikoi, stoicheia, and composed artifacts. Complementary to
+  dynamis which handles binary releases.
+oikos_scale: cross-scale
+
+content_paths:
+  - path: eide/
+    content_types: [eidos, release-channel, attainment]
+  - path: desmoi/
+    content_types: [desmos]
+  - path: praxeis/
+    content_types: [praxis]
+
+requires_dynamis:
+  - db.find
+  - db.arise
+  - db.bind
+  - db.gather
+  - db.trace
+  - db.update
+  - keyring.sign         # For signing oikos-prod
+  - storage.upload       # For uploading to R2
+
+provides:
+  eide:
+    - oikos-release
+    - release-channel
+    - build-attestation
+
+  desmoi:
+    - publishes
+    - releases
+    - published-to
+    - succeeds
+    - attests
+    - distributed-by
+
+  attainments:
+    - publish
+
+  praxeis:
+    - ekdosis/bake-oikos
+    - ekdosis/sign-oikos
+    - ekdosis/upload-oikos
+    - ekdosis/publish-release
+    - ekdosis/list-releases
+    - ekdosis/verify-release
+    - ekdosis/rollback-release
+
+stoicheia_form:
+  # All stoicheia used by ekdosis are currently arche-level (interpreted by host)
+  # Signing and hashing require host dynamis integration

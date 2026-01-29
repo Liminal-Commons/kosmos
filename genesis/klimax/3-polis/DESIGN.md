@@ -157,12 +157,12 @@ Minimum viable polis:
     name: Claude
     kind: ai
 
-# Root circle (public)
+# Root circle (commons)
 - eidos: circle
   id: circle/kosmos
   data:
     name: Kosmos
-    kind: public
+    kind: commons
 
 # Memberships
 bonds:

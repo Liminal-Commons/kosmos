@@ -1,0 +1,566 @@
+# Ekdosis Praxeis
+# Content publication and release operations
+
+entities:
+
+# =============================================================================
+# BAKING & SIGNING
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/ekdosis/bake-oikos
+  data:
+    oikos: ekdosis
+    name: bake-oikos
+    visible: true
+    description: |
+      Bake an oikos-dev into an oikos-prod.
+
+      Resolves all generation specs, freezes content, computes content hash.
+      The resulting oikos-prod is immutable and ready for signing.
+    params:
+      - name: oikos_dev_id
+        type: string
+        required: true
+        description: "ID of the oikos-dev to bake"
+      - name: locale
+        type: string
+        required: false
+        description: "BCP-47 locale code for baking (e.g., 'en-US'). If omitted, locale-agnostic."
+    steps:
+      - step: find
+        id: "$oikos_dev_id"
+        bind_to: oikos_dev
+
+      - step: assert
+        condition: "$oikos_dev"
+        message: "oikos-dev not found: $oikos_dev_id"
+
+      - step: assert
+        condition: "$oikos_dev.eidos == 'oikos-dev'"
+        message: "Entity is not an oikos-dev: $oikos_dev_id"
+
+      # Generate oikos-prod ID
+      - step: set
+        bindings:
+          prod_id: "oikos-prod/{{ $oikos_dev.data.oikos_id }}/{{ $oikos_dev.data.version }}"
+          baked_at: "now()"
+
+      # TODO: Resolve generation specs via manteia
+      # For now, we just copy the content as-is
+
+      # Compute content hash
+      - step: set
+        bindings:
+          content_hash: "{{ blake3($oikos_dev.data.content) }}"
+
+      # Create oikos-prod
+      - step: arise
+        eidos: oikos-prod
+        id: "$prod_id"
+        data:
+          oikos_id: "$oikos_dev.data.oikos_id"
+          version: "$oikos_dev.data.version"
+          locale: "$locale"
+          description: "$oikos_dev.data.description"
+          manifest: "$oikos_dev.data.manifest"
+          content: "$oikos_dev.data.content"
+          content_hash: "$content_hash"
+          baked_from: "$oikos_dev_id"
+          published_at: "$baked_at"
+          # signature and publisher_pubkey added by sign-oikos
+          signature: ""
+          publisher_pubkey: ""
+          fetch_url: ""
+
+      - step: return
+        value:
+          oikos_prod_id: "$prod_id"
+          content_hash: "$content_hash"
+          status: "baked"
+
+- eidos: praxis
+  id: praxis/ekdosis/sign-oikos
+  data:
+    oikos: ekdosis
+    name: sign-oikos
+    visible: true
+    description: |
+      Sign an oikos-prod with the publisher's key.
+
+      Requires authenticated session with signing credentials.
+      Creates a build-attestation for provenance.
+    params:
+      - name: oikos_prod_id
+        type: string
+        required: true
+        description: "ID of the oikos-prod to sign"
+    steps:
+      - step: assert
+        condition: "$_persona"
+        message: "Cannot sign without authenticated persona"
+
+      - step: find
+        id: "$oikos_prod_id"
+        bind_to: oikos_prod
+
+      - step: assert
+        condition: "$oikos_prod"
+        message: "oikos-prod not found: $oikos_prod_id"
+
+      - step: assert
+        condition: "$oikos_prod.data.content_hash"
+        message: "oikos-prod has no content hash (was it baked?)"
+
+      # Sign content hash using session credentials
+      - step: keyring
+        operation: session_sign
+        data: "$oikos_prod.data.content_hash"
+        bind_to: sign_result
+
+      - step: set
+        bindings:
+          signed_at: "now()"
+
+      # Update oikos-prod with signature
+      - step: update
+        id: "$oikos_prod_id"
+        data:
+          signature: "$sign_result.signature"
+          publisher_pubkey: "$sign_result.public_key"
+
+      # Create build attestation
+      - step: set
+        bindings:
+          attestation_id: "build-attestation/{{ now() }}"
+
+      - step: arise
+        eidos: build-attestation
+        id: "$attestation_id"
+        data:
+          builder_persona: "$_persona.id"
+          build_timestamp: "$signed_at"
+          source_hash: "{{ blake3($oikos_prod.data.baked_from) }}"
+          output_hash: "$oikos_prod.data.content_hash"
+          signature: "$signature"
+          builder_pubkey: "$pubkey"
+
+      # Bond attestation to oikos-prod
+      - step: bind
+        from_id: "$attestation_id"
+        to_id: "$oikos_prod_id"
+        desmos: "attests"
+
+      - step: return
+        value:
+          oikos_prod_id: "$oikos_prod_id"
+          attestation_id: "$attestation_id"
+          status: "signed"
+
+- eidos: praxis
+  id: praxis/ekdosis/upload-oikos
+  data:
+    oikos: ekdosis
+    name: upload-oikos
+    visible: true
+    description: |
+      Upload an oikos-prod to storage (R2).
+
+      The oikos-prod must be signed before uploading.
+      Returns the fetch_url where the content can be retrieved.
+    params:
+      - name: oikos_prod_id
+        type: string
+        required: true
+        description: "ID of the oikos-prod to upload"
+    steps:
+      - step: find
+        id: "$oikos_prod_id"
+        bind_to: oikos_prod
+
+      - step: assert
+        condition: "$oikos_prod"
+        message: "oikos-prod not found: $oikos_prod_id"
+
+      - step: assert
+        condition: "$oikos_prod.data.signature"
+        message: "oikos-prod is not signed"
+
+      # Serialize and upload to R2
+      - step: set
+        bindings:
+          bucket: "kosmos-oikoi"
+          key: "{{ $oikos_prod.data.oikos_id }}/{{ $oikos_prod.data.version }}.yaml"
+          fetch_url: "https://oikoi.kosmos.dev/{{ $oikos_prod.data.oikos_id }}/{{ $oikos_prod.data.version }}.yaml"
+
+      # Upload oikos-prod content to R2
+      # Credentials come from environment: CLOUDFLARE_R2_*
+      - step: invoke
+        dynamis: r2
+        operation: upload
+        params:
+          bucket: "$bucket"
+          key: "$key"
+          content_json: "$oikos_prod"
+          content_type: "application/yaml"
+        bind_to: upload_result
+
+      # Update oikos-prod with fetch_url
+      - step: update
+        id: "$oikos_prod_id"
+        data:
+          fetch_url: "$fetch_url"
+
+      - step: return
+        value:
+          oikos_prod_id: "$oikos_prod_id"
+          fetch_url: "$fetch_url"
+          status: "uploaded"
+
+# =============================================================================
+# RELEASE MANAGEMENT
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/ekdosis/publish-release
+  data:
+    oikos: ekdosis
+    name: publish-release
+    visible: true
+    description: |
+      Publish a release of an oikos-prod.
+
+      Creates a release entity and optionally distributes to circles.
+      The oikos-prod must be signed and uploaded before publishing.
+    params:
+      - name: oikos_prod_id
+        type: string
+        required: true
+        description: "ID of the oikos-prod to release"
+      - name: version
+        type: string
+        required: true
+        description: "Release version (semver)"
+      - name: channel
+        type: string
+        required: false
+        description: "Release channel (stable, beta, alpha, canary). Default: stable"
+      - name: notes
+        type: string
+        required: false
+        description: "Release notes"
+      - name: circles
+        type: array
+        required: false
+        description: "Circle IDs to distribute to"
+    steps:
+      - step: assert
+        condition: "$_persona"
+        message: "Cannot publish without authenticated persona"
+
+      - step: find
+        id: "$oikos_prod_id"
+        bind_to: oikos_prod
+
+      - step: assert
+        condition: "$oikos_prod"
+        message: "oikos-prod not found: $oikos_prod_id"
+
+      - step: assert
+        condition: "$oikos_prod.data.signature"
+        message: "oikos-prod is not signed"
+
+      - step: assert
+        condition: "$oikos_prod.data.fetch_url"
+        message: "oikos-prod is not uploaded"
+
+      # Set default channel
+      - step: set
+        bindings:
+          release_channel: "$channel"
+
+      - step: switch
+        cases:
+          - when: "$release_channel"
+            then: []
+        default:
+          - step: set
+            bindings:
+              release_channel: "stable"
+
+      # Generate release ID
+      - step: set
+        bindings:
+          release_id: "release/{{ $oikos_prod.data.oikos_id }}/{{ $version }}"
+          published_at: "now()"
+
+      # Create oikos-release
+      - step: arise
+        eidos: oikos-release
+        id: "$release_id"
+        data:
+          version: "$version"
+          oikos_prod_id: "$oikos_prod_id"
+          channel: "$release_channel"
+          notes: "$notes"
+          published_at: "$published_at"
+          publisher_persona: "$_persona.id"
+
+      # Bond release to oikos-prod
+      - step: bind
+        from_id: "$release_id"
+        to_id: "$oikos_prod_id"
+        desmos: "releases"
+
+      # Bond release to channel
+      - step: bind
+        from_id: "$release_id"
+        to_id: "release-channel/$release_channel"
+        desmos: "published-to"
+
+      # Bond persona as publisher
+      - step: bind
+        from_id: "$_persona.id"
+        to_id: "$release_id"
+        desmos: "publishes"
+
+      # Find previous release for this oikos in this channel (for succeeds bond)
+      - step: gather
+        eidos: oikos-release
+        bind_to: all_releases
+
+      - step: filter
+        items: "$all_releases"
+        condition: "$item.data.oikos_prod_id.startsWith('oikos-prod/' + $oikos_prod.data.oikos_id) && $item.data.channel == '$release_channel' && $item.id != '$release_id'"
+        bind_to: previous_releases
+
+      # If there's a previous release, bond to it
+      - step: switch
+        cases:
+          - when: "$previous_releases.length > 0"
+            then:
+              # Sort by version and take the latest
+              - step: set
+                bindings:
+                  previous_release_id: "$previous_releases[previous_releases.length - 1].id"
+              - step: bind
+                from_id: "$release_id"
+                to_id: "$previous_release_id"
+                desmos: "succeeds"
+
+      # Distribute to circles if specified
+      - step: switch
+        cases:
+          - when: "$circles"
+            then:
+              - step: for_each
+                items: "$circles"
+                item_var: circle_id
+                steps:
+                  # Bond circle to oikos-prod (for reconciler)
+                  - step: bind
+                    from_id: "$circle_id"
+                    to_id: "$oikos_prod_id"
+                    desmos: "distributes"
+                  # Also bond release to circle
+                  - step: bind
+                    from_id: "$release_id"
+                    to_id: "$circle_id"
+                    desmos: "distributed-by"
+
+      - step: return
+        value:
+          release_id: "$release_id"
+          version: "$version"
+          channel: "$release_channel"
+          distributed_to: "$circles"
+          status: "published"
+
+- eidos: praxis
+  id: praxis/ekdosis/list-releases
+  data:
+    oikos: ekdosis
+    name: list-releases
+    visible: true
+    description: |
+      List releases for an oikos, optionally filtered by channel.
+    params:
+      - name: oikos_id
+        type: string
+        required: true
+        description: "Oikos ID (e.g., 'nous', 'soma')"
+      - name: channel
+        type: string
+        required: false
+        description: "Filter by channel (stable, beta, alpha, canary)"
+    steps:
+      - step: gather
+        eidos: oikos-release
+        bind_to: all_releases
+
+      # Filter by oikos
+      - step: filter
+        items: "$all_releases"
+        condition: "$item.data.oikos_prod_id.includes('/$oikos_id/')"
+        bind_to: releases
+
+      # Filter by channel if specified
+      - step: switch
+        cases:
+          - when: "$channel"
+            then:
+              - step: filter
+                items: "$releases"
+                condition: "$item.data.channel == '$channel'"
+                bind_to: releases
+
+      # Sort by version (descending) - simplified, assumes semver string comparison works
+      # TODO: Proper semver sorting
+
+      - step: return
+        value:
+          oikos_id: "$oikos_id"
+          channel: "$channel"
+          releases: "$releases"
+          count: "$releases.length"
+
+- eidos: praxis
+  id: praxis/ekdosis/verify-release
+  data:
+    oikos: ekdosis
+    name: verify-release
+    visible: true
+    description: |
+      Verify a release's signatures and content hashes.
+
+      Checks that the content hash matches the content and
+      the signature is valid for the publisher's public key.
+    params:
+      - name: release_id
+        type: string
+        required: true
+        description: "ID of the release to verify"
+    steps:
+      - step: find
+        id: "$release_id"
+        bind_to: release
+
+      - step: assert
+        condition: "$release"
+        message: "Release not found: $release_id"
+
+      # Find the oikos-prod
+      - step: find
+        id: "$release.data.oikos_prod_id"
+        bind_to: oikos_prod
+
+      - step: assert
+        condition: "$oikos_prod"
+        message: "oikos-prod not found: $release.data.oikos_prod_id"
+
+      # Verify content hash
+      - step: set
+        bindings:
+          computed_hash: "{{ blake3($oikos_prod.data.content) }}"
+          stored_hash: "$oikos_prod.data.content_hash"
+
+      - step: set
+        bindings:
+          hash_valid: "{{ $computed_hash == $stored_hash }}"
+
+      # Verify signature using keyring step
+      - step: keyring
+        operation: verify
+        data: "$stored_hash"
+        signature: "$oikos_prod.data.signature"
+        public_key: "$oikos_prod.data.publisher_pubkey"
+        bind_to: verify_result
+
+      - step: set
+        bindings:
+          signature_valid: "$verify_result.valid"
+
+      - step: set
+        bindings:
+          verified: "{{ $hash_valid && $signature_valid }}"
+
+      - step: return
+        value:
+          release_id: "$release_id"
+          oikos_prod_id: "$release.data.oikos_prod_id"
+          hash_valid: "$hash_valid"
+          signature_valid: "$signature_valid"
+          verified: "$verified"
+          publisher_pubkey: "$oikos_prod.data.publisher_pubkey"
+
+# =============================================================================
+# ROLLBACK
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/ekdosis/rollback-release
+  data:
+    oikos: ekdosis
+    name: rollback-release
+    visible: true
+    description: |
+      Rollback to a previous release.
+
+      Traverses the succeeds chain to find the previous release
+      and re-distributes it to the same circles.
+    params:
+      - name: release_id
+        type: string
+        required: true
+        description: "ID of the current release to rollback from"
+    steps:
+      - step: find
+        id: "$release_id"
+        bind_to: release
+
+      - step: assert
+        condition: "$release"
+        message: "Release not found: $release_id"
+
+      # Find the previous release via succeeds bond
+      - step: trace
+        from_id: "$release_id"
+        desmos: "succeeds"
+        resolve: "to"
+        bind_to: previous_bonds
+
+      - step: assert
+        condition: "$previous_bonds.length > 0"
+        message: "No previous release to rollback to"
+
+      - step: set
+        bindings:
+          previous_release_id: "$previous_bonds[0].to_id"
+
+      - step: find
+        id: "$previous_release_id"
+        bind_to: previous_release
+
+      # Get circles the current release is distributed to
+      - step: trace
+        from_id: "$release_id"
+        desmos: "distributed-by"
+        resolve: "to"
+        bind_to: circle_bonds
+
+      # Re-distribute previous release to those circles
+      - step: for_each
+        items: "$circle_bonds"
+        item_var: circle_bond
+        steps:
+          - step: bind
+            from_id: "$circle_bond.to_id"
+            to_id: "$previous_release.data.oikos_prod_id"
+            desmos: "distributes"
+
+      - step: return
+        value:
+          rolled_back_from: "$release_id"
+          rolled_back_to: "$previous_release_id"
+          previous_version: "$previous_release.data.version"
+          status: "rolled_back"

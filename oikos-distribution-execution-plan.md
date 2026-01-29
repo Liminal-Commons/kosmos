@@ -4,9 +4,75 @@ Implementation plans for [oikos-distribution-via-circles.md](oikos-distribution-
 
 ---
 
+## Implementation Status
+
+### v1 (Implemented 2026-01-28)
+
+Simpler patterns using existing stoicheia:
+- **K1 ✓** Circle kind simplification (`self`, `peer`, `commons`)
+- **K2 ✓** Distributes desmos (circle → oikos-prod)
+- **K3 ✓** sync-circle-oikoi (simplified, no try/catch)
+- **K4 ✓** install-oikos-if-needed
+- **K4.5 ✓** update-oikos-if-newer (string comparison, not semver)
+- **K5 ✓** accept-invitation calls sync-circle-oikoi
+- **K6 ✓** verify-entry calls sync-circle-oikoi
+- **K7 ✓** reconcile-circle-oikoi (simplified, no append)
+- **K8 ✓** kosmos-commons circle definition
+
+### v2 (Implemented in Chora 2026-01-28)
+
+Stoicheia added to chora:
+- **try/catch ✓** — error handling in loops (Tier 2)
+- **append ✓** — building arrays in loops (Tier 2)
+- **log ✓** — diagnostic output with levels (Tier 2)
+
+Praxis added:
+- **K9 ✓** — `oikos/compare-semver` praxis (returns -1/0/1)
+
+Schema update:
+- **K0 ✓** — `fetch_url` field added to oikos-prod eidos
+
+Pragmas resolved: `genesis/ergon/pragma/stoicheia-gaps.yaml`
+
+### All Implemented
+
+Both kosmos (K1-K8) and chora (stoicheia, K0, K9) work is complete.
+
+---
+
 ## Kosmos Execution Plan
 
 All work in `kosmos/genesis/`. Ontology definitions only.
+
+### K0: Oikos-Prod Eidos Definition
+
+**Status:** ✓ Complete (fetch_url added 2026-01-28)
+
+**File:** `genesis/oikos/eide/oikos.yaml`
+
+The oikos-prod eidos now has all required fields including `fetch_url`:
+
+```yaml
+# oikos-prod eidos fields
+fields:
+  oikos_id: string, required      # Oikos identifier
+  version: string, required       # Semver version
+  fetch_url: string, required     # URL where content can be fetched
+  locale: string, optional        # BCP 47 locale
+  description: string, optional   # Description
+  manifest: object, required      # requires_dynamis, provides
+  content: object, required       # eide, desmoi, praxeis (embedded)
+  content_hash: string, required  # BLAKE3 hash
+  signature: string, required     # Ed25519 signature
+  publisher_pubkey: string, req   # Publisher's public key
+  baked_from: string, optional    # Source oikos-dev ID
+  published_at: integer, required # Timestamp
+```
+
+**Dependencies:** None
+**Breaks:** None (additive field)
+
+---
 
 ### K1: Circle Kind Simplification
 
@@ -33,6 +99,8 @@ kind:
 **Dependencies:** None
 **Breaks:** Existing circles with kind=intimate or kind=community
 
+**Migration:** Circles with `intimate` → `peer`, circles with `community` → `commons`
+
 ---
 
 ### K2: Distributes Desmos
@@ -52,7 +120,7 @@ Add (or verify exists) the `distributes` desmos:
   cardinality: many-to-many
 ```
 
-**Dependencies:** K1 (kind=commons)
+**Dependencies:** K0 (oikos-prod eidos), K1 (kind=commons)
 **Breaks:** None (additive)
 
 ---
@@ -74,6 +142,7 @@ Add praxis to install oikoi when joining a circle:
     description: |
       Sync oikoi distributed by a circle to the local installation.
       Called when joining a circle or when dwelling and circle has updates.
+      Continues on individual oikos failures (best-effort sync).
     params:
       - name: circle_id
         type: string
@@ -86,20 +155,43 @@ Add praxis to install oikoi when joining a circle:
         direction: "outbound"
         bind_to: distributed_oikoi
 
+      # Track sync results
+      - step: set
+        bind_to: sync_results
+        value: []
+
       # For each oikos-prod, check if installed and install if not
       - step: for_each
         items: "$distributed_oikoi"
         as: oikos_prod
         do:
-          - step: call
-            praxis: politeia/install-oikos-if-needed
-            params:
-              oikos_prod_id: "$oikos_prod.id"
+          - step: try
+            do:
+              - step: call
+                praxis: politeia/install-oikos-if-needed
+                params:
+                  oikos_prod_id: "$oikos_prod.id"
+                bind_to: install_result
+              - step: append
+                to: "$sync_results"
+                value:
+                  oikos_prod_id: "$oikos_prod.id"
+                  success: true
+                  result: "$install_result"
+            catch:
+              - step: append
+                to: "$sync_results"
+                value:
+                  oikos_prod_id: "$oikos_prod.id"
+                  success: false
+                  error: "$_error"
 
       - step: return
         value:
           circle_id: "$circle_id"
-          oikoi_synced: "{{ $distributed_oikoi | length }}"
+          oikoi_synced: "{{ $sync_results | selectattr('success') | length }}"
+          oikoi_failed: "{{ $sync_results | rejectattr('success') | length }}"
+          results: "$sync_results"
 ```
 
 **Dependencies:** K2 (distributes desmos)
@@ -147,32 +239,128 @@ Add helper praxis for conditional oikos installation:
 
       - step: filter
         items: "$installed_oikoi"
-        condition: "$item.id == $oikos_prod_id"
-        bind_to: already_installed
+        condition: "$item.data.name == $oikos_prod.data.name"
+        bind_to: matching_installed
 
       # If not installed, install it
       - step: switch
         cases:
-          - when: "{{ $already_installed | length }} == 0"
+          - when: "{{ $matching_installed | length }} == 0"
             then:
               - step: call
                 praxis: politeia/install-oikos
                 params:
-                  oikos_id: "$oikos_prod_id"
+                  oikos_prod_id: "$oikos_prod_id"
                 bind_to: install_result
               - step: return
                 value:
-                  installed: true
+                  action: "installed"
                   oikos_prod_id: "$oikos_prod_id"
+                  version: "$oikos_prod.data.version"
 
       - step: return
         value:
-          installed: false
+          action: "skipped"
           oikos_prod_id: "$oikos_prod_id"
           reason: "already installed"
+          installed_version: "{{ $matching_installed[0].data.version }}"
 ```
 
 **Dependencies:** K3
+**Breaks:** None (additive)
+
+---
+
+### K4.5: Update Oikos If Newer Praxis
+
+**File:** `genesis/politeia/praxeis/politeia.yaml`
+
+Add helper praxis for version-aware oikos updates:
+
+```yaml
+- eidos: praxis
+  id: praxis/politeia/update-oikos-if-newer
+  data:
+    oikos: politeia
+    name: update-oikos-if-newer
+    visible: false
+    tier: 2
+    description: |
+      Update an oikos if the distributed version is newer than installed.
+      Uses semver comparison (major.minor.patch).
+    params:
+      - name: oikos_prod_id
+        type: string
+        required: true
+      - name: installed_oikoi
+        type: array
+        required: true
+        description: List of currently installed oikos entities
+    steps:
+      # Find the distributed oikos-prod
+      - step: find
+        id: "$oikos_prod_id"
+        bind_to: oikos_prod
+
+      - step: assert
+        condition: "$oikos_prod"
+        message: "Oikos-prod not found: $oikos_prod_id"
+
+      # Find matching installed oikos by name
+      - step: filter
+        items: "$installed_oikoi"
+        condition: "$item.data.name == $oikos_prod.data.name"
+        bind_to: matching_installed
+
+      # If not installed at all, install it
+      - step: switch
+        cases:
+          - when: "{{ $matching_installed | length }} == 0"
+            then:
+              - step: call
+                praxis: politeia/install-oikos
+                params:
+                  oikos_prod_id: "$oikos_prod_id"
+              - step: return
+                value:
+                  action: "installed"
+                  oikos_prod_id: "$oikos_prod_id"
+                  version: "$oikos_prod.data.version"
+
+      # Compare versions using semver
+      - step: call
+        praxis: arche/compare-semver
+        params:
+          version_a: "$oikos_prod.data.version"
+          version_b: "{{ $matching_installed[0].data.version }}"
+        bind_to: version_comparison
+
+      # If distributed is newer, update
+      - step: switch
+        cases:
+          - when: "$version_comparison.result == 'greater'"
+            then:
+              - step: call
+                praxis: politeia/install-oikos
+                params:
+                  oikos_prod_id: "$oikos_prod_id"
+              - step: return
+                value:
+                  action: "updated"
+                  oikos_prod_id: "$oikos_prod_id"
+                  from_version: "{{ $matching_installed[0].data.version }}"
+                  to_version: "$oikos_prod.data.version"
+
+      - step: return
+        value:
+          action: "skipped"
+          oikos_prod_id: "$oikos_prod_id"
+          reason: "installed version is current or newer"
+          installed_version: "{{ $matching_installed[0].data.version }}"
+          distributed_version: "$oikos_prod.data.version"
+```
+
+**Dependencies:** K4
 **Breaks:** None (additive)
 
 ---
@@ -185,14 +373,29 @@ Modify `accept-invitation` to call `sync-circle-oikoi` after joining:
 
 ```yaml
 # Add to end of accept-invitation steps, before return:
-- step: call
-  praxis: politeia/sync-circle-oikoi
-  params:
-    circle_id: "$circle_id"
+# Note: sync errors do NOT block circle join - best effort
+- step: try
+  do:
+    - step: call
+      praxis: politeia/sync-circle-oikoi
+      params:
+        circle_id: "$circle_id"
+      bind_to: sync_result
+  catch:
+    - step: log
+      level: warn
+      message: "Oikos sync failed after joining circle: $_error"
+    - step: set
+      bind_to: sync_result
+      value:
+        error: "$_error"
+        oikoi_synced: 0
 ```
 
-**Dependencies:** K3, K4
+**Dependencies:** K3, K4, K4.5
 **Breaks:** None (extends existing)
+
+**Error Handling:** Sync failures are logged but do not prevent circle join. User can retry sync later.
 
 ---
 
@@ -204,14 +407,29 @@ Modify `verify-entry` to call `sync-circle-oikoi` after successful entry:
 
 ```yaml
 # Add after member-of bond creation:
-- step: call
-  praxis: politeia/sync-circle-oikoi
-  params:
-    circle_id: "$circle_id"
+# Note: sync errors do NOT block entry verification - best effort
+- step: try
+  do:
+    - step: call
+      praxis: politeia/sync-circle-oikoi
+      params:
+        circle_id: "$circle_id"
+      bind_to: sync_result
+  catch:
+    - step: log
+      level: warn
+      message: "Oikos sync failed after entry verification: $_error"
+    - step: set
+      bind_to: sync_result
+      value:
+        error: "$_error"
+        oikoi_synced: 0
 ```
 
-**Dependencies:** K3, K4
+**Dependencies:** K3, K4, K4.5
 **Breaks:** None (extends existing)
+
+**Error Handling:** Same as K5 - sync failures don't block entry.
 
 ---
 
@@ -246,29 +464,51 @@ Add reconciler or praxis for checking oikos updates on dwell:
 
       # Get locally installed oikoi
       - step: trace
-        from_id: "$circle_id"
+        from_id: "$_circle"
         desmos: "uses-oikos"
         direction: "outbound"
         bind_to: installed_oikoi
 
-      # Compare and update
+      # Track reconciliation results
+      - step: set
+        bind_to: reconcile_results
+        value: []
+
+      # Compare and update each
       - step: for_each
         items: "$distributed_oikoi"
         as: oikos_prod
         do:
-          - step: call
-            praxis: politeia/update-oikos-if-newer
-            params:
-              oikos_prod_id: "$oikos_prod.id"
-              installed_oikoi: "$installed_oikoi"
+          - step: try
+            do:
+              - step: call
+                praxis: politeia/update-oikos-if-newer
+                params:
+                  oikos_prod_id: "$oikos_prod.id"
+                  installed_oikoi: "$installed_oikoi"
+                bind_to: update_result
+              - step: append
+                to: "$reconcile_results"
+                value: "$update_result"
+            catch:
+              - step: append
+                to: "$reconcile_results"
+                value:
+                  action: "failed"
+                  oikos_prod_id: "$oikos_prod.id"
+                  error: "$_error"
 
       - step: return
         value:
           reconciled: true
           circle_id: "$circle_id"
+          results: "$reconcile_results"
+          updated: "{{ $reconcile_results | selectattr('action', 'eq', 'updated') | length }}"
+          installed: "{{ $reconcile_results | selectattr('action', 'eq', 'installed') | length }}"
+          failed: "{{ $reconcile_results | selectattr('action', 'eq', 'failed') | length }}"
 ```
 
-**Dependencies:** K3, K4
+**Dependencies:** K4.5
 **Breaks:** None (additive)
 
 ---
@@ -300,19 +540,82 @@ Define the primary distribution circle:
 
 ---
 
+### K9: Semver Comparison Praxis
+
+**File:** `genesis/arche/praxeis/arche.yaml`
+
+Add utility praxis for version comparison (used by K4.5):
+
+```yaml
+- eidos: praxis
+  id: praxis/arche/compare-semver
+  data:
+    oikos: arche
+    name: compare-semver
+    visible: false
+    tier: 1
+    description: |
+      Compare two semver version strings.
+      Returns: greater, equal, or less (a compared to b).
+    params:
+      - name: version_a
+        type: string
+        required: true
+      - name: version_b
+        type: string
+        required: true
+    steps:
+      # Parse versions into components
+      - step: eval
+        expression: |
+          {% set a_parts = version_a.split('.') %}
+          {% set b_parts = version_b.split('.') %}
+          {% set a_major = a_parts[0] | int %}
+          {% set a_minor = a_parts[1] | default('0') | int %}
+          {% set a_patch = a_parts[2] | default('0') | split('-')[0] | int %}
+          {% set b_major = b_parts[0] | int %}
+          {% set b_minor = b_parts[1] | default('0') | int %}
+          {% set b_patch = b_parts[2] | default('0') | split('-')[0] | int %}
+          {% if a_major > b_major %}greater
+          {% elif a_major < b_major %}less
+          {% elif a_minor > b_minor %}greater
+          {% elif a_minor < b_minor %}less
+          {% elif a_patch > b_patch %}greater
+          {% elif a_patch < b_patch %}less
+          {% else %}equal{% endif %}
+        bind_to: comparison_result
+
+      - step: return
+        value:
+          version_a: "$version_a"
+          version_b: "$version_b"
+          result: "$comparison_result"
+```
+
+**Dependencies:** None (utility)
+**Breaks:** None (additive)
+
+---
+
 ### Kosmos Execution Order
 
 ```
+K0: oikos-prod eidos definition
+ │
+ v
 K1: Circle kind simplification
  │
  v
-K2: Distributes desmos
- │
- v
-K3: sync-circle-oikoi praxis
- │
- v
-K4: install-oikos-if-needed praxis
+K2: Distributes desmos ←──────────────────┐
+ │                                        │
+ v                                        │
+K3: sync-circle-oikoi praxis              │
+ │                                        │
+ v                                        │
+K4: install-oikos-if-needed praxis        │
+ │                                        │
+ v                                        │
+K4.5: update-oikos-if-newer praxis ←── K9: compare-semver
  │
  ├──────────────────┐
  v                  v
@@ -650,23 +953,92 @@ C9: Update notification UI
 
 ---
 
+## Edge Cases and Error Handling
+
+### Offline Mode
+
+**Scenario:** User joins circle but is offline when sync runs.
+
+**Handling:**
+- K3/K5/K6 use `try/catch` — sync failures don't block join
+- Failed syncs are logged with oikos_prod_id
+- UI should show "X oikoi pending sync" indicator
+- Reconciler (K7) will retry on next dwell when online
+
+### Partial Failure
+
+**Scenario:** Circle distributes 5 oikoi, 2 fail to install.
+
+**Handling:**
+- K3 continues through all oikoi (doesn't short-circuit)
+- Returns detailed results: `oikoi_synced`, `oikoi_failed`, per-oikos status
+- UI can show partial success: "3 of 5 oikoi installed"
+- User can manually retry failed oikoi
+
+### Version Rollback
+
+**Scenario:** Circle admin distributes bad oikos version, needs rollback.
+
+**Handling (not implemented in v1):**
+- Admin updates circle's `distributes` bond to point to older oikos-prod
+- Reconciler sees "newer" local version, does nothing (by design)
+- For emergency rollback: new praxis `force-install-oikos` that ignores version check
+- **Future work:** Add `oikos-history` entity to track version chain
+
+### Circular Dependencies
+
+**Scenario:** Oikos A depends on oikos B which depends on oikos A.
+
+**Handling:**
+- Current design doesn't model oikos dependencies explicitly
+- **Future work:** Add `depends-on` desmos between oikos-prod entities
+- Installation would need topological sort
+
+---
+
 ## Integration Testing
 
 After both plans complete:
 
-1. **Build bare Thyra** (substrate-only)
-2. **Create test circle** with distributed oikoi
-3. **Generate invitation link** from existing user
-4. **Test first-run flow**:
-   - Install bare Thyra
-   - Paste invitation link
-   - Video verify
-   - Join circle
-   - Verify oikoi install automatically
-5. **Test update flow**:
-   - Update circle's distributed oikos version
-   - Verify members receive update on dwell
+### Test 1: Fresh Install Flow
+
+1. **Build bare Thyra** (substrate-only feature)
+2. **Verify:** Only arche, propylon, hypostasis, politeia available
+3. **Generate invitation link** from existing user in kosmos-commons circle
+4. **Install bare Thyra** on test machine
+5. **Paste invitation link**
+6. **Complete video verification**
+7. **Verify:** Circle join succeeds
+8. **Verify:** Distributed oikoi now available locally
+
+### Test 2: Update Flow
+
+1. **Setup:** User already in kosmos-commons with oikos-prod/nous v1.0.0
+2. **Admin action:** Update kosmos-commons to distribute oikos-prod/nous v1.1.0
+3. **User action:** Dwell in kosmos-commons (triggers reconciler)
+4. **Verify:** nous updated to v1.1.0
+5. **Verify:** UI shows update notification (if prompted mode)
+
+### Test 3: Offline Resilience
+
+1. **Setup:** User with bare Thyra, offline
+2. **Action:** Paste invitation link (cached locally)
+3. **Verify:** Entry request created, pending sync
+4. **Action:** Go online, complete video verification
+5. **Verify:** Oikoi sync runs after entry completes
+6. **Verify:** If still offline at sync time, graceful failure logged
+
+### Test 4: Partial Failure Recovery
+
+1. **Setup:** Circle distributes 3 oikoi, one has invalid signature
+2. **Action:** Join circle
+3. **Verify:** 2 oikoi installed, 1 failed
+4. **Verify:** UI shows partial status
+5. **Admin action:** Fix invalid oikos signature
+6. **User action:** Dwell again (or manual retry)
+7. **Verify:** Failed oikos now installs
 
 ---
 
 *Drafted 2026-01-28*
+*Updated 2026-01-28: Added K0, K4.5, K9, error handling, edge cases, expanded tests*

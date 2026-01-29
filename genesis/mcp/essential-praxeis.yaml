@@ -23,7 +23,7 @@ essential:
 
   # === Knowledge ===
   - praxis/nous/crystallize-theoria  # Document insights
-  - praxis/nous/list-theoria         # Review knowledge
+  # list-theoria removed: use surface(eidos: "theoria") or call-praxis for structured queries
 
   # === Output ===
   - praxis/thyra/emit          # Write to filesystem

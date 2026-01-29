@@ -683,6 +683,66 @@ entities:
             type: string
 
   - eidos: eidos
+    id: eidos/stoicheion/try
+    data:
+      name: try
+      description: |
+        Error handling block. Execute steps in 'do', catch errors in 'catch'.
+        If an error occurs, $_error is bound in the catch block.
+      tier: 2
+      fields:
+        do:
+          type: array
+          required: true
+          description: "Steps to attempt"
+          items:
+            type: step
+        catch:
+          type: array
+          required: false
+          description: "Steps to execute if an error occurs. $_error contains error message."
+          items:
+            type: step
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind result of successful execution to"
+
+  - eidos: eidos
+    id: eidos/stoicheion/append
+    data:
+      name: append
+      description: "Append a value to an array variable"
+      tier: 2
+      fields:
+        to:
+          type: string
+          required: true
+          description: "Variable name of the array to append to"
+        value:
+          type: any
+          required: true
+          description: "Value to append"
+
+  - eidos: eidos
+    id: eidos/stoicheion/log
+    data:
+      name: log
+      description: "Log a message for debugging or audit"
+      tier: 2
+      fields:
+        message:
+          type: string
+          required: true
+          description: "Message to log (can include template expressions)"
+        level:
+          type: string
+          required: false
+          description: "Log level: debug, info, warn, error"
+          enum: ["debug", "info", "warn", "error"]
+          default: "info"
+
+  - eidos: eidos
     id: eidos/stoicheion/call
     data:
       name: call
@@ -866,3 +926,26 @@ entities:
           type: string
           required: false
           description: "Variable to bind result to"
+
+  - eidos: eidos
+    id: eidos/stoicheion/fetch_oikos
+    data:
+      name: fetch_oikos
+      description: |
+        Fetch and install an oikos-prod from a remote source.
+        Verifies signature against publisher pubkey, then installs content.
+        Used by circle distribution to install oikoi on join.
+      tier: 3
+      fields:
+        oikos_prod_id:
+          type: string
+          required: true
+          description: "Entity ID of the oikos-prod to fetch (e.g., 'oikos-prod/nous-1.0.0')"
+        verify_signature:
+          type: boolean
+          required: false
+          description: "Whether to verify Ed25519 signature (default: true)"
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind installation result to"

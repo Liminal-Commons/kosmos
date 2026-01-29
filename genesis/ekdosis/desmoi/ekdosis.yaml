@@ -1,0 +1,81 @@
+# Ekdosis Desmoi
+# Bond types for content publication and releases
+
+entities:
+
+# =============================================================================
+# PUBLICATION BONDS
+# =============================================================================
+
+- eidos: desmos
+  id: desmos/publishes
+  data:
+    name: publishes
+    description: "Persona publishes an oikos-release"
+    from_eidos: [persona]
+    to_eidos: [oikos-release]
+    cardinality: one-to-many
+    semantics: |
+      A persona can publish many releases.
+      This bond provides accountability for who published what.
+
+- eidos: desmos
+  id: desmos/releases
+  data:
+    name: releases
+    description: "Oikos-release contains an oikos-prod"
+    from_eidos: [oikos-release]
+    to_eidos: [oikos-prod]
+    cardinality: many-to-one
+    semantics: |
+      Each release points to exactly one oikos-prod.
+      Multiple releases can point to the same oikos-prod (e.g., same content, different channels).
+
+- eidos: desmos
+  id: desmos/published-to
+  data:
+    name: published-to
+    description: "Oikos-release is published to a channel"
+    from_eidos: [oikos-release]
+    to_eidos: [release-channel]
+    cardinality: many-to-one
+    semantics: |
+      Each release is published to exactly one channel.
+      Channels control update behavior for consumers.
+
+- eidos: desmos
+  id: desmos/succeeds
+  data:
+    name: succeeds
+    description: "Oikos-release supersedes a previous release"
+    from_eidos: [oikos-release]
+    to_eidos: [oikos-release]
+    cardinality: many-to-one
+    semantics: |
+      Creates a chain of releases for an oikos within a channel.
+      Enables rollback by traversing the chain backward.
+
+- eidos: desmos
+  id: desmos/attests
+  data:
+    name: attests
+    description: "Build attestation covers an oikos-prod"
+    from_eidos: [build-attestation]
+    to_eidos: [oikos-prod]
+    cardinality: one-to-one
+    semantics: |
+      Each attestation covers exactly one oikos-prod.
+      Provides cryptographic proof of build provenance.
+
+- eidos: desmos
+  id: desmos/distributed-by
+  data:
+    name: distributed-by
+    description: "Oikos-release is distributed through a circle"
+    from_eidos: [oikos-release]
+    to_eidos: [circle]
+    cardinality: many-to-many
+    semantics: |
+      A release can be distributed through many circles.
+      A circle can distribute many releases.
+      Members of the circle receive releases via the oikos reconciler.

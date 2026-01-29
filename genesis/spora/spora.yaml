@@ -1295,8 +1295,12 @@ stages:
                 required: true
               kind:
                 type: enum
-                values: [self, intimate, community, public]
+                values: [self, peer, commons]
                 required: true
+                description: |
+                  - self: Individual dwelling
+                  - peer: Collaborative creation (cannot distribute externally)
+                  - commons: Distribution circle (grants oikoi + attainments)
               description:
                 type: string
                 required: false
@@ -1352,8 +1356,8 @@ stages:
           id: circle/kosmos
           data:
             name: Kosmos
-            kind: public
-            description: "The root public circle — visible to all dwellers"
+            kind: commons
+            description: "The root commons circle — distributes oikoi to all dwellers"
 
       # Membership bonds
       - bond:

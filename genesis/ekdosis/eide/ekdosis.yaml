@@ -1,0 +1,153 @@
+# Ekdosis Eide
+# Content publication and release entity types
+
+entities:
+
+# =============================================================================
+# RELEASE ENTITIES
+# =============================================================================
+
+- eidos: eidos
+  id: eidos/oikos-release
+  data:
+    name: oikos-release
+    description: |
+      A versioned publication of an oikos-prod.
+      Releases track what was published, when, by whom, and to which channels.
+      Note: Named oikos-release to distinguish from dynamis/release (binary releases).
+    fields:
+      version:
+        type: string
+        required: true
+        description: "Semantic version (e.g., 1.2.3)"
+      oikos_prod_id:
+        type: string
+        required: true
+        description: "ID of the oikos-prod being released"
+      channel:
+        type: enum
+        values: [stable, beta, alpha, canary]
+        required: true
+        description: "Release channel"
+      notes:
+        type: string
+        required: false
+        description: "Release notes or changelog"
+      published_at:
+        type: timestamp
+        required: true
+      publisher_persona:
+        type: string
+        required: true
+        description: "Persona ID of the publisher"
+
+- eidos: eidos
+  id: eidos/release-channel
+  data:
+    name: release-channel
+    description: |
+      A publication channel with update semantics.
+      Channels control how updates are delivered to consumers.
+    fields:
+      name:
+        type: string
+        required: true
+        description: "Channel name (stable, beta, alpha, canary)"
+      description:
+        type: string
+        required: false
+      auto_update:
+        type: boolean
+        required: true
+        description: "Whether consumers auto-update from this channel"
+      requires_attestation:
+        type: boolean
+        required: true
+        description: "Whether releases to this channel require build attestation"
+
+- eidos: eidos
+  id: eidos/build-attestation
+  data:
+    name: build-attestation
+    description: |
+      Cryptographic attestation of build provenance.
+      Provides verifiable proof of who built what, when, and from what source.
+    fields:
+      builder_persona:
+        type: string
+        required: true
+        description: "Persona ID of the builder"
+      build_timestamp:
+        type: timestamp
+        required: true
+      source_hash:
+        type: string
+        required: true
+        description: "BLAKE3 hash of the oikos-dev content"
+      output_hash:
+        type: string
+        required: true
+        description: "BLAKE3 hash of the oikos-prod content"
+      signature:
+        type: string
+        required: true
+        description: "Ed25519 signature of output_hash"
+      builder_pubkey:
+        type: string
+        required: true
+        description: "Public key of the builder"
+
+# =============================================================================
+# CHANNEL INSTANCES
+# =============================================================================
+
+- eidos: release-channel
+  id: release-channel/stable
+  data:
+    name: stable
+    description: "Production-ready releases. Auto-updates enabled."
+    auto_update: true
+    requires_attestation: true
+
+- eidos: release-channel
+  id: release-channel/beta
+  data:
+    name: beta
+    description: "Feature-complete releases for testing. Opt-in updates."
+    auto_update: false
+    requires_attestation: true
+
+- eidos: release-channel
+  id: release-channel/alpha
+  data:
+    name: alpha
+    description: "Experimental releases. Manual updates only."
+    auto_update: false
+    requires_attestation: false
+
+- eidos: release-channel
+  id: release-channel/canary
+  data:
+    name: canary
+    description: "Bleeding edge releases. For development testing."
+    auto_update: false
+    requires_attestation: false
+
+# =============================================================================
+# ATTAINMENTS
+# =============================================================================
+
+- eidos: attainment
+  id: attainment/publish
+  data:
+    name: publish
+    description: |
+      Capability to publish oikoi to circles.
+      Grants access to the bake → sign → upload → publish flow.
+    oikos: ekdosis
+    scope: circle
+    grants:
+      - praxis/ekdosis/bake-oikos
+      - praxis/ekdosis/sign-oikos
+      - praxis/ekdosis/upload-oikos
+      - praxis/ekdosis/publish-release

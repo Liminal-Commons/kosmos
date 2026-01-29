@@ -166,7 +166,7 @@ entities:
       Create a new circle (trust boundary).
     target_eidos: circle
     defaults:
-      kind: intimate
+      kind: peer
 
 - eidos: typos
   id: typos-def-persona
