@@ -1,5 +1,12 @@
 # Oikos Distribution via Circles
 
+> **Status: Superseded**
+>
+> The vision in this document remains valid. The implementation approach has evolved:
+> **Distribution = Federation**. See KOSMOGONIA.md "The Distribution Model" for the canonical design.
+>
+> Key change: Oikos distribution is not a special mechanism — it uses the same continuous federation sync that handles all content (expressions, theoria, ergon). No separate fetch/install infrastructure.
+
 *The app is ground. Circles are world.*
 
 ---
@@ -286,17 +293,17 @@ Other circles can distribute subsets or different versions:
 
 ---
 
-## Open Questions
+## Open Questions (Resolved)
 
-1. **Update trigger** — Eager, lazy (on-dwell), or prompted? Open to proposals.
+1. **Update trigger** — ✓ **Continuous federation sync**. The same mechanism that syncs expressions also syncs oikoi. This enables time-sensitive ergon execution through the same pipe.
 
-2. **Offline first-run** — What happens if user has no network? (Answer: they wait until they have connectivity and a link.)
+2. **Offline first-run** — ✓ User waits until they have connectivity and a link. No offline bootstrap.
 
-3. **Oikos dependencies** — If oikos A depends on oikos B, how is this expressed and resolved?
+3. **Oikos dependencies** — Still open. Consider `depends-on` desmos between oikos-prod entities.
 
-4. **Signature verification** — How does bare Thyra verify oikos-prod signatures without already having the signing circle's pubkey?
+4. **Signature verification** — ✓ Federation carries trust. Content arriving through the bond graph has provenance.
 
-5. **Graduation criteria** — What makes an oikos "mature enough" to move into the substrate?
+5. **Graduation criteria** — Still open. What makes an oikos "mature enough" to move into the substrate?
 
 ---
 

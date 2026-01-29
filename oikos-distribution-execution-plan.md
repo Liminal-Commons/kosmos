@@ -1,5 +1,13 @@
 # Oikos Distribution Execution Plan
 
+> **Status: Partially Superseded**
+>
+> The **Kosmos (K-series)** ontology work remains valid — circle kinds, `distributes` desmos, praxeis.
+>
+> The **Chora (C-series)** implementation approach is superseded. Distribution should use **federation sync**, not a separate fetch/install infrastructure. The same mechanism that syncs expressions and theoria also delivers oikoi.
+>
+> See KOSMOGONIA.md "The Distribution Model" for the canonical design.
+
 Implementation plans for [oikos-distribution-via-circles.md](oikos-distribution-via-circles.md).
 
 ---
@@ -633,6 +641,21 @@ K8: Kosmos commons circle definition
 ---
 
 ## Chora Execution Plan
+
+> **⚠️ Superseded Approach**
+>
+> The tasks below describe a dedicated fetch/install infrastructure for oikoi. This is superseded by the federation model: oikos-prod entities sync through the same continuous federation mechanism as all content.
+>
+> **What remains valid:**
+> - C1: Substrate manifest (✓ exists as `substrate-manifest.yaml`)
+> - C5: Signature verification concept (federation carries trust)
+>
+> **What's superseded:**
+> - C2-C4: Separate bootstrap/fetch/install logic → use federation sync
+> - C6: Dedicated oikos reconciler → use general federation reconciler
+> - C7-C9: Build config and UI → defer until federation exists
+>
+> The implementation path is now: **build federation sync → oikos distribution falls out naturally**
 
 All work in `chora/`. Rust + TypeScript implementation.
 
