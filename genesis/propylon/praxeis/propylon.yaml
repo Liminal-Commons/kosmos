@@ -602,6 +602,14 @@ entities:
           animus_id: "$animus_id"
           authenticated_at: "{{ now() }}"
 
+      # Sync oikoi distributed by this circle (non-blocking)
+      # If sync fails, entry still succeeds - user can sync manually later
+      - step: call
+        praxis: "politeia/sync-circle-oikoi"
+        params:
+          circle_id: "$session.data.circle_id"
+        bind_to: sync_result
+
       # Get connection info for P2P handoff
       - step: set
         bindings:
@@ -624,6 +632,7 @@ entities:
           animus_id: "$animus_id"
           circle_id: "$session.data.circle_id"
           connection_info: "$connection_info"
+          oikoi_synced: "$sync_result.oikoi_synced"
 
 # =============================================================================
 # LINK MANAGEMENT
@@ -1057,3 +1066,210 @@ entities:
             2. Enter your 24-word mnemonic
             3. Paste this link when prompted
             4. Your devices will sync automatically
+
+# =============================================================================
+# SESSION TOKEN (Cross-Process Auth)
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/propylon/create-session-token
+  data:
+    oikos: propylon
+    name: create-session-token
+    visible: false
+    tier: 1
+    description: |
+      Create a JWT session token for cross-process authentication.
+
+      Called by Thyra on keyring unlock. The token is written to the OS
+      credential store (macOS Keychain, Windows Credential Manager, Linux
+      Secret Service) where other processes (MCP, CLI) can read it.
+
+      The token encodes:
+      - persona_id (who is authenticated)
+      - circles (accessible circle IDs)
+      - attainments (unlocked capabilities)
+      - issued_at, expires_at (validity window)
+      - signature (Ed25519 over payload)
+    params:
+      - name: persona_id
+        type: string
+        required: true
+        description: Authenticated persona's ID
+      - name: circles
+        type: array
+        required: true
+        description: Circle IDs this session can access
+      - name: attainments
+        type: array
+        required: false
+        description: Unlocked attainments
+      - name: ttl_hours
+        type: number
+        required: false
+        description: Token lifetime in hours (default 24)
+    steps:
+      # Get signing key from session
+      - step: call
+        praxis: hypostasis/get-session-key
+        params: {}
+        bind_to: keypair
+
+      - step: assert
+        condition: "$keypair.private_key"
+        message: "No session key available - keyring may be locked"
+
+      # Build token payload
+      - step: set
+        bindings:
+          issued_at: "{{ now() }}"
+          expires_at: "{{ timestamp_add_hours(now(), $ttl_hours || 24) }}"
+          payload:
+            persona_id: "$persona_id"
+            circles: "$circles"
+            attainments: "$attainments || []"
+            issued_at: "$issued_at"
+            expires_at: "$expires_at"
+
+      # Sign the payload
+      - step: set
+        bindings:
+          payload_json: "{{ json_encode($payload) }}"
+
+      - step: call
+        praxis: hypostasis/sign-content
+        params:
+          content: "$payload_json"
+          private_key: "$keypair.private_key"
+        bind_to: signature_result
+
+      # Create token entity for audit trail
+      - step: set
+        bindings:
+          token_id: "session-token/{{ uuid() }}"
+
+      - step: compose
+        typos_id: "typos-def-session-token"
+        inputs:
+          id: "$token_id"
+          persona_id: "$persona_id"
+          circles: "$circles"
+          attainments: "$attainments || []"
+          issued_at: "$issued_at"
+          expires_at: "$expires_at"
+          signature: "$signature_result.signature"
+        bind_to: token_entity
+
+      # Bond token to persona
+      - step: bind
+        desmos: issued-token
+        from: "$persona_id"
+        to: "$token_id"
+
+      # Encode as JWT-like structure: base64url(payload).base64url(signature)
+      - step: set
+        bindings:
+          encoded_payload: "{{ base64url_encode($payload_json) }}"
+          encoded_signature: "{{ base64url_encode($signature_result.signature) }}"
+          token: "{{ $encoded_payload }}.{{ $encoded_signature }}"
+
+      - step: return
+        value:
+          token: "$token"
+          token_id: "$token_id"
+          expires_at: "$expires_at"
+
+- eidos: praxis
+  id: praxis/propylon/validate-session-token
+  data:
+    oikos: propylon
+    name: validate-session-token
+    visible: false
+    tier: 1
+    description: |
+      Validate a JWT session token and extract session context.
+
+      Called by MCP server on startup. Reads token from OS credential store,
+      validates signature against persona's public key, checks expiry.
+
+      On success, returns session context that can be used to initialize
+      DwellingState with the authenticated persona's scope.
+    params:
+      - name: token
+        type: string
+        required: true
+        description: The encoded session token
+    steps:
+      # Split token into payload and signature
+      - step: set
+        bindings:
+          parts: "{{ split($token, '.') }}"
+
+      - step: assert
+        condition: "{{ length($parts) == 2 }}"
+        message: "Invalid token format"
+
+      # Decode payload
+      - step: set
+        bindings:
+          payload_json: "{{ base64url_decode($parts[0]) }}"
+          payload: "{{ json_decode($payload_json) }}"
+          signature: "{{ base64url_decode($parts[1]) }}"
+
+      # Check expiry
+      - step: set
+        bindings:
+          now: "{{ now() }}"
+          expired: "{{ timestamp_before($payload.expires_at, $now) }}"
+
+      - step: switch
+        cases:
+          - when: "$expired == true"
+            then:
+              - step: return
+                value:
+                  valid: false
+                  error: "Session token has expired"
+
+      # Get persona's public key
+      - step: find
+        id: "$payload.persona_id"
+        bind_to: persona
+
+      - step: switch
+        cases:
+          - when: "!$persona"
+            then:
+              - step: return
+                value:
+                  valid: false
+                  error: "Persona not found"
+
+      # Verify signature
+      - step: call
+        praxis: hypostasis/verify-signature
+        params:
+          message: "$payload_json"
+          signature: "$signature"
+          public_key: "$persona.data.pubkey"
+        bind_to: sig_result
+
+      - step: switch
+        cases:
+          - when: "$sig_result.valid == false"
+            then:
+              - step: return
+                value:
+                  valid: false
+                  error: "Invalid token signature"
+
+      # Return session context
+      - step: return
+        value:
+          valid: true
+          persona_id: "$payload.persona_id"
+          persona_name: "$persona.data.name"
+          circles: "$payload.circles"
+          attainments: "$payload.attainments"
+          issued_at: "$payload.issued_at"
+          expires_at: "$payload.expires_at"

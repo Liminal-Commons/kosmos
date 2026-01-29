@@ -1,373 +1,507 @@
-# Dynamis: Existence and Actuality
+# Dynamis Design
 
-*A design for the bridge between kosmos intention and chora actuality.*
+δύναμις (dýnamis) — power, potency, the capacity for change
 
-> **Note:** For consolidated architectural concepts (reconciliation loops, actuality modes, phylax pattern), see [../ARCHITECTURE.md](../ARCHITECTURE.md). This document covers dynamis-specific implementation details.
+## Ontological Purpose
 
----
-
-## Implementation Status
-
-| Component | Status | Location |
-|-----------|--------|----------|
-| DESIGN.md | ✅ Complete | `genesis/dynamis/DESIGN.md` |
-| Eide (release, release-artifact, substrate, distribution-channel, deployment, actuality-record) | ✅ Complete | `genesis/dynamis/eide/dynamis.yaml` |
-| Desmoi (10 bonds) | ✅ Complete | `genesis/dynamis/desmoi/dynamis.yaml` |
-| Praxeis (16 praxeis) | ✅ Complete | `genesis/dynamis/praxeis/dynamis.yaml` |
-| Reconcilers (deployment, release-artifact) | ✅ Complete | `genesis/dynamis/reconcilers/dynamis.yaml` |
-| Actuality modes (6 modes) | ✅ Complete | `genesis/dynamis/actuality-modes/dynamis.yaml` |
-| Generated dispatch | ✅ Complete | `crates/kosmos/src/actuality_modes.rs` |
-| Energeia R2 mode | ✅ Complete | `crates/kosmos/src/r2.rs` |
-| E2E Testing | ✅ Complete | distribute → sense → reconcile flow tested |
-
-### Pillar Alignment Status
-
-| Pillar | Current State | Target State |
-|--------|---------------|--------------|
-| **Schema-driven** | ✅ Actuality modes generate dispatch | ✅ Complete |
-| **Graph-driven** | ✅ Pure bonds, no embedded refs | ✅ Complete |
-| **Cache-driven** | ✅ Composition via definitions | ✅ Complete |
-| **Declarative** | ✅ Reconcilers as entities | ✅ Complete |
-
-All pillar alignment complete. See [ROADMAP.md](ROADMAP.md) for the completed alignment work.
-
----
-
-## The Problem
-
-The kosmos holds intention. Chora receives actuality. Between them lies dynamis — the bridge that manifests, senses, and reconciles.
+Dynamis addresses **the gap between intention and actuality** — the distance between what should exist and what actually does exist in the substrate.
 
 Without dynamis:
 - Releases exist only as ideas, never as downloadable binaries
-- Deployments have no coherent lifecycle
-- External infrastructure (Workers, R2, DNS) floats outside kosmos understanding
+- Deployments have no coherent lifecycle management
+- External infrastructure floats outside kosmos understanding
+- There's no feedback loop between intent and reality
 
-**Dynamis is where kosmos intention becomes chora actuality.**
+With dynamis:
+- **Releases**: Versioned artifacts that manifest into distribution channels
+- **Substrates**: Target platforms where software runs
+- **Distribution channels**: Pathways for releases to reach users
+- **Deployments**: Running instances that can be sensed and reconciled
+- **Actuality records**: Audit trail of what actually exists
 
----
+The phylax pattern (sense → compare → act) is the fundamental rhythm of dynamis.
 
-## Philosophical Foundation
+## Circle Context
 
-### Existence vs Actuality
+### Self Circle
 
-This distinction is constitutional:
+A solitary dweller uses dynamis to:
+- Create releases for personal projects
+- Track which binaries are uploaded where
+- Monitor deployment status
+- Reconcile drift between intent and actuality
 
-| Aspect | Existence (κόσμος) | Actuality (χώρα) |
-|--------|-------------------|------------------|
-| Nature | The entity in kosmos | The manifestation in substrate |
-| Persistence | Always present once created | May come and go |
-| Authority | Kosmos is source of truth | Chora is site of effect |
-| Example | `release/thyra-0.1.0-mac` entity | The bytes in R2 bucket |
+Personal infrastructure becomes visible and manageable.
 
-An entity can exist without being actual (a release that hasn't been uploaded).
-An actuality can drift from its entity (someone manually deleted the file).
-Reconciliation brings them into alignment.
+### Peer Circle
 
-### The Reconciler Pattern
+Collaborators use dynamis to:
+- Coordinate release schedules
+- Share distribution channels
+- Track who deployed what and when
+- Maintain shared deployment infrastructure
 
-Every entity with actuality follows the phylax pattern:
+The provenance chain shows who actualized what.
 
-```
-sense()     → What is the actual state in chora?
-compare()   → Does it match the entity's desired state?
-act()       → Manifest, update, or unmanifest to align
-```
+### Commons Circle
 
-This is not just error correction — it's the fundamental rhythm of how kosmos governs chora.
+A commons circle uses dynamis to:
+- Publish official releases to public channels
+- Maintain community infrastructure
+- Define canonical substrates for the ecosystem
+- Audit distribution integrity
 
----
+Dynamis serves as the infrastructure layer for oikos distribution.
 
-## Architecture
+## Core Entities (Eide)
 
-### The Dynamis Stack
+### release
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                     KOSMOS (intention)                   │
-│  ┌──────────┐  ┌───────────┐  ┌────────────┐            │
-│  │ release  │  │ substrate │  │ deployment │  entities  │
-│  └────┬─────┘  └─────┬─────┘  └─────┬──────┘            │
-└───────┼──────────────┼──────────────┼───────────────────┘
-        │              │              │
-        ▼              ▼              ▼
-┌───────────────────────────────────────────────────────┐
-│                    DYNAMIS (bridge)                     │
-│                                                         │
-│   manifest()  ─────►  CHORA  ◄─────  sense()          │
-│                         │                              │
-│                   reconcile()                          │
-└───────────────────────────────────────────────────────┘
-        │              │              │
-        ▼              ▼              ▼
-┌───────────────────────────────────────────────────────┐
-│                     CHORA (actuality)                   │
-│                                                         │
-│  ┌─────────┐   ┌───────────┐   ┌─────────────────┐    │
-│  │  R2     │   │ Cloudflare│   │ Local Filesystem│    │
-│  │ bucket  │   │  Workers  │   │    (builds)     │    │
-│  └─────────┘   └───────────┘   └─────────────────┘    │
-└───────────────────────────────────────────────────────┘
-```
+A versioned build artifact — what will be distributed.
 
-### Core Eide
+**Fields:**
+- `name` — Release name (e.g., 'thyra')
+- `version` — Semantic version
+- `status` — Lifecycle state (draft, building, built, distributing, distributed, failed, deprecated)
+- `description`, `changelog` — Documentation
+- `build_commit`, `build_timestamp`, `build_command` — Build provenance
+- `distributed_at`, `distribution_channels` — Distribution tracking
 
-| Eidos | What It Is | Actuality Mode |
-|-------|------------|----------------|
-| `release` | A versioned build artifact | object-storage (R2) |
-| `release-artifact` | Individual file within release | object-storage (R2) |
-| `substrate` | A target platform/environment | conceptual (no direct actuality) |
-| `deployment` | A release manifested to a target | multi-mode (varies by target) |
-| `distribution-channel` | A way releases reach users | provider-specific |
-| `actuality-record` | Snapshot of sensed state | audit (no actuality) |
+**Lifecycle:**
+- Arise: create-release in draft state
+- Change: register-artifact adds files, mark-release-built readies for distribution
+- Actualize: distribute-release uploads to channels
+- Depart: Deprecated when superseded
 
----
+### release-artifact
 
-## Pillar Alignment Analysis
+Individual file within a release — a platform-specific binary.
 
-### Current: Schema-Driven Gap
+**Fields:**
+- `filename` — Artifact filename
+- `artifact_type` — binary, checksum, signature, archive, installer, metadata
+- `platform` — Target platform
+- `size_bytes`, `content_hash`, `mime_type` — File metadata
+- `uploaded`, `uploaded_at`, `upload_url` — Actuality tracking
+- `local_path`, `built_at` — Build origin
 
-**What exists:**
+**Lifecycle:**
+- Arise: register-artifact creates linked to release
+- Actualize: distribute-release uploads via energeia
+- Sense: sense-release checks if artifact exists in channel
+
+### substrate
+
+Target platform or environment — where software runs.
+
+**Fields:**
+- `name` — Substrate identifier (e.g., 'mac-arm64')
+- `kind` — platform, runtime, or environment
+- `os`, `arch` — For platform substrates
+- `runtime_type` — For runtime substrates
+- `environment_type` — For environment substrates
+- `parent_substrate` — Hierarchy support
+- `active` — Whether actively targeted
+
+**Lifecycle:**
+- Arise: create-substrate defines target
+- Change: May be deactivated
+- No actuality: Substrates are conceptual categories
+
+### distribution-channel
+
+Pathway for releases to reach users — the "where" of distribution.
+
+**Fields:**
+- `name` — Channel identifier
+- `provider` — r2, github, homebrew, npm, crates, direct
+- `config` — Provider-specific configuration
+- `base_url` — Download URL
+- `status` — active, paused, deprecated
+
+**Lifecycle:**
+- Arise: create-distribution-channel with provider config
+- Actualize: Provider-specific (R2 uses object-storage mode)
+- Change: May be paused or deprecated
+
+### deployment
+
+Manifestation of release to target — running instances.
+
+**Fields:**
+- `name` — Deployment identifier
+- `desired_state` — running, stopped, removed (intent)
+- `actual_state` — unknown, running, stopped, degraded, failed, removed (sensed)
+- `manifest_handle` — Process ID or deployment handle
+- `last_sensed_at`, `last_reconciled_at` — Actuality tracking
+- `deployed_at`, `deployed_by` — Deployment metadata
+
+**Relationships via bonds:**
+- `deploys-release` → release being deployed
+- `targets` → substrate being deployed to
+- `uses-channel` → distribution channel (optional)
+
+**Lifecycle:**
+- Arise: create-deployment with release and substrate bonds
+- Actualize: manifest-deployment brings into running state
+- Sense: sense-deployment queries actual state
+- Reconcile: reconcile-deployment aligns intent with actuality
+
+### actuality-record
+
+Snapshot of sensed state — audit trail for reconciliation.
+
+**Fields:**
+- `entity_id` — Entity this was sensed for
+- `sensed_at` — When sensing occurred
+- `actual_state` — What was sensed
+- `details` — Provider-specific details
+- `expected_state` — What we expected
+- `aligned` — Whether actual matched expected
+- `drift_type` — none, missing, extra, different
+- `reconciliation_action` — Action taken or planned
+
+**Lifecycle:**
+- Arise: Created during sense operations
+- No actuality: Records are internal kosmos state
+
+## Bonds (Desmoi)
+
+### contains-artifact
+
+Release contains this artifact.
+
+- **From:** release
+- **To:** release-artifact
+- **Cardinality:** one-to-many
+- **Traversal:** Find all artifacts in a release
+
+### targets-substrate / targets
+
+Release or deployment targets this substrate.
+
+- **From:** release, deployment
+- **To:** substrate
+- **Cardinality:** many-to-many
+- **Traversal:** Find what targets a substrate
+
+### distributed-via
+
+Release is distributed through this channel.
+
+- **From:** release
+- **To:** distribution-channel
+- **Cardinality:** many-to-many
+- **Traversal:** Find distribution channels for a release
+
+### deploys-release
+
+Deployment manifests this release.
+
+- **From:** deployment
+- **To:** release
+- **Cardinality:** many-to-one
+- **Traversal:** Find what release a deployment runs
+
+### uses-channel / through-channel
+
+Deployment uses this distribution channel.
+
+- **From:** deployment
+- **To:** distribution-channel
+- **Cardinality:** many-to-one
+- **Traversal:** Find channel for a deployment
+
+### has-actuality
+
+Entity has this actuality record.
+
+- **From:** any entity
+- **To:** actuality-record
+- **Cardinality:** one-to-many
+- **Traversal:** Find actuality history for an entity
+
+### substrate-of
+
+Substrate is a child of parent substrate.
+
+- **From:** substrate
+- **To:** substrate
+- **Cardinality:** many-to-one
+- **Traversal:** Navigate substrate hierarchy
+
+### succeeds-release / supersedes-release
+
+Release succession chain.
+
+- **From:** release
+- **To:** release
+- **Cardinality:** one-to-one
+- **Traversal:** Find release lineage
+
+## Operations (Praxeis)
+
+### create-release
+
+Create a new release in draft state.
+
+- **When:** Starting a release cycle
+- **Requires:** release attainment
+- **Provides:** Release entity with provenance
+
+### register-artifact
+
+Register a build artifact with a release.
+
+- **When:** Build produces artifacts
+- **Requires:** release attainment
+- **Provides:** Artifact entity bonded to release
+
+### mark-release-built
+
+Mark a release as ready for distribution.
+
+- **When:** All artifacts are registered
+- **Requires:** release attainment
+- **Provides:** Status update to 'built'
+
+### distribute-release
+
+Distribute a release through a channel (actualize).
+
+- **When:** Release is built and ready
+- **Requires:** distribute attainment
+- **Provides:** Uploaded artifacts with URLs
+
+### sense-release
+
+Sense actual state of release in channels.
+
+- **When:** Checking distribution status
+- **Requires:** distribute attainment
+- **Provides:** Actuality records with drift detection
+
+### reconcile-release
+
+Reconcile release intent with actuality.
+
+- **When:** Drift detected or on schedule
+- **Requires:** distribute attainment
+- **Provides:** Reconciled state, actions taken
+
+### create-substrate
+
+Create a substrate definition.
+
+- **When:** Defining target platforms
+- **Requires:** substrate attainment
+- **Provides:** Substrate entity
+
+### create-distribution-channel
+
+Create a distribution channel.
+
+- **When:** Setting up distribution pathways
+- **Requires:** channel attainment
+- **Provides:** Channel entity with provider config
+
+### create-deployment
+
+Create a deployment target.
+
+- **When:** Setting up where releases run
+- **Requires:** deploy attainment
+- **Provides:** Deployment entity with bonds
+
+### manifest-deployment
+
+Bring a deployment into actuality.
+
+- **When:** Starting a service
+- **Requires:** deploy attainment
+- **Provides:** Running deployment with handle
+
+### sense-deployment
+
+Sense actual state of deployment.
+
+- **When:** Checking deployment health
+- **Requires:** deploy attainment
+- **Provides:** Actual state, alignment status
+
+### reconcile-deployment
+
+Reconcile deployment intent with actuality.
+
+- **When:** Drift detected or on schedule
+- **Requires:** deploy attainment
+- **Provides:** Reconciled state, actions taken
+
+### list-releases / list-substrates / list-distribution-channels
+
+Query operations for dynamis entities.
+
+- **When:** Exploring what exists
+- **Requires:** Respective attainments
+- **Provides:** Filtered entity lists
+
+### reconcile (generic)
+
+Generic reconciliation using declarative reconciler definition.
+
+- **When:** Any entity needs reconciliation
+- **Requires:** reconcile attainment
+- **Provides:** Declarative phylax execution
+
+## Attainments
+
+### attainment/release
+
+Release management capability — creating and tracking releases.
+
+- **Grants:** create-release, register-artifact, mark-release-built, list-releases
+- **Scope:** circle
+- **Rationale:** Release creation is a development act; distribution is separate
+
+### attainment/substrate
+
+Substrate management capability — defining target platforms.
+
+- **Grants:** create-substrate, list-substrates
+- **Scope:** circle
+- **Rationale:** Substrate definitions are infrastructure configuration
+
+### attainment/channel
+
+Distribution channel management — defining distribution pathways.
+
+- **Grants:** create-distribution-channel, list-distribution-channels
+- **Scope:** circle
+- **Rationale:** Channel configuration requires provider credentials
+
+### attainment/distribute
+
+Distribution actuality capability — uploading releases to channels.
+
+- **Grants:** distribute-release, sense-release, reconcile-release
+- **Scope:** circle
+- **Rationale:** Tier-3 actuality operations require explicit authorization
+
+### attainment/deploy
+
+Deployment management capability — running services.
+
+- **Grants:** create-deployment, manifest-deployment, sense-deployment, reconcile-deployment
+- **Scope:** circle
+- **Rationale:** Deployments affect external systems; requires authorization
+
+### attainment/reconcile
+
+Generic reconciliation capability — the phylax pattern.
+
+- **Grants:** reconcile
+- **Scope:** circle
+- **Rationale:** Reconciliation is a powerful actuality operation
+
+## Embodiment
+
+### Completeness Status
+
+| Level | Status |
+|-------|--------|
+| Defined | ✅ 6 eide, 11 desmoi, 16 praxeis |
+| Loaded | ✅ Bootstrap loads all definitions |
+| Projected | ✅ All praxeis visible as MCP tools |
+| Embodied | ⏳ Body-schema contribution pending |
+| Surfaced | ⏳ Reconciler not yet implemented |
+| Afforded | ⏳ Thyra deployment affordances pending |
+
+### Body-Schema Contribution
+
+When sense-body gathers dynamis state:
+
 ```yaml
-# In eidos definition — annotation only
 actuality:
-  mode: object-storage
-  provider: r2
-  config:
-    bucket: thyra-releases
+  releases:
+    total: 12
+    distributed: 8
+    pending_distribution: 2
+  deployments:
+    running: 3
+    stopped: 1
+    drifted: 1           # actual != desired
+  channels:
+    active: 2
+    paused: 0
+  last_reconciliation: "2026-01-28T10:30:00Z"
 ```
 
-This is documentation, not schema. The Rust handlers in `r2.rs` are hand-written.
+This reveals actuality status and pending reconciliation work.
 
-**Pillar-aligned approach:**
+### Reconciler
 
-Actuality modes as composable definitions:
+A dynamis reconciler would surface:
 
-```yaml
-- eidos: actuality-mode
-  id: actuality-mode/object-storage
-  data:
-    name: object-storage
-    operations:
-      manifest:
-        stoicheion: upload-object
-        params: [bucket, key, content]
-      sense:
-        stoicheion: head-object
-        params: [bucket, key]
-      unmanifest:
-        stoicheion: delete-object
-        params: [bucket, key]
-    config_schema:
-      bucket: { type: string, required: true }
-      key_pattern: { type: string, required: true }
-```
+- **Distribution gaps** — "Release thyra-0.2.0 is built but not distributed"
+- **Deployment drift** — "deployment/prod has drifted: desired=running, actual=stopped"
+- **Missing artifacts** — "release-artifact/thyra-0.2.0-mac has disappeared from R2"
+- **Stale sensing** — "deployment/staging hasn't been sensed in 24 hours"
 
-Then `build.rs` generates energeia dispatch from actuality-mode entities.
+## Compound Leverage
 
-### Current: Graph-Driven Gap
+### amplifies demiurge
 
-**What exists:**
-```yaml
-# In deployment eidos — embedded references
-fields:
-  release_id:
-    type: string
-    required: true
-  target_substrate:
-    type: string
-    required: true
-```
+Oikos-prod packages flow through distribution channels. Baked packages become distributable releases.
 
-Relationships stored as both embedded strings AND bonds. This violates visibility = reachability.
+### amplifies ekdosis
 
-**Pillar-aligned approach:**
+Content publication uses dynamis patterns for object-storage actuality.
 
-Pure bonds, no embedded references:
+### amplifies politeia
 
-```yaml
-# Deployment eidos — no reference fields
-fields:
-  name: { type: string, required: true }
-  desired_state: { type: enum, values: [running, stopped, removed] }
-  actual_state: { type: enum, values: [unknown, running, stopped, failed] }
-  # NO release_id, target_substrate, channel_id
-```
+Distribution channels may be circle-scoped. Who can distribute requires governance.
 
-Relationships via bonds only:
-- `deploys-release` (deployment → release)
-- `targets` (deployment → substrate)
-- `uses-channel` (deployment → distribution-channel)
+### amplifies hypostasis
 
-Query via trace, not field access:
-```yaml
-- step: trace
-  from_id: "$deployment.id"
-  desmos: deploys-release
-  bind_to: release_bond
-```
+Signing releases for authenticity verification.
 
-### Current: Cache-Driven Gap
+### amplifies dokimasia
 
-**What exists:**
-```yaml
-# Direct arise — no composition
-- step: arise
-  eidos: release
-  id: "release/{{ $name }}-{{ $version }}"
-  data:
-    name: "$name"
-    version: "$version"
-    status: draft
-```
+Actuality sensing provides validation data. Reconciliation checks become validation rules.
 
-No provenance chain. No cache check. No dependency tracking.
+## Theoria
 
-**Pillar-aligned approach:**
+### T44: Actuality is sensed, not assumed
 
-Entity definitions for composition:
+The distinction between existence (kosmos entity) and actuality (chora state) is constitutional. Entities can exist without being actual. Actuality can drift from entities. Sensing closes the gap.
 
-```yaml
-- eidos: entity-definition
-  id: entity-definition/release
-  data:
-    target_eidos: release
-    id_pattern: "release/{{ name }}-{{ version }}"
-    defaults:
-      status: draft
-    computed:
-      created_at: "{{ now() }}"
-    required: [name, version]
-```
+### T45: Reconciliation is declarative, not procedural
 
-Praxis uses composition:
-```yaml
-- step: compose
-  typos_id: "typos/release"
-  inputs:
-    name: "$name"
-    version: "$version"
-  bind_to: release
-```
+The phylax pattern (sense → compare → act) should be declared as reconciler entities, not coded as procedures. Adding reconciliation logic means editing definitions, not code.
 
-This gives:
-- `composed-from` bond for provenance
-- Content hash for identity
-- Cache hit on same inputs
-- Dependency tracking for freshness
+### T46: Distribution channels are typed pathways
 
----
+A channel isn't just a URL — it's a typed pathway with provider-specific actuality modes. R2, GitHub, Homebrew each have their own manifestation patterns.
 
-## Declarative Reconciliation
+## Future Extensions
 
-### Current: Procedural
+### Auto-Reconciliation Daemons
 
-Each praxis contains reconciliation logic:
+Currently manual: call reconcile-* praxeis. Future: ergon daemons that reconcile on schedule.
 
-```yaml
-- step: sense_actuality
-  entity_id: "$deployment.id"
-  bind_to: sense_result
+### Multi-Region Distribution
 
-- step: switch
-  cases:
-    - when: "$deployment.data.desired_state == 'running' && $sense_result.status != 'running'"
-      then:
-        - step: manifest
-          entity_id: "$deployment.id"
-```
+Current: single region per channel. Future: distribute-release with region replication.
 
-### Pillar-Aligned: Declarative
+### Rollback Support
 
-Reconcilers as entities:
+Current: manual revert. Future: deployment rollback to previous release via succeeds-release bonds.
 
-```yaml
-- eidos: reconciler
-  id: reconciler/deployment
-  data:
-    target_eidos: deployment
-    intent_field: desired_state
-    actuality_field: actual_state
-    transitions:
-      - intent: running
-        actual: [stopped, unknown, failed]
-        action: manifest
-      - intent: stopped
-        actual: running
-        action: unmanifest
-      - intent: removed
-        actual: [running, stopped]
-        action: unmanifest
-```
+### Health Checks
 
-Generic reconciliation praxis:
-```yaml
-- step: call
-  praxis: ergon/reconcile
-  params:
-    reconciler_id: "reconciler/deployment"
-    entity_id: "$deployment.id"
-```
-
-The logic is declared, not coded. Adding transitions = editing reconciler entity.
-
----
-
-## Key Desmoi
-
-| Desmos | From | To | Meaning |
-|--------|------|-----|--------|
-| `contains-artifact` | release | release-artifact | Release includes this artifact |
-| `targets` | release | substrate | Release targets this platform |
-| `distributed-via` | release | distribution-channel | Release available through channel |
-| `deploys-release` | deployment | release | Deployment manifests this release |
-| `targets` | deployment | substrate | Deployment targets this substrate |
-| `has-actuality` | entity | actuality-record | Entity's sensed state snapshot |
-| `composed-from` | entity | entity-definition | Provenance (pillar-aligned) |
-
----
-
-## Integration Points
-
-### Ergon (Work)
-
-The `ergon/reconcile` praxis will become the universal reconciler:
-- Takes a reconciler definition + entity
-- Senses actuality
-- Applies transition rules
-- Records result
-
-### Demiurge (Composition)
-
-Entity definitions for dynamis eide will flow through demiurge:
-- `entity-definition/release`
-- `entity-definition/deployment`
-- `entity-definition/distribution-channel`
-
-### Dokimasia (Validation)
-
-Actuality reconciliation creates validation opportunities:
-- Sense result validates against expected schema
-- Drift detection validates actuality alignment
-- Provenance chain validates composition
-
----
-
-## Summary
-
-Dynamis bridges kosmos intention and chora actuality through:
-
-- **Eide** that represent releases, substrates, deployments
-- **Desmoi** that connect them (bonds only, no embedded refs)
-- **Praxeis** that manifest, sense, and reconcile
-- **Reconcilers** as declarative transition definitions
-- **Composition** for provenance and caching
-
-The existence/actuality distinction is constitutional. The three pillars ensure:
-- **Schema-driven**: Actuality modes generate handlers
-- **Graph-driven**: Relationships are bonds, visibility = reachability
-- **Cache-driven**: Composition provides provenance and caching
+Current: simple sense. Future: health check definitions with degradation thresholds.
 
 ---
 
 *Composed in service of the kosmogonia.*
-*Traces to: expression/genesis-root*
+*The power to actualize. The capacity to sense. The rhythm of reconciliation.*

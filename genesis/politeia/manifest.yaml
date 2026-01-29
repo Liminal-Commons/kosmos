@@ -51,6 +51,13 @@ provides:
     - invitation
     - membership-event
 
+  attainments:
+    - govern              # Create circles, manage attainments
+    - invite              # Invite others to circles
+    - distribute          # Distribute oikoi through circles
+    - hud                 # Create and manage HUD regions and affordances
+    - admin               # Administrative operations (bypass governance)
+
   desmoi:
     # Governance bonds
     - sovereign-to

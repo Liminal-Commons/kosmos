@@ -49,6 +49,10 @@ provides:
     - evaluation-criterion
     - criterion-result
 
+  attainments:
+    - manteia           # Core governed inference (schema-constrained generation)
+    - generate-meta     # Meta-level generation (praxis, step, typos)
+
   praxeis:
     - manteia/governed-inference
     - manteia/generate-entity

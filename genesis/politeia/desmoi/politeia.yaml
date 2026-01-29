@@ -113,3 +113,25 @@ entities:
       to_eidos: circle
       cardinality: many-to-one
       symmetric: false
+
+  # distributes — circle distributes an oikos-prod to its members
+  - eidos: desmos
+    id: desmos/distributes
+    data:
+      name: distributes
+      description: |
+        Circle distributes an oikos-prod to its members.
+        When a user joins a circle, they receive all oikoi the circle distributes.
+        Only commons circles can have this bond.
+
+        Version semantics:
+        - The oikos-prod entity contains a semver-compatible version field
+        - When a circle updates its distributes bond to a newer oikos-prod, members
+          receive the update on their next dwell (lazy update)
+        - Version comparison uses string equality; semver ordering is the publisher's
+          responsibility when naming oikos-prod entities
+        - oikos-prod IDs should include version: e.g., oikos-prod/nous-1.2.0
+      from_eidos: circle
+      to_eidos: oikos-prod
+      cardinality: many-to-many
+      symmetric: false

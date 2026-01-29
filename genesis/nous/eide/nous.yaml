@@ -159,3 +159,66 @@ entities:
         synthesized_at:
           type: timestamp
           required: true
+
+# =============================================================================
+# ATTAINMENTS
+# =============================================================================
+
+  - eidos: attainment
+    id: attainment/crystallize
+    data:
+      name: crystallize
+      description: |
+        Capability to create and manage theoria — the lifecycle of understanding.
+        Required to capture, confirm, and supersede crystallized insights.
+      oikos: nous
+      scope: circle
+      grants:
+        - praxis/nous/crystallize-theoria
+        - praxis/nous/confirm-theoria
+        - praxis/nous/supersede-theoria
+
+  - eidos: attainment
+    id: attainment/inquire
+    data:
+      name: inquire
+      description: |
+        Capability to open inquiries and create syntheses — questioning and combining.
+        Required to pose questions and bring together multiple understandings.
+      oikos: nous
+      scope: circle
+      grants:
+        - praxis/nous/open-inquiry
+        - praxis/nous/answer-inquiry
+        - praxis/nous/synthesize
+
+  - eidos: attainment
+    id: attainment/journey
+    data:
+      name: journey
+      description: |
+        Capability to create and manage journeys — teleological navigation.
+        Required to begin journeys, add waypoints, and track progress toward goals.
+      oikos: nous
+      scope: circle
+      grants:
+        - praxis/nous/begin-journey
+        - praxis/nous/embark-journey
+        - praxis/nous/add-waypoint
+        - praxis/nous/reach-waypoint
+        - praxis/nous/complete-journey
+        - praxis/nous/abandon-journey
+
+  - eidos: attainment
+    id: attainment/invoke
+    data:
+      name: invoke
+      description: |
+        Capability to activate nous via invocation — LLM integration with kosmos.
+        Required to use composed invocation patterns and multi-step reasoning.
+      oikos: nous
+      scope: circle
+      grants:
+        - praxis/nous/invoke
+        - praxis/nous/navigate
+        - praxis/nous/call-praxis

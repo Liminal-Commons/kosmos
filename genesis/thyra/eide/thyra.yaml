@@ -1,11 +1,13 @@
 # Thyra Eide
 # Portal/interface eide — streams, expressions, accumulation, signaling
 #
-# Extracted from spora.yaml stage-2-presence
+# Traces to: genesis/thyra/DESIGN.md
+# Authorized by: expression/genesis-root
 
-eide:
+entities:
   # stream — bounded media flow
-  - id: eidos/stream
+  - eidos: eidos
+    id: eidos/stream
     data:
       name: stream
       description: "Bounded media flow — voice, video, text, or document. Streams follow the reconciler pattern."
@@ -64,7 +66,8 @@ eide:
         mode: process  # Will be media when implemented
 
   # expression — intentional contribution (commitment boundary)
-  - id: eidos/expression
+  - eidos: eidos
+    id: eidos/expression
     data:
       name: expression
       description: "Intentional contribution — the commitment boundary. When ephemeral becomes durable."
@@ -116,7 +119,8 @@ eide:
           required: false
 
   # accumulation — buffer state for stream content
-  - id: eidos/accumulation
+  - eidos: eidos
+    id: eidos/accumulation
     data:
       name: accumulation
       description: "Buffer state for stream content awaiting commitment. Tracks raw transcripts, clarified content, and visual state."
@@ -186,7 +190,8 @@ eide:
           description: "Expression ID if committed"
 
   # utterance — VAD-bounded speech segment
-  - id: eidos/utterance
+  - eidos: eidos
+    id: eidos/utterance
     data:
       name: utterance
       description: "VAD-bounded speech segment — atomic unit of voice perception."
@@ -226,7 +231,8 @@ eide:
   # ─────────────────────────────────────────────────────────────
 
   # layout — top-level HUD structure
-  - id: eidos/layout
+  - eidos: eidos
+    id: eidos/layout
     data:
       name: layout
       description: "Top-level HUD structure — defines the arrangement of regions. Composed, not raw."
@@ -256,7 +262,8 @@ eide:
           required: true
 
   # panel — renderable content area
-  - id: eidos/panel
+  - eidos: eidos
+    id: eidos/panel
     data:
       name: panel
       description: "Renderable content area — surfaces entities within a region. The bridge between kosmos state and visual form."
@@ -312,7 +319,8 @@ eide:
           required: true
 
   # style-theme — visual styling
-  - id: eidos/style-theme
+  - eidos: eidos
+    id: eidos/style-theme
     data:
       name: style-theme
       description: "Visual styling — palette, density, and contextual appearance. Substrate interprets, chora receives."
@@ -350,7 +358,8 @@ eide:
           required: true
 
   # render-intent — reconciler intent for rendering
-  - id: eidos/render-intent
+  - eidos: eidos
+    id: eidos/render-intent
     data:
       name: render-intent
       description: "Reconciler intent for rendering — declares what should be visible. Follows the pattern: intent → sense → reconcile → render."
@@ -388,7 +397,8 @@ eide:
           required: false
 
   # workspace — open artifacts and focus state
-  - id: eidos/workspace
+  - eidos: eidos
+    id: eidos/workspace
     data:
       name: workspace
       description: "Open artifacts and focus state — what the animus is working on. Tracks tabs and active focus."
@@ -421,7 +431,8 @@ eide:
   # ─────────────────────────────────────────────────────────────
 
   # render-type — how an eidos should render (homoiconic)
-  - id: eidos/render-type
+  - eidos: eidos
+    id: eidos/render-type
     data:
       name: render-type
       description: "How an eidos should render — makes display configuration traversable. Bonds to renderer via renders-with."
@@ -468,7 +479,8 @@ eide:
   #
   # This enables oikoi to bring their own renderers without core changes.
   #
-  - id: eidos/renderer
+  - eidos: eidos
+    id: eidos/renderer
     data:
       name: renderer
       description: |
@@ -550,7 +562,8 @@ eide:
   #   - What styles to apply
   #   - Child render-specs for nested rendering
   #
-  - id: eidos/render-spec
+  - eidos: eidos
+    id: eidos/render-spec
     data:
       name: render-spec
       description: |
@@ -603,7 +616,8 @@ eide:
           required: true
 
   # widget — field-level display component (homoiconic)
-  - id: eidos/widget
+  - eidos: eidos
+    id: eidos/widget
     data:
       name: widget
       description: "Field-level display component — how individual fields render. Bonds to field-def via displays-as."
@@ -637,7 +651,8 @@ eide:
           required: true
 
   # content-root — where content comes from (homoiconic)
-  - id: eidos/content-root
+  - eidos: eidos
+    id: eidos/content-root
     data:
       name: content-root
       description: "Where content comes from — makes content origin traversable. Used by bootstrap to discover content locations."
@@ -673,7 +688,8 @@ eide:
   # ─────────────────────────────────────────────────────────────
 
   # voice-pipeline-config — homoiconic configuration for voice capture
-  - id: eidos/voice-pipeline-config
+  - eidos: eidos
+    id: eidos/voice-pipeline-config
     data:
       name: voice-pipeline-config
       description: "Configuration for the voice capture and clarification pipeline. Homoiconic — the config is an entity."
@@ -758,7 +774,8 @@ eide:
   # ─────────────────────────────────────────────────────────────
 
   # release — a versioned release of the application
-  - id: eidos/release
+  - eidos: eidos
+    id: eidos/release
     data:
       name: release
       description: "A versioned release of the Thyra application. Tracks version, artifacts, and deployment status."
@@ -798,7 +815,8 @@ eide:
           required: true
 
   # release-artifact — platform-specific binary for a release
-  - id: eidos/release-artifact
+  - eidos: eidos
+    id: eidos/release-artifact
     data:
       name: release-artifact
       description: "Platform-specific binary artifact for a release. Tracks hash, size, and storage location."
@@ -841,7 +859,8 @@ eide:
   # =============================================================================
 
   # app-config — Application configuration entity
-  - id: eidos/app-config
+  - eidos: eidos
+    id: eidos/app-config
     data:
       name: app-config
       description: |
@@ -894,3 +913,107 @@ eide:
           type: string
           required: false
           description: "Development server URL"
+
+  # =========================================================================
+  # ATTAINMENTS
+  # =========================================================================
+
+  - eidos: attainment
+    id: attainment/perceive
+    data:
+      name: perceive
+      description: |
+        Perception capability — capturing streams and managing accumulation.
+        Enables opening media streams, sensing their state, and managing
+        the accumulation buffer before commitment. Requires substrate access
+        for media capture.
+      oikos: thyra
+      scope: soma
+      grants:
+        - praxis/thyra/open-stream
+        - praxis/thyra/close-stream
+        - praxis/thyra/sense-stream
+        - praxis/thyra/reconcile-stream
+        - praxis/thyra/list-streams
+        - praxis/thyra/pause-stream
+        - praxis/thyra/resume-stream
+        - praxis/thyra/begin-accumulation
+        - praxis/thyra/append-fragment
+        - praxis/thyra/commit-accumulation
+        - praxis/thyra/abandon-accumulation
+        - praxis/thyra/clear-accumulation
+        - praxis/thyra/get-accumulation
+        - praxis/thyra/list-accumulations
+
+  - eidos: attainment
+    id: attainment/express
+    data:
+      name: express
+      description: |
+        Expression capability — creating durable contributions.
+        The commitment boundary — ephemeral becomes durable.
+        Expressions belong to circles and require membership.
+      oikos: thyra
+      scope: circle
+      grants:
+        - praxis/thyra/express
+        - praxis/thyra/reply-to
+        - praxis/thyra/list-expressions
+        - praxis/thyra/get-thread
+
+  - eidos: attainment
+    id: attainment/render
+    data:
+      name: render
+      description: |
+        Rendering capability — visual emission and workspace management.
+        Enables layout/theme activation, workspace tab management, and
+        render cycle operations. Substrate-local (soma scope).
+      oikos: thyra
+      scope: soma
+      grants:
+        - praxis/thyra/gather-render-intent
+        - praxis/thyra/reconcile-region
+        - praxis/thyra/emit-render
+        - praxis/thyra/render-all
+        - praxis/thyra/activate-layout
+        - praxis/thyra/get-active-layout
+        - praxis/thyra/activate-theme
+        - praxis/thyra/get-active-theme
+        - praxis/thyra/open-artifact
+        - praxis/thyra/close-artifact
+        - praxis/thyra/focus-artifact
+        - praxis/thyra/get-workspace
+        - praxis/thyra/create-panel
+        - praxis/thyra/list-panels
+
+  - eidos: attainment
+    id: attainment/emit
+    data:
+      name: emit
+      description: |
+        Filesystem emission capability — writing to chora.
+        Brings existence into actuality via filesystem write.
+        Substrate-local (soma scope) for filesystem access.
+      oikos: thyra
+      scope: soma
+      grants:
+        - praxis/thyra/emit
+
+  - eidos: attainment
+    id: attainment/navigate
+    data:
+      name: navigate
+      description: |
+        Journey navigation capability — following waypoints in hodos.
+        Enables moving through onboarding and guided experiences.
+        Per-animus state for personal navigation.
+      oikos: thyra
+      scope: animus
+      grants:
+        - praxis/hodos/get-current-waypoint
+        - praxis/hodos/advance-waypoint
+        - praxis/hodos/branch-waypoint
+        - praxis/hodos/get-panel-render-data
+        - praxis/hodos/validate-form
+        - praxis/hodos/start-onboarding

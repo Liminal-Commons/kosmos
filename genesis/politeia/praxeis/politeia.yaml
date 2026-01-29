@@ -41,9 +41,9 @@ entities:
       - name: kind
         type: string
         required: false
-        description: "Circle kind: self, intimate, community, public (default: intimate)"
+        description: "Circle kind: self, peer, commons (default: peer)"
     steps:
-      # Default kind to intimate
+      # Default kind to peer
       - step: set
         bindings:
           circle_kind: "$kind"
@@ -55,7 +55,7 @@ entities:
         default:
           - step: set
             bindings:
-              circle_kind: "intimate"
+              circle_kind: "peer"
 
       # Assert we have animus context
       - step: assert
@@ -323,11 +323,20 @@ entities:
           circle_id: "$target_circle"
         bind_to: derived
 
+      # Sync oikoi distributed by this circle (non-blocking)
+      # If sync fails, join still succeeds - user can sync manually later
+      - step: call
+        praxis: "politeia/sync-circle-oikoi"
+        params:
+          circle_id: "$target_circle"
+        bind_to: sync_result
+
       - step: return
         value:
           accepted: true
           circle_id: "$target_circle"
           attainments_derived: "$derived.attainments"
+          oikoi_synced: "$sync_result.oikoi_synced"
 
 - eidos: praxis
   id: praxis/politeia/decline-invitation
@@ -1645,7 +1654,7 @@ entities:
       - name: distribution_kind
         type: string
         required: true
-        description: "Distribution kind: commons (public) or premium (intimate)"
+        description: "Distribution kind: commons (open) or premium (peer-only)"
       - name: description
         type: string
         required: false
@@ -1665,9 +1674,11 @@ entities:
         message: "Entity is not an oikos-prod: $oikos_prod_id"
 
       # Map distribution kind to circle kind
+      # commons distribution → commons circle (open)
+      # premium distribution → peer circle (invitation only)
       - step: set
         bindings:
-          circle_kind: "intimate"
+          circle_kind: "peer"
 
       - step: switch
         cases:
@@ -1675,7 +1686,7 @@ entities:
             then:
               - step: set
                 bindings:
-                  circle_kind: "public"
+                  circle_kind: "commons"
 
       # Create the distribution circle
       - step: call
@@ -2238,3 +2249,243 @@ entities:
           from_id: "$from_id"
           to_id: "$to_id"
           desmos: "$desmos"
+
+# =============================================================================
+# OIKOS DISTRIBUTION
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/politeia/sync-circle-oikoi
+  data:
+    oikos: politeia
+    name: sync-circle-oikoi
+    visible: false
+    tier: 2
+    description: |
+      Sync oikoi distributed by a circle to the local installation.
+      Called when joining a circle or when dwelling and circle has updates.
+    params:
+      - name: circle_id
+        type: string
+        required: true
+        description: Circle to sync oikoi from
+    steps:
+      # Trace oikoi distributed by this circle
+      - step: trace
+        from_id: "$circle_id"
+        desmos: "distributes"
+        direction: "outbound"
+        bind_to: distributed_oikoi
+
+      # For each oikos-prod, check if installed and install if not
+      - step: for_each
+        items: "$distributed_oikoi"
+        as: oikos_prod
+        do:
+          - step: call
+            praxis: politeia/install-oikos-if-needed
+            params:
+              oikos_prod_id: "$oikos_prod.id"
+
+      - step: return
+        value:
+          circle_id: "$circle_id"
+          oikoi_synced: "{{ $distributed_oikoi | length }}"
+
+- eidos: praxis
+  id: praxis/politeia/install-oikos-if-needed
+  data:
+    oikos: politeia
+    name: install-oikos-if-needed
+    visible: false
+    tier: 2
+    description: |
+      Install an oikos-prod if not already installed locally.
+      Checks local installations, fetches if missing.
+    params:
+      - name: oikos_prod_id
+        type: string
+        required: true
+        description: The oikos-prod to install
+    steps:
+      # Find the oikos-prod
+      - step: find
+        id: "$oikos_prod_id"
+        bind_to: oikos_prod
+
+      - step: assert
+        condition: "$oikos_prod"
+        message: "Oikos-prod not found: $oikos_prod_id"
+
+      # Check if already installed (trace uses-oikos from dwelling circle)
+      - step: trace
+        from_id: "$_circle"
+        desmos: "uses-oikos"
+        direction: "outbound"
+        bind_to: installed_oikoi
+
+      - step: filter
+        items: "$installed_oikoi"
+        condition: "$item.id == $oikos_prod_id"
+        bind_to: already_installed
+
+      # If not installed, install it
+      - step: switch
+        cases:
+          - when: "{{ $already_installed | length }} == 0"
+            then:
+              - step: call
+                praxis: politeia/install-oikos
+                params:
+                  oikos_id: "$oikos_prod_id"
+                bind_to: install_result
+              - step: return
+                value:
+                  installed: true
+                  oikos_prod_id: "$oikos_prod_id"
+
+      - step: return
+        value:
+          installed: false
+          oikos_prod_id: "$oikos_prod_id"
+          reason: "already installed"
+
+- eidos: praxis
+  id: praxis/politeia/update-oikos-if-newer
+  data:
+    oikos: politeia
+    name: update-oikos-if-newer
+    visible: false
+    tier: 2
+    description: |
+      Update an installed oikos if a newer version is available.
+      Compares versions and updates if the distributed version is newer.
+    params:
+      - name: oikos_prod_id
+        type: string
+        required: true
+        description: The oikos-prod to potentially update
+      - name: installed_oikoi
+        type: array
+        required: true
+        description: Array of currently installed oikos entities
+    steps:
+      # Find the distributed oikos-prod
+      - step: find
+        id: "$oikos_prod_id"
+        bind_to: oikos_prod
+
+      - step: assert
+        condition: "$oikos_prod"
+        message: "Oikos-prod not found: $oikos_prod_id"
+
+      # Find matching installed oikos by oikos_id (not by exact id since version differs)
+      - step: filter
+        items: "$installed_oikoi"
+        condition: "$item.data.oikos_id == $oikos_prod.data.oikos_id"
+        bind_to: matching_installed
+
+      # If not installed at all, install it
+      - step: switch
+        cases:
+          - when: "{{ $matching_installed | length }} == 0"
+            then:
+              - step: call
+                praxis: politeia/install-oikos
+                params:
+                  oikos_id: "$oikos_prod_id"
+                bind_to: install_result
+              - step: return
+                value:
+                  updated: true
+                  oikos_prod_id: "$oikos_prod_id"
+                  reason: "not previously installed"
+
+      # Get the installed version
+      - step: set
+        bindings:
+          installed_version: "$matching_installed[0].data.version"
+          distributed_version: "$oikos_prod.data.version"
+
+      # Compare versions (simple string compare for now - semver compare would be better)
+      # A proper implementation would use semver comparison
+      - step: switch
+        cases:
+          - when: "$distributed_version != $installed_version"
+            then:
+              # Re-install with newer version
+              - step: call
+                praxis: politeia/install-oikos
+                params:
+                  oikos_id: "$oikos_prod_id"
+                bind_to: update_result
+              - step: return
+                value:
+                  updated: true
+                  oikos_prod_id: "$oikos_prod_id"
+                  from_version: "$installed_version"
+                  to_version: "$distributed_version"
+
+      - step: return
+        value:
+          updated: false
+          oikos_prod_id: "$oikos_prod_id"
+          reason: "already at distributed version"
+
+- eidos: praxis
+  id: praxis/politeia/reconcile-circle-oikoi
+  data:
+    oikos: politeia
+    name: reconcile-circle-oikoi
+    visible: false
+    tier: 2
+    description: |
+      Reconcile oikoi versions when dwelling in a circle.
+      Called on dwell-in to check for updates.
+
+      Lazy update strategy: updates are applied when dwelling,
+      not immediately when the circle changes its distribution.
+    params:
+      - name: circle_id
+        type: string
+        required: true
+        description: Circle to reconcile oikoi for
+    steps:
+      # Get circle's current distributed oikoi
+      - step: trace
+        from_id: "$circle_id"
+        desmos: "distributes"
+        direction: "outbound"
+        bind_to: distributed_oikoi
+
+      # Get locally installed oikoi (from dwelling circle)
+      - step: trace
+        from_id: "$_circle"
+        desmos: "uses-oikos"
+        direction: "outbound"
+        bind_to: installed_oikoi
+
+      # Track updates
+      - step: set
+        bindings:
+          updates_applied: []
+
+      # Compare and update each distributed oikos
+      - step: for_each
+        items: "$distributed_oikoi"
+        as: oikos_prod
+        do:
+          - step: call
+            praxis: politeia/update-oikos-if-newer
+            params:
+              oikos_prod_id: "$oikos_prod.id"
+              installed_oikoi: "$installed_oikoi"
+            bind_to: update_result
+          # Note: Ideally we'd append to updates_applied here, but
+          # aggregate operations in for_each loops may need interpreter support
+
+      - step: return
+        value:
+          reconciled: true
+          circle_id: "$circle_id"
+          distributed_count: "{{ $distributed_oikoi | length }}"

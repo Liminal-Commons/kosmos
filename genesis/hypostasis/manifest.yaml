@@ -44,6 +44,13 @@ provides:
     - genesis-record  # Multi-signature genesis ceremony
     - credential      # Encrypted external service credentials
 
+  attainments:
+    - sign              # Sign content with circle-scoped keys
+    - export            # Export phoreta bundles and snapshots
+    - manage-keyring    # Create and manage encrypted keyring
+    - manage-credentials # Add and remove credentials
+    - genesis-signer    # Participate in genesis signing ceremony
+
   desmoi:
     - composed-from
     - signed-by

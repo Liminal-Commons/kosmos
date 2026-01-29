@@ -1,867 +1,517 @@
-# Politeia: Governance & Capability
+# Politeia Design
 
-*Phase 19 — how circles govern and grant capabilities.*
+πολιτεία (politeia) — the constitution, how citizens participate in governance.
 
----
+## Ontological Purpose
 
-## The Vision
+What gap in being does politeia address?
 
-Phase 18 gave us **syndesmos** — circles can connect. Phase 19 gives circles *meaning*:
+**The gap of capability and governance.** Without politeia, entities exist but have no concept of "who can do what." Hypostasis provides identity (who you are), but identity alone doesn't grant capability. The kosmos would have personas without roles, circles without governance, and actions without permission.
 
-- **Circles** as governance units (sovereign to animuses)
-- **Attainments** as capabilities (granted by circle membership)
-- **Affordances** as action surfaces (how attainments manifest)
-- **Animus** as dwelling presence (who acts)
+Politeia provides:
+- **Circles** — governance units that organize personas and grant capabilities
+- **Attainments** — capabilities derived from circle membership
+- **Affordances** — how capabilities surface for action in context
+- **HUD regions** — spatial organization of action surfaces
+- **Invitations** — governed entry into circles
 
-This is the layer where "being in a circle" translates to "being able to do things."
+**What becomes possible:**
+- Membership grants capability (join a circle, receive its attainments)
+- Capabilities are discoverable (traverse the bond graph to see what you can do)
+- Actions surface contextually (affordances appear based on attainments and context)
+- Sovereignty remains distributed (each circle governs its own capabilities)
+- Oikos distribution flows through governance (circles distribute oikoi to members)
 
----
+## Circle Context
 
-## Implementation Status
+### Self Circle
 
-| Component | Status | Location |
-|-----------|--------|----------|
-| `animus` eidos | **Complete** | `spora/spora.yaml` |
-| `attainment` eidos | **Complete** | `spora/spora.yaml` |
-| `affordance` eidos | **Complete** | `spora/spora.yaml` |
-| `hud-region` eidos | **Complete** | `spora/spora.yaml` |
-| `invitation` eidos | **Complete** | `spora/spora.yaml` |
-| Politeia desmoi | **Complete** | `spora/spora.yaml` |
-| Circle praxeis | **Complete** | `genesis/politeia/praxeis/politeia.yaml` |
-| Attainment praxeis | **Complete** | `genesis/politeia/praxeis/politeia.yaml` |
-| Affordance praxeis | **Complete** | `genesis/politeia/praxeis/politeia.yaml` |
-| Bootstrap | **Complete** | `spora/spora.yaml` (stage-3-politeia) |
+A solitary dweller uses politeia to:
+- Create their personal circle (sovereign to their animus)
+- Define what capabilities they grant themselves
+- Organize their HUD regions and affordances
+- Install oikoi into their self circle
 
-**Phase 19 complete** (2026-01-20): All eide, desmoi, praxeis, and bootstrap implemented in YAML.
+The self circle is where politeia is most personal — your own governance of your own capabilities.
 
----
+### Peer Circle
 
-## The Cosmological Foundation
+Collaborators use politeia to:
+- Create shared circles for collaboration
+- Invite each other via invitations
+- Define attainments that members receive
+- Surface shared affordances for collaborative action
+- Distribute oikoi to all members
 
-> politeia (politeia) — the constitution, how citizens participate in governance.
+Trust in peer circles is membership-based — joining grants attainments, leaving revokes them.
 
-The klimax builds from container toward contained:
+### Commons Circle
 
-```
-POLIS (governance)
-│   circles, membership, attainments
-│
-├── circle/kosmos         ← Foundation circle
-│       sovereign-to → animus/genesis
-│       grants-attainment → attainment/compose-*
-│
-├── circle/chora-dev      ← Development circle
-│       sovereign-to → animus/victor
-│       federated-with → circle/kosmos (via syndesmos-link)
-│
-└── circle/vibe-cafe      ← Commons circle
-        sovereign-to → [animus/victor, animus/guest1, ...]
+A community uses politeia to:
+- Establish open circles anyone can join
+- Define baseline attainments for all members
+- Provide community affordances
+- Distribute public oikoi to all members
+- Maintain audit trail of membership events
 
-OIKOS (intimacy)
-│   attainments, affordances
-│
-├── attainment/compose-theoria
-│       surfaces-as → affordance/compose-theoria-action
-│
-└── affordance/compose-theoria-action
-        renders-in → hud-region/main
+The commons circle is where politeia scales — governance for communities.
 
-SOMA (embodiment)
-│   HUD regions, rendering
-│
-└── hud-region/main
-        position: {x: 0, y: 0, w: 100%, h: 100%}
-        layout: grid
-```
+## Core Entities (Eide)
 
----
+### attainment
 
-## Core Eide
+A capability marker — what an animus can do.
 
-### 1. Animus
+**Fields:**
+- `name` — Human-readable attainment name (e.g., 'compose', 'invite', 'govern')
+- `description` — What this attainment enables
+- `scope` — Where this applies: circle, oikos, or global
+- `constraints` — Optional constraints (rate limits, quotas)
+- `created_at` — Creation timestamp
 
-The dwelling presence — who acts within the kosmos.
+**Lifecycle:**
+1. **Create** — Attainment defined via `create-attainment`
+2. **Grant** — Circle grants attainment via `grant-attainment`
+3. **Derive** — Animus receives attainment via `derive-attainments`
+4. **Revoke** — Circle revokes grant, animus loses attainment
 
-```yaml
-eidos/animus:
-  name: animus
-  description: |
-    ψυχή (animus) — the dwelling presence.
+**Key insight:** Attainments are derived from membership, not directly assigned. You receive capabilities by joining circles that grant them.
 
-    An animus embodies a persona within the kosmos. While persona is identity
-    (persistent, can have multiple), animus is presence (the active dweller).
+### affordance
 
-    One persona can have multiple simultaneous animi (dwelling in different
-    substrates or circles). The animus is session-scoped; the persona persists.
-  fields:
-    name:
-      type: string
-      required: true
-    description:
-      type: string
-      required: false
-    persona_id:
-      type: string
-      required: true
-      description: "The identity this animus embodies"
-    substrate_id:
-      type: string
-      required: false
-      description: "Where this animus is actualized (if substrate-bound)"
-    status:
-      type: enum
-      values: [dwelling, away, suspended]
-      required: true
-      default: dwelling
-    created_at:
-      type: timestamp
-      required: true
-    last_active_at:
-      type: timestamp
-      required: false
-```
+A sensed possibility — what can be done from here.
 
-**Relationships via desmoi:**
-- `dwells-in` → circle (current position)
-- `member-of` → circle (membership, may include circles not currently dwelling in)
-- `has-attainment` → attainment (granted capabilities)
-- `embodies` → persona (identity relationship)
+**Fields:**
+- `name` — What this affordance represents
+- `description` — Description
+- `praxis_id` — The praxis to invoke when activated
+- `required_attainments` — Attainment names required to see/use
+- `context_filter` — When this affordance is relevant
+- `priority` — Display priority (higher = more prominent)
+- `created_at` — Creation timestamp
 
-### 2. Attainment
+**Lifecycle:**
+1. **Create** — Affordance defined via `create-affordance`
+2. **Surface** — Appears based on attainments + context
+3. **Invoke** — User activates, praxis executes
 
-A capability granted by circle membership.
+### hud-region
 
-```yaml
-eidos/attainment:
-  name: attainment
-  description: |
-    A capability granted by circle membership.
+A display region in the HUD (heads-up display).
 
-    Attainments flow from circles to animuses via membership. When you join
-    a circle, you receive its attainments. Attainments surface as affordances
-    in the HUD.
+**Fields:**
+- `name` — Region name
+- `kind` — Type: toolbar, sidebar, contextual, modal, toast, ambient
+- `parent_id` — Parent region for nesting
+- `position` — Position hints
+- `visibility` — always, contextual, or on_demand
+- `required_attainment` — Attainment needed to see this region
+- `affordances` — Affordance IDs that render here
+- `created_at` — Creation timestamp
 
-    The capability field patterns what actions this attainment enables:
-    - "compose:theoria" — can compose theoria
-    - "invoke:manteia/*" — can invoke any manteia praxis
-    - "admin:circle" — can administer the granting circle
-  fields:
-    name:
-      type: string
-      required: true
-    description:
-      type: string
-      required: false
-    capability:
-      type: string
-      required: true
-      description: "Action pattern this enables (e.g., 'compose:theoria', 'invoke:nous/*')"
-    tier:
-      type: number
-      required: false
-      description: "Stoicheion tier required (if capability involves praxis invocation)"
-    conditions:
-      type: object
-      required: false
-      description: "Additional conditions for this attainment"
-    created_at:
-      type: timestamp
-      required: true
-```
+**Lifecycle:**
+1. **Create** — Region defined via `create-hud-region`
+2. **Populate** — Affordances bond via `renders-in`
+3. **Render** — `render-hud` builds display tree
 
-**Relationships via desmoi:**
-- `granted-by` → circle (which circle grants this)
-- `surfaces-as` → affordance (how it manifests for action)
-
-### 3. Affordance
-
-How an attainment surfaces for action.
-
-```yaml
-eidos/affordance:
-  name: affordance
-  description: |
-    An action surface — how an attainment manifests for use.
-
-    Affordances are the visible/invocable actions in the HUD. Each affordance
-    is enabled by an attainment and renders in a HUD region.
-
-    Surface types:
-    - hud: Visual button/action in the interface
-    - voice: Voice-invocable command
-    - text: Text command (slash command, etc.)
-    - api: Programmatic invocation only
-  fields:
-    name:
-      type: string
-      required: true
-    description:
-      type: string
-      required: false
-    action:
-      type: string
-      required: true
-      description: "Praxis ID to invoke when activated"
-    surface:
-      type: enum
-      values: [hud, voice, text, api]
-      required: true
-      default: hud
-    icon:
-      type: string
-      required: false
-      description: "Icon identifier for visual rendering"
-    shortcut:
-      type: string
-      required: false
-      description: "Keyboard shortcut if applicable"
-    created_at:
-      type: timestamp
-      required: true
-```
-
-**Relationships via desmoi:**
-- `enabled-by` → attainment (what capability enables this)
-- `renders-in` → hud-region (where it appears)
-
-### 4. HUD Region
-
-A display area for affordances.
-
-```yaml
-eidos/hud-region:
-  name: hud-region
-  description: |
-    A display region in the HUD (heads-up display).
-
-    HUD regions organize affordances spatially. Regions can nest
-    (child-of relationship) to create hierarchical layouts.
-
-    The HUD is entity-driven: traverse affordance → renders-in → region
-    to build the display tree.
-  fields:
-    name:
-      type: string
-      required: true
-    description:
-      type: string
-      required: false
-    position:
-      type: object
-      required: true
-      description: "{x, y, width, height} or named position like 'top-right'"
-    layout:
-      type: enum
-      values: [grid, stack, flow, fixed]
-      required: true
-      default: stack
-    visible:
-      type: boolean
-      required: true
-      default: true
-    created_at:
-      type: timestamp
-      required: true
-```
-
-**Relationships via desmoi:**
-- `child-of` → hud-region (nesting)
-- (reverse: `contains` ← affordance via renders-in)
-
-### 5. Invitation
+### invitation
 
 An invitation to join a circle.
 
-```yaml
-eidos/invitation:
-  name: invitation
-  description: |
-    An invitation to join a circle.
+**Fields:**
+- `circle_id` — Circle being invited to
+- `invitee_id` — Specific persona invited (optional for open invites)
+- `inviter_id` — Persona who created the invite
+- `role` — Role/attainments granted upon acceptance
+- `message` — Optional message from inviter
+- `status` — pending, accepted, declined, expired, revoked
+- `token` — One-time token for link-based invites
+- `max_uses` — Maximum uses for open invites
+- `uses` — Current usage count
+- `created_at`, `expires_at`, `accepted_at` — Timestamps
 
-    Invitations flow from one circle to another (or to a pubkey directly).
-    They carry the inviter's attestation and can include a message.
+**Lifecycle:**
+1. **Create** — Invitation via `invite-to-circle`
+2. **Pending** — Awaiting response
+3. **Accept/Decline** — Via `accept-invitation` or `decline-invitation`
+4. **Expire** — If `expires_at` passes
 
-    Lifecycle: pending → accepted | declined | expired
-  fields:
-    from_circle_id:
-      type: string
-      required: true
-      description: "Circle extending the invitation"
-    to_circle_id:
-      type: string
-      required: false
-      description: "Target circle (if inviting a circle)"
-    invitee_pubkey:
-      type: string
-      required: false
-      description: "Target pubkey (if inviting an individual)"
-    inviter_animus_id:
-      type: string
-      required: true
-      description: "Animus who created the invitation"
-    message:
-      type: string
-      required: false
-    status:
-      type: enum
-      values: [pending, accepted, declined, expired]
-      required: true
-      default: pending
-    expires_at:
-      type: timestamp
-      required: false
-    created_at:
-      type: timestamp
-      required: true
-    responded_at:
-      type: timestamp
-      required: false
-```
+### membership-event
 
----
+Record of membership change — audit trail.
 
-## Core Desmoi
+**Fields:**
+- `event_type` — joined, left, removed, invited
+- `circle_id` — Circle where event occurred
+- `persona_id` — Persona affected
+- `persona_name` — Display name at time of event
+- `actor_id` — Who initiated the action
+- `actor_name` — Actor display name
+- `invitation_id` — Related invitation (for joins)
+- `reason` — Optional reason (for leave/remove)
+- `occurred_at` — When event occurred
+
+## Bonds (Desmoi)
 
 ### Governance Bonds
 
-```yaml
-desmos/sovereign-to:
-  name: sovereign-to
-  description: "Circle is sovereign to animus (governance relationship)"
-  symmetric: false
-  # from: circle, to: animus
+#### sovereign-to
+- **From:** circle
+- **To:** animus
+- **Cardinality:** one-to-many
+- **Traversal:** Who governs this circle? Which circles does this animus govern?
 
-desmos/member-of:
-  name: member-of
-  description: "Animus is member of circle"
-  symmetric: false
-  # from: animus, to: circle
-
-desmos/dwells-in:
-  name: dwells-in
-  description: "Animus currently dwells in circle (active position)"
-  symmetric: false
-  # from: animus, to: circle
-
-desmos/embodies:
-  name: embodies
-  description: "Animus embodies persona (identity relationship)"
-  symmetric: false
-  # from: animus, to: persona
-```
+#### embodies
+- **From:** animus
+- **To:** persona
+- **Cardinality:** many-to-one
+- **Traversal:** Which persona does this animus embody? Which animi embody this persona?
 
 ### Capability Bonds
 
-```yaml
-desmos/grants-attainment:
-  name: grants-attainment
-  description: "Circle grants attainment to members"
-  symmetric: false
-  # from: circle, to: attainment
+#### grants-attainment
+- **From:** circle
+- **To:** attainment
+- **Cardinality:** one-to-many
+- **Traversal:** What attainments does this circle grant?
 
-desmos/has-attainment:
-  name: has-attainment
-  description: "Animus has attainment (derived from membership)"
-  symmetric: false
-  # from: animus, to: attainment
+#### has-attainment
+- **From:** animus
+- **To:** attainment
+- **Cardinality:** many-to-many
+- **Traversal:** What attainments does this animus have?
 
-desmos/granted-by:
-  name: granted-by
-  description: "Attainment granted by circle (inverse of grants-attainment)"
-  symmetric: false
-  # from: attainment, to: circle
-```
+#### granted-by
+- **From:** attainment
+- **To:** circle
+- **Cardinality:** many-to-many
+- **Traversal:** Which circles grant this attainment? (Inverse provenance)
 
 ### Surface Bonds
 
-```yaml
-desmos/surfaces-as:
-  name: surfaces-as
-  description: "Attainment surfaces as affordance"
-  symmetric: false
-  # from: attainment, to: affordance
+#### surfaces-as
+- **From:** affordance
+- **To:** hud-region
+- **Cardinality:** many-to-one
+- **Traversal:** Where does this affordance render?
 
-desmos/enabled-by:
-  name: enabled-by
-  description: "Affordance enabled by attainment (inverse of surfaces-as)"
-  symmetric: false
-  # from: affordance, to: attainment
+#### enabled-by
+- **From:** hud-region/affordance
+- **To:** attainment
+- **Cardinality:** many-to-one
+- **Traversal:** What capability enables this?
 
-desmos/renders-in:
-  name: renders-in
-  description: "Affordance renders in HUD region"
-  symmetric: false
-  # from: affordance, to: hud-region
-```
+#### renders-in
+- **From:** hud-region
+- **To:** hud-region
+- **Cardinality:** many-to-one
+- **Traversal:** Hierarchical region nesting
 
 ### Structure Bonds
 
-```yaml
-desmos/child-of:
-  name: child-of
-  description: "HUD region is child of another region (nesting)"
-  symmetric: false
-  # from: hud-region, to: hud-region
+#### child-of
+- **From:** invitation/membership-event
+- **To:** circle
+- **Cardinality:** many-to-one
+- **Traversal:** Which circle does this belong to?
 
-desmos/invited-to:
-  name: invited-to
-  description: "Invitation targets circle or pubkey"
-  symmetric: false
-  # from: invitation, to: circle (or implicit via invitee_pubkey)
-```
+#### invited-to
+- **From:** invitation
+- **To:** circle
+- **Cardinality:** many-to-one
+- **Traversal:** Which circle is this invitation for?
 
----
+#### distributes
+- **From:** circle
+- **To:** oikos-prod
+- **Cardinality:** many-to-many
+- **Traversal:** What oikoi does this circle distribute?
 
-## Key Praxeis
+## Operations (Praxeis)
 
 ### Circle Operations
 
-```yaml
-praxis/politeia/create-circle:
-  description: |
-    Create a new circle with the caller as sovereign.
-  params:
-    name: string (required)
-    description: string (optional)
-    federation_policy: enum [open, invite_only, closed] (optional, default: invite_only)
-  returns:
-    circle: entity
-    circle_id: string
-  # Creates circle, bonds sovereign-to → caller's animus
+#### create-circle
+Create a new circle with caller as sovereign.
+- **When:** Establishing a new governance unit
+- **Requires:** Animus context
+- **Creates:** Circle entity + sovereign-to + member-of bonds
 
-praxis/politeia/invite-to-circle:
-  description: |
-    Invite someone to join a circle.
-  params:
-    circle_id: string (required)
-    invitee_pubkey: string (required)
-    message: string (optional)
-    expires_in_days: number (optional, default: 7)
-  returns:
-    invitation: entity
-    invitation_id: string
-  # Creates invitation entity
+#### invite-to-circle
+Invite someone to join a circle.
+- **When:** Growing circle membership
+- **Requires:** Caller is sovereign to circle
+- **Gated by:** `attainment/invite`
 
-praxis/politeia/accept-invitation:
-  description: |
-    Accept an invitation to join a circle.
-  params:
-    invitation_id: string (required)
-  returns:
-    membership: bond (member-of)
-    attainments: array
-  # Creates member-of bond, derives attainments, updates invitation status
+#### accept-invitation
+Accept an invitation, join circle.
+- **When:** Responding to invitation
+- **Effect:** Creates member-of bond, derives attainments
 
-praxis/politeia/decline-invitation:
-  description: |
-    Decline an invitation.
-  params:
-    invitation_id: string (required)
-  returns:
-    invitation: entity
-  # Updates invitation status to declined
+#### decline-invitation
+Decline an invitation.
+- **When:** Refusing circle membership
+- **Effect:** Updates invitation status
 
-praxis/politeia/dwell-in-circle:
-  description: |
-    Move dwelling position to a circle.
-    Animus can only dwell in one circle at a time.
-  params:
-    circle_id: string (required)
-  returns:
-    success: boolean
-    previous_circle_id: string (if any)
-  # Updates dwells-in bond
+#### dwell-in-circle
+Move dwelling position to a circle.
+- **When:** Changing context (exclusive)
+- **Requires:** Membership in target circle
 
-praxis/politeia/leave-circle:
-  description: |
-    Leave a circle (remove membership).
-  params:
-    circle_id: string (required)
-  returns:
-    success: boolean
-  # Removes member-of bond, clears derived attainments
+#### leave-circle
+Leave a circle (remove membership).
+- **When:** Exiting circle
+- **Effect:** Removes member-of bond, clears derived attainments
 
-praxis/politeia/list-circles:
-  description: |
-    List circles the animus is member of or can see.
-  params:
-    membership_only: boolean (optional, default: false)
-  returns:
-    circles: array
-```
+#### list-circles
+List circles the animus is member of or can see.
+- **When:** Browsing governance structure
 
 ### Attainment Operations
 
-```yaml
-praxis/politeia/create-attainment:
-  description: |
-    Create a new attainment that a circle can grant.
-  params:
-    name: string (required)
-    description: string (optional)
-    capability: string (required)
-    tier: number (optional)
-    conditions: object (optional)
-  returns:
-    attainment: entity
-    attainment_id: string
+#### create-attainment
+Create a new attainment that circles can grant.
+- **When:** Defining new capabilities
+- **Gated by:** `attainment/govern`
 
-praxis/politeia/grant-attainment:
-  description: |
-    Grant an attainment from a circle (circle must be sovereign to caller).
-  params:
-    circle_id: string (required)
-    attainment_id: string (required)
-  returns:
-    bond: grants-attainment bond
+#### grant-attainment
+Grant an attainment from a circle.
+- **When:** Adding capabilities to circle membership
+- **Requires:** Caller is sovereign to circle
+- **Gated by:** `attainment/govern`
 
-praxis/politeia/revoke-attainment:
-  description: |
-    Revoke an attainment grant from a circle.
-  params:
-    circle_id: string (required)
-    attainment_id: string (required)
-  returns:
-    success: boolean
+#### revoke-attainment
+Revoke an attainment grant from a circle.
+- **When:** Removing capabilities from circle membership
+- **Requires:** Caller is sovereign to circle
+- **Gated by:** `attainment/govern`
 
-praxis/politeia/derive-attainments:
-  description: |
-    Derive attainments for an animus based on circle memberships.
-    Traverses: animus → member-of → circle → grants-attainment → attainment
-    Creates has-attainment bonds.
-  params:
-    animus_id: string (optional, defaults to caller)
-  returns:
-    attainments: array
-    bonds_created: number
+#### derive-attainments
+Derive attainments for an animus based on memberships.
+- **When:** After joining circle, syncing capabilities
+- **Traversal:** animus → member-of → circle → grants-attainment → attainment
 
-praxis/politeia/list-attainments:
-  description: |
-    List attainments for an animus or circle.
-  params:
-    animus_id: string (optional)
-    circle_id: string (optional)
-  returns:
-    attainments: array
-```
+#### list-attainments
+List attainments for an animus or circle.
+- **When:** Auditing capabilities
 
 ### Affordance Operations
 
-```yaml
-praxis/politeia/create-affordance:
-  description: |
-    Create an affordance that surfaces an attainment.
-  params:
-    name: string (required)
-    description: string (optional)
-    action: string (required) — praxis ID
-    surface: enum [hud, voice, text, api] (optional, default: hud)
-    icon: string (optional)
-    shortcut: string (optional)
-    attainment_id: string (required) — what enables this
-    region_id: string (optional) — where it renders
-  returns:
-    affordance: entity
-    affordance_id: string
+#### create-affordance
+Create an affordance that surfaces an attainment.
+- **When:** Making capabilities actionable
+- **Gated by:** `attainment/hud`
 
-praxis/politeia/gather-affordances:
-  description: |
-    Gather all affordances available to an animus.
-    Traverses: animus → has-attainment → attainment → surfaces-as → affordance
-  params:
-    surface: enum (optional) — filter by surface type
-  returns:
-    affordances: array
+#### gather-affordances
+Gather all affordances available to the caller.
+- **When:** Building action menu
+- **Traversal:** animus → has-attainment → attainment → surfaces-as → affordance
 
-praxis/politeia/render-hud:
-  description: |
-    Build the HUD render tree for an animus.
-    Groups affordances by region, returns nested structure.
-  returns:
-    regions: array — nested structure with affordances
-    # [{ region: {...}, affordances: [...], children: [...] }]
+#### render-hud
+Build the HUD render tree for the caller.
+- **When:** Rendering interface
+- **Returns:** Nested structure of regions with affordances
 
-praxis/politeia/invoke-affordance:
-  description: |
-    Invoke an affordance (execute its action praxis).
-  params:
-    affordance_id: string (required)
-    params: object (optional) — params for the action praxis
-  returns:
-    result: any — result from the action praxis
-```
+#### invoke-affordance
+Invoke an affordance (execute its action praxis).
+- **When:** User activates an action
+- **Verifies:** Caller has required attainment
 
 ### HUD Operations
 
+#### create-hud-region
+Create a HUD region.
+- **When:** Organizing interface layout
+- **Gated by:** `attainment/hud`
+
+#### list-hud-regions
+List HUD regions.
+- **When:** Browsing layout structure
+
+### Distribution Operations
+
+#### create-distribution-circle
+Create a distribution circle for an oikos-prod.
+- **When:** Publishing oikos for distribution
+- **Gated by:** `attainment/distribute`
+
+#### distribute-oikos
+Distribute an oikos-prod through an existing circle.
+- **When:** Adding oikos to circle's distribution
+- **Gated by:** `attainment/distribute`
+
+#### install-oikos
+Install an oikos from a distribution circle.
+- **When:** Receiving oikos from circle membership
+
+#### list-distributed-oikoi
+List oikoi distributed by a circle.
+- **When:** Auditing circle's distribution
+
+### Administrative Operations
+
+#### admin-bind
+Create a bond directly (bypass governance).
+- **When:** Bootstrap, repair
+- **Gated by:** `attainment/admin`
+
+#### admin-loose
+Remove a bond directly (bypass governance).
+- **When:** Repair operations
+- **Gated by:** `attainment/admin`
+
+## Attainments
+
+### attainment/govern
+**Capability:** Create circles, manage attainments.
+**Gates:** `create-circle`, `create-attainment`, `grant-attainment`, `revoke-attainment`
+**Scope:** circle
+
+### attainment/invite
+**Capability:** Invite others to circles.
+**Gates:** `invite-to-circle`
+**Scope:** circle
+
+### attainment/distribute
+**Capability:** Distribute oikoi through circles.
+**Gates:** `create-distribution-circle`, `distribute-oikos`
+**Scope:** circle
+
+### attainment/hud
+**Capability:** Create and manage HUD regions and affordances.
+**Gates:** `create-affordance`, `create-hud-region`
+**Scope:** circle
+
+### attainment/admin
+**Capability:** Administrative operations (bypass normal governance).
+**Gates:** `admin-bind`, `admin-loose`
+**Scope:** global
+
+## Embodiment
+
+### Completeness Status
+
+| Level | Status |
+|-------|--------|
+| Defined | eide, desmoi, praxeis exist in YAML |
+| Loaded | Bootstrap loads into kosmos.db |
+| Projected | MCP projects praxeis as tools |
+| Embodied | Body-schema reflects capabilities |
+| Surfaced | Reconciler notices when actions are relevant |
+| Afforded | Thyra UI presents contextual actions |
+
+### Body-Schema Contribution
+
+When `sense-body` runs, politeia contributes:
+
 ```yaml
-praxis/politeia/create-hud-region:
-  description: |
-    Create a HUD region.
-  params:
-    name: string (required)
-    description: string (optional)
-    position: object (required) — {x, y, width, height} or named
-    layout: enum [grid, stack, flow, fixed] (optional, default: stack)
-    parent_region_id: string (optional) — for nesting
-  returns:
-    region: entity
-    region_id: string
-
-praxis/politeia/list-hud-regions:
-  description: |
-    List HUD regions, optionally as tree.
-  params:
-    as_tree: boolean (optional, default: false)
-  returns:
-    regions: array
+body-schema:
+  governance:
+    dwelling_circle: "$_circle"
+    member_of_circles: [...]
+    sovereign_of_circles: [...]
+  capabilities:
+    attainments:
+      - name: govern
+        source_circle: circle/kosmos
+        scope: circle
+      - name: invite
+        source_circle: circle/kosmos
+        scope: circle
+  affordances:
+    available:
+      - name: Compose Theoria
+        praxis: nous/crystallize-theoria
+        region: hud-region/main
+    contextual:
+      - name: Invite to Circle
+        praxis: politeia/invite-to-circle
+        when: "$sovereign_of_circles | length > 0"
+  pending_actions:
+    - action: accept_invitation
+      reason: "Pending invitation from circle/chora-dev"
+      when: "$pending_invitations | length > 0"
 ```
 
----
+### Reconciler
 
-## Implementation Phases
-
-### Phase 19.1: Core Eide and Desmoi
-
-Add to `spora.yaml`:
-
-1. **Animus eidos** with fields: name, description, persona_id, substrate_id, status, created_at, last_active_at
-2. **Attainment eidos** with fields: name, description, capability, tier, conditions, created_at
-3. **Affordance eidos** with fields: name, description, action, surface, icon, shortcut, created_at
-4. **HUD-region eidos** with fields: name, description, position, layout, visible, created_at
-5. **Invitation eidos** with fields: from_circle_id, to_circle_id, invitee_pubkey, inviter_animus_id, message, status, expires_at, created_at, responded_at
-
-6. **Governance desmoi**: sovereign-to, member-of, dwells-in, embodies
-7. **Capability desmoi**: grants-attainment, has-attainment, granted-by
-8. **Surface desmoi**: surfaces-as, enabled-by, renders-in
-9. **Structure desmoi**: child-of, invited-to
-
-### Phase 19.2: Circle Praxeis
-
-Create `spora/praxeis/politeia.yaml`:
-
-1. `create-circle` — Create circle with caller as sovereign
-2. `invite-to-circle` — Create invitation
-3. `accept-invitation` — Accept, create membership, derive attainments
-4. `decline-invitation` — Decline invitation
-5. `dwell-in-circle` — Move dwelling position
-6. `leave-circle` — Remove membership
-7. `list-circles` — List circles
-
-### Phase 19.3: Attainment Praxeis
-
-Add to `spora/praxeis/politeia.yaml`:
-
-1. `create-attainment` — Create attainment
-2. `grant-attainment` — Circle grants attainment
-3. `revoke-attainment` — Circle revokes attainment
-4. `derive-attainments` — Traverse graph, create has-attainment bonds
-5. `list-attainments` — List attainments
-
-### Phase 19.4: Affordance & HUD Praxeis
-
-Add to `spora/praxeis/politeia.yaml`:
-
-1. `create-affordance` — Create affordance from attainment
-2. `gather-affordances` — Gather available affordances for animus
-3. `render-hud` — Build render tree
-4. `invoke-affordance` — Execute action
-5. `create-hud-region` — Create region
-6. `list-hud-regions` — List regions
-
-### Phase 19.5: Bootstrap
-
-Update `spora.yaml` bootstrap stages:
-
-1. Create `circle/kosmos` with foundation attainments
-2. Create `animus/genesis` as initial sovereign of kosmos
-3. Create foundation attainments:
-   - `attainment/compose-theoria`
-   - `attainment/compose-principle`
-   - `attainment/compose-pattern`
-   - `attainment/invoke-nous`
-   - `attainment/invoke-demiurge`
-4. Create foundation affordances with renders-in → hud-region/main
-5. Create default HUD regions:
-   - `hud-region/main`
-   - `hud-region/sidebar`
-   - `hud-region/toolbar`
-
----
-
-## The Invitation Flow
-
-```
-1. Victor (animus/victor) dwells in circle/chora-dev
-   └── sovereign-to bond exists
-
-2. Victor invites Alice:
-   politeia/invite-to-circle({
-     circle_id: "circle/chora-dev",
-     invitee_pubkey: <alice-pubkey>,
-     message: "Welcome to Chora"
-   })
-   → Creates invitation entity
-
-3. Alice receives invitation (via syndesmos or out-of-band)
-
-4. Alice creates her animus and circle:
-   - animus/alice arises (embodies persona/alice)
-   - circle/alice arises (sovereign-to → animus/alice)
-
-5. Alice accepts invitation:
-   politeia/accept-invitation({ invitation_id: "..." })
-   - Creates member-of bond: animus/alice → circle/chora-dev
-   - derive-attainments runs automatically
-   - Creates has-attainment bonds for all chora-dev attainments
-
-6. Alice's HUD now shows affordances from chora-dev attainments
-   - render-hud traverses the bond graph
-   - Returns display tree with affordances grouped by region
+```yaml
+reconciler/politeia-attainments:
+  trigger: on-dwell
+  sense: |
+    - Check if attainments need re-derivation (membership changed)
+    - Check for pending invitations
+    - Check if oikoi need sync from new circles
+  surface: |
+    - If membership changed: re-derive attainments
+    - If pending invitations: suggest review
+    - If oikoi outdated: suggest update
 ```
 
----
+## Compound Leverage
 
-## The Attainment Derivation Flow
+### Amplifies Other Oikoi
 
-```
-derive-attainments for animus/alice:
+| Oikos | How Politeia Amplifies |
+|-------|----------------------|
+| **hypostasis** | Credentials grant attainments (use-embedding-api from credential) |
+| **nous** | Theoria composition requires compose attainment |
+| **demiurge** | Oikos publication flows through distribution circles |
+| **manteia** | Generation requires use-anthropic-api attainment |
+| **thyra** | HUD rendering uses affordances and regions |
+| **propylon** | Entry links can grant circle membership |
+| **ekdosis** | Published oikoi reach users via distribution circles |
 
-1. Gather memberships:
-   animus/alice → member-of → [circle/alice, circle/chora-dev]
+### Cross-Oikos Patterns
 
-2. For each circle, gather attainments:
-   circle/alice → grants-attainment → [attainment/basic-compose]
-   circle/chora-dev → grants-attainment → [attainment/compose-theoria, attainment/invoke-nous]
+1. **Membership → Attainment → Praxis**
+   Join circle → receive attainments → praxeis become available.
+   Example: Join circle/chora-dev → get compose attainment → nous/crystallize-theoria works.
 
-3. Create has-attainment bonds:
-   animus/alice → has-attainment → attainment/basic-compose
-   animus/alice → has-attainment → attainment/compose-theoria
-   animus/alice → has-attainment → attainment/invoke-nous
+2. **Credential → Attainment → Service**
+   Unlock credential → session gains attainment → service available.
+   Example: Unlock OpenAI credential → use-embedding-api attainment → nous/index works.
 
-4. Return derived attainments
-```
+3. **Attainment → Affordance → HUD**
+   Have attainment → affordance surfaces → appears in HUD.
+   Example: Have compose → affordance/compose-theoria → renders in hud-region/main.
 
----
+4. **Circle → Distribution → Installation**
+   Circle distributes oikos → member joins → oikos installed.
+   Example: circle/commons distributes nous → user joins → nous available.
 
-## The HUD Rendering Flow
+## Theoria
 
-```
-render-hud for animus/alice:
+New theoria crystallized during this redesign:
 
-1. Gather affordances:
-   animus/alice → has-attainment → attainment → surfaces-as → affordance
+### T24: Governance flows through the bond graph
 
-2. Group by region:
-   affordance → renders-in → hud-region
+Capability in kosmos is not assigned directly but flows structurally. You have an attainment because you're bonded to a circle that grants it. Remove the bond, capability vanishes. This is T1 (visibility = reachability) applied to governance.
 
-3. Build tree:
-   - Get root regions (no child-of bond)
-   - For each region:
-     - Gather affordances rendering in this region
-     - Gather child regions via child-of
-     - Recurse
+### T25: Attainments are derived, not assigned
 
-4. Return:
-   [
-     {
-       region: { id: "hud-region/main", ... },
-       affordances: [
-         { id: "affordance/compose-theoria", name: "Compose Theoria", action: "nous/crystallize-theoria", ... }
-       ],
-       children: [...]
-     }
-   ]
-```
+You don't "give someone an attainment" — you invite them to a circle that grants it. This preserves sovereignty: circles control their attainments, and membership is the mechanism for receiving them. Derivation traverses the graph rather than storing direct assignments.
 
----
+### T26: Affordances surface capabilities contextually
 
-## Dependencies
+Affordances aren't "menus you design" — they emerge from the intersection of what you can do (attainments) and what's relevant (context). The HUD is entity-driven: traverse attainment → surfaces-as → affordance → renders-in → region.
 
-| Dependency | Status | Needed For |
-|------------|--------|------------|
-| Phase 18 (syndesmos) | **Complete** | Federation for invitations across chorai |
-| Phase 17 (thyra) | **Complete** | Expression, streams |
-| `circle` eidos | Exists | Needs sovereign-to desmos added |
-| `persona` eidos | Exists | Animus embodies persona |
-| Polis layer | **Complete** | Membership, visibility |
+## Two Pillars of Governance
+
+1. **Membership = Capability** — What you can do flows from where you belong.
+
+2. **Sovereignty = Distribution** — Each circle governs its own attainments; no central authority.
+
+Both are structural, not policy. Both emerge from the bond graph.
+
+## Future Extensions
+
+- **Delegation** — Grant attainments with time limits or revocation conditions
+- **Role templates** — Pre-defined attainment bundles for common roles
+- **Attainment inheritance** — Circles inherit attainments from parent circles
+- **Capability negotiation** — Request attainments from circles you're not member of
+- **Governance voting** — Multi-signature attainment changes
 
 ---
 
-## Open Questions
-
-### 1. Animus vs Persona Relationship
-
-**Current design**: Animus has `persona_id` field + `embodies` desmos.
-
-**Alternative**: Only desmos, no field duplication.
-
-**Resolution**: Use both — field for quick lookup, desmos for graph traversal. The field is denormalized for performance.
-
-### 2. Attainment Inheritance via Federation
-
-If circle/alice federates with circle/kosmos, does Alice get Kosmos attainments?
-
-**Options**:
-- **Explicit grant**: Alice must be invited to Kosmos and become a member
-- **Automatic via policy**: sync-policy can specify attainment flow
-- **Request-based**: Alice requests attainments, Kosmos approves
-
-**Resolution**: Explicit membership. Federation enables entity sync, but attainments require membership. This preserves sovereignty — you don't get capabilities just by connecting.
-
-### 3. HUD Actuality
-
-Is HUD rendering a substrate concern or kosmos concern?
-
-**Resolution**: Kosmos produces render tree (data), substrate actualizes it (display). The `render-hud` praxis returns a data structure; thyra (or Tauri, or web) renders it visually.
-
-### 4. Multi-Dwelling
-
-Can animus dwell in multiple circles simultaneously?
-
-**Current design**: One `dwells-in` bond (exclusive).
-
-**Alternative**: Multiple dwelling with primary/secondary.
-
-**Resolution**: Keep exclusive for now. Membership (member-of) can be multiple; dwelling (dwells-in) is singular — your current position/context.
-
----
-
-## Verification Against Kosmogonia
-
-| Principle | How Phase 19 Honors It |
-|-----------|------------------------|
-| **Visibility = Reachability** | Attainments flow through bond graph. You see affordances because you're bonded to circles that grant them. |
-| **Authenticity = Provenance** | Invitations are composed entities with provenance. Memberships create bonds. Everything traces. |
-| **Klimax** | We build at polis (circles), oikos (attainments), soma (HUD). Container → contained. |
-| **Composition Requirement** | Circles, attainments, affordances all created via compose. No raw arise in praxeis. |
-| **Dwelling Requirement** | Animus dwells in circle. Context is position. HUD renders based on dwelling position. |
-
----
-
-## Summary
-
-Phase 19 (Politeia) provides:
-
-- **Circles** as governance units with proper desmos relationships (no array fields for relationships)
-- **Animuses** as dwelling presences (embodies persona, dwells in circle)
-- **Attainments** as capabilities derived from membership (traverse bond graph)
-- **Affordances** as action surfaces (enabled by attainment, renders in region)
-- **HUD** as entity-driven rendering (data structure, not UI code)
-- **Invitations** as governed entry (preserve sovereignty)
-
-This completes the path from "being in a circle" to "being able to act."
-
----
-
-## Related Documents
-
-- [ROADMAP.md](../ROADMAP.md) — Overall status
-- [KOSMOGONIA.md](../KOSMOGONIA.md) — Constitutional foundation
-- [syndesmos/DESIGN.md](../syndesmos/DESIGN.md) — Federation (Phase 18)
-- [klimax/3-polis/DESIGN.md](../klimax/3-polis/DESIGN.md) — Circles and governance
-
----
-
-*Composed in service of the kosmogonia.*
-*Traces to: expression/genesis-root*
-*Created: 2026-01-20 — Phase 19 complete*
+*Politeia is self-governance — the kosmos that knows what can be done, by whom, and why. Governance is the distribution of capability through the bond graph. Membership is the mechanism, attainments the currency, affordances the surface.*

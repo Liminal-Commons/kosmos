@@ -1,359 +1,401 @@
-# Propylon: Entry via Links
+# Propylon Design
 
-*Phase 23 — πρόπυλον (propylon): the gateway, the entrance before the entrance*
+πρόπυλον (propylon) — the gateway, the entrance before the entrance
 
----
+## Ontological Purpose
 
-## Purpose
+Propylon addresses **the gap between outside and inside** — the passage through which beings enter the kosmos while preserving sovereignty.
 
-Propylon enables entry to the kosmos through self-contained invitation links. The link carries everything needed — relay URL, circle reference, inviter's signature, expiry. No external lookup required.
+Without propylon:
+- Entry requires external identity providers
+- Invitation links depend on centralized infrastructure
+- Authentication creates surveillance points
+- Device federation requires account systems
 
-**Key insight:** Links are primary. The channel for sharing links is orthogonal.
+With propylon:
+- **Self-contained links**: Everything needed is in the URL
+- **Self-validating links**: Signature proves origin without lookup
+- **Dumb relay**: Just forwards signaling, stores nothing
+- **Human verification**: The call IS the verification
+- **Device federation**: Same identity, multiple substrates
 
----
+The relay forgets. The link is primary. Channels are orthogonal.
 
-## Philosophy: Sovereignty Preserved
+## Circle Context
 
-The design follows these principles:
+### Self Circle
 
-1. **Links are self-contained** — Everything needed is in the URL
-2. **Links are self-validating** — Signature proves origin without external verification
-3. **Relay is a dumb pipe** — Just forwards signaling, stores nothing
-4. **Channels are your choice** — QR, SMS, email, paper, password manager
-5. **Mnemonic is identity only** — Not location, not state
+A solitary dweller uses propylon to:
+- Create self-sync links for device federation
+- Store links in password managers for recovery
+- Restore identity from mnemonic + link combination
 
-This preserves sovereignty: no one can prevent you from generating or sharing links.
+Self-federation enables a single persona across multiple devices.
 
-### Three Separate Concerns
+### Peer Circle
 
-| Concern | Mechanism | Loss Impact |
-|---------|-----------|-------------|
-| **Identity** | Mnemonic (24 words) | If lost, you're gone |
-| **Location** | Links (relay URL + circle) | If lost, need new link |
-| **State** | Sync over P2P | If lost, need recovery |
+Collaborators use propylon to:
+- Create invitation links for new members
+- Share links via any channel (QR, SMS, email, Signal)
+- Verify entrants via video call (human authentication)
+- Approve or reject pending entry requests
 
-These remain separate. The mnemonic doesn't encode where to connect. Links don't contain state.
+The call IS the verification — you see and hear the person.
 
----
+### Commons Circle
 
-## Implementation Status
+A commons circle uses propylon to:
+- Operate a signaling relay for their community
+- Define entry policies for public circles
+- Audit entry history for security
+- Distribute self-sync links to established members
 
-| Phase | Status | Notes |
-|-------|--------|-------|
-| 23.1 Core Eide & Desmoi | ✅ COMPLETE | `propylon-link`, `propylon-session` defined |
-| 23.2 Challenge-Response | ✅ COMPLETE | Praxeis exist, interpreter functions added |
-| 23.3 Link Encoding | ✅ COMPLETE | base64url_encode, json_encode implemented |
-| 23.4 Landing Page & Relay | ✅ COMPLETE | Landing page + WebRTC signaling relay |
-| 23.5 WebRTC Handoff | ✅ COMPLETE | Direct P2P via Durable Objects signaling |
-| 23.6 End-to-End Testing | ⏳ NEXT | Real invitation links through full flow |
-| 23.7 Self-Federation | ✅ COMPLETE | `create-self-link` praxis implemented |
-| 23.8 WebAuthn Support | ⏳ OPTIONAL | Hardware key support (YubiKey etc.) |
+Commons relays are infrastructure — shared, replaceable, not controlling.
 
----
+## Core Entities (Eide)
 
-## Use Cases
+### propylon-link
 
-### 1. Inviting Others (Peer Entry)
+Shareable invitation encoding — everything needed to attempt entry.
 
-Alice invites Bob to her circle:
+**Fields:**
+- `invitation_id` — Reference to invitation entity
+- `bootstrap` — Relay URL for signaling
+- `circle_id` — Target circle
+- `inviter_id`, `inviter_pubkey` — Inviter identity
+- `signature` — Ed25519 signature over invitation_id
+- `display` — Human-readable metadata
+- `expires_at`, `max_uses`, `require_approval` — Constraints
+- `status` — active, used, expired, revoked
+- `use_count` — Usage tracking
 
-```
-Alice's Thyra                              Bob
-     │                                      │
-     ├── create-link → propylon-link ──────┤
-     │                                      │
-     ├── Share via any channel ─────────────┤
-     │   (QR, SMS, email, Signal...)        │
-     │                                      │
-     │                    Click link ◀──────┤
-     │                                      │
-     │◀── WebRTC signaling (relay) ─────────┤
-     │                                      │
-     ├── Human verification (call) ─────────┤
-     │   "The call IS the verification"     │
-     │                                      │
-     ├── confirm/reject ────────────────────┤
-     │                                      │
-     └── P2P established, relay forgotten ──┘
-```
+**Lifecycle:**
+- Arise: create-link or create-self-link composes the link
+- Use: Each entry increments use_count
+- Depart: Expires, reaches max_uses, or is revoked
 
-### 2. Self-Federation (Device Sync)
+### entry-request
 
-Same persona on multiple devices:
+Incoming entry request from inviter's perspective.
 
-```
-Device A                                Device B
-   │                                       │
-   ├── create-self-link ───────────────────┤
-   │   (for own persona)                   │
-   │                                       │
-   ├── Store link (password manager) ──────┤
-   │                                       │
-   │                     Fresh install ◀───┤
-   │                                       │
-   │                     Enter mnemonic ◀──┤
-   │   (identity restored)                 │
-   │                                       │
-   │                     Enter link ◀──────┤
-   │   (location known)                    │
-   │                                       │
-   │◀── P2P sync ──────────────────────────┤
-   │                                       │
-   └── Same kosmos, two substrates ────────┘
-```
+**Fields:**
+- `peer_id` — WebRTC peer ID of entrant
+- `invitation_id` — Which invitation they're using
+- `circle_name`, `entrant_name`, `entrant_persona_id` — Display info
+- `timestamp` — When received
+- `status` — pending, verifying, approved, rejected
 
-### 3. Recovery (Lost Devices)
+**Lifecycle:**
+- Arise: When someone attempts to join via link
+- Change: Status progresses through verification
+- Depart: Resolved (approved or rejected)
 
-When all devices are lost:
+### propylon-session
 
-| What's Available | Recovery Path |
-|------------------|---------------|
-| Mnemonic + saved link | Full restore via self-federation |
-| Mnemonic only | Identity restored; need peer to re-invite |
-| Mnemonic + backup file | Full restore from phoreta (encrypted backup) |
-| Nothing | Sovereignty means you can lose everything |
+Authentication state machine — tracks challenge-response flow.
 
-**Social recovery:** Trusted peers can regenerate invitations. This is a circle feature, not infrastructure.
+**Fields:**
+- `invitation_id`, `circle_id` — Context
+- `nonce` — Challenge to sign
+- `entrant_pubkey` — For returning entry
+- `status` — challenged, pending_approval, authenticated, rejected, failed, expired
+- `challenge_expires` — Challenge timeout
+- `require_approval` — Whether inviter must confirm
+- `animus_id` — Created animus after success
+- `persona_name` — Display name for new persona
 
----
+**Lifecycle:**
+- Arise: challenge-entry creates session with nonce
+- Change: verify-entry advances state
+- Complete: authenticated → animus created
+- Fail: rejected, failed, or expired
 
-## The Link
+### propylon-relay
 
-An invitation link encodes everything needed to attempt entry:
+WebSocket signaling infrastructure.
+
+**Fields:**
+- `name` — Relay identifier
+- `bootstrap_url` — WebSocket endpoint
+- `substrate` — cloudflare-workers, nixos-service, docker, other
+- `status` — active, degraded, offline, deploying
+- `deployed_at`, `version`, `config` — Deployment metadata
+
+**Lifecycle:**
+- Arise: create-relay defines infrastructure
+- Actualize: Deploy via dynamis patterns
+- Sense: Check relay health
+
+### session-token
+
+JWT for cross-process session sharing.
+
+**Fields:**
+- `persona_id` — Authenticated persona
+- `circles` — Accessible circle IDs
+- `attainments` — Unlocked capabilities
+- `issued_at`, `expires_at` — Validity window
+- `signature` — Ed25519 over payload
+
+**Lifecycle:**
+- Arise: create-session-token on keyring unlock
+- Use: MCP reads from OS credential store
+- Depart: Expires or keyring locks
+
+## Bonds (Desmoi)
+
+### grants-entry-to
+
+Link grants entry to a circle.
+
+- **From:** propylon-link
+- **To:** circle
+- **Cardinality:** many-to-one
+- **Traversal:** Find which circle a link grants access to
+
+### authenticated-via
+
+Animus was authenticated via this session.
+
+- **From:** animus
+- **To:** propylon-session
+- **Cardinality:** many-to-one
+- **Traversal:** Audit how an animus entered
+
+### used-link
+
+Session used this invitation link.
+
+- **From:** propylon-session
+- **To:** propylon-link
+- **Cardinality:** many-to-one
+- **Traversal:** Track which link was used for entry
+
+### operates-relay
+
+Circle operates this relay.
+
+- **From:** circle
+- **To:** propylon-relay
+- **Cardinality:** one-to-many
+- **Traversal:** Find relays operated by a commons
+
+### connects-via
+
+Animus connects via this relay.
+
+- **From:** animus
+- **To:** propylon-relay
+- **Cardinality:** many-to-one
+- **Traversal:** Track connection infrastructure
+
+## Operations (Praxeis)
+
+### create-link
+
+Create a shareable invitation link.
+
+- **When:** Inviting someone to a circle
+- **Requires:** invite attainment
+- **Provides:** Encoded URL, shareable link
+
+### create-self-link
+
+Create a self-invite for device federation.
+
+- **When:** Setting up a new device
+- **Requires:** invite attainment
+- **Provides:** Self-sync link with longer expiry
+
+### decode-link / validate-link
+
+Decode and validate an invitation link.
+
+- **When:** Processing an incoming link
+- **Requires:** enter attainment
+- **Provides:** Link components, validation result
+
+### challenge-entry
+
+Issue authentication challenge.
+
+- **When:** Entrant presents valid link
+- **Requires:** enter attainment
+- **Provides:** Session with nonce to sign
+
+### verify-entry
+
+Complete authentication, create animus.
+
+- **When:** Entrant signs challenge
+- **Requires:** enter attainment
+- **Provides:** Authenticated session, animus, connection info
+
+### approve-entry / reject-entry
+
+Approve or reject pending entry request.
+
+- **When:** Entry requires inviter approval
+- **Requires:** approve attainment
+- **Provides:** Resolution of pending request
+
+### revoke-link
+
+Revoke an invitation link.
+
+- **When:** Link should no longer be valid
+- **Requires:** invite attainment
+- **Provides:** Revoked status
+
+### list-entry-audit
+
+Query entry history for a circle.
+
+- **When:** Auditing who entered when
+- **Requires:** audit attainment
+- **Provides:** Session history
+
+### create-session-token / validate-session-token
+
+Cross-process session management.
+
+- **When:** Thyra unlocks, MCP starts
+- **Requires:** session attainment
+- **Provides:** JWT for credential store
+
+## Attainments
+
+### attainment/invite
+
+Invitation capability — creating and managing invitation links.
+
+- **Grants:** create-link, create-self-link, revoke-link
+- **Scope:** circle
+- **Rationale:** Creating invitations is a sovereign act within a circle
+
+### attainment/enter
+
+Entry capability — using links to attempt entry.
+
+- **Grants:** decode-link, validate-link, challenge-entry, verify-entry
+- **Scope:** global (anyone with a link can attempt entry)
+- **Rationale:** Entry flow requires no prior membership
+
+### attainment/approve
+
+Approval capability — resolving pending entry requests.
+
+- **Grants:** approve-entry, reject-entry
+- **Scope:** circle
+- **Rationale:** Only circle members can approve/reject
+
+### attainment/audit
+
+Audit capability — viewing entry history.
+
+- **Grants:** list-entry-audit
+- **Scope:** circle
+- **Rationale:** Entry history is sensitive; requires authorization
+
+### attainment/session
+
+Session management capability — cross-process authentication.
+
+- **Grants:** create-session-token, validate-session-token
+- **Scope:** soma (local substrate)
+- **Rationale:** Session tokens are substrate-local, not circle-scoped
+
+## Embodiment
+
+### Completeness Status
+
+| Level | Status |
+|-------|--------|
+| Defined | ✅ 5 eide, 5 desmoi, 13 praxeis |
+| Loaded | ✅ Bootstrap loads all definitions |
+| Projected | ✅ All praxeis visible as MCP tools |
+| Embodied | ⏳ Body-schema contribution pending |
+| Surfaced | ⏳ Reconciler not yet implemented |
+| Afforded | ⏳ Thyra entry affordances pending |
+
+### Body-Schema Contribution
+
+When sense-body gathers propylon state:
 
 ```yaml
-propylon-link:
-  invitation_id: string       # Reference to invitation entity
-  bootstrap: string           # Relay URL (e.g., wss://propylon.liminalcommons.com)
-  circle_id: string           # Target circle
-  inviter_id: string          # Who created the link
-  inviter_pubkey: string      # Ed25519 public key for signature verification
-  signature: string           # Ed25519 signature over invitation_id
-
-  # Constraints
-  expires_at: timestamp?      # Optional expiry
-  max_uses: number?           # Single-use or multi-use
-  require_approval: boolean?  # Inviter must confirm
-
-  # Display metadata
-  display:
-    circle_name: string?      # For link previews
-    inviter_name: string?
-    message: string?
+entry:
+  pending_requests: 2      # Awaiting approval
+  active_links: 5          # Not expired/revoked
+  sessions_today: 3        # Entry attempts
+  relay_status: active     # Connected relay
 ```
 
-**Encoding:** JSON → Base64url → URL
+This reveals entry activity and pending approvals.
 
-```
-https://thyra.link/p/eyJpbnZpdGF0aW9uX2lkIjoi...
-```
+### Reconciler
 
-The link is self-validating:
-- Decode Base64url → JSON
-- Verify signature against inviter_pubkey
-- Check expiry
-- No external lookup needed
+A propylon reconciler would surface:
 
----
+- **Pending approvals** — "2 entry requests awaiting your approval"
+- **Expiring links** — "Self-sync link expires in 3 days"
+- **Unused links** — "5 links created but never used"
+- **Failed entries** — "3 entry attempts failed today"
 
-## The Relay
+## Compound Leverage
 
-The relay is minimal infrastructure that **any commons can deploy and operate**.
+### amplifies hypostasis
 
-**Repository:** [github.com/liminalcommons/propylon-relay](https://github.com/liminalcommons/propylon-relay)
+Entry requires key derivation and signing. Mnemonic restores identity.
 
-**Does:**
-- Forward WebRTC signaling (SDP, ICE candidates)
-- Validate link signatures (as optimization)
-- Host landing page
+### amplifies soma
 
-**Does NOT:**
-- Store any state
-- Know conversation content
-- Persist beyond signaling
-- Act as identity authority
+Animus arises through soma/arise-animus after authentication.
 
-The relay is:
-- **Stateless** — Nothing persists
-- **Replaceable** — The link specifies which relay
-- **Commoditized** — Anyone can run one
-- **Dumb** — Just forwards messages
+### amplifies politeia
 
-This is infrastructure like roads — shared, replaceable, not controlling.
+Circle membership is created via entry. Governance determines who can invite.
 
-Each commons operates their own relay. The invitation link's `bootstrap` field specifies which relay to use:
-```yaml
-bootstrap: "wss://propylon.yourcommons.org"  # Your relay
-```
+### amplifies aither
 
----
+WebRTC signaling flows through relay before P2P handoff.
 
-## Authentication Flow
+### amplifies thyra
 
-**Peer entry (human verification):**
-```
-Entrant → Click link → Relay validates → WebRTC signaling
-       → Video call begins → Inviter sees/hears entrant
-       → Inviter confirms → Animus created → P2P established
-```
+Entry UI (video call, approval) renders in thyra.
 
-The call IS the verification — you see and hear the person. No cryptographic challenge needed for trusted peers.
+## Theoria
 
-**Self-federation (same persona):**
-```
-Device B → Enter mnemonic → Derive keypair
-        → Enter link → Connect to relay → Signal to Device A
-        → Device A verifies pubkey matches → Sync begins
-```
+### T47: Links are primary, channels are orthogonal
 
-For self-sync, cryptographic verification replaces human verification.
+The invitation link encodes everything needed. How you share it (QR, SMS, email) is a separate concern. The link is the thing; the channel is just transport.
 
----
+### T48: Human verification is the highest assurance
 
-## Praxeis
+For trusted peer entry, eyes and ears prove identity better than cryptography. The video call IS the verification — no challenge-response needed when you see and hear the person.
 
-| Praxis | Purpose | Status |
-|--------|---------|--------|
-| `propylon/create-link` | Generate shareable invitation link | ✅ Complete |
-| `propylon/create-self-link` | Generate self-invite for device sync | ✅ Complete |
-| `propylon/encode-link` | Encode link to URL-safe string | ✅ Complete |
-| `propylon/decode-link` | Decode link from URL-safe string | ✅ Complete |
-| `propylon/validate-link` | Check link validity (signature, expiry) | ✅ Complete |
-| `propylon/challenge-entry` | Issue authentication challenge | ✅ Complete |
-| `propylon/verify-entry` | Complete authentication, create animus | ✅ Complete |
-| `propylon/approve-entry` | Inviter approves pending entry | ✅ Complete |
-| `propylon/reject-entry` | Inviter rejects pending entry | ✅ Complete |
-| `propylon/revoke-link` | Invalidate an invitation | ✅ Complete |
-| `propylon/list-entry-audit` | Query entry history | ✅ Complete |
+### T49: Sovereignty includes the right to lose everything
 
----
+The mnemonic stays with the user. If lost, you're gone. This is the cost of sovereignty — no administrator can recover your identity.
 
-## Eide
+## Future Extensions
 
-| Eidos | Purpose |
-|-------|---------|
-| `propylon-link` | Shareable invitation link encoding |
-| `propylon-session` | Authentication session state machine |
+### WebAuthn Support
 
-## Desmoi
-
-| Desmos | From | To |
-|--------|------|-----|
-| `grants-entry-to` | propylon-link | circle |
-| `authenticated-via` | animus | propylon-session |
-| `used-link` | propylon-session | propylon-link |
-
----
-
-## Optional Conveniences
-
-These are NOT required but can enhance UX:
-
-### WebAuthn (Phase 23.6)
-
-Hardware key authentication (YubiKey) for:
-- Local Thyra unlock
-- Additional authentication factor
-- Passwordless convenience
-
-WebAuthn doesn't solve discovery (link still needed) but adds security.
+Hardware key authentication (YubiKey) for local unlock. Adds security without solving discovery.
 
 ### Domain-Based Discovery
 
-For memorable addresses:
-```
-victor@liminalcommons.com
-liminalcommons.com/.well-known/kosmos → bootstrap info
-```
+Human-friendly addresses like `victor@liminalcommons.com` resolving to bootstrap info via `.well-known/kosmos`.
 
-This requires domain ownership but enables human-friendly addressing.
+### Social Recovery
 
-### Vault Backup
+Trusted peers can regenerate invitations. This is a circle governance feature, not infrastructure.
 
-Encrypted state backup:
-- Store encrypted phoreta (state bundle)
-- Self-hosted or trusted service
-- Restore requires mnemonic + vault access
+### Relay Federation
+
+Multiple relays coordinating for availability. Currently single-relay per link.
 
 ---
 
-## Security Model
-
-| Threat | Mitigation |
-|--------|------------|
-| Link interception | Single-use links, passphrase protection, expiry |
-| Impersonation | Human verification (video call), pubkey verification |
-| Relay compromise | Relay knows nothing; signaling only |
-| Lost link | Generate new link, or have peer re-invite |
-| Lost mnemonic | Gone forever (sovereignty includes failure) |
-
-**Human verification model:**
-> "The call IS the verification — you see and hear the person."
-
-For trusted peers, eyes and ears prove identity better than cryptography.
-
----
-
-## Interpreter Functions
-
-Available for link creation/validation:
-
-| Function | Purpose |
-|----------|---------|
-| `uuid()` | Generate invitation ID |
-| `random_hex(bytes)` | Generate nonces |
-| `json_encode/decode()` | Serialize link data |
-| `base64url_encode/decode()` | URL-safe encoding |
-| `timestamp_add_days/hours/minutes()` | Set expiry |
-| `timestamp_before()` | Check expiry |
-
----
-
-## Implementation Files
-
-**Propylon Oikos** (ontology — this repo):
-- `genesis/propylon/manifest.yaml` — Oikos package manifest
-- `genesis/propylon/eide/propylon.yaml` — Eide definitions
-- `genesis/propylon/desmoi/propylon.yaml` — Desmoi definitions
-- `genesis/propylon/praxeis/propylon.yaml` — Praxis definitions
-
-**Propylon Relay** (infrastructure — separate repo):
-- [github.com/liminalcommons/propylon-relay](https://github.com/liminalcommons/propylon-relay)
-- Cloudflare Worker for WebRTC signaling
-- Any commons can deploy their own instance
-
----
-
-## Constitutional Alignment
-
-Propylon implements constitutional requirements from KOSMOGONIA:
-
-| Principle | How Propylon Honors It |
-|-----------|------------------------|
-| **Visibility = Reachability** | Links encode the path to join a circle. You reach it because you received the link. The bond forms only after successful verification. |
-| **Authenticity = Provenance** | Every link is signed by the inviter. Signature proves origin without external lookup. Challenge-response proves liveness. |
-| **Composition Requirement** | `propylon-link` and `propylon-session` are composed entities with provenance bonds. Links trace to the inviter who created them. |
-| **Sovereignty Preserved** | The mnemonic stays with the user. The link is self-contained. No central authority can revoke your identity or block link creation. |
-
-**Caller Pattern:** Propylon content uses **literal** caller patterns. Link structure, relay URLs, and signatures are constitutional — they cannot be derived from other sources. This is entry infrastructure, not generated documentation.
-
----
-
-## Next Steps
-
-### Phase 23.6: End-to-End Testing
-
-1. **Test peer invitation flow** — Create link, share, click, verify, establish P2P
-2. **Test expiry and constraints** — Single-use, max_uses, expires_at
-3. **Test revocation** — Revoke link, verify rejection
-4. **Test approval flow** — require_approval=true, pending → approve/reject
-5. **Test self-federation flow** — create-self-link, pubkey verification, sync
-
-### Phase 23.8: WebAuthn (Optional)
-
-1. **(Deferred) Add WebAuthn support** — Hardware key authentication for local unlock
-
----
-
+*Composed in service of the kosmogonia.*
 *Links are primary. Channels are orthogonal. The relay forgets.*
-*Traces to: expression/genesis-root*

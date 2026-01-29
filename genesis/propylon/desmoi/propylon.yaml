@@ -51,3 +51,24 @@ desmoi:
       from_eidos: propylon-session
       to_eidos: propylon-relay
       cardinality: many-to-one
+
+  # authorized-by — animus authorized by another persona's session
+  - id: desmos/authorized-by
+    data:
+      name: authorized-by
+      description: |
+        An animus operating under the authorization of another persona's session.
+        Used when Claude's animus arises within Victor's authenticated scope —
+        Claude acts with its own identity but scoped to Victor's circle access.
+      from_eidos: animus
+      to_eidos: persona
+      cardinality: many-to-one
+
+  # issued-token — persona issued a session token
+  - id: desmos/issued-token
+    data:
+      name: issued-token
+      description: "A persona issued a session-token for cross-process auth"
+      from_eidos: persona
+      to_eidos: session-token
+      cardinality: one-to-many

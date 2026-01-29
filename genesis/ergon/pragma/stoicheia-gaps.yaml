@@ -1,0 +1,186 @@
+# Stoicheia Gaps — Pragmas for Missing Stoicheia
+#
+# These pragmas signaled gaps discovered in kosmos that needed resolution in chora.
+# Created during K1-K8 implementation when aspirational patterns used stoicheia
+# that didn't exist.
+#
+# ALL RESOLVED 2026-01-28 — stoicheia implemented in chora
+
+entities:
+
+# =============================================================================
+# RESOLVED: Error Handling Stoicheia
+# =============================================================================
+
+- eidos: pragma
+  id: pragma/stoicheion-try-catch
+  data:
+    title: "Add try/catch stoicheion for error handling in praxeis"
+    description: |
+      The oikos distribution praxeis (sync-circle-oikoi, reconcile-circle-oikoi)
+      need to continue on individual oikos failures. Currently there's no way
+      to catch errors and continue — a single failure aborts the whole praxis.
+
+      Desired pattern:
+      ```yaml
+      - step: for_each
+        items: "$distributed_oikoi"
+        as: oikos_prod
+        do:
+          - step: try
+            do:
+              - step: call
+                praxis: politeia/install-oikos-if-needed
+                params:
+                  oikos_prod_id: "$oikos_prod.id"
+            catch:
+              - step: set
+                bindings:
+                  failed: true
+      ```
+
+      Without this, we implemented simpler versions that don't catch errors,
+      meaning sync is all-or-nothing rather than best-effort.
+    context: "K3, K5, K6, K7 implementation in oikos-distribution-execution-plan.md"
+    status: resolved
+    priority: high
+    created_at: "2026-01-28T00:00:00Z"
+    resolved_at: "2026-01-28T12:00:00Z"
+    resolution: |
+      Implemented in chora as TryStep in steps.rs.
+      - try stoicheion added to stoicheion.yaml (Tier 2)
+      - Executes do steps, catches errors and runs catch block
+      - Binds $_error in catch block for error message access
+
+# =============================================================================
+# RESOLVED: Array Manipulation Stoicheia
+# =============================================================================
+
+- eidos: pragma
+  id: pragma/stoicheion-append
+  data:
+    title: "Add append stoicheion for building arrays in loops"
+    description: |
+      When iterating with for_each, we need to accumulate results into an array.
+      Currently there's no way to append to an existing array binding.
+
+      Desired pattern:
+      ```yaml
+      - step: set
+        bindings:
+          sync_results: []
+
+      - step: for_each
+        items: "$distributed_oikoi"
+        as: oikos_prod
+        do:
+          - step: call
+            praxis: install-oikos-if-needed
+            bind_to: result
+          - step: append
+            to: "$sync_results"
+            value: "$result"
+      ```
+
+      Without this, we can't build detailed result arrays. The v1 implementation
+      just returns counts rather than per-item results.
+    context: "K3, K7 implementation in oikos-distribution-execution-plan.md"
+    status: resolved
+    priority: normal
+    created_at: "2026-01-28T00:00:00Z"
+    resolved_at: "2026-01-28T12:00:00Z"
+    resolution: |
+      Implemented in chora as AppendStep in steps.rs.
+      - append stoicheion added to stoicheion.yaml (Tier 2)
+      - Appends value to scope variable array
+      - Enables building result arrays in loops
+
+# =============================================================================
+# RESOLVED: Logging Stoicheia
+# =============================================================================
+
+- eidos: pragma
+  id: pragma/stoicheion-log
+  data:
+    title: "Add log stoicheion for diagnostic output"
+    description: |
+      Praxeis need to log warnings and diagnostic information without
+      affecting the return value. This is especially important for
+      non-fatal errors that should be visible but not block execution.
+
+      Desired pattern:
+      ```yaml
+      - step: try
+        do:
+          - step: call
+            praxis: sync-circle-oikoi
+            bind_to: sync_result
+        catch:
+          - step: log
+            level: warn
+            message: "Oikos sync failed: $_error"
+      ```
+
+      Without this, errors either block execution or disappear silently.
+    context: "K5, K6 implementation in oikos-distribution-execution-plan.md"
+    status: resolved
+    priority: normal
+    created_at: "2026-01-28T00:00:00Z"
+    resolved_at: "2026-01-28T12:00:00Z"
+    resolution: |
+      Implemented in chora as LogStep in steps.rs.
+      - log stoicheion added to stoicheion.yaml (Tier 2)
+      - Logs messages to stderr with level prefix
+      - Supports debug, info, warn, error levels
+
+# =============================================================================
+# RESOLVED: Utility Praxeis
+# =============================================================================
+
+- eidos: pragma
+  id: pragma/praxis-compare-semver
+  data:
+    title: "Add compare-semver praxis for version comparison"
+    description: |
+      The update-oikos-if-newer praxis (K4.5) needs to compare semantic versions
+      to determine if an update is needed. Currently there's no semver comparison.
+
+      Desired pattern:
+      ```yaml
+      - step: call
+        praxis: oikos/compare-semver
+        params:
+          version_a: "$oikos_prod.data.version"
+          version_b: "$installed.data.version"
+        bind_to: comparison
+
+      - step: switch
+        cases:
+          - when: "$comparison.result == 1"
+            then:
+              - step: call
+                praxis: politeia/install-oikos
+      ```
+
+      The v1 implementation uses simple string inequality which doesn't handle
+      semver ordering correctly (e.g., "1.10.0" vs "1.9.0").
+    context: "K4.5, K9 in oikos-distribution-execution-plan.md"
+    status: resolved
+    priority: high
+    created_at: "2026-01-28T00:00:00Z"
+    resolved_at: "2026-01-28T12:00:00Z"
+    resolution: |
+      Implemented in chora as praxis/oikos/compare-semver in oikos.yaml.
+      - Compares two semver strings
+      - Returns result: -1 (less), 0 (equal), 1 (greater)
+      - Returns comparison label for human readability
+
+# =============================================================================
+# Bonds for these pragmas (historical reference)
+# =============================================================================
+# These bonds were conceptually signaled to circle/chora-dev:
+#
+# - pragma/stoicheion-try-catch → circle/chora-dev (resolved)
+# - pragma/stoicheion-append → circle/chora-dev (resolved)
+# - pragma/stoicheion-log → circle/chora-dev (resolved)
+# - pragma/praxis-compare-semver → circle/chora-dev (resolved)

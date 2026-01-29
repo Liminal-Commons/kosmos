@@ -1,0 +1,198 @@
+# Demiurge Eide
+# The craftsman's forms — composition templates and artifacts
+#
+# Eide defined here + attainments that gate demiurge praxeis
+
+entities:
+
+  # =============================================================================
+  # CORE EIDE
+  # =============================================================================
+
+  - eidos: eidos
+    id: eidos/typos
+    data:
+      name: typos
+      description: |
+        τύπος — the mold, the composition template.
+
+        Shape determines routing:
+        - target_eidos present → entity composition
+        - slots present, no target_eidos → graph composition
+        - template present, no slots, no target_eidos → template rendering
+      constitutional: false
+      fields:
+        name:
+          type: string
+          required: true
+        description:
+          type: string
+          required: false
+        target_eidos:
+          type: string
+          required: false
+          description: The eidos to instantiate (entity composition mode)
+        slots:
+          type: object
+          required: false
+          description: Named slots to fill with inputs (graph composition mode)
+        template:
+          type: string
+          required: false
+          description: Template with {{ variable }} placeholders (template mode)
+        defaults:
+          type: object
+          required: false
+          description: Default values for slots/template variables
+        bonds:
+          type: array
+          required: false
+          description: Bonds to create during composition
+        output_type:
+          type: string
+          required: false
+          description: Format of output (for template mode)
+
+  - eidos: eidos
+    id: eidos/artifact
+    data:
+      name: artifact
+      description: |
+        A composed artifact — the result of template or graph composition.
+        Entity composition produces the entity directly, not an artifact wrapper.
+      constitutional: false
+      fields:
+        typos_id:
+          type: string
+          required: true
+          description: The definition used to compose this artifact
+        content:
+          type: string
+          required: true
+          description: The composed content
+        inputs:
+          type: object
+          required: false
+          description: The inputs used during composition
+        composed_at:
+          type: timestamp
+          required: true
+          description: When this artifact was composed
+        cache_key:
+          type: string
+          required: false
+          description: Content-addressed key for caching
+        stale:
+          type: boolean
+          required: false
+          description: Whether the artifact needs recomposition
+
+  # =============================================================================
+  # ATTAINMENTS
+  # =============================================================================
+
+  - eidos: attainment
+    id: attainment/compose
+    data:
+      name: compose
+      description: |
+        Core composition capability — the fundamental demiurge act.
+        Enables creating entities and artifacts through composition,
+        managing artifact dependencies, and cache operations.
+      oikos: demiurge
+      scope: circle
+      grants:
+        - praxis/demiurge/compose
+        - praxis/demiurge/compose-cached
+        - praxis/demiurge/check-cache
+        - praxis/demiurge/compose-indexed
+        - praxis/demiurge/bind-dependencies
+        - praxis/demiurge/mark-dependents-stale
+        - praxis/demiurge/invalidate-artifact
+        - praxis/demiurge/list-stale-artifacts
+        - praxis/demiurge/refresh-stale
+
+  - eidos: attainment
+    id: attainment/generate-definitions
+    data:
+      name: generate-definitions
+      description: |
+        Definition generation capability — creating composition patterns via inference.
+        Tier-3 operations that use LLM to generate new typos definitions.
+      oikos: demiurge
+      scope: circle
+      grants:
+        - praxis/demiurge/compose-definition-indexed
+        - praxis/demiurge/generate-domain-definitions
+
+  - eidos: attainment
+    id: attainment/oikos-develop
+    data:
+      name: oikos-develop
+      description: |
+        Package development capability — creating oikos-dev packages.
+        Enables packaging oikoi from genesis source and managing distribution modes.
+      oikos: demiurge
+      scope: circle
+      grants:
+        - praxis/demiurge/compose-oikos-dev
+        - praxis/demiurge/compose-all-oikoi-dev
+        - praxis/demiurge/set-distribution-mode
+
+  - eidos: attainment
+    id: attainment/oikos-bake
+    data:
+      name: oikos-bake
+      description: |
+        Generation resolution capability — baking oikos for publication.
+        Resolves all generation specs in an oikos-dev to literals,
+        preparing it for signing and distribution.
+      oikos: demiurge
+      scope: circle
+      grants:
+        - praxis/demiurge/bake-oikos
+
+  - eidos: attainment
+    id: attainment/oikos-publish
+    data:
+      name: oikos-publish
+      description: |
+        Package publishing capability — signing and releasing oikos-prod.
+        Creates signed, verified packages for distribution to other circles.
+        Requires signing authority (hypostasis).
+      oikos: demiurge
+      scope: circle
+      grants:
+        - praxis/demiurge/publish-oikos
+        - praxis/demiurge/verify-oikos
+        - praxis/demiurge/publish-oikos-multilocale
+
+  - eidos: attainment
+    id: attainment/oikos-fork
+    data:
+      name: oikos-fork
+      description: |
+        Commons forking capability — deriving from generative-commons.
+        Enables forking shared packages for local adaptation while
+        maintaining attribution through derives-from bonds.
+      oikos: demiurge
+      scope: circle
+      grants:
+        - praxis/demiurge/fork-oikos
+        - praxis/demiurge/list-generative-commons
+        - praxis/demiurge/list-oikos-derivations
+
+  - eidos: attainment
+    id: attainment/genesis-emit
+    data:
+      name: genesis-emit
+      description: |
+        Genesis emission capability — full-circle verification.
+        Enables emitting all genesis content to filesystem and
+        verifying kosmos coherence through hash comparison.
+      oikos: demiurge
+      scope: circle
+      grants:
+        - praxis/demiurge/emit-genesis
+        - praxis/demiurge/verify-full-circle
+        - praxis/demiurge/emit-single-stream

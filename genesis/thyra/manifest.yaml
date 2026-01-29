@@ -44,12 +44,27 @@ provides:
     - expression
     - accumulation
     - utterance
-    - release
-    - release-artifact
+    - layout
+    - panel
+    - style-theme
+    - render-intent
+    - workspace
     - render-type
     - renderer
     - render-spec
+    - widget
+    - content-root
+    - voice-pipeline-config
+    - release
+    - release-artifact
     - app-config
+
+  attainments:
+    - perceive        # Stream capture and accumulation (soma)
+    - express         # Create durable expressions (circle)
+    - render          # Visual emission and workspace (soma)
+    - emit            # Filesystem emission (soma)
+    - navigate        # Journey navigation / hodos (animus)
 
   desmoi:
     - expressed-in

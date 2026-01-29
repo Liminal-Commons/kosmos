@@ -2001,7 +2001,7 @@ entities:
           id: "$credential_id"
           service: "$service"
           credential_type: "$cred_type"
-          encrypted_value: "$encryption_result.encrypted_value"
+          encrypted_value: "$encryption_result.encrypted"
           salt: "$encryption_result.salt"
           label: "$label"
           scope: "$cred_scope"

@@ -176,7 +176,7 @@ Create a new circle with the caller's animus as sovereign.
 | `circle_id` | string | ✓ | ID for the new circle (e.g., circle/my-circle) |
 | `name` | string | ✓ | Human-readable circle name |
 | `description` | string |  | Circle description |
-| `kind` | string |  | Circle kind: self, intimate, community, public (default: intimate) |
+| `kind` | string |  | Circle kind: self, peer, commons (default: peer) |
 
 ### create-distribution-circle 🔧
 
@@ -189,7 +189,7 @@ Create a distribution circle for an oikos-prod.
 | `oikos_prod_id` | string | ✓ | The oikos-prod to distribute |
 | `circle_id` | string | ✓ | ID for the distribution circle |
 | `name` | string | ✓ | Human-readable circle name |
-| `distribution_kind` | string | ✓ | Distribution kind: commons (public) or premium (intimate) |
+| `distribution_kind` | string | ✓ | Distribution kind: commons (open) or premium (peer-only) |
 | `description` | string |  | Circle description |
 
 ### create-hud-region 🔧

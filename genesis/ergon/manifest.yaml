@@ -20,6 +20,8 @@ content_paths:
     content_types: [desmos]
   - path: praxeis/
     content_types: [praxis]
+  - path: pragma/
+    content_types: [pragma]
 
 depends_on:
   - politeia
@@ -35,6 +37,11 @@ requires_dynamis:
 provides:
   eide:
     - pragma
+
+  attainments:
+    - signal          # Create pragma for other circles
+    - work            # Manage pragma lifecycle
+
   desmoi:
     - signals-to
     - evidenced-by

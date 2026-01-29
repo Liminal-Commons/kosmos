@@ -1,280 +1,280 @@
-# Manteia: Governed Inference with Structured Outputs
+# Manteia Design
 
-*Schema-constrained generation for valid-by-construction outputs.*
+μαντεία (manteía) — divination, prophecy, oracle
 
----
+## Ontological Purpose
 
-## Implementation Status
+Manteia addresses **the gap between intention and valid structure** — the distance between wanting to generate something and having it arrive with guaranteed correctness.
 
-| Component | Status | Location |
-|-----------|--------|----------|
-| `infer` stoicheion | ✓ Complete | `crates/kosmos/src/interpreter/steps.rs` |
-| `infer_structured` host function | ✓ Complete | `crates/kosmos/src/host.rs` |
-| JSON schema generator | ✓ Complete | `crates/kosmos/src/interpreter/schema.rs` |
-| Stoicheion eide with schemas | ✓ Complete | `genesis/stoicheia-portable/eide/stoicheion.yaml` |
-| Manteia praxeis | ✓ Complete | `genesis/manteia/praxeis/manteia.yaml` |
+Without manteia:
+- LLM outputs are free-form text requiring parse-and-validate cycles
+- Invalid structures can arise, requiring error handling and retry
+- Generation and evaluation are separate, ad-hoc processes
+- Meta-generation (praxis, typos) has no schema constraints
 
-### Praxeis Implemented
+With manteia:
+- **Schema-constrained generation**: Outputs conform to JSON schema at generation time
+- **Valid-by-construction**: Invalid structure cannot arise
+- **Schema sources**: Derive constraints from stoicheion, eidos, or explicit schema
+- **Governed envelopes**: Generation + evaluation in one flow with verdicts
+- **Meta-generation**: Create valid praxeis, steps, and typoi
 
-| Praxis | Description |
-|--------|-------------|
-| `governed-inference` | Generate structured JSON matching explicit, stoicheion-derived, or eidos-derived schema |
-| `generate-entity` | Generate entity data constrained to eidos field schema |
-| `generate-step` | Generate a single valid praxis step |
-| `generate-praxis` | Generate complete praxis with multiple steps |
-| `get-stoicheion-schema` | Query schema for a step type |
-| `list-stoicheia` | List available step types with descriptions |
+The oracle speaks in structured forms. The schema constrains the prophecy.
 
----
+## Circle Context
 
-## The Key Insight
+### Self Circle
 
-**Schema-driven generation enables valid-by-construction outputs.**
+A solitary dweller uses manteia to:
+- Generate entity data constrained to eidos schemas (notes, theoria, insights)
+- Query schema information to understand kosmos structure
+- Create personal praxeis via generate-praxis
+- Build custom typoi for their composition patterns
 
-Traditional LLM generation:
-```
-prompt → LLM → free-form text → parse → validate → maybe fail
-```
+Inference is the primary creative act when structure is required.
 
-Schema-constrained generation:
-```
-prompt + schema → LLM (tool_use) → valid JSON → done
-```
+### Peer Circle
 
-The LLM cannot produce invalid structure because Anthropic's tool_use enforces the schema at generation time.
+Collaborators use manteia to:
+- Generate shared artifacts with consistent structure
+- Create praxeis that encode team workflows
+- Evaluate generation quality against shared criteria
+- Build typoi that reflect team patterns
 
----
+Governed envelopes provide quality assurance for shared artifacts.
 
-## Architecture
+### Commons Circle
 
-### 1. Schema Sources
+A commons circle uses manteia to:
+- Define evaluation criteria for generation quality gates
+- Generate canonical typoi for distribution
+- Maintain generation quality standards
+- Provide schema introspection for developers
 
-Schemas can come from three sources (in precedence order):
+Generation standards propagate through governed-envelope verdicts.
 
-| Source | Use Case |
-|--------|----------|
-| Explicit `output_schema` | Custom schemas for one-off generation |
-| `stoicheion` reference | Automatic schema derivation from step definitions |
-| `target_eidos` reference | Automatic schema derivation from entity field definitions |
+## Core Entities (Eide)
 
-### 2. Schema Conversion
+### governed-envelope
 
-Stoicheion eide define fields with types, aliases, and defaults:
+Result of governed generation with quality evaluation.
 
-```yaml
-# genesis/stoicheia-portable/eide/stoicheion.yaml
-- eidos: eidos
-  id: eidos/stoicheion/filter
-  data:
-    name: filter
-    description: "Filter items by condition"
-    tier: 0
-    fields:
-      items:
-        type: string
-        required: true
-        aliases: ["in"]
-        description: "Variable reference to items array"
-      condition:
-        type: string
-        required: true
-        aliases: ["where"]
-        description: "Condition expression"
-      bind_to:
-        type: string
-        description: "Variable to bind result"
-```
+**Fields:**
+- `content` — The generated content (JSON, text, code)
+- `verdict` — Quality gate verdict (TRUE, FALSE, UNDECIDABLE)
+- `criteria_results` — Per-criterion evaluation results [{name, status, reason}]
+- `guidance` — Resolution guidance when verdict != TRUE
+- `provenance` — Generation tracking (action, timestamp, prompt_hash, model)
+- `created_at` — When this envelope was created
 
-The `stoicheion_to_json_schema()` function converts this to:
+**Verdicts:**
+- **TRUE**: All critical criteria pass — safe to use
+- **FALSE**: Critical criterion failed — includes guidance for improvement
+- **UNDECIDABLE**: Cannot determine — human review required
 
-```json
-{
-  "type": "object",
-  "properties": {
-    "items": { "type": "string", "description": "Variable reference..." },
-    "condition": { "type": "string", "description": "Condition expression" },
-    "bind_to": { "type": "string", "description": "Variable to bind..." }
-  },
-  "required": ["items", "condition"]
-}
-```
+**Lifecycle:**
+- Arise: Created by governed-inference with evaluate=true
+- Change: Immutable (new generation creates new envelope)
+- Depart: Archived when superseded by newer generation
 
-### 3. Inference Path
+### evaluation-criterion
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    INFER STEP EXECUTION                      │
-├─────────────────────────────────────────────────────────────┤
-│                                                              │
-│  1. Check explicit output_schema                             │
-│     ↓ (if null)                                              │
-│  2. Check stoicheion reference → stoicheion_to_json_schema() │
-│     ↓ (if null)                                              │
-│  3. Check target_eidos reference → eidos_to_json_schema()    │
-│     ↓                                                        │
-│  4. Call host.infer_structured(prompt, schema)               │
-│     ↓                                                        │
-│  5. Anthropic tool_use enforces schema                       │
-│     ↓                                                        │
-│  6. Return valid JSON (guaranteed)                           │
-│                                                              │
-└─────────────────────────────────────────────────────────────┘
-```
+A criterion for evaluating generated content quality.
 
-### 4. Anthropic API Integration
+**Fields:**
+- `name` — Criterion identifier (e.g., "compiles", "handles_errors")
+- `description` — What this criterion checks for
+- `weight` — How failures affect verdict (critical, desired, advisory)
+- `check_prompt` — Custom prompt for checking (optional)
+- `created_at` — When defined
 
-The `infer_structured` function uses Anthropic's tool_use:
+**Weights:**
+- **critical**: Failure forces verdict=FALSE
+- **desired**: Failure noted but doesn't force FALSE
+- **advisory**: Informational only
 
-```json
-{
-  "model": "claude-opus-4-20250514",
-  "messages": [{ "role": "user", "content": "..." }],
-  "tools": [{
-    "name": "structured_output",
-    "description": "Return structured output",
-    "input_schema": { /* JSON Schema */ }
-  }],
-  "tool_choice": { "type": "tool", "name": "structured_output" }
-}
-```
+**Lifecycle:**
+- Arise: Composed when defining quality standards
+- Change: Updated as quality requirements evolve
+- Depart: Archived when superseded
 
-The `tool_choice` forces the LLM to use the tool, guaranteeing structured output.
+### criterion-result
 
----
+Result of evaluating a single criterion (embedded in governed-envelope).
 
-## Usage Examples
+**Fields:**
+- `name` — Criterion name that was evaluated
+- `status` — PASS, FAIL, or UNDECIDABLE
+- `reason` — Explanation of why this status was determined
+- `created_at` — When evaluated
 
-### Generate Step with Auto-Schema
+## Operations (Praxeis)
 
-```yaml
-# Generate a filter step
-generate-step:
-  stoicheion: filter
-  intent: "Filter users by active status"
-  context: "Available: $users array"
+### governed-inference
 
-# Returns:
-# { "items": "$users", "condition": "item.active == true" }
-```
+Generate structured output constrained to a JSON schema.
 
-### Generate with Explicit Schema
+- **When:** Any generation requiring valid structure
+- **Requires:** manteia attainment
+- **Provides:** Schema-constrained JSON, optionally wrapped in governed envelope
 
-```yaml
-# Generate custom JSON
-governed-inference:
-  prompt: "Generate a greeting"
-  output_schema:
-    type: object
-    properties:
-      message: { type: string }
-      language: { type: string, enum: ["en", "es", "fr"] }
-    required: ["message", "language"]
+**Schema Sources (precedence):**
+1. `output_schema` — Explicit JSON schema
+2. `stoicheion_id` — Derive from stoicheion eidos fields
+3. `target_eidos` — Derive from any eidos fields
 
-# Returns:
-# { "message": "Hello!", "language": "en" }
-```
+### generate-entity
 
-### Generate Complete Praxis
+Generate entity data constrained to an eidos schema.
 
-```yaml
-# Generate multi-step praxis
-generate-praxis:
-  praxis_id: praxis/custom/filter-and-count
-  description: "Filter users by active status and count them"
-  input_params: "users: array of user objects"
+- **When:** Creating entity content via inference
+- **Requires:** manteia attainment
+- **Provides:** Valid entity data matching eidos fields
 
-# Returns complete praxis definition with valid steps
-```
+### generate-step
 
----
+Generate a single valid praxis step constrained to stoicheion schema.
 
-## Future Applications
+- **When:** Building praxeis incrementally
+- **Requires:** generate-meta attainment
+- **Provides:** Valid step object for praxis steps array
 
-The schema-driven pattern extends beyond stoicheion:
+### generate-praxis
 
-| Domain | Schema Source | Application |
-|--------|---------------|-------------|
-| **Entities** | Eidos field definitions | Generate valid entity data |
-| **Bonds** | Desmos definitions | Generate valid bond configurations |
-| **Definitions** | Artifact-definition schemas | Generate slot content |
-| **Migrations** | Delta schemas | Generate update operations |
-| **Tests** | Praxis param/return schemas | Generate test cases |
-| **Docs** | Eidos → markdown templates | Generate documentation |
+Generate a complete praxis from high-level description.
 
-### Entity Generation (V4.1) ✓ Complete
+- **When:** Creating new workflows via inference
+- **Requires:** generate-meta attainment
+- **Provides:** Complete praxis with id, params, and steps
 
-Given an eidos with field definitions, generate valid entity content:
+### generate-typos
 
-```yaml
-# Generate entity data matching eidos schema
-generate-entity:
-  target_eidos: eidos/theoria
-  prompt: "Crystallize understanding about dependency tracking"
+Generate a valid typos for composing entities.
 
-# Returns valid theoria data:
-# { "insight": "...", "domain": "...", "status": "provisional" }
-```
+- **When:** Creating new composition patterns
+- **Requires:** generate-meta attainment
+- **Provides:** Complete typos ready for compose
 
-Also available via governed-inference:
+### get-stoicheion-schema
+
+Get the JSON schema for a stoicheion step type.
+
+- **When:** Understanding step structure
+- **Requires:** manteia attainment
+- **Provides:** JSON schema with properties, required fields
+
+### list-stoicheia
+
+List all available step types with descriptions.
+
+- **When:** Discovering available steps
+- **Requires:** manteia attainment
+- **Provides:** Step types grouped by tier
+
+## Attainments
+
+### attainment/manteia
+
+Core governed inference capability — schema-constrained generation.
+
+- **Grants:** governed-inference, generate-entity, get-stoicheion-schema, list-stoicheia
+- **Scope:** circle
+- **Rationale:** Basic inference with schema constraints is the fundamental manteia capability
+
+### attainment/generate-meta
+
+Meta-level generation capability — creating kosmos definitions.
+
+- **Grants:** generate-step, generate-praxis, generate-typos
+- **Scope:** circle
+- **Rationale:** Generating definitions that alter kosmos behavior requires explicit authorization
+
+## Embodiment
+
+### Completeness Status
+
+| Level | Status |
+|-------|--------|
+| Defined | ✅ 3 eide, 8 praxeis |
+| Loaded | ✅ Bootstrap loads all definitions |
+| Projected | ✅ 7 praxeis visible as MCP tools (1 internal) |
+| Embodied | ⏳ Body-schema contribution pending |
+| Surfaced | ⏳ Reconciler not yet implemented |
+| Afforded | ⏳ Thyra generation affordances pending |
+
+### Body-Schema Contribution
+
+When sense-body gathers manteia state:
 
 ```yaml
-governed-inference:
-  target_eidos: eidos/theoria  # Schema from eidos fields
-  prompt: "Generate a theoria about..."
+generation:
+  available_schemas: 24       # Stoicheia with schemas
+  eide_with_schemas: 18       # Eide that can constrain generation
+  recent_generations: 5       # Governed envelopes in last hour
+  pending_evaluations: 0      # Generations awaiting criteria check
 ```
 
-### Praxis Invocation Generation (V4.2)
+This reveals generation capacity and recent activity.
 
-Given a praxis definition, generate valid params:
+### Reconciler
 
-```yaml
-# Future: generate params for praxis invocation
-generate-invocation:
-  praxis_id: praxis/nous/crystallize-theoria
-  intent: "Crystallize an understanding about composition"
+A manteia reconciler would surface:
 
-# Returns: { theoria_id: "...", insight: "...", domain: "..." }
-```
+- **Stale schemas** — "stoicheion/filter has been updated; regenerate dependent content"
+- **Evaluation patterns** — "3 recent generations failed criterion 'compiles'"
+- **Generation opportunities** — "Eidos 'task' has no typos-def; would you like to generate one?"
+
+## Compound Leverage
+
+### amplifies demiurge
+
+Composition with generated slots routes through manteia. Schema-constrained generation ensures valid slot content.
+
+### amplifies nous
+
+Theoria crystallization can use governed-inference to structure insights. Inquiry synthesis benefits from schema constraints.
+
+### amplifies dokimasia
+
+Evaluation criteria can become validation rules. Governed-envelope verdicts inform validation pipelines.
+
+### amplifies stoicheia-portable
+
+Stoicheion field definitions ARE the schema source. Every step type gains automatic schema derivation.
+
+## Theoria
+
+### T38: Schema-driven generation enables valid-by-construction outputs
+
+Traditional LLM generation requires parse-validate-retry cycles. With schema constraints enforced at generation time, invalid structure cannot arise. The constraint IS the guarantee.
+
+### T39: Evaluation closes the generation loop
+
+Generation without evaluation is incomplete. Governed envelopes bundle content with quality assessment, making generation a complete act rather than half a conversation.
+
+### T40: Meta-generation enables kosmos self-extension
+
+When the kosmos can generate valid praxeis and typoi, it gains the ability to extend itself. This is not just code generation — it's ontological growth.
+
+## Future Extensions
+
+### Streaming Generation
+
+Current: Generation returns complete result. Future: Stream tokens while maintaining schema awareness for early termination.
+
+### Evaluation Caching
+
+Cache criterion results for similar content. Reuse evaluations when generation is semantically equivalent.
+
+### Multi-Model Support
+
+Current: Single model for generation. Future: Route to different models based on task type, cost constraints, or latency requirements.
+
+### Collaborative Evaluation
+
+Current: Single-pass evaluation. Future: Multiple evaluators with consensus for high-stakes generation.
 
 ---
 
-## Design Decisions
-
-1. **Schema fallback logic**
-   - Explicit `output_schema` takes precedence
-   - Falls back to `stoicheion`-derived schema
-   - Falls back to `target_eidos`-derived schema
-   - Plain text if none specified
-
-2. **Model selection**
-   - Currently hardcoded to `claude-opus-4-20250514` for quality
-   - Future: model specified per praxis or via environment
-
-3. **Schema normalization**
-   - String-encoded JSON is parsed
-   - Missing `type: object` wrapper is added
-   - Aliases are resolved at generation time
-
-4. **Error handling**
-   - Invalid schema → error (fail fast)
-   - Missing stoicheion → error (explicit is better)
-   - LLM refusal → error (should not happen with proper schemas)
-
----
-
-## Related Documents
-
-| Document | Purpose |
-|----------|---------|
-| [ROADMAP.md](../ROADMAP.md) | V2/V3 status, V4 future applications |
-| [stoicheia-portable/DESIGN.md](../stoicheia-portable/DESIGN.md) | Step vocabulary and field schemas |
-| [dokimasia/DESIGN.md](../dokimasia/DESIGN.md) | Validation integration |
-| [KOSMOGONIA.md](../KOSMOGONIA.md) | Constitutional requirement for governance |
-| [SCHEMA-DRIVEN-VISION.md](../SCHEMA-DRIVEN-VISION.md) | Unified schema-first architecture (V5+) |
-
----
-
-*χώρα receives valid forms. Schema-driven generation ensures validity at the moment of arising.*
-*Traces to: expression/genesis-root*
-*Created: 2026-01-23 — V3 implementation complete*
-*Updated: 2026-01-23 — V4.1 entity generation complete, V5 vision established*
+*Composed in service of the kosmogonia.*
+*The oracle speaks truth. The schema binds form. The verdict guides action.*

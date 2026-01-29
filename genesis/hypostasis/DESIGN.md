@@ -1,47 +1,483 @@
-# Hypostasis: Substrate Replication
+# Hypostasis Design
 
-*Phase 25 — ὑπόστασις (hypostasis): underlying reality, that which stands beneath*
+ὑπόστασις (hypostasis) — underlying reality, that which stands beneath.
 
----
+## Ontological Purpose
 
-## Purpose
+What gap in being does hypostasis address?
 
-Hypostasis enables the kosmos to replicate itself — the same circle across multiple devices, backup and recovery, content-addressed authenticity. This is self-constitution: the substrate that can reconstitute itself.
+**The gap of identity and authenticity.** Without hypostasis, entities exist but have no verifiable origin. Actions occur but cannot be attributed. The kosmos would be a sea of anonymous content with no way to know what is authentic, what came from where, or who stands behind any claim.
 
-**Key insight:** Phoreta are the universal format. Federation, backup, and recovery all use the same signed bundle structure.
+Hypostasis provides:
+- **Identity** — cryptographic proof of who exists (personas, keys)
+- **Authenticity** — verifiable provenance chains to signed genesis
+- **Self-replication** — the kosmos can back itself up and restore across devices
+- **Session security** — fluid operation without sacrificing protection
 
----
+**What becomes possible:**
+- Trust without central authority (cryptographic, not institutional)
+- Multi-device sync with verification
+- Backup and recovery with integrity guarantees
+- Federation between circles with proof of origin
+- Credentials that grant capabilities when unlocked
 
-## Current State
+## Circle Context
 
-V8 has **working SQLite persistence**:
+### Self Circle
 
+A solitary dweller uses hypostasis to:
+- Generate and secure their mnemonic (root of all keys)
+- Create an encrypted keyring (password-protected access)
+- Store API credentials that enable AI features
+- Back up their kosmos to file (phoreta export)
+- Restore on a new device with same identity
+
+The self circle is where hypostasis is most intimate — your keys, your identity, your sovereignty.
+
+### Peer Circle
+
+Collaborators use hypostasis to:
+- Verify each other's signatures on shared content
+- Sync theoria and entities via phoreta exchange
+- Share credentials with circle scope (team API keys)
+- Multi-sign genesis for constitutional establishment
+- Export/import circle state for new members
+
+Trust between peers is cryptographic — if you can verify the signature, you know who created it.
+
+### Commons Circle
+
+A community uses hypostasis to:
+- Establish authoritative genesis with threshold signatures (3-of-5)
+- Verify that distributed oikoi trace to signed constitutional root
+- Audit provenance chains for any entity
+- Provide transparent key ownership (who can sign for what)
+
+The commons circle is where hypostasis becomes constitutional — the signed genesis that all content traces back to.
+
+## Core Entities (Eide)
+
+### kleidoura
+
+κλειδωρός — key-keeper. The encrypted keyring.
+
+**Fields:**
+- `encrypted_seed` — AES-256-GCM encrypted master seed (base64)
+- `encryption_salt` — Salt for password derivation (base64, 32 bytes)
+- `kdf_algorithm` — Key derivation function (argon2id or pbkdf2-sha256)
+- `kdf_params` — Algorithm parameters (memory_cost, time_cost, etc.)
+- `public_key` — Master Ed25519 public key for verification
+- `version` — Keyring format version
+- `created_at` — Creation timestamp
+- `locked_at` — When last locked
+- `password_hint` — Optional user-provided hint
+
+**Lifecycle:**
+1. **Arise** — Created via `create-keyring` with mnemonic + password
+2. **Unlock** — Decrypted into session memory via `unlock-keyring`
+3. **Use** — Session signing/derivation while unlocked
+4. **Lock** — Session cleared via `lock-keyring` or timeout
+
+**Security model:** The mnemonic never persists. Only the encrypted seed is stored. Decrypted material lives in chora (process memory), not kosmos (entities).
+
+### genesis-record
+
+Multi-signature genesis for threshold signing.
+
+**Fields:**
+- `content` — The constitutional content being signed
+- `content_hash` — BLAKE3 hash of the content
+- `threshold` — Number of signatures required (default 3)
+- `signatures` — Array of {public_key, signature, attestation, signed_at}
+- `verified` — Whether threshold has been reached
+- `created_at` — Creation timestamp
+- `finalized_at` — When threshold was reached
+
+**Lifecycle:**
+1. **Begin ceremony** — Content proposed, hash computed
+2. **Collect signatures** — Multiple signers add their attestations
+3. **Finalize** — Threshold reached, marked verified
+4. **Verify** — Anyone can verify all signatures
+
+### credential
+
+Encrypted external service credential with attainment grants.
+
+**Fields:**
+- `service` — Provider name (openai, anthropic, cloudflare)
+- `credential_type` — Type (api-key, oauth-token, bearer-token, access-key)
+- `encrypted_value` — AES-256-GCM encrypted credential (base64)
+- `salt` — Per-credential encryption salt (base64)
+- `label` — Human-readable name
+- `scope` — Who can use (persona or circle)
+- `grants_attainment` — Attainment granted when unlocked
+- `status` — State (active, revoked, expired)
+- `created_at` — Creation timestamp
+- `last_used_at` — Last usage timestamp
+- `expires_at` — Optional expiration
+
+**Lifecycle:**
+1. **Add** — Created via `add-credential` with value encrypted
+2. **Unlock** — Decrypted into session via `unlock-credentials`
+3. **Use** — Praxeis check attainment, get value from session
+4. **Revoke** — Marked revoked, removed from session
+
+## Bonds (Desmoi)
+
+### secures-key-for
+- **From:** kleidoura
+- **To:** persona
+- **Cardinality:** one-to-one
+- **Traversal:** Find keyring for a persona, or persona for a keyring
+
+### signed-by
+- **From:** any entity
+- **To:** persona
+- **Cardinality:** many-to-one
+- **Traversal:** Who signed this? What has this persona signed?
+
+### chains-to
+- **From:** any entity
+- **To:** any entity
+- **Cardinality:** many-to-one
+- **Traversal:** Composition chain verification to genesis
+
+### verifies
+- **From:** genesis-record
+- **To:** any entity
+- **Cardinality:** one-to-many
+- **Traversal:** What does this genesis verify?
+
+### credential-of
+- **From:** credential
+- **To:** persona
+- **Cardinality:** many-to-one
+- **Traversal:** Whose credentials? What credentials does this persona own?
+
+### shared-with
+- **From:** credential
+- **To:** circle
+- **Cardinality:** many-to-one
+- **Traversal:** Which circle can use this credential?
+
+### unlocks-attainment
+- **From:** credential
+- **To:** attainment
+- **Cardinality:** many-to-one
+- **Traversal:** What capability does this credential grant?
+
+### enables-function
+- **From:** credential
+- **To:** function
+- **Cardinality:** many-to-many
+- **Traversal:** What dynamis operations require this credential?
+
+## Operations (Praxeis)
+
+### Content-Addressed Operations
+
+#### compute-hash
+Compute BLAKE3 hash of entity content. Returns content-addressed ID.
+- **When:** Verify entity integrity, generate content-addressed references
+- **Requires:** Entity must exist
+
+#### verify-chain
+Verify composition chain to genesis. Walks composed-from bonds.
+- **When:** Validate entity authenticity
+- **Requires:** Entity with composition chain
+
+#### verify-genesis
+Verify genesis record signatures meet threshold.
+- **When:** Validate constitutional root
+- **Requires:** Genesis record with signatures
+
+### Phoreta Operations
+
+#### export-phoreta
+Create signed bundle of entities and bonds for transport.
+- **When:** Backup, federation, sharing
+- **Requires:** Entity IDs to export
+- **Gated by:** `attainment/export`
+
+#### import-phoreta
+Verify and import a phoreta bundle with merge strategy.
+- **When:** Restore, sync, receive shared content
+- **Requires:** Valid phoreta bundle, merge strategy
+
+#### create-snapshot
+Full state export of a circle.
+- **When:** Complete backup before major changes
+- **Requires:** Circle scope
+- **Gated by:** `attainment/export`
+
+#### restore-snapshot
+Restore state from a snapshot.
+- **When:** Disaster recovery
+- **Requires:** Valid snapshot, merge strategy
+
+#### sync-delta
+Export changes since a version/timestamp.
+- **When:** Incremental sync between devices
+- **Requires:** Version marker
+
+### Key Operations
+
+#### generate-mnemonic
+Generate new BIP-39 24-word phrase.
+- **When:** Creating new identity
+- **Returns:** Mnemonic (store securely!)
+
+#### derive-circle-key
+Derive circle-scoped Ed25519 keypair from mnemonic.
+- **When:** Getting public key for a circle
+- **Requires:** Mnemonic + circle_id
+
+#### sign-content
+Sign content with circle-scoped key.
+- **When:** Attesting to content
+- **Requires:** Mnemonic + circle_id + content
+- **Gated by:** `attainment/sign`
+
+#### verify-signature
+Verify signature against content and public key.
+- **When:** Validating attestation
+- **Requires:** Content, signature, public key
+
+### Keyring Operations
+
+#### create-keyring
+Encrypt mnemonic with password, create kleidoura.
+- **When:** Setting up identity for first time
+- **Requires:** Mnemonic + password
+- **Gated by:** One per persona (enforced)
+
+#### unlock-keyring
+Decrypt seed into session memory.
+- **When:** Starting work session
+- **Requires:** Password
+
+#### lock-keyring
+Clear session memory.
+- **When:** Ending session, timeout, explicit lock
+- **Effect:** All signing requires password again
+
+#### check-keyring-status
+Check if session is unlocked.
+- **When:** Before signing operations
+- **Returns:** Unlock state
+
+#### change-keyring-password
+Re-encrypt with new password.
+- **When:** Password rotation
+- **Requires:** Old password + new password
+
+#### sign-with-session
+Sign using unlocked session key.
+- **When:** Signing while session is active
+- **Requires:** Session unlocked + circle_id
+- **Gated by:** `attainment/sign`
+
+#### derive-key-from-session
+Derive circle public key from session.
+- **When:** Need public key without re-entering mnemonic
+- **Requires:** Session unlocked
+
+### Persona Operations
+
+#### export-persona
+Export persona with circles, theoria for federation.
+- **When:** Moving to new device
+- **Requires:** Mnemonic for signing
+- **Gated by:** `attainment/export`
+
+#### import-persona
+Import persona from another device.
+- **When:** Setting up new device
+- **Requires:** Export bundle + matching mnemonic
+
+#### sync-devices
+Bidirectional sync between devices.
+- **When:** Keeping multiple devices in sync
+- **Requires:** Same mnemonic on both sides
+
+### Genesis Ceremony
+
+#### begin-genesis-ceremony
+Start multi-signature signing process.
+- **When:** Establishing new constitutional root
+- **Requires:** Content + threshold
+- **Gated by:** `attainment/genesis-signer`
+
+#### add-genesis-signature
+Add signer signature to ceremony.
+- **When:** Participating in ceremony
+- **Requires:** Mnemonic + attestation
+- **Gated by:** `attainment/genesis-signer`
+
+#### finalize-genesis
+Complete ceremony when threshold reached.
+- **When:** Enough signatures collected
+- **Effect:** Genesis marked verified
+
+#### get-genesis-status
+Check ceremony progress.
+- **When:** Monitoring ceremony state
+- **Returns:** Signatures collected, remaining needed
+
+### Credential Operations
+
+#### add-credential
+Encrypt and store API key with attainment grant.
+- **When:** Adding external service access
+- **Requires:** Session unlocked + credential value
+- **Gated by:** `attainment/manage-credentials`
+
+#### unlock-credentials
+Decrypt credentials, grant session attainments.
+- **When:** After keyring unlock
+- **Effect:** Session gains service capabilities
+
+#### list-credentials
+List credentials without exposing values.
+- **When:** Auditing configured services
+- **Returns:** Metadata only
+
+#### remove-credential
+Revoke credential, remove from session.
+- **When:** Key rotation, service removal
+- **Gated by:** `attainment/manage-credentials`
+
+#### check-session-attainment
+Check if session has specific attainment.
+- **When:** Before service calls
+- **Returns:** Has/doesn't have
+
+## Attainments
+
+### attainment/sign
+**Capability:** Sign content with circle-scoped keys.
+**Gates:** `sign-content`, `sign-with-session`
+**Scope:** circle
+
+### attainment/export
+**Capability:** Export phoreta bundles and snapshots.
+**Gates:** `export-phoreta`, `create-snapshot`, `export-persona`
+**Scope:** circle
+
+### attainment/manage-keyring
+**Capability:** Create and manage keyring.
+**Gates:** `create-keyring`, `change-keyring-password`
+**Scope:** persona
+
+### attainment/manage-credentials
+**Capability:** Add and remove credentials.
+**Gates:** `add-credential`, `remove-credential`
+**Scope:** persona
+
+### attainment/genesis-signer
+**Capability:** Participate in genesis signing ceremony.
+**Gates:** `begin-genesis-ceremony`, `add-genesis-signature`
+**Scope:** circle
+
+## Embodiment
+
+### Completeness Status
+
+| Level | Status |
+|-------|--------|
+| Defined | eide, desmoi, praxeis exist in YAML |
+| Loaded | Bootstrap loads into kosmos.db |
+| Projected | MCP projects praxeis as tools |
+| Embodied | Body-schema reflects capabilities |
+| Surfaced | Reconciler notices when actions are relevant |
+| Afforded | Thyra UI presents contextual actions |
+
+### Body-Schema Contribution
+
+When `sense-body` runs, hypostasis contributes:
+
+```yaml
+body-schema:
+  identity:
+    keyring_exists: true|false
+    session_unlocked: true|false
+    public_key: "base64..." # if unlocked
+  capabilities:
+    - name: sign
+      available: "$session_unlocked"
+      oikos: hypostasis
+    - name: export
+      available: "$session_unlocked"
+      oikos: hypostasis
+  credentials:
+    - service: openai
+      attainment: use-embedding-api
+      status: unlocked|locked|not_configured
+  pending_actions:
+    - action: unlock_keyring
+      reason: "Session locked, signing unavailable"
+      when: "$keyring_exists and not $session_unlocked"
 ```
-.chora/kosmos.db
-├── entities table (id, eidos, data, version, timestamps, embedding)
-└── bonds table (from_id, to_id, desmos, data)
+
+### Reconciler
+
+```yaml
+reconciler/hypostasis-session:
+  trigger: on-dwell
+  sense: |
+    - Check if keyring exists for dwelling persona
+    - Check if session is locked
+    - Check if credentials need refresh
+  surface: |
+    - If keyring exists but locked: suggest unlock
+    - If no keyring: suggest setup
+    - If credentials expiring: warn
 ```
 
-**What exists:**
-- Single-file database
-- Entity/bond storage
-- Embedding storage (inline BLOB)
-- Basic versioning (integer increment)
+## Compound Leverage
 
-**What's missing:**
-- Content-addressed IDs (hash-based)
-- Composition chain verification
-- Genesis signing (threshold signatures)
-- Circle-scoped encryption
-- Phoreta export/import
-- Multi-device sync
-- Migration strategy
+### Amplifies Other Oikoi
 
----
+| Oikos | How Hypostasis Amplifies |
+|-------|-------------------------|
+| **politeia** | Attainments verify identity. Credentials grant capabilities. |
+| **ekdosis** | Signing oikos-prod requires hypostasis keys. |
+| **propylon** | Entry links signed with circle keys. |
+| **nous** | Semantic search needs API credentials (use-embedding-api). |
+| **manteia** | Generation needs API credentials (use-anthropic-api). |
+| **aither** | Federation phoreta signed by origin. |
 
-## Core Concepts
+### Cross-Oikos Patterns
 
-### Two Pillars of Kosmos Security
+1. **Credential → Attainment → Praxis**
+   Credentials unlock attainments. Attainments gate praxeis. Praxeis enable features.
+   Example: OpenAI credential → use-embedding-api → nous/index works.
+
+2. **Sign → Verify → Trust**
+   Content signed with hypostasis keys. Other parties verify. Trust established structurally.
+   Example: Oikos-prod signed → distributed → installed after verification.
+
+3. **Export → Transport → Import**
+   Phoreta exported with signature. Transported via any channel. Imported with verification.
+   Example: Backup to file → store anywhere → restore on new device.
+
+## Theoria
+
+New theoria crystallized during this redesign:
+
+### T21: Identity is the foundation of all capability
+
+Without identity (persona + keys), there can be no signed content, no verified attribution, no trust. Hypostasis must exist before any oikos that requires authentication.
+
+### T22: Cryptographic bonds create structural trust
+
+Trust in kosmos is not policy-based (someone decided to trust) but structure-based (cryptographic verification succeeds). This is T1 (visibility = reachability) applied to authenticity.
+
+### T23: Session state bridges security and usability
+
+The kleidoura pattern — encrypted at rest, unlocked into session memory — enables fluid operation without sacrificing security. Session state lives in chora (process), not kosmos (persistence). This extends T16.
+
+## Two Pillars of Kosmos Security
 
 1. **Visibility = Reachability** — You can only perceive what you can cryptographically reach through the bond graph.
 
@@ -49,678 +485,30 @@ V8 has **working SQLite persistence**:
 
 Both are structural, not policy. Both are mathematical, not hopeful.
 
-### Content-Addressed Identity
-
-Entity identity includes content hash:
+## Key Derivation Architecture
 
 ```
-theoria/insight-slug@blake3:7f3a2b...
-```
-
-The hash covers:
-- Entity content (data)
-- Composed-from reference
-- Timestamp of composition
-
-Modification changes the hash. Different hash = different entity. Tampering is not hidden; it creates a visibly different thing.
-
-### The Composition Chain
-
-Every entity traces back to signed genesis:
-
-```
-my-theoria@hash1
+mnemonic (BIP-39, 24 words)
     │
-    └─► composed-from: typos-def-theoria@hash2
+    └─► master seed (BIP-39 derivation)
             │
-            └─► composed-from: oikos/demiurge@hash3
+            ├─► persona key (master identity)
+            │
+            └─► circle keys (HKDF per circle_id)
                     │
-                    └─► composed-from: genesis@hash4
-                            │
-                            └─► signed-by: [key1, key2, key3]
-                                    │
-                                    └─► kosmogonia (constitutional root)
-```
-
-Verification: walk the chain, verify each hash, terminate at multi-signed genesis.
-
-### Genesis Signing
-
-Genesis is not signed by a single authority. It uses threshold signatures:
-
-```
-Genesis validity requires: 3-of-5 known signers
-
-Signer 1: [public key, attestation]
-Signer 2: [public key, attestation]
-Signer 3: [public key, attestation]
-Signer 4: [public key, attestation]
-Signer 5: [public key, attestation]
-```
-
-No single party can forge genesis. Compromise of one or two keys does not compromise authenticity.
-
-### Phoreta: Universal Transport
-
-Phoreta are signed bundles of state changes — the vessels that carry reality between sovereign spaces.
-
-```yaml
-phoreta:
-  id: string
-  origin_chora: string          # Where this came from
-  entities: [object]            # Entities being transported
-  bonds: [object]               # Bonds being transported
-  signature: string             # Ed25519 signature over content
-  signed_by: string             # Persona who signed
-  created_at: timestamp
-```
-
-**Same format for:**
-- Backup (export to file)
-- Recovery (import from file)
-- Federation (sync between circles)
-- Archive (cold storage)
-
-### Circle-Scoped Encryption
-
-Each circle has encryption keys derived from root:
-
-```
-mnemonic (BIP-39)
-    │
-    └─► master keypair (ed25519)
-            │
-            ├─► persona key (derived for identity)
-            │
-            └─► circle keys (derived per circle membership)
-                    │
-                    └─► session keys (ephemeral, per session)
+                    └─► session keys (ephemeral)
 ```
 
 Key derivation mirrors trust derivation. The social structure and the cryptographic structure are the same structure.
 
-### Kleidoura: Encrypted Keyring
+## Future Extensions
 
-**The Problem:** Currently, signing operations require the raw mnemonic each time. This is secure but has terrible UX for frequent operations (creating invites, signing expressions).
-
-**The Solution:** Password-protected encrypted seed storage.
-
-```
-First Use (Setup):
-  mnemonic (24 words)
-      ↓
-  derive master seed (BIP-39)
-      ↓
-  password → Argon2id → encryption_key
-      ↓
-  AES-256-GCM encrypt master_seed
-      ↓
-  store encrypted blob in kleidoura entity
-
-Session Unlock:
-  password → derive encryption_key
-      ↓
-  decrypt master_seed
-      ↓
-  master_seed stays in memory (process state, not kosmos)
-      ↓
-  all circle keys derivable without re-prompting
-
-Auto-Lock:
-  - App close → memory cleared
-  - Timeout (configurable) → memory cleared
-  - Explicit lock action
-```
-
-**Security Model:**
-
-| Layer | Protection |
-|-------|------------|
-| Mnemonic → Master Seed | BIP-39 derivation (irreversible) |
-| Password → Encryption Key | Argon2id with per-keyring salt |
-| Encrypted Seed | AES-256-GCM with authenticated encryption |
-| Circle Keys | Derived from master seed + circle_id (HKDF) |
-
-**What's Stored Where:**
-
-| Data | Location | Encrypted |
-|------|----------|-----------|
-| Mnemonic | Nowhere (user memory only) | N/A |
-| Master seed (encrypted) | kleidoura entity | ✅ AES-256-GCM |
-| Master seed (decrypted) | Process memory (chora) | In-memory only |
-| Circle keys | Derived on-demand | Never stored |
-| Password | Nowhere | N/A |
-| Salt | kleidoura entity | No (public) |
-
-**Key Insight:** Session state lives in chora (process memory), not kosmos (entities). Even if kosmos.db is copied, the seed requires the password to decrypt. This follows T16: Session state lives in chora, not kosmos.
-
-**Kleidoura Praxeis:**
-
-| Praxis | Purpose |
-|--------|---------|
-| `hypostasis/create-keyring` | Encrypt mnemonic with password, create kleidoura entity |
-| `hypostasis/unlock-keyring` | Decrypt seed, store in session (process memory) |
-| `hypostasis/lock-keyring` | Clear session, remove from memory |
-| `hypostasis/check-keyring-status` | Check if session is unlocked |
-| `hypostasis/change-keyring-password` | Re-encrypt with new password |
-| `hypostasis/sign-with-session` | Sign content using unlocked session key |
-| `hypostasis/derive-key-from-session` | Derive circle public key from session |
-
-### Credentials: External Service Access with Attainment Integration
-
-Credentials extend the kleidoura pattern to external service API keys. When a credential is unlocked, it grants an **attainment** that praxeis can check before using the service.
-
-**The Problem:** Users need to bring their own API keys (OpenAI, Anthropic, etc.) for features like semantic search. These keys must be:
-- Encrypted at rest (like the mnemonic)
-- Unlocked into session memory (not stored decrypted)
-- Subject to governance (who can use shared keys)
-
-**The Solution:** Credential entities with attainment grants.
-
-```
-credential (encrypted in kosmos)
-    │
-    ├── credential-of ────► persona (who owns it)
-    │
-    ├── shared-with ──────► circle (optional team access)
-    │
-    ├── unlocks-attainment ► attainment (what it grants)
-    │
-    └── enables-function ──► function (what it powers)
-
-On session unlock:
-    credentials decrypt → session gains attainments
-
-Praxis requiring API:
-    checks has-attainment → uses credential if present
-```
-
-**Credential Fields:**
-
-| Field | Type | Purpose |
-|-------|------|---------|
-| `service` | string | Provider (openai, anthropic, cloudflare) |
-| `credential_type` | enum | api-key, oauth-token, bearer-token |
-| `encrypted_value` | string | AES-256-GCM encrypted credential |
-| `salt` | string | Per-credential encryption salt |
-| `label` | string | Human-readable name |
-| `scope` | enum | persona (private) or circle (shared) |
-| `grants_attainment` | string | Attainment name granted when unlocked |
-| `status` | enum | active, revoked, expired |
-
-**Integration with Politeia Attainments:**
-
-Credentials integrate with the governance layer via attainments:
-
-```yaml
-# Credential grants attainment
-credential/persona/alice/openai:
-  service: openai
-  grants_attainment: use-embedding-api
-  # Bond: unlocks-attainment → attainment/use-embedding-api
-
-# Praxis checks attainment
-praxis/nous/index:
-  # Uses get-credential-value with required_attainment: use-embedding-api
-  # If attainment present, gets API key from session
-  # If not, step fails gracefully with helpful message
-```
-
-**Session Flow:**
-
-```
-1. User unlocks keyring (password)
-       ↓
-2. hypostasis/unlock-credentials called
-       ↓
-3. Each credential decrypts → value stored in session memory
-       ↓
-4. Each credential's attainment granted to session
-       ↓
-5. Praxeis can now:
-   - Check has-attainment before using service
-   - Get credential value if attainment present
-       ↓
-6. Session lock → credentials cleared → attainments removed
-```
-
-**Credential Praxeis:**
-
-| Praxis | Purpose |
-|--------|---------|
-| `hypostasis/add-credential` | Encrypt and store API key, create attainment grant |
-| `hypostasis/unlock-credentials` | Decrypt credentials, grant session attainments |
-| `hypostasis/get-credential-value` | Get decrypted credential from session (internal) |
-| `hypostasis/list-credentials` | List credentials without exposing values |
-| `hypostasis/remove-credential` | Revoke credential, remove from session |
-| `hypostasis/check-session-attainment` | Check if session has an attainment |
-
-**Security Model:**
-
-| Concern | How It's Addressed |
-|---------|-------------------|
-| Credential at rest | AES-256-GCM encrypted with session-derived key |
-| Credential in use | Lives in session memory only (chora, not kosmos) |
-| Who can use | Attainments govern access (persona or circle scope) |
-| Credential rotation | Remove old, add new — no migration needed |
-| Audit trail | Credential entity tracks last_used_at |
-
-**Key Insight:** Credentials follow the same chora/kosmos separation as kleidoura. The encrypted credential lives in kosmos (entities). The decrypted value lives in chora (process memory). Even if kosmos.db is copied, credentials are protected by the session password.
+- **Hardware key support** — YubiKey, Ledger for signing
+- **Multi-party computation** — Threshold signing without key combination
+- **Key rotation** — Graceful migration to new keys
+- **Delegated signing** — Time-limited signing authority
+- **Audit log** — Immutable record of all signing operations
 
 ---
 
-## Database Evolution
-
-### Current Schema
-
-```sql
-CREATE TABLE entities (
-    id TEXT PRIMARY KEY,
-    eidos TEXT NOT NULL,
-    data TEXT NOT NULL,
-    version INTEGER DEFAULT 1,
-    created_at TEXT,
-    updated_at TEXT,
-    embedding BLOB,
-    embedding_text TEXT,
-    embedding_model TEXT
-);
-
-CREATE TABLE bonds (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    from_id TEXT NOT NULL,
-    to_id TEXT NOT NULL,
-    desmos TEXT NOT NULL,
-    data TEXT,
-    created_at TEXT
-);
-```
-
-### Hypostasis Schema Additions
-
-```sql
--- Content-addressed fields
-ALTER TABLE entities ADD COLUMN content_hash TEXT;           -- BLAKE3 hash
-ALTER TABLE entities ADD COLUMN composed_from TEXT;          -- Parent entity hash
-ALTER TABLE entities ADD COLUMN composition_chain TEXT;      -- JSON array of chain
-
--- Encryption
-ALTER TABLE entities ADD COLUMN encrypted_data BLOB;         -- Encrypted content
-ALTER TABLE entities ADD COLUMN encryption_circle TEXT;      -- Which circle's key
-
--- Signature
-ALTER TABLE entities ADD COLUMN signature TEXT;              -- Creator signature
-ALTER TABLE entities ADD COLUMN signed_by TEXT;              -- Signing persona
-
--- Sync tracking
-ALTER TABLE entities ADD COLUMN sync_version INTEGER;        -- For conflict detection
-ALTER TABLE entities ADD COLUMN sync_origin TEXT;            -- Original source chora
-
--- Genesis table
-CREATE TABLE genesis (
-    id TEXT PRIMARY KEY,
-    content TEXT NOT NULL,
-    content_hash TEXT NOT NULL,
-    signatures TEXT NOT NULL,                                -- JSON array of signer signatures
-    threshold INTEGER DEFAULT 3,
-    created_at TEXT
-);
-
--- Migration tracking
-CREATE TABLE schema_versions (
-    version INTEGER PRIMARY KEY,
-    applied_at TEXT,
-    description TEXT
-);
-```
-
----
-
-## Implementation Phases
-
-### 25.1: Content-Addressed Entity IDs (Rust)
-
-- Add BLAKE3 hashing to entity creation
-- Hash covers: eidos, data, composed_from, timestamp
-- Entity ID format: `{eidos}/{slug}@blake3:{hash}`
-- Verification on entity read
-
-```rust
-fn compute_entity_hash(eidos: &str, data: &Value, composed_from: Option<&str>) -> String {
-    let mut hasher = blake3::Hasher::new();
-    hasher.update(eidos.as_bytes());
-    hasher.update(&serde_json::to_vec(data).unwrap());
-    if let Some(cf) = composed_from {
-        hasher.update(cf.as_bytes());
-    }
-    format!("blake3:{}", hasher.finalize().to_hex())
-}
-```
-
-### 25.2: Composition Chain Storage and Verification
-
-- Store `composed_from` reference on every entity
-- Store chain as JSON array for quick verification
-- Verify chain integrity on entity access
-- Report broken chains
-
-### 25.3: Genesis Structure with Signature Fields
-
-- Create genesis table
-- Store multi-signature structure
-- Verify threshold on genesis read
-- Provide genesis verification praxis
-
-### 25.4: Circle-Scoped Key Derivation
-
-- Implement BIP-39 mnemonic handling
-- Derive master keypair (Ed25519)
-- Derive circle keys (per membership)
-- Store encrypted data with circle key
-
-### 25.5: Phoreta Export Praxis
-
-```yaml
-praxis: hypostasis/export-phoreta
-params:
-  entity_ids: [string]          # Entities to export
-  include_dependencies: boolean  # Follow composed-from chains
-  encrypt_for_circle: string?    # Optional circle encryption
-
-steps:
-  - gather entities and bonds
-  - include composition chains
-  - sign with persona key
-  - encrypt if circle specified
-  - return phoreta bundle
-```
-
-### 25.6: Phoreta Import Praxis
-
-```yaml
-praxis: hypostasis/import-phoreta
-params:
-  phoreta: object               # The bundle to import
-  verify_signatures: boolean    # Verify origin signatures
-  merge_strategy: string        # newer_wins, local_wins, fail_on_conflict
-
-steps:
-  - verify phoreta signature
-  - verify composition chains (all trace to genesis)
-  - decrypt if encrypted
-  - detect conflicts with local entities
-  - apply merge strategy
-  - import entities and bonds
-  - return import report
-```
-
-### 25.7: Self-Federation (Same Persona, Multiple Devices)
-
-Self-federation is the proving ground for infrastructure.
-
-**Three Separate Concerns:**
-
-| Concern | Mechanism | What It Provides |
-|---------|-----------|------------------|
-| **Identity** | Mnemonic (24 words) | Cryptographic keys (who you are) |
-| **Location** | Propylon links | Where to connect (relay URL, circle) |
-| **State** | Phoreta bundles | What gets synced (entities, bonds) |
-
-These remain separate. The mnemonic doesn't encode where to connect. Links don't contain state. Phoreta carries state but not identity.
-
-**The Flow:**
-
-```
-Device A                              Device B
-    │                                      │
-    ├── create-self-link ──────────────────┤
-    │   (propylon — contains relay URL)    │
-    │                                      │
-    ├── Store link (password manager) ─────┤
-    │                                      │
-    │                    Fresh install ◀───┤
-    │                                      │
-    │                    Enter mnemonic ◀──┤
-    │   (identity restored, keys derived)  │
-    │                                      │
-    │                    Enter link ◀──────┤
-    │   (location known, relay contact)    │
-    │                                      │
-    │◀── WebRTC signaling (relay) ─────────┤
-    │                                      │
-    ├── pubkey verification ───────────────┤
-    │   (same mnemonic = same keys)        │
-    │                                      │
-    ├── export phoreta ────────────────────┤
-    │   (full state or delta)              │
-    │                                      │
-    │                    import phoreta
-    │                    verify chains
-    │                    merge state
-    │                                      │
-    └────────────── sync complete ─────────┘
-```
-
-**What flows in phoreta:**
-- All entities visible to persona
-- All bonds involving those entities
-- Composition chains for verification
-
-**Conflict resolution:**
-- `newer_wins` — timestamp comparison
-- `local_wins` — preserve local state
-- `manual` — surface conflicts for resolution
-
-**Recovery Paths:**
-
-| What's Available | Recovery Path |
-|------------------|---------------|
-| Mnemonic + saved link | Full restore via self-federation |
-| Mnemonic only | Identity restored; need peer to re-invite |
-| Mnemonic + backup file | Full restore from phoreta (encrypted backup) |
-| Nothing | Sovereignty means you can lose everything |
-
-### 25.8: Genesis Signing Ceremony
-
-The ceremony that creates the authentic root:
-
-1. **Identify signers** — 5 trusted individuals/organizations
-2. **Generate signing keys** — Each signer creates Ed25519 keypair
-3. **Document ceremony** — Record process, attestations
-4. **Sign genesis** — Each signer signs the genesis content
-5. **Publish** — Genesis with 5 signatures, only 3 required for validity
-6. **Verify** — Bootstrap verifies genesis on startup
-
----
-
-## Praxeis Summary
-
-### Content-Addressed Operations
-
-| Praxis | Purpose |
-|--------|---------|
-| `hypostasis/compute-hash` | BLAKE3 hash of entity content |
-| `hypostasis/verify-chain` | Verify composition chain to genesis |
-| `hypostasis/verify-genesis` | Verify genesis signatures |
-
-### Phoreta Operations
-
-| Praxis | Purpose |
-|--------|---------|
-| `hypostasis/export-phoreta` | Create signed bundle for export |
-| `hypostasis/import-phoreta` | Verify and import bundle |
-| `hypostasis/create-snapshot` | Full state export |
-| `hypostasis/restore-snapshot` | Full state restore |
-| `hypostasis/sync-delta` | Export changes since last sync |
-
-### Key Operations
-
-| Praxis | Purpose |
-|--------|---------|
-| `hypostasis/generate-mnemonic` | Generate new BIP-39 24-word phrase |
-| `hypostasis/derive-circle-key` | Derive Ed25519 keypair for circle |
-| `hypostasis/sign-content` | Sign content with mnemonic |
-| `hypostasis/verify-signature` | Verify signature against public key |
-
-### Encrypted Keyring Operations
-
-| Praxis | Purpose |
-|--------|---------|
-| `hypostasis/create-keyring` | Encrypt mnemonic with password |
-| `hypostasis/unlock-keyring` | Decrypt seed, store in session |
-| `hypostasis/lock-keyring` | Clear session memory |
-| `hypostasis/check-keyring-status` | Check if session is unlocked |
-| `hypostasis/change-keyring-password` | Re-encrypt with new password |
-| `hypostasis/sign-with-session` | Sign using unlocked session key |
-| `hypostasis/derive-key-from-session` | Derive circle key from session |
-
-### Persona Operations
-
-| Praxis | Purpose |
-|--------|---------|
-| `hypostasis/export-persona` | Export persona for federation |
-| `hypostasis/import-persona` | Import persona from another device |
-| `hypostasis/sync-devices` | Bidirectional sync between devices |
-
-### Genesis Ceremony
-
-| Praxis | Purpose |
-|--------|---------|
-| `hypostasis/begin-genesis-ceremony` | Start multi-signature signing |
-| `hypostasis/add-genesis-signature` | Add signer signature |
-| `hypostasis/finalize-genesis` | Finalize when threshold reached |
-| `hypostasis/get-genesis-status` | Check ceremony progress |
-
-### Credential Operations
-
-| Praxis | Purpose |
-|--------|---------|
-| `hypostasis/add-credential` | Encrypt and store API key with attainment grant |
-| `hypostasis/unlock-credentials` | Decrypt credentials, grant session attainments |
-| `hypostasis/get-credential-value` | Get decrypted credential from session (internal) |
-| `hypostasis/list-credentials` | List credentials without exposing values |
-| `hypostasis/remove-credential` | Revoke credential, remove from session |
-| `hypostasis/check-session-attainment` | Check if session has an attainment |
-
----
-
-## Migration Strategy
-
-### Incremental Migration
-
-```sql
--- Track schema versions
-INSERT INTO schema_versions (version, applied_at, description)
-VALUES (1, datetime('now'), 'Initial V8 schema');
-
--- Migration 2: Add content-addressed fields
-ALTER TABLE entities ADD COLUMN content_hash TEXT;
--- Backfill: compute hashes for existing entities
-
-INSERT INTO schema_versions (version, applied_at, description)
-VALUES (2, datetime('now'), 'Content-addressed entities');
-```
-
-### Migration Praxis
-
-```yaml
-praxis: hypostasis/migrate-schema
-params:
-  target_version: number
-
-steps:
-  - check current version
-  - for each version between current and target:
-    - apply migration SQL
-    - run backfill if needed
-    - record version
-  - return migration report
-```
-
----
-
-## Security Considerations
-
-### Structural Guarantees
-
-To capture kosmos, an adversary must:
-
-| Attack | Blocked By |
-|--------|------------|
-| Forge genesis signatures | Threshold cryptography (3-of-5) |
-| Modify entity content | Content-addressed hashes |
-| Break composition chain | Chain verification on access |
-| Forge traversal rights | Encrypted bond keys |
-| Hide modifications | Mutual attestation reveals difference |
-
-Every attack is either cryptographically hard or immediately visible.
-
-### Fork Transparency
-
-If someone creates a modified kosmos:
-- Different genesis hash
-- Federation verification fails
-- Mutual attestation fails
-- Users know they're in a fork
-
-They can choose the fork knowingly, but they cannot be deceived into it.
-
----
-
-## Dependencies
-
-- **Phase 21 (Synecheia):** Working end-to-end infrastructure
-- **Phase 18 (Syndesmos):** Phoreta format for federation
-
----
-
-## Constitutional Alignment
-
-Hypostasis implements the deepest constitutional requirements:
-
-| Principle | How Hypostasis Implements It |
-|-----------|------------------------------|
-| **Visibility = Reachability** | Phoreta bundles contain only what the exporter can reach. Visibility is structural, enforced by the bond graph. |
-| **Authenticity = Provenance** | Content-addressed hashes (BLAKE3) and Ed25519 signatures create unforgeable provenance chains. |
-| **Composition Requirement** | Every composed entity has `composed-from` bond. Chains terminate at signed genesis. No orphans. |
-| **Full-Circle Genesis** | The kosmos can emit itself, re-bootstrap from emission, and emit again with identical output. Self-verifying coherence. |
-
-**Full-Circle Genesis Verification:**
-
-```
-kosmos.db (750+ entities)
-     ↓
-emit-genesis praxis (demiurge/emit-genesis)
-     ↓
-chora-output/
-├── arche/ (eidos, desmos, stoicheion)
-├── spora/ (personas, circles, definitions, praxeis)
-└── oikoi/ (dev, prod packages)
-     ↓ hash = H1
-
-bootstrap(chora-output/) → kosmos-2.db
-     ↓
-emit-genesis praxis
-     ↓
-chora-output-2/
-     ↓ hash = H2
-
-assert(H1 == H2) ✓
-```
-
-**Caller Pattern:** Hypostasis content is **constitutional** — mnemonic derivation, hash computation, signature verification are literal operations. The algorithms cannot be derived; they are foundational.
-
----
-
-## Grounding
-
-This design draws from:
-- `docs/design/PERSISTENCE.md` (phoreta as universal format)
-- `docs/design/CRYPTOGRAPHIC-TOPOLOGY.md` (visibility, authenticity)
-- `docs/design/FEDERATION.md` (circle-mediated federation)
-
----
-
-*Hypostasis is self-constitution — the kosmos that can replicate itself.*
-*Traces to: expression/genesis-root*
-*Updated: 2026-01-25 — Added credentials with attainment integration for external service access*
+*Hypostasis is self-constitution — the kosmos that knows who it is, can prove where anything came from, and can replicate itself while maintaining integrity. Identity is the foundation upon which all other capabilities build.*

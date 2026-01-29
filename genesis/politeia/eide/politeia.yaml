@@ -3,200 +3,284 @@
 #
 # Extracted from spora.yaml stage-2-politeia
 
-eide:
-  # attainment — capability marker
-  - id: eidos/attainment
-    data:
-      name: attainment
-      description: "Capability marker — what an animus can do. Derived from membership via bond graph traversal."
-      fields:
-        name:
-          type: string
-          required: true
-          description: "Human-readable attainment name (e.g., 'compose', 'invite', 'govern')"
-        description:
-          type: string
-          required: false
-        scope:
-          type: enum
-          values: [circle, oikos, global]
-          required: true
-          default: circle
-          description: "Where this attainment applies"
-        constraints:
-          type: object
-          required: false
-          description: "Optional constraints (e.g., rate limits, resource quotas)"
-        created_at:
-          type: timestamp
-          required: true
+entities:
 
-  # affordance — sensed possibility
-  - id: eidos/affordance
-    data:
-      name: affordance
-      description: "Sensed possibility — what can be done from here. Emerges from attainments in context."
-      fields:
-        name:
-          type: string
-          required: true
-          description: "What this affordance represents"
-        description:
-          type: string
-          required: false
-        praxis_id:
-          type: string
-          required: true
-          description: "The praxis this affordance invokes"
-        required_attainments:
-          type: array
-          required: false
-          description: "Attainment names required to see/use this affordance"
-        context_filter:
-          type: object
-          required: false
-          description: "When this affordance is relevant (entity type, state, etc.)"
-        priority:
-          type: number
-          required: false
-          default: 0
-          description: "Display priority (higher = more prominent)"
-        created_at:
-          type: timestamp
-          required: true
+# =============================================================================
+# ENTITY DEFINITIONS
+# =============================================================================
 
-  # hud-region — UI surface
-  - id: eidos/hud-region
-    data:
-      name: hud-region
-      description: "HUD region — UI surface where affordances render. Kosmos produces data, substrate renders."
-      fields:
-        name:
-          type: string
-          required: true
-        kind:
-          type: enum
-          values: [toolbar, sidebar, contextual, modal, toast, ambient]
-          required: true
-          description: "Region type — determines rendering behavior"
-        parent_id:
-          type: string
-          required: false
-          description: "Parent region ID for nesting"
-        position:
-          type: object
-          required: false
-          description: "Position hints (e.g., {slot: 'top', order: 1})"
-        visibility:
-          type: enum
-          values: [always, contextual, on_demand]
-          required: true
-          default: contextual
-        required_attainment:
-          type: string
-          required: false
-          description: "Attainment needed to see this region"
-        affordances:
-          type: array
-          required: false
-          description: "Affordance IDs that render in this region"
-        created_at:
-          type: timestamp
-          required: true
+# attainment — capability marker
+- eidos: eidos
+  id: eidos/attainment
+  data:
+    name: attainment
+    description: "Capability marker — what an animus can do. Derived from membership via bond graph traversal."
+    fields:
+      name:
+        type: string
+        required: true
+        description: "Human-readable attainment name (e.g., 'compose', 'invite', 'govern')"
+      description:
+        type: string
+        required: false
+      scope:
+        type: enum
+        values: [circle, oikos, global]
+        required: true
+        default: circle
+        description: "Where this attainment applies"
+      constraints:
+        type: object
+        required: false
+        description: "Optional constraints (e.g., rate limits, resource quotas)"
+      created_at:
+        type: timestamp
+        required: true
 
-  # invitation — pending membership
-  - id: eidos/invitation
-    data:
-      name: invitation
-      description: "Invitation to join a circle. Creates potential for membership bond."
-      fields:
-        circle_id:
-          type: string
-          required: true
-          description: "Circle being invited to"
-        invitee_id:
-          type: string
-          required: false
-          description: "Specific persona invited (optional for open invites)"
-        inviter_id:
-          type: string
-          required: true
-          description: "Persona who created the invite"
-        role:
-          type: string
-          required: false
-          description: "Role/attainments granted upon acceptance"
-        message:
-          type: string
-          required: false
-          description: "Optional message from inviter"
-        status:
-          type: enum
-          values: [pending, accepted, declined, expired, revoked]
-          required: true
-          default: pending
-        token:
-          type: string
-          required: false
-          description: "One-time token for link-based invites"
-        max_uses:
-          type: number
-          required: false
-          description: "Maximum times this invite can be used (for open invites)"
-        uses:
-          type: number
-          required: false
-          default: 0
-        created_at:
-          type: timestamp
-          required: true
-        expires_at:
-          type: timestamp
-          required: false
-        accepted_at:
-          type: timestamp
-          required: false
+# affordance — sensed possibility
+- eidos: eidos
+  id: eidos/affordance
+  data:
+    name: affordance
+    description: "Sensed possibility — what can be done from here. Emerges from attainments in context."
+    fields:
+      name:
+        type: string
+        required: true
+        description: "What this affordance represents"
+      description:
+        type: string
+        required: false
+      praxis_id:
+        type: string
+        required: true
+        description: "The praxis this affordance invokes"
+      required_attainments:
+        type: array
+        required: false
+        description: "Attainment names required to see/use this affordance"
+      context_filter:
+        type: object
+        required: false
+        description: "When this affordance is relevant (entity type, state, etc.)"
+      priority:
+        type: number
+        required: false
+        default: 0
+        description: "Display priority (higher = more prominent)"
+      created_at:
+        type: timestamp
+        required: true
 
-  # membership-event — audit trail for membership changes
-  - id: eidos/membership-event
-    data:
-      name: membership-event
-      description: "Record of membership change — when someone joins, leaves, or is removed from a circle. Provides audit trail."
-      fields:
-        event_type:
-          type: enum
-          values: [joined, left, removed, invited]
-          required: true
-          description: "Type of membership event"
-        circle_id:
-          type: string
-          required: true
-          description: "Circle where the event occurred"
-        persona_id:
-          type: string
-          required: true
-          description: "Persona affected by the event"
-        persona_name:
-          type: string
-          required: false
-          description: "Display name at time of event (for historical display)"
-        actor_id:
-          type: string
-          required: false
-          description: "Who initiated the action (inviter for join, self for leave)"
-        actor_name:
-          type: string
-          required: false
-          description: "Actor display name at time of event"
-        invitation_id:
-          type: string
-          required: false
-          description: "Related invitation ID (for join events)"
-        reason:
-          type: string
-          required: false
-          description: "Optional reason (for leave/remove events)"
-        occurred_at:
-          type: timestamp
-          required: true
-          description: "When the event occurred"
+# hud-region — UI surface
+- eidos: eidos
+  id: eidos/hud-region
+  data:
+    name: hud-region
+    description: "HUD region — UI surface where affordances render. Kosmos produces data, substrate renders."
+    fields:
+      name:
+        type: string
+        required: true
+      kind:
+        type: enum
+        values: [toolbar, sidebar, contextual, modal, toast, ambient]
+        required: true
+        description: "Region type — determines rendering behavior"
+      parent_id:
+        type: string
+        required: false
+        description: "Parent region ID for nesting"
+      position:
+        type: object
+        required: false
+        description: "Position hints (e.g., {slot: 'top', order: 1})"
+      visibility:
+        type: enum
+        values: [always, contextual, on_demand]
+        required: true
+        default: contextual
+      required_attainment:
+        type: string
+        required: false
+        description: "Attainment needed to see this region"
+      affordances:
+        type: array
+        required: false
+        description: "Affordance IDs that render in this region"
+      created_at:
+        type: timestamp
+        required: true
+
+# invitation — pending membership
+- eidos: eidos
+  id: eidos/invitation
+  data:
+    name: invitation
+    description: "Invitation to join a circle. Creates potential for membership bond."
+    fields:
+      circle_id:
+        type: string
+        required: true
+        description: "Circle being invited to"
+      invitee_id:
+        type: string
+        required: false
+        description: "Specific persona invited (optional for open invites)"
+      inviter_id:
+        type: string
+        required: true
+        description: "Persona who created the invite"
+      role:
+        type: string
+        required: false
+        description: "Role/attainments granted upon acceptance"
+      message:
+        type: string
+        required: false
+        description: "Optional message from inviter"
+      status:
+        type: enum
+        values: [pending, accepted, declined, expired, revoked]
+        required: true
+        default: pending
+      token:
+        type: string
+        required: false
+        description: "One-time token for link-based invites"
+      max_uses:
+        type: number
+        required: false
+        description: "Maximum times this invite can be used (for open invites)"
+      uses:
+        type: number
+        required: false
+        default: 0
+      created_at:
+        type: timestamp
+        required: true
+      expires_at:
+        type: timestamp
+        required: false
+      accepted_at:
+        type: timestamp
+        required: false
+
+# membership-event — audit trail for membership changes
+- eidos: eidos
+  id: eidos/membership-event
+  data:
+    name: membership-event
+    description: "Record of membership change — when someone joins, leaves, or is removed from a circle. Provides audit trail."
+    fields:
+      event_type:
+        type: enum
+        values: [joined, left, removed, invited]
+        required: true
+        description: "Type of membership event"
+      circle_id:
+        type: string
+        required: true
+        description: "Circle where the event occurred"
+      persona_id:
+        type: string
+        required: true
+        description: "Persona affected by the event"
+      persona_name:
+        type: string
+        required: false
+        description: "Display name at time of event (for historical display)"
+      actor_id:
+        type: string
+        required: false
+        description: "Who initiated the action (inviter for join, self for leave)"
+      actor_name:
+        type: string
+        required: false
+        description: "Actor display name at time of event"
+      invitation_id:
+        type: string
+        required: false
+        description: "Related invitation ID (for join events)"
+      reason:
+        type: string
+        required: false
+        description: "Optional reason (for leave/remove events)"
+      occurred_at:
+        type: timestamp
+        required: true
+        description: "When the event occurred"
+
+# =============================================================================
+# ATTAINMENTS
+# =============================================================================
+
+- eidos: attainment
+  id: attainment/govern
+  data:
+    name: govern
+    description: |
+      Capability to create circles and manage attainments.
+      Required for establishing governance structures and defining
+      what capabilities circles grant to their members.
+    oikos: politeia
+    scope: circle
+    grants:
+      - praxis/politeia/create-circle
+      - praxis/politeia/create-attainment
+      - praxis/politeia/grant-attainment
+      - praxis/politeia/revoke-attainment
+
+- eidos: attainment
+  id: attainment/invite
+  data:
+    name: invite
+    description: |
+      Capability to invite others to join circles.
+      Required for growing circle membership. Caller must
+      also be sovereign to the target circle.
+    oikos: politeia
+    scope: circle
+    grants:
+      - praxis/politeia/invite-to-circle
+
+- eidos: attainment
+  id: attainment/distribute
+  data:
+    name: distribute
+    description: |
+      Capability to distribute oikoi through circles.
+      Required for publishing oikoi to members via
+      distribution circles.
+    oikos: politeia
+    scope: circle
+    grants:
+      - praxis/politeia/create-distribution-circle
+      - praxis/politeia/distribute-oikos
+
+- eidos: attainment
+  id: attainment/hud
+  data:
+    name: hud
+    description: |
+      Capability to create and manage HUD regions and affordances.
+      Required for defining how capabilities surface in the interface.
+    oikos: politeia
+    scope: circle
+    grants:
+      - praxis/politeia/create-affordance
+      - praxis/politeia/create-hud-region
+
+- eidos: attainment
+  id: attainment/admin
+  data:
+    name: admin
+    description: |
+      Administrative capability to bypass normal governance checks.
+      Use for bootstrap and repair operations. Global scope.
+      WARNING: Use with care — does not verify permissions.
+    oikos: politeia
+    scope: global
+    grants:
+      - praxis/politeia/admin-bind
+      - praxis/politeia/admin-loose

@@ -4,84 +4,123 @@
 # Extracted from spora.yaml stage-2-presence
 # Note: animus stays in spora.yaml as foundational (needed by founder stage)
 
-eide:
-  # channel — perception/action interface
-  - id: eidos/channel
-    data:
-      name: channel
-      description: "Interface for perception or action"
-      fields:
-        name:
-          type: string
-          required: true
-        kind:
-          type: enum
-          values: [perception, action, bidirectional]
-          required: true
-        modality:
-          type: string
-          required: true
-        status:
-          type: enum
-          values: [open, closed, suspended]
-          required: true
-        opened_at:
-          type: timestamp
-          required: true
+entities:
 
-  # percept — something perceived
-  - id: eidos/percept
-    data:
-      name: percept
-      description: "A unit of sensory input through a channel"
-      fields:
-        modality:
-          type: string
-          required: true
-        content:
-          type: any
-          required: true
-        perceived_at:
-          type: timestamp
-          required: true
-        metadata:
-          type: object
-          required: false
+# =============================================================================
+# ENTITY DEFINITIONS
+# =============================================================================
 
-  # body-signal — something emitted through a channel
-  - id: eidos/body-signal
-    data:
-      name: body-signal
-      description: "A unit of output through a channel (renamed from signal to avoid collision with stoicheion/signal)"
-      fields:
-        modality:
-          type: string
-          required: true
-        content:
-          type: any
-          required: true
-        emitted_at:
-          type: timestamp
-          required: true
-        metadata:
-          type: object
-          required: false
+# channel — perception/action interface
+- eidos: eidos
+  id: eidos/channel
+  data:
+    name: channel
+    description: "Interface for perception or action"
+    fields:
+      name:
+        type: string
+        required: true
+      kind:
+        type: enum
+        values: [perception, action, bidirectional]
+        required: true
+      modality:
+        type: string
+        required: true
+      status:
+        type: enum
+        values: [open, closed, suspended]
+        required: true
+      opened_at:
+        type: timestamp
+        required: true
 
-  # body-schema — self-awareness
-  - id: eidos/body-schema
-    data:
-      name: body-schema
-      description: "The animus's sense of its own shape and capacity"
-      fields:
-        channels:
-          type: array
-          required: true
-        capabilities:
-          type: array
-          required: true
-        limits:
-          type: object
-          required: false
-        updated_at:
-          type: timestamp
-          required: true
+# percept — something perceived
+- eidos: eidos
+  id: eidos/percept
+  data:
+    name: percept
+    description: "A unit of sensory input through a channel"
+    fields:
+      modality:
+        type: string
+        required: true
+      content:
+        type: any
+        required: true
+      perceived_at:
+        type: timestamp
+        required: true
+      metadata:
+        type: object
+        required: false
+
+# body-signal — something emitted through a channel
+- eidos: eidos
+  id: eidos/body-signal
+  data:
+    name: body-signal
+    description: "A unit of output through a channel (renamed from signal to avoid collision with stoicheion/signal)"
+    fields:
+      modality:
+        type: string
+        required: true
+      content:
+        type: any
+        required: true
+      emitted_at:
+        type: timestamp
+        required: true
+      metadata:
+        type: object
+        required: false
+
+# body-schema — self-awareness
+- eidos: eidos
+  id: eidos/body-schema
+  data:
+    name: body-schema
+    description: "The animus's sense of its own shape and capacity"
+    fields:
+      channels:
+        type: array
+        required: true
+      capabilities:
+        type: array
+        required: true
+      limits:
+        type: object
+        required: false
+      updated_at:
+        type: timestamp
+        required: true
+
+# =============================================================================
+# ATTAINMENTS
+# =============================================================================
+
+- eidos: attainment
+  id: attainment/embody
+  data:
+    name: embody
+    description: |
+      Capability to arise and depart as animus — managing presence.
+      Required to instantiate persona as embodied presence in a circle.
+    oikos: soma
+    scope: circle
+    grants:
+      - praxis/soma/arise-animus
+      - praxis/soma/depart-animus
+
+- eidos: attainment
+  id: attainment/channel
+  data:
+    name: channel
+    description: |
+      Capability to open and close channels — managing I/O pathways.
+      Required to establish communication pathways for perception and expression.
+    oikos: soma
+    scope: circle
+    grants:
+      - praxis/soma/open-channel
+      - praxis/soma/close-channel

@@ -392,3 +392,95 @@ entities:
           values: [none, manifest, update, unmanifest, alert, journey]
           required: false
           description: "Action taken (or to be taken) in response"
+
+  # =========================================================================
+  # ATTAINMENTS
+  # =========================================================================
+
+  - eidos: attainment
+    id: attainment/release
+    data:
+      name: release
+      description: |
+        Release management capability — creating and tracking releases.
+        Enables creating releases, registering artifacts, and marking built.
+        The foundation of the distribution pipeline.
+      oikos: dynamis
+      scope: circle
+      grants:
+        - praxis/dynamis/create-release
+        - praxis/dynamis/register-artifact
+        - praxis/dynamis/mark-release-built
+        - praxis/dynamis/list-releases
+
+  - eidos: attainment
+    id: attainment/substrate
+    data:
+      name: substrate
+      description: |
+        Substrate management capability — defining target platforms.
+        Enables creating and querying substrates for release targeting.
+        Infrastructure configuration for the build matrix.
+      oikos: dynamis
+      scope: circle
+      grants:
+        - praxis/dynamis/create-substrate
+        - praxis/dynamis/list-substrates
+
+  - eidos: attainment
+    id: attainment/channel
+    data:
+      name: channel
+      description: |
+        Distribution channel management — defining distribution pathways.
+        Enables creating channels with provider configuration.
+        Requires provider credentials for actual distribution.
+      oikos: dynamis
+      scope: circle
+      grants:
+        - praxis/dynamis/create-distribution-channel
+        - praxis/dynamis/list-distribution-channels
+
+  - eidos: attainment
+    id: attainment/distribute
+    data:
+      name: distribute
+      description: |
+        Distribution actuality capability — uploading releases to channels.
+        Tier-3 operations that manifest artifacts into external storage.
+        The bridge from kosmos existence to chora actuality.
+      oikos: dynamis
+      scope: circle
+      grants:
+        - praxis/dynamis/distribute-release
+        - praxis/dynamis/sense-release
+        - praxis/dynamis/reconcile-release
+
+  - eidos: attainment
+    id: attainment/deploy
+    data:
+      name: deploy
+      description: |
+        Deployment management capability — running services.
+        Enables creating, manifesting, sensing, and reconciling deployments.
+        Affects external systems; requires explicit authorization.
+      oikos: dynamis
+      scope: circle
+      grants:
+        - praxis/dynamis/create-deployment
+        - praxis/dynamis/manifest-deployment
+        - praxis/dynamis/sense-deployment
+        - praxis/dynamis/reconcile-deployment
+
+  - eidos: attainment
+    id: attainment/reconcile
+    data:
+      name: reconcile
+      description: |
+        Generic reconciliation capability — the phylax pattern.
+        Enables declarative sense → compare → act reconciliation.
+        Used by other attainments for entity-specific reconciliation.
+      oikos: dynamis
+      scope: circle
+      grants:
+        - praxis/dynamis/reconcile

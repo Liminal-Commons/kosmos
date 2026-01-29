@@ -37,6 +37,15 @@ provides:
     - typos
     - artifact
 
+  attainments:
+    - compose              # Core composition (create, cache, dependencies)
+    - generate-definitions # Definition generation via inference
+    - oikos-develop        # Package development (oikos-dev creation)
+    - oikos-bake           # Generation resolution (baking)
+    - oikos-publish        # Package publishing (signing, releasing)
+    - oikos-fork           # Commons forking (derivation)
+    - genesis-emit         # Genesis emission (full-circle verification)
+
   desmoi:
     - composed-from
     - authorized-by

@@ -40,6 +40,10 @@ provides:
     - body-signal
     - body-schema
 
+  attainments:
+    - embody              # Arise and depart as animus (presence management)
+    - channel             # Open and close channels (I/O pathway management)
+
   desmoi:
     - channel-of
     - received-through

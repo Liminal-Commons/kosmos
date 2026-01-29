@@ -15,7 +15,7 @@ oikos_name: Propylon
 oikos_description: |
   The gateway, the entrance before the entrance. The narrow passage
   through which beings enter the kosmos. Authenticate, exchange, hand off, forget.
-oikos_scale: soma
+oikos_scale: cross-scale
 
 content_paths:
   - path: eide/
@@ -44,8 +44,17 @@ requires_dynamis:
 provides:
   eide:
     - propylon-link
+    - entry-request
     - propylon-session
     - propylon-relay
+    - session-token
+
+  attainments:
+    - invite          # Create/manage invitation links
+    - enter           # Use links to attempt entry (global)
+    - approve         # Resolve pending entry requests
+    - audit           # View entry history
+    - session         # Cross-process session management
 
   seeds:
     - propylon-relay/liminal-primary
@@ -58,18 +67,38 @@ provides:
     - connects-via
 
   praxeis:
+    # Link management
     - propylon/create-link
+    - propylon/create-self-link
     - propylon/decode-link
     - propylon/validate-link
+    - propylon/revoke-link
+
+    # Entry flow
     - propylon/challenge-entry
     - propylon/verify-entry
-    - propylon/revoke-link
-    - propylon/list-entry-audit
     - propylon/approve-entry
     - propylon/reject-entry
-    - propylon/create-self-link
+
+    # Audit
+    - propylon/list-entry-audit
+
+    # Session management
+    - propylon/create-session-token
+    - propylon/validate-session-token
 
 stoicheia_form:
-  # Uses crypto dynamis for authentication
-  # Link encoding via interpreter functions
+  # All stoicheia use arche (interpreter) form
+  create-link: arche
+  create-self-link: arche
+  decode-link: arche
+  validate-link: arche
+  revoke-link: arche
+  challenge-entry: arche
+  verify-entry: arche
+  approve-entry: arche
+  reject-entry: arche
+  list-entry-audit: arche
+  create-session-token: arche
+  validate-session-token: arche
 

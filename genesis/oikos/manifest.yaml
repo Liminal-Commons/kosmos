@@ -38,6 +38,14 @@ provides:
     - segment
     - note
     - insight
+    - oikos-manifest
+    - oikos-dev
+    - oikos-prod
+    - publish-attestation
+
+  attainments:
+    - dwell          # Session and conversation management
+    - reflect        # Notes and insight surfacing
 
   desmoi:
     # Session/conversation bonds

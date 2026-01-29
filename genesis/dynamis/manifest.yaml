@@ -52,6 +52,14 @@ provides:
     - deployment
     - actuality-record
 
+  attainments:
+    - release            # Create/manage releases
+    - substrate          # Define target platforms
+    - channel            # Configure distribution channels
+    - distribute         # Actualize releases to channels (tier 3)
+    - deploy             # Manage running deployments (tier 3)
+    - reconcile          # Generic phylax reconciliation (tier 3)
+
   seeds:
     - substrate/mac-universal
     - substrate/windows-x64

@@ -1,14 +1,22 @@
 # Propylon Eide
 # Gateway entry eide — invitation links and authentication sessions
 #
-# Extracted from spora.yaml stage-2-propylon
+# Traces to: genesis/propylon/DESIGN.md
+# Authorized by: expression/genesis-root
 
-eide:
+entities:
+  # =========================================================================
   # propylon-link — shareable invitation encoding
-  - id: eidos/propylon-link
+  # =========================================================================
+
+  - eidos: eidos
+    id: eidos/propylon-link
     data:
       name: propylon-link
-      description: "Shareable invitation link. Encodes everything needed to attempt entry."
+      description: |
+        Shareable invitation link. Encodes everything needed to attempt entry.
+        The link is primary — self-contained and self-validating. How you share
+        it (QR, SMS, email, Signal) is orthogonal.
       fields:
         invitation_id:
           type: string
@@ -65,8 +73,12 @@ eide:
           type: timestamp
           required: false
 
+  # =========================================================================
   # entry-request — incoming entry request from inviter's perspective
-  - id: eidos/entry-request
+  # =========================================================================
+
+  - eidos: eidos
+    id: eidos/entry-request
     data:
       name: entry-request
       description: |
@@ -117,11 +129,18 @@ eide:
           type: timestamp
           required: false
 
+  # =========================================================================
   # propylon-session — authentication state machine
-  - id: eidos/propylon-session
+  # =========================================================================
+
+  - eidos: eidos
+    id: eidos/propylon-session
     data:
       name: propylon-session
-      description: "Authentication session. Tracks challenge-response flow."
+      description: |
+        Authentication session. Tracks challenge-response flow. Progresses
+        through states: challenged → pending_approval → authenticated.
+        On success, an animus is created via soma/arise-animus.
       fields:
         invitation_id:
           type: string
@@ -180,14 +199,19 @@ eide:
           type: string
           required: false
 
+  # =========================================================================
   # propylon-relay — WebSocket signaling infrastructure
-  - id: eidos/propylon-relay
+  # =========================================================================
+
+  - eidos: eidos
+    id: eidos/propylon-relay
     data:
       name: propylon-relay
       description: |
         WebSocket signaling relay for entry handshakes. Each commons operates
         their own relay. The relay is minimal infrastructure — it facilitates
         the cryptographic handshake but holds no long-term state.
+        The relay forgets. It's dumb infrastructure, not a controller.
       fields:
         name:
           type: string
@@ -218,3 +242,125 @@ eide:
           type: object
           required: false
           description: "Substrate-specific configuration"
+
+  # =========================================================================
+  # session-token — cross-process session sharing
+  # =========================================================================
+
+  - eidos: eidos
+    id: eidos/session-token
+    data:
+      name: session-token
+      description: |
+        JWT binding persona to authenticated session. Enables session sharing
+        across processes (Thyra → MCP) via OS credential store. Token is written
+        by Thyra on unlock and read by MCP on startup.
+      fields:
+        persona_id:
+          type: string
+          required: true
+          description: "Authenticated persona's ID"
+        circles:
+          type: array
+          items:
+            type: string
+          required: true
+          description: "Circle IDs this session can access"
+        attainments:
+          type: array
+          items:
+            type: string
+          required: false
+          description: "Unlocked attainments in this session"
+        issued_at:
+          type: timestamp
+          required: true
+          description: "When the token was created"
+        expires_at:
+          type: timestamp
+          required: true
+          description: "When the token becomes invalid"
+        signature:
+          type: string
+          required: true
+          description: "Ed25519 signature over token payload"
+
+  # =========================================================================
+  # ATTAINMENTS
+  # =========================================================================
+
+  - eidos: attainment
+    id: attainment/invite
+    data:
+      name: invite
+      description: |
+        Invitation capability — creating and managing invitation links.
+        A sovereign act within a circle. Enables creating links for new
+        members, self-sync links for device federation, and revoking
+        compromised links.
+      oikos: propylon
+      scope: circle
+      grants:
+        - praxis/propylon/create-link
+        - praxis/propylon/create-self-link
+        - praxis/propylon/revoke-link
+
+  - eidos: attainment
+    id: attainment/enter
+    data:
+      name: enter
+      description: |
+        Entry capability — using links to attempt entry. Global scope
+        because anyone with a link can attempt entry (the link itself
+        is the authorization). Enables decoding, validating, and
+        completing the challenge-response authentication flow.
+      oikos: propylon
+      scope: global
+      grants:
+        - praxis/propylon/decode-link
+        - praxis/propylon/validate-link
+        - praxis/propylon/challenge-entry
+        - praxis/propylon/verify-entry
+
+  - eidos: attainment
+    id: attainment/approve
+    data:
+      name: approve
+      description: |
+        Approval capability — resolving pending entry requests.
+        Required when links have require_approval: true. The inviter
+        or circle members with this attainment can approve or reject
+        entry after human verification (video call).
+      oikos: propylon
+      scope: circle
+      grants:
+        - praxis/propylon/approve-entry
+        - praxis/propylon/reject-entry
+
+  - eidos: attainment
+    id: attainment/audit
+    data:
+      name: audit
+      description: |
+        Audit capability — viewing entry history for a circle.
+        Entry history is sensitive (who entered when, via which link).
+        Only authorized circle members should access this information.
+      oikos: propylon
+      scope: circle
+      grants:
+        - praxis/propylon/list-entry-audit
+
+  - eidos: attainment
+    id: attainment/session
+    data:
+      name: session
+      description: |
+        Session management capability — cross-process authentication.
+        Substrate-local (soma scope) because session tokens are written
+        to OS credential store and read by local processes. Not tied
+        to any particular circle.
+      oikos: propylon
+      scope: soma
+      grants:
+        - praxis/propylon/create-session-token
+        - praxis/propylon/validate-session-token

@@ -1,72 +1,118 @@
 # Ergon Eide — Work Coordination Entity Types
+#
+# Traces to: genesis/ergon/DESIGN.md
+# Authorized by: expression/genesis-root
 
-- id: pragma
-  description: |
-    πρᾶγμα — a thing to be done.
+entities:
 
-    A gap, issue, or work item that signals between circles. Created
-    where the gap is discovered, resolved where the capability exists.
+  # =========================================================================
+  # pragma — a thing to be done
+  # =========================================================================
 
-    Pragma flow across the discipline boundary:
-    - Kosmos circle creates pragma (discovery)
-    - Chora circle accepts and resolves (capability)
-    - Resolution propagates back via shared graph
-
-    This is the coordination primitive for the two-repo workflow where
-    dwelling in one context (kosmos) discovers gaps requiring work in
-    another context (chora).
-  constitutional: false
-  fields:
-    title:
-      type: string
-      required: true
-      description: Short description of the gap
-
-    description:
-      type: string
-      required: true
-      description: Full context — what you were trying to do, what failed
-
-    context:
-      type: string
-      required: false
-      description: The situation when gap was encountered
-
-    status:
-      type: string
-      required: true
-      enum: [open, accepted, in_progress, resolved, declined, blocked]
-      default: open
+  - eidos: eidos
+    id: eidos/pragma
+    data:
+      name: pragma
       description: |
-        Lifecycle state:
-        - open: Newly created, awaiting attention
-        - accepted: Someone has taken ownership
-        - in_progress: Actively being worked on
-        - resolved: Gap has been addressed
-        - declined: Will not be addressed (with reason in resolution)
-        - blocked: Cannot proceed until blocker is resolved
+        πρᾶγμα — a thing to be done.
 
-    priority:
-      type: string
-      required: false
-      enum: [critical, high, normal, low]
-      default: normal
+        A gap, issue, or work item that signals between circles. Created
+        where the gap is discovered, resolved where the capability exists.
+
+        Pragma flow across the discipline boundary:
+        - Kosmos circle creates pragma (discovery)
+        - Chora circle accepts and resolves (capability)
+        - Resolution propagates back via shared graph
+
+        This is the coordination primitive for the two-repo workflow where
+        dwelling in one context (kosmos) discovers gaps requiring work in
+        another context (chora).
+      constitutional: false
+      fields:
+        title:
+          type: string
+          required: true
+          description: Short description of the gap
+
+        description:
+          type: string
+          required: true
+          description: Full context — what you were trying to do, what failed
+
+        context:
+          type: string
+          required: false
+          description: The situation when gap was encountered
+
+        status:
+          type: enum
+          values: [open, accepted, in_progress, resolved, declined, blocked]
+          required: true
+          default: open
+          description: |
+            Lifecycle state:
+            - open: Newly created, awaiting attention
+            - accepted: Someone has taken ownership
+            - in_progress: Actively being worked on
+            - resolved: Gap has been addressed
+            - declined: Will not be addressed (with reason in resolution)
+            - blocked: Cannot proceed until blocker is resolved
+
+        priority:
+          type: enum
+          values: [critical, high, normal, low]
+          required: false
+          default: normal
+          description: |
+            How urgent:
+            - critical: Blocks current work, needs immediate attention
+            - high: Important, should be addressed soon
+            - normal: Standard priority
+            - low: Nice-to-have, address when convenient
+
+        resolution:
+          type: string
+          required: false
+          description: How the pragma was resolved (filled when status=resolved or declined)
+
+        created_at:
+          type: timestamp
+          required: true
+
+        resolved_at:
+          type: timestamp
+          required: false
+
+  # =========================================================================
+  # ATTAINMENTS
+  # =========================================================================
+
+  - eidos: attainment
+    id: attainment/signal
+    data:
+      name: signal
       description: |
-        How urgent:
-        - critical: Blocks current work, needs immediate attention
-        - high: Important, should be addressed soon
-        - normal: Standard priority
-        - low: Nice-to-have, address when convenient
+        Signal capability — creating gaps for other circles' attention.
+        Enables creating pragma that signal to target circles where the
+        capability to resolve them exists. Requires membership in the
+        discovering circle.
+      oikos: ergon
+      scope: circle
+      grants:
+        - praxis/ergon/create-pragma
 
-    resolution:
-      type: string
-      required: false
-      description: How the pragma was resolved (filled when status=resolved or declined)
-
-    created_at:
-      type: timestamp
-      required: true
-
-    resolved_at:
-      type: timestamp
-      required: false
+  - eidos: attainment
+    id: attainment/work
+    data:
+      name: work
+      description: |
+        Work capability — managing pragma lifecycle.
+        Enables listing, accepting, and resolving pragma signaled to
+        a circle. Requires membership in the target circle to manage
+        work items.
+      oikos: ergon
+      scope: circle
+      grants:
+        - praxis/ergon/list-pragma
+        - praxis/ergon/accept-pragma
+        - praxis/ergon/resolve-pragma

@@ -1,27 +1,44 @@
 # Oikos Eide
 # Intimate dwelling eide — sessions, conversations, notes, insights
-#
-# Extracted from spora.yaml stage-2-presence
+# Plus package ecosystem eide (oikos-manifest, oikos-dev, oikos-prod)
 
-eide:
+entities:
+
+  # =============================================================================
+  # INTIMATE DWELLING EIDE
+  # =============================================================================
+
   # session — current presence instance
-  - id: eidos/session
+  - eidos: eidos
+    id: eidos/session
     data:
       name: session
-      description: "Current presence instance"
+      description: "Current presence instance — a period of dwelling activity."
+      constitutional: false
       fields:
         animus_id:
           type: string
           required: true
+          description: "The animus (embodied persona) in this session"
         started_at:
           type: timestamp
           required: true
+        closed_at:
+          type: timestamp
+          required: false
+        status:
+          type: enum
+          values: [active, closed]
+          required: true
+          default: active
 
   # conversation — dialogue within session
-  - id: eidos/conversation
+  - eidos: eidos
+    id: eidos/conversation
     data:
       name: conversation
       description: "A dialogue within a session. Conversations have participants and unfold through segments."
+      constitutional: false
       fields:
         title:
           type: string
@@ -38,10 +55,12 @@ eide:
           required: true
 
   # segment — unit within conversation
-  - id: eidos/segment
+  - eidos: eidos
+    id: eidos/segment
     data:
       name: segment
       description: "A unit within a conversation. A turn of dialogue, a moment of work."
+      constitutional: false
       fields:
         kind:
           type: enum
@@ -62,10 +81,12 @@ eide:
           required: false
 
   # note — attention marker
-  - id: eidos/note
+  - eidos: eidos
+    id: eidos/note
     data:
       name: note
       description: "An attention marker. Notes mark something as worthy of attention."
+      constitutional: false
       fields:
         content:
           type: string
@@ -82,10 +103,12 @@ eide:
           required: true
 
   # insight — emerging understanding
-  - id: eidos/insight
+  - eidos: eidos
+    id: eidos/insight
     data:
       name: insight
       description: "Emerging understanding. Not yet crystallized into theoria, but surfaced from notes."
+      constitutional: false
       fields:
         content:
           type: string
@@ -100,15 +123,17 @@ eide:
           type: timestamp
           required: true
 
-  # =========================================================================
-  # Oikos Packaging Eide (extracted from spora.yaml stage-1-archai)
-  # =========================================================================
+  # =============================================================================
+  # OIKOS PACKAGING EIDE (for demiurge/politeia consumption)
+  # =============================================================================
 
   # oikos-manifest — oikos package declaration
-  - id: eidos/oikos-manifest
+  - eidos: eidos
+    id: eidos/oikos-manifest
     data:
       name: oikos-manifest
       description: "Declaration of what an oikos requires and provides. The contract between oikos and substrate."
+      constitutional: false
       fields:
         oikos_id:
           type: string
@@ -137,11 +162,13 @@ eide:
           required: false
           description: "Actuality mode configurations for dual-mode entities"
 
-  # oikos-dev — Development oikos package (can have generation specs)
-  - id: eidos/oikos-dev
+  # oikos-dev — Development oikos package
+  - eidos: eidos
+    id: eidos/oikos-dev
     data:
       name: oikos-dev
-      description: "Development oikos package. Can contain generation specs (generated slots, inference steps). Mutable during development."
+      description: "Development oikos package. Can contain generation specs. Mutable during development."
+      constitutional: false
       fields:
         oikos_id:
           type: string
@@ -186,11 +213,13 @@ eide:
           type: integer
           required: false
 
-  # oikos-prod — Production oikos package (frozen, signed, no generation)
-  - id: eidos/oikos-prod
+  # oikos-prod — Production oikos package
+  - eidos: eidos
+    id: eidos/oikos-prod
     data:
       name: oikos-prod
       description: "Production oikos package. Frozen, signed, no generation specs. Ready for distribution."
+      constitutional: false
       fields:
         oikos_id:
           type: string
@@ -199,10 +228,14 @@ eide:
         version:
           type: string
           required: true
+        fetch_url:
+          type: string
+          required: true
+          description: "URL where the oikos content can be fetched"
         locale:
           type: string
           required: false
-          description: "BCP 47 locale code (e.g., 'en-US', 'zh-CN'). 'und' if locale-agnostic."
+          description: "BCP 47 locale code. 'und' if locale-agnostic."
         description:
           type: string
           required: false
@@ -235,10 +268,12 @@ eide:
           required: true
 
   # publish-attestation — Record of who published what
-  - id: eidos/publish-attestation
+  - eidos: eidos
+    id: eidos/publish-attestation
     data:
       name: publish-attestation
       description: "Attestation record for oikos publication. Provides audit trail for provenance."
+      constitutional: false
       fields:
         dev_oikos_id:
           type: string
@@ -270,8 +305,44 @@ eide:
         locale:
           type: string
           required: false
-          description: "BCP 47 locale code of the baked oikos-prod. 'und' if locale-agnostic."
+          description: "BCP 47 locale code of the baked oikos-prod"
         generation_hashes:
           type: array
           required: false
           description: "Hashes of generated content that was baked"
+
+  # =============================================================================
+  # ATTAINMENTS
+  # =============================================================================
+
+  - eidos: attainment
+    id: attainment/dwell
+    data:
+      name: dwell
+      description: |
+        Dwelling capability — session and conversation management.
+        Enables opening sessions, managing conversations, and adding segments.
+        The fundamental activity of being present in the household.
+      oikos: oikos
+      scope: circle
+      grants:
+        - praxis/oikos/open-session
+        - praxis/oikos/close-session
+        - praxis/oikos/open-conversation
+        - praxis/oikos/add-segment
+
+  - eidos: attainment
+    id: attainment/reflect
+    data:
+      name: reflect
+      description: |
+        Reflection capability — notes and insight surfacing.
+        Enables taking notes, listing them, surfacing insights,
+        and crystallizing insights into theoria.
+      oikos: oikos
+      scope: circle
+      grants:
+        - praxis/oikos/take-note
+        - praxis/oikos/list-notes
+        - praxis/oikos/surface-insight
+        - praxis/oikos/crystallize-insight
