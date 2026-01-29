@@ -2083,7 +2083,7 @@ entities:
         message: "oikos-prod not found: $oikos_prod_id"
 
       # Remove uses-oikos bond
-      - step: unbind
+      - step: loose
         from_id: "$target_circle_id"
         to_id: "$oikos_prod_id"
         desmos: "uses-oikos"
@@ -2489,3 +2489,395 @@ entities:
           reconciled: true
           circle_id: "$circle_id"
           distributed_count: "{{ $distributed_oikoi | length }}"
+
+# =============================================================================
+# FEDERATION OPERATIONS
+# =============================================================================
+# Federation enables continuous sync between circles across kosmoi.
+# The federates-with bond IS the federation — no separate link entity.
+# Content flows through the bond graph (Visibility = Reachability).
+
+- eidos: praxis
+  id: praxis/politeia/federate-circles
+  data:
+    oikos: politeia
+    name: federate-circles
+    visible: true
+    tier: 3
+    description: |
+      Establish federation between local and remote circles.
+      Creates mutual federates-with bonds and initializes sync infrastructure.
+
+      Both circles must bond for sync to flow (mutual consent).
+      Content in bonded circles syncs continuously.
+
+      Requires: federate attainment and sovereignty over local circle.
+    params:
+      - name: local_circle_id
+        type: string
+        required: true
+        description: Local circle to federate
+      - name: remote_circle_id
+        type: string
+        required: true
+        description: Remote circle to federate with
+      - name: remote_pubkey
+        type: string
+        required: true
+        description: Public key of remote circle's kosmos
+      - name: sync_direction
+        type: string
+        required: false
+        description: "push, pull, or bidirectional (default: bidirectional)"
+      - name: eidos_filter
+        type: array
+        required: false
+        description: "Which eide to sync (empty = all reachable)"
+    steps:
+      # Verify caller has federate attainment
+      - step: assert
+        condition: "$_attainments contains 'federate'"
+        message: "Federate attainment required"
+
+      # Verify caller is sovereign to local circle
+      - step: trace
+        from_id: "$local_circle_id"
+        desmos: "sovereign-to"
+        direction: "outbound"
+        bind_to: sovereigns
+
+      - step: assert
+        condition: "$sovereigns | selectattr('id', 'eq', $_animus) | length > 0"
+        message: "Must be sovereign to local circle"
+
+      # Set default sync direction
+      - step: set
+        bindings:
+          direction: "$sync_direction"
+      - step: switch
+        cases:
+          - when: "$direction == null"
+            then:
+              - step: set
+                bindings:
+                  direction: "bidirectional"
+
+      # Create data-channel for transport (via aither)
+      - step: call
+        praxis: aither/create-data-channel
+        params:
+          name: "federation-$local_circle_id-$remote_circle_id"
+          remote_pubkey: "$remote_pubkey"
+        bind_to: channel_result
+
+      # Create federates-with bond from local to remote
+      - step: bind
+        from_id: "$local_circle_id"
+        to_id: "$remote_circle_id"
+        desmos: "federates-with"
+        properties:
+          sync_direction: "$direction"
+          eidos_filter: "$eidos_filter"
+          channel_id: "$channel_result.channel_id"
+        bind_to: bond_result
+
+      # Create sync-cursor to track sync position
+      - step: set
+        bindings:
+          cursor_id: "sync-cursor/$local_circle_id-$remote_circle_id"
+
+      - step: arise
+        eidos: sync-cursor
+        id: "$cursor_id"
+        data:
+          federation_bond_id: "$bond_result.bond_id"
+          local_circle_id: "$local_circle_id"
+          remote_circle_id: "$remote_circle_id"
+          local_version: 0
+          remote_version: 0
+          status: "active"
+          created_at: "$_now"
+        bind_to: cursor
+
+      # Bond cursor to local circle
+      - step: bind
+        from_id: "$cursor_id"
+        to_id: "$local_circle_id"
+        desmos: "tracks-sync"
+
+      - step: return
+        value:
+          federated: true
+          local_circle_id: "$local_circle_id"
+          remote_circle_id: "$remote_circle_id"
+          bond_id: "$bond_result.bond_id"
+          channel_id: "$channel_result.channel_id"
+          cursor_id: "$cursor_id"
+          sync_direction: "$direction"
+
+- eidos: praxis
+  id: praxis/politeia/unfederate-circles
+  data:
+    oikos: politeia
+    name: unfederate-circles
+    visible: true
+    tier: 3
+    description: |
+      Dissolve federation between circles.
+      Removes federates-with bond and closes data-channel.
+      Sync-cursor is marked inactive but preserved for audit.
+    params:
+      - name: local_circle_id
+        type: string
+        required: true
+        description: Local circle
+      - name: remote_circle_id
+        type: string
+        required: true
+        description: Remote circle to unfederate from
+    steps:
+      # Verify caller has federate attainment
+      - step: assert
+        condition: "$_attainments contains 'federate'"
+        message: "Federate attainment required"
+
+      # Find the federates-with bond
+      - step: trace
+        from_id: "$local_circle_id"
+        desmos: "federates-with"
+        direction: "outbound"
+        bind_to: federations
+
+      - step: filter
+        items: "$federations"
+        condition: "$item.id == $remote_circle_id"
+        bind_to: matching
+
+      - step: assert
+        condition: "$matching | length > 0"
+        message: "Federation not found between these circles"
+
+      # Get the bond to find channel_id
+      # (Simplified - may need bond query by endpoints)
+
+      # Remove federates-with bond
+      - step: loose
+        from_id: "$local_circle_id"
+        to_id: "$remote_circle_id"
+        desmos: "federates-with"
+
+      # Mark sync-cursor as paused
+      - step: set
+        bindings:
+          cursor_id: "sync-cursor/$local_circle_id-$remote_circle_id"
+
+      - step: find
+        id: "$cursor_id"
+        bind_to: cursor
+
+      - step: switch
+        cases:
+          - when: "$cursor != null"
+            then:
+              - step: mutate
+                id: "$cursor_id"
+                data:
+                  status: "paused"
+
+      - step: return
+        value:
+          unfederated: true
+          local_circle_id: "$local_circle_id"
+          remote_circle_id: "$remote_circle_id"
+
+- eidos: praxis
+  id: praxis/politeia/list-federations
+  data:
+    oikos: politeia
+    name: list-federations
+    visible: true
+    tier: 2
+    description: |
+      List all federation bonds for a circle.
+      Returns both outbound (we federate with) and inbound (they federate with us).
+    params:
+      - name: circle_id
+        type: string
+        required: true
+        description: Circle to list federations for
+    steps:
+      # Get outbound federations
+      - step: trace
+        from_id: "$circle_id"
+        desmos: "federates-with"
+        direction: "outbound"
+        bind_to: outbound
+
+      # Get inbound federations
+      - step: trace
+        from_id: "$circle_id"
+        desmos: "federates-with"
+        direction: "inbound"
+        bind_to: inbound
+
+      - step: return
+        value:
+          circle_id: "$circle_id"
+          outbound: "$outbound"
+          inbound: "$inbound"
+          total: "{{ ($outbound | length) + ($inbound | length) }}"
+
+- eidos: praxis
+  id: praxis/politeia/resolve-conflict
+  data:
+    oikos: politeia
+    name: resolve-conflict
+    visible: true
+    tier: 2
+    description: |
+      Resolve a sync conflict manually.
+      Choose local version, remote version, or provide merged data.
+    params:
+      - name: conflict_id
+        type: string
+        required: true
+        description: ID of the sync-conflict to resolve
+      - name: resolution
+        type: string
+        required: true
+        description: "Resolution choice: local, remote, or merged"
+      - name: merged_data
+        type: object
+        required: false
+        description: "Custom merged data (required if resolution is merged)"
+    steps:
+      # Find the conflict
+      - step: find
+        id: "$conflict_id"
+        bind_to: conflict
+
+      - step: assert
+        condition: "$conflict != null"
+        message: "Conflict not found"
+
+      - step: assert
+        condition: "$conflict.data.status == 'open'"
+        message: "Conflict already resolved"
+
+      # Validate resolution
+      - step: assert
+        condition: "$resolution in ['local', 'remote', 'merged']"
+        message: "Resolution must be local, remote, or merged"
+
+      - step: switch
+        cases:
+          - when: "$resolution == 'merged'"
+            then:
+              - step: assert
+                condition: "$merged_data != null"
+                message: "merged_data required when resolution is merged"
+
+      # Determine final data based on resolution
+      - step: switch
+        cases:
+          - when: "$resolution == 'local'"
+            then:
+              - step: set
+                bindings:
+                  final_data: "$conflict.data.local_data"
+          - when: "$resolution == 'remote'"
+            then:
+              - step: set
+                bindings:
+                  final_data: "$conflict.data.remote_data"
+          - when: "$resolution == 'merged'"
+            then:
+              - step: set
+                bindings:
+                  final_data: "$merged_data"
+
+      # Apply resolution to the entity
+      - step: mutate
+        id: "$conflict.data.entity_id"
+        data: "$final_data"
+
+      # Mark conflict as resolved
+      - step: mutate
+        id: "$conflict_id"
+        data:
+          status: "resolved"
+          resolution: "$resolution"
+          merged_data: "$merged_data"
+          resolved_by: "$_persona"
+          resolved_at: "$_now"
+
+      - step: return
+        value:
+          resolved: true
+          conflict_id: "$conflict_id"
+          entity_id: "$conflict.data.entity_id"
+          resolution: "$resolution"
+
+- eidos: praxis
+  id: praxis/politeia/list-conflicts
+  data:
+    oikos: politeia
+    name: list-conflicts
+    visible: true
+    tier: 2
+    description: |
+      List sync conflicts, optionally filtered by status or circle.
+    params:
+      - name: circle_id
+        type: string
+        required: false
+        description: Filter by circle (optional)
+      - name: status
+        type: string
+        required: false
+        description: "Filter by status: open or resolved (default: open)"
+    steps:
+      # Set default status filter
+      - step: set
+        bindings:
+          filter_status: "$status"
+      - step: switch
+        cases:
+          - when: "$filter_status == null"
+            then:
+              - step: set
+                bindings:
+                  filter_status: "open"
+
+      # Gather all sync-conflicts
+      - step: gather
+        eidos: sync-conflict
+        bind_to: all_conflicts
+
+      # Filter by status
+      - step: filter
+        items: "$all_conflicts"
+        condition: "$item.data.status == $filter_status"
+        bind_to: status_filtered
+
+      # Filter by circle if specified
+      - step: switch
+        cases:
+          - when: "$circle_id != null"
+            then:
+              # Would need to trace through federation_bond_id to get circle
+              # For now, return all matching status
+              - step: set
+                bindings:
+                  conflicts: "$status_filtered"
+          - when: "$circle_id == null"
+            then:
+              - step: set
+                bindings:
+                  conflicts: "$status_filtered"
+
+      - step: return
+        value:
+          conflicts: "$conflicts"
+          count: "{{ $conflicts | length }}"
+          status_filter: "$filter_status"

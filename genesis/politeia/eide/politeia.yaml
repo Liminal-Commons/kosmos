@@ -212,6 +212,122 @@ entities:
         description: "When the event occurred"
 
 # =============================================================================
+# FEDERATION EIDE
+# =============================================================================
+
+# sync-cursor — tracks sync position per federation bond
+- eidos: eidos
+  id: eidos/sync-cursor
+  data:
+    name: sync-cursor
+    description: |
+      Tracks sync position for a federation bond.
+      Enables delta sync — only send what changed since last sync.
+      One cursor per federates-with bond direction.
+    fields:
+      federation_bond_id:
+        type: string
+        required: true
+        description: "ID of the federates-with bond this cursor tracks"
+      local_circle_id:
+        type: string
+        required: true
+        description: "Local circle in the federation"
+      remote_circle_id:
+        type: string
+        required: true
+        description: "Remote circle in the federation"
+      local_version:
+        type: integer
+        required: true
+        default: 0
+        description: "Last local version synced to remote"
+      remote_version:
+        type: integer
+        required: true
+        default: 0
+        description: "Last remote version received"
+      status:
+        type: enum
+        values: [active, paused, failed]
+        required: true
+        default: active
+      last_sync_at:
+        type: timestamp
+        required: false
+        description: "Last successful sync"
+      error_message:
+        type: string
+        required: false
+        description: "Last error if status is failed"
+      created_at:
+        type: timestamp
+        required: true
+
+# sync-conflict — divergent versions across kosmoi
+- eidos: eidos
+  id: eidos/sync-conflict
+  data:
+    name: sync-conflict
+    description: |
+      Created when the same entity diverges across kosmoi.
+      Both sides modified independently — human resolution needed.
+      Surfaces in UI for manual resolution.
+    fields:
+      entity_id:
+        type: string
+        required: true
+        description: "The entity that has conflicting versions"
+      entity_eidos:
+        type: string
+        required: true
+        description: "Type of the conflicting entity"
+      federation_bond_id:
+        type: string
+        required: true
+        description: "Federation bond where conflict was detected"
+      local_version:
+        type: integer
+        required: true
+        description: "Local version number"
+      local_data:
+        type: object
+        required: true
+        description: "Local entity data at conflict time"
+      remote_version:
+        type: integer
+        required: true
+        description: "Remote version number"
+      remote_data:
+        type: object
+        required: true
+        description: "Remote entity data at conflict time"
+      status:
+        type: enum
+        values: [open, resolved]
+        required: true
+        default: open
+      resolution:
+        type: enum
+        values: [local, remote, merged]
+        required: false
+        description: "How the conflict was resolved"
+      merged_data:
+        type: object
+        required: false
+        description: "Custom merged data if resolution is merged"
+      resolved_by:
+        type: string
+        required: false
+        description: "Persona ID who resolved the conflict"
+      detected_at:
+        type: timestamp
+        required: true
+      resolved_at:
+        type: timestamp
+        required: false
+
+# =============================================================================
 # ATTAINMENTS
 # =============================================================================
 
@@ -284,3 +400,19 @@ entities:
     grants:
       - praxis/politeia/admin-bind
       - praxis/politeia/admin-loose
+
+- eidos: attainment
+  id: attainment/federate
+  data:
+    name: federate
+    description: |
+      Capability to establish federation with other circles.
+      Required for creating federates-with bonds and managing
+      sync across kosmoi. Caller must be sovereign to the local circle.
+    oikos: politeia
+    scope: circle
+    grants:
+      - praxis/politeia/federate-circles
+      - praxis/politeia/unfederate-circles
+      - praxis/politeia/list-federations
+      - praxis/politeia/resolve-conflict

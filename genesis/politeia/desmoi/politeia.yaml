@@ -135,3 +135,69 @@ entities:
       to_eidos: oikos-prod
       cardinality: many-to-many
       symmetric: false
+
+  # =============================================================================
+  # FEDERATION BONDS
+  # =============================================================================
+
+  # federates-with — circle-to-circle federation bond
+  - eidos: desmos
+    id: desmos/federates-with
+    data:
+      name: federates-with
+      description: |
+        Establishes federation between circles across kosmoi.
+        Content in bonded circles syncs continuously.
+        Both circles must bond (mutual consent required for sync).
+
+        The bond IS the federation. No separate link entity needed.
+        Content flows through the bond graph — visibility = reachability.
+
+        Properties on the bond instance control sync behavior:
+        - sync_direction: push, pull, or bidirectional
+        - eidos_filter: which eide to sync (empty = all)
+        - channel_id: underlying data-channel for transport
+      from_eidos: circle
+      to_eidos: circle
+      cardinality: many-to-many
+      symmetric: false
+      properties:
+        sync_direction:
+          type: enum
+          values: [push, pull, bidirectional]
+          default: bidirectional
+          description: "Direction of sync through this bond"
+        eidos_filter:
+          type: array
+          required: false
+          description: "Which eide to sync (empty = all reachable)"
+        channel_id:
+          type: string
+          required: false
+          description: "Underlying data-channel ID for transport"
+        last_sync_at:
+          type: timestamp
+          required: false
+          description: "Last successful sync through this bond"
+
+  # tracks-sync — sync-cursor tracks federation bond
+  - eidos: desmos
+    id: desmos/tracks-sync
+    data:
+      name: tracks-sync
+      description: "Sync cursor tracks position for a federation bond."
+      from_eidos: sync-cursor
+      to_eidos: circle
+      cardinality: many-to-one
+      symmetric: false
+
+  # conflicts-on — sync-conflict relates to entity
+  - eidos: desmos
+    id: desmos/conflicts-on
+    data:
+      name: conflicts-on
+      description: "Sync conflict relates to a specific entity with divergent versions."
+      from_eidos: sync-conflict
+      to_eidos: entity
+      cardinality: many-to-one
+      symmetric: false
