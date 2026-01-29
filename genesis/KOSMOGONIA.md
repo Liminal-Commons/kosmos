@@ -176,6 +176,58 @@ At the oikos scale, capability has a home. An oikos is:
 
 Oikoi declare what dynamis they require. The substrate provides or refuses.
 
+### Oikos Lifecycle
+
+An oikos progresses through states:
+
+| State | Form | Location |
+|-------|------|----------|
+| **oikos-dev** | Working content | genesis/ filesystem |
+| **oikos-prod** | Signed, versioned | kosmos graph + registry |
+| **installed** | Loaded into kosmos | local kosmos.db |
+
+The ekdosis flow (bake → sign → upload → publish) transitions oikos-dev to oikos-prod. Distribution delivers oikos-prod to other kosmoi.
+
+### The Distribution Model
+
+Distribution is federation. The same mechanism that syncs expressions, theoria, and ergon also delivers oikoi.
+
+```
+self/peer circle ──[stewards]──► commons circle ──[distributes]──► oikos-prod
+                                       │
+                                       │ (invitation or payment)
+                                       ▼
+                               user's circle ──[uses]──► oikos-prod
+```
+
+The flow:
+1. Developer creates oikos in self/peer circle
+2. Developer creates commons circle for distribution
+3. Commons circle bonds to oikos-prod via `distributes`
+4. User joins commons (invitation or payment gate)
+5. Federation syncs reachable content through bond graph
+6. oikos-prod arrives in user's kosmos
+
+This is elegant because:
+- Uses existing primitives (circles, bonds, invitations)
+- Preserves visibility = reachability
+- Distribution IS governance
+- Payment fits naturally as a gate to joining
+- Same pipe for all content types
+
+Continuous sync enables time-sensitive execution. The mechanism that delivers oikoi also initiates ergon work.
+
+### The Boundary Principle
+
+Maximize what lives as oikos (YAML definitions). Minimize what requires Rust (interpreter) or TypeScript (UI).
+
+```
+Rust foundation ←──── oikos (YAML) ────► TypeScript UI
+   (interpreter)     (definitions)        (presentation)
+```
+
+Push capability toward content, away from code. When something can be expressed as eidos/praxis, it should be.
+
 ---
 
 ## The Rendering Layer
