@@ -1,0 +1,67 @@
+# Deployment Typos Definitions
+# Enables composition of deployment-related entities
+#
+# These typos definitions enable the compose step to create
+# deployment, node, and service-instance entities following
+# the constitutional enforcement pattern (CE4).
+
+entities:
+
+# =============================================================================
+# DEPLOYMENT TYPOS
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-deployment
+  data:
+    name: deployment
+    description: |
+      Compose a deployment entity for infrastructure management.
+
+      Deployments track the intent (desired state) and actuality
+      (manifested instances) of service deployments. They target
+      nodes and manifest as service instances.
+    target_eidos: deployment
+    defaults:
+      desired_state: stopped
+      actual_state: unknown
+      actuality_mode: process
+    bonds:
+      - desmos: belongs-to
+        from_self: true
+        to_literal: oikos/dynamis
+
+- eidos: typos
+  id: typos-def-service-instance
+  data:
+    name: service-instance
+    description: |
+      Compose a service instance entity representing running actuality.
+
+      Service instances are created when deployments are manifested
+      to infrastructure. They track runtime state and endpoints.
+    target_eidos: service-instance
+    defaults:
+      status: starting
+    bonds:
+      - desmos: belongs-to
+        from_self: true
+        to_literal: oikos/soma
+
+- eidos: typos
+  id: typos-def-node
+  data:
+    name: node
+    description: |
+      Compose a node entity representing infrastructure.
+
+      Nodes are physical or virtual machines that can host service
+      instances. They can be personal (single-user) or commons
+      (shared stewardship).
+    target_eidos: node
+    defaults:
+      kind: personal
+    bonds:
+      - desmos: belongs-to
+        from_self: true
+        to_literal: oikos/soma

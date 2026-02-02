@@ -730,9 +730,8 @@ entities:
           - when: "$kind"
             then:
               - step: filter
-                in: "$streams"
-                as: s
-                where: "$s.data.kind == '$kind'"
+                items: "$streams"
+                condition: "$item.data.kind == $kind"
                 bind_to: streams
 
       # Filter by direction if specified
@@ -741,9 +740,8 @@ entities:
           - when: "$direction"
             then:
               - step: filter
-                in: "$streams"
-                as: s
-                where: "$s.data.direction == '$direction'"
+                items: "$streams"
+                condition: "$item.data.direction == $direction"
                 bind_to: streams
 
       # Filter by status if specified
@@ -752,9 +750,8 @@ entities:
           - when: "$status"
             then:
               - step: filter
-                in: "$streams"
-                as: s
-                where: "$s.data.status == '$status'"
+                items: "$streams"
+                condition: "$item.data.status == $status"
                 bind_to: streams
 
       # Limit results
@@ -1228,9 +1225,8 @@ entities:
           - when: "$status"
             then:
               - step: filter
-                in: "$accumulations"
-                as: a
-                where: "$a.data.status == '$status'"
+                items: "$accumulations"
+                condition: "$item.data.status == $status"
                 bind_to: accumulations
 
       # Filter by stream_id if specified
@@ -1239,9 +1235,8 @@ entities:
           - when: "$stream_id"
             then:
               - step: filter
-                in: "$accumulations"
-                as: a
-                where: "$a.data.stream_id == '$stream_id'"
+                items: "$accumulations"
+                condition: "$item.data.stream_id == $stream_id"
                 bind_to: accumulations
 
       - step: limit

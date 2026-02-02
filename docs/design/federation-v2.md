@@ -1,6 +1,6 @@
-# Federation V2: Continuous Sync Through the Bond Graph
+# Substrate Reconciliation: Making One Kosmos Actual Across Many
 
-*Distribution = Federation. Same pipe for all content.*
+*Reconciliation is the mechanism. Federation is the pattern that emerges.*
 
 ---
 
@@ -15,86 +15,149 @@ From KOSMOGONIA:
 > **Continuous sync enables time-sensitive execution.**
 > The mechanism that delivers oikoi also initiates ergon work.
 
-Federation is not a special subsystem. It is the natural consequence of circles bonding across kosmoi.
+There is ONE kosmos — the ordering of entities and bonds that a dweller has relationship to. This kosmos may be actualized across multiple substrates (Victor's laptop, Victor's phone, Alice's device). Reconciliation ensures these actualizations stay consistent.
 
 ---
 
 ## The Core Insight
 
-A circle exists in a kosmos. When circles bond across kosmoi, their members can perceive each other's content. Federation sync makes this perception actual.
+From any dweller's vantage, there is one kosmos — the world they dwell in. The fact that this kosmos is actualized across multiple substrates (different `.db` files on different hardware) is an implementation detail of actualization.
 
 ```
-kosmos A                          kosmos B
-    │                                 │
-    └── circle/alpha ──[federates-with]── circle/beta ──┘
-           │                                  │
-           │ (bond implies sync)              │
-           ▼                                  ▼
-    entities in alpha              entities in beta
-    become reachable               become reachable
-    from kosmos B                  from kosmos A
+                         κόσμος (ONE)
+            Victor's circles, bonds, entities, theoria
+            ONE coherent ordering
+                           │
+                           │ actualization
+           ┌───────────────┼───────────────┐
+           ▼               ▼               ▼
+      substrate A     substrate B     substrate C
+      (laptop)        (phone)         (Alice's)
+      kosmos.db       kosmos.db       kosmos.db
 ```
 
-The `federates-with` bond IS the sync relationship. No separate "link" entity needed.
+The **reconciler** ensures that changes on one substrate propagate to others, maintaining the coherence of the one kosmos across its actualizations.
+
+---
+
+## Two Scopes of Reconciliation
+
+The reconciler is always substrate-level — it syncs between kosmos.db instances. What varies is the **visibility filter**:
+
+### Self-Reconciliation
+
+Same persona on multiple substrates. No scoping bond needed.
+
+```
+persona/victor on laptop  ←→  persona/victor on phone
+         │                              │
+         └──────── reconciler ──────────┘
+                       │
+              filter: everything
+         (same persona = full visibility)
+```
+
+Victor's circles, theoria, expressions — all sync because Victor has visibility to all of it from both substrates.
+
+### Circle-Scoped Reconciliation (Federation)
+
+Different personas sharing a circle. The `federates-with` bond scopes what syncs.
+
+```
+circle/project contains entity/doc-123
+         │
+         ├── sovereign-to → animus (Victor)
+         └── sovereign-to → animus (Alice)
+
+Victor's substrate  ←→  Alice's substrate
+         │                     │
+         └──── reconciler ─────┘
+                    │
+           filter: circle/project
+      (bond determines visibility)
+```
+
+When Victor adds content to circle/project, it syncs to Alice's substrate because she's sovereign to the same circle. The `federates-with` bond doesn't *start* federation — it *scopes* what the reconciler syncs.
+
+---
+
+## Reconciliation is the Mechanism
+
+| Scope | What Syncs | Filter |
+|-------|-----------|--------|
+| Self | All of persona's content | None (same persona = full visibility) |
+| Circle | Content in shared circle | Bond reachability (`federates-with`) |
+
+The reconciler doesn't have "modes." It syncs entities that pass the visibility filter. The filter is determined by persona identity and bond graph reachability.
+
+**Federation** is what we call it when the scope extends beyond self — when the reconciler syncs content between different personas' substrates, mediated by circle bonds.
 
 ---
 
 ## Ontology
 
-### Existing Primitives (no new eide needed)
+### Existing Primitives
 
-| What | How It Works |
-|------|--------------|
-| **circle** | Governance unit, contains entities via `contains` bonds |
-| **desmos: federates-with** | Circle-to-circle bond establishing sync |
+| What | Role |
+|------|------|
+| **circle** | Governance unit, determines visibility scope |
+| **sovereign-to** | Bond connecting circle to animus (membership) |
+| **desmos: federates-with** | Scopes circle-level reconciliation between personas |
 | **phoreta** | Signed bundle for transport (exists in hypostasis) |
 | **data-channel** | WebRTC transport (exists in aither) |
 
-### New Desmos
+### Federation-Specific Desmos
 
 ```yaml
 desmos/federates-with:
   description: |
-    Establishes federation between circles across kosmoi.
-    Content in bonded circles syncs continuously.
-    Both circles must bond (mutual consent).
-  from_eidos: [circle]
-  to_eidos: [circle]
+    Scopes reconciliation for a circle across substrates.
+    When personas share a circle, this bond determines sync behavior.
+    The bond scopes — it doesn't initiate. Reconciliation is continuous.
+  from_eidos: circle
+  to_eidos: circle
   cardinality: many-to-many
   properties:
-    - sync_direction: enum [push, pull, bidirectional]
-    - eidos_filter: array[string]  # Which eide to sync (empty = all)
-    - channel_id: string           # Underlying data-channel
+    sync_direction: enum [push, pull, bidirectional]
+    eidos_filter: array[string]  # Which eide to sync (empty = all)
+    channel_id: string           # Underlying data-channel
 ```
 
-### New Eidos (minimal)
+### Reconciliation-Tracking Eide
 
 ```yaml
 eidos/sync-cursor:
   description: |
-    Tracks sync position per federation bond.
-    Enables delta sync (only send what changed).
+    Tracks sync position between substrates.
+    Enables delta sync — only send what changed since last sync.
   fields:
-    - federation_id: string    # ID of the federates-with bond
-    - local_version: integer   # Last local version synced
-    - remote_version: integer  # Last remote version received
-    - updated_at: timestamp
+    local_substrate_id: string   # This substrate's identifier
+    remote_substrate_id: string  # Paired substrate's identifier
+    scope: string                # "self" or circle ID
+    local_version: integer       # Last local version synced
+    remote_version: integer      # Last remote version received
+    status: enum [active, paused, failed]
+    last_sync_at: timestamp
 ```
 
 ```yaml
 eidos/sync-conflict:
   description: |
-    When the same entity diverges across kosmoi.
-    Created when both sides modify independently.
+    Created when the same entity diverges across substrates.
+    Both substrates modified independently before reconciliation.
+    Surfaces in UI for human resolution.
   fields:
-    - entity_id: string
-    - local_version: integer
-    - local_data: object
-    - remote_version: integer
-    - remote_data: object
-    - status: enum [open, resolved]
-    - resolution: enum [local, remote, merged]
-    - resolved_at: timestamp
+    entity_id: string
+    entity_eidos: string
+    local_version: integer
+    local_data: object
+    remote_version: integer
+    remote_data: object
+    status: enum [open, resolved]
+    resolution: enum [local, remote, merged]
+    resolved_by: string
+    detected_at: timestamp
+    resolved_at: timestamp
 ```
 
 ---
@@ -103,73 +166,79 @@ eidos/sync-conflict:
 
 ### Continuous, Not Batch
 
-Traditional federation: "sync now" triggers batch transfer.
-Kosmos federation: changes flow continuously as they happen.
+Traditional sync: "sync now" triggers batch transfer.
+Kosmos reconciliation: changes flow continuously as they happen.
 
 ```
-Entity created/modified in circle A
+Entity created/modified on substrate A
     │
     ▼
 Change event emitted locally
     │
     ▼
-Reconciler checks: any federates-with bonds?
+Reconciler checks: what's the visibility scope?
+    │
+    ├── Self-reconciliation: sync to all of persona's substrates
+    │
+    └── Circle-scoped: sync to substrates with federates-with bond
     │
     ▼
-For each federated circle:
+For each target substrate:
     - Package as phoreta (signed)
     - Send via data-channel
     │
     ▼
-Remote receives, verifies, applies
+Remote substrate receives, verifies, applies
 ```
 
 ### What Triggers Sync?
 
 | Event | Action |
 |-------|--------|
-| Entity created | Push to federated circles |
-| Entity modified | Push delta to federated circles |
-| Bond created | Push if entity now visible |
-| Federation established | Full sync of existing content |
-| Dwell changes | No special action (sync is continuous) |
+| Entity created | Push to substrates with visibility |
+| Entity modified | Push delta to substrates with visibility |
+| Bond created | Re-evaluate visibility, sync if newly visible |
+| Circle membership | Full sync of circle content to new member's substrate |
+| Substrate connects | Delta sync from last cursor position |
 
 ### Delta Sync via Version Vectors
 
 Each entity has a version number (incremented on change).
-Each federation bond has a sync-cursor tracking position.
+Each substrate-pair has a sync-cursor tracking position.
 
 ```
-sync-cursor for circle/alpha ↔ circle/beta:
+sync-cursor for laptop ↔ phone (self):
   local_version: 147   # We've synced up to local version 147
   remote_version: 92   # We've received up to remote version 92
+  scope: self
 ```
 
 To sync:
 1. Find entities with version > sync-cursor.local_version
-2. Send as phoreta
-3. Update cursor
+2. Filter by visibility scope
+3. Send as phoreta
+4. Update cursor
 
 ---
 
 ## Conflict Resolution
 
-When both kosmoi modify the same entity independently:
+When substrates modify the same entity before reconciliation:
 
 ```
-kosmos A: entity/foo version 5 → modified → version 6
-kosmos B: entity/foo version 5 → modified → version 6'
+substrate A: entity/foo version 5 → modified → version 6
+substrate B: entity/foo version 5 → modified → version 6'
 
 Both syncs arrive:
   A receives B's version 6'
   B receives A's version 6
 ```
 
-**Resolution strategies** (per-federation or per-eidos):
+**Resolution strategies** (per-scope or per-eidos):
 
 | Strategy | Behavior |
 |----------|----------|
-| `last-write-wins` | Higher version wins (simple but loses data) |
+| `last-write-wins` | Higher timestamp wins (simple but loses data) |
 | `manual` | Create sync-conflict for human resolution |
 | `merge` | Type-specific merge (for mergeable types) |
 
@@ -179,86 +248,85 @@ Both syncs arrive:
 
 ## Transport Layer
 
-Federation uses existing aither data-channels.
+Reconciliation uses aither data-channels for substrate-to-substrate communication.
 
 ```
-circle/alpha ──[federates-with]── circle/beta
-                    │
-                    │ channel_id: "chan_abc123"
-                    ▼
-              data-channel/chan_abc123
-                    │
-                    │ (WebRTC, propylon-relay signaling)
-                    ▼
-              Actual P2P connection
+substrate A  ────[data-channel]────  substrate B
+                     │
+                     │ channel_id: "chan_abc123"
+                     ▼
+            WebRTC P2P connection
+            (propylon-relay signaling)
 ```
 
-The `federates-with` bond references a data-channel. Aither reconciler manages the channel lifecycle.
+For self-reconciliation, the channel connects the same persona's substrates.
+For circle-scoped reconciliation, the channel connects different personas' substrates.
 
 ---
 
 ## Praxeis
 
-### Federation Management
+### Substrate Registration
 
 ```yaml
-praxis/politeia/federate-circles:
+praxis/hypostasis/register-substrate:
   description: |
-    Establish federation between local and remote circle.
-    Creates mutual federates-with bonds and data-channel.
+    Register this substrate for reconciliation.
+    Creates substrate identity for sync tracking.
   params:
-    - local_circle_id: string
-    - remote_circle_id: string
-    - remote_pubkey: string
-    - sync_direction: enum [push, pull, bidirectional]
-    - eidos_filter: array[string] (optional)
+    persona_id: string
   steps:
-    - Create data-channel via aither
-    - Create federates-with bond (local → remote)
-    - Signal remote to create reciprocal bond
-    - Initialize sync-cursor
-    - Trigger initial full sync
-
-praxis/politeia/unfederate-circles:
-  description: Dissolve federation, close channel.
-  params:
-    - federation_id: string
-  steps:
-    - Close data-channel
-    - Remove federates-with bonds
-    - Mark sync-cursor inactive
+    - Generate substrate ID if not exists
+    - Create substrate record
+    - Initialize for self-reconciliation
 ```
 
-### Sync Operations
+### Self-Reconciliation
 
 ```yaml
-praxis/politeia/sync-federation:
+praxis/hypostasis/sync-self:
   description: |
-    Push pending changes through federation.
-    Called by reconciler, not usually by user.
+    Sync persona's full kosmos to another of their substrates.
+    No circle bond needed — same persona means full visibility.
   params:
-    - federation_id: string
+    remote_substrate_id: string
+    channel_id: string (optional)
   steps:
-    - Get sync-cursor
-    - Find entities with version > cursor.local_version
-    - Filter by eidos_filter if present
+    - Get or create sync-cursor (scope: self)
+    - Gather entities with version > cursor
     - Package as phoreta
     - Send via data-channel
     - Update cursor
+```
 
-praxis/politeia/receive-phoreta:
+### Circle-Scoped Reconciliation
+
+```yaml
+praxis/politeia/federate-circle:
   description: |
-    Process incoming phoreta from federation.
-    Handles conflict detection and resolution.
+    Enable circle-scoped reconciliation with another persona's substrate.
+    Creates federates-with bond to scope what syncs.
   params:
-    - phoreta: object
-    - federation_id: string
+    circle_id: string
+    remote_substrate_id: string
+    remote_persona_pubkey: string
+    sync_direction: enum [push, pull, bidirectional]
   steps:
-    - Verify signature
-    - Check for local entity
-    - If no conflict: apply
-    - If conflict: create sync-conflict or auto-resolve
-    - Update sync-cursor.remote_version
+    - Verify caller is sovereign to circle
+    - Create federates-with bond with scope properties
+    - Create data-channel via aither
+    - Initialize sync-cursor (scope: circle_id)
+    - Trigger initial sync of circle content
+
+praxis/politeia/unfederate-circle:
+  description: Remove circle-scoped reconciliation.
+  params:
+    circle_id: string
+    remote_substrate_id: string
+  steps:
+    - Close data-channel
+    - Remove federates-with bond
+    - Mark sync-cursor inactive
 ```
 
 ### Conflict Resolution
@@ -267,46 +335,51 @@ praxis/politeia/receive-phoreta:
 praxis/politeia/resolve-conflict:
   description: Resolve a sync conflict manually.
   params:
-    - conflict_id: string
-    - resolution: enum [local, remote, merged]
-    - merged_data: object (if merged)
+    conflict_id: string
+    resolution: enum [local, remote, merged]
+    merged_data: object (if merged)
   steps:
     - Apply chosen resolution
     - Mark conflict resolved
-    - Propagate resolved version
+    - Propagate resolved version to paired substrates
 ```
 
 ---
 
 ## Reconciler
 
-Federation has one reconciler: `federation-reconciler`.
+One reconciler handles both scopes: `substrate-reconciler`.
 
 ```yaml
-reconciler/federation:
+reconciler/substrate:
   triggers:
-    - entity_changed       # Push changes to federated circles
+    - entity_changed       # Push to substrates with visibility
     - channel_message      # Receive incoming phoreta
     - channel_state_change # Handle disconnect/reconnect
-    - bond_created         # New federation bond
+    - bond_created         # Re-evaluate visibility scope
 
   reconcile:
-    # On entity change: push to federated circles
-    - trace federates-with bonds from entity's circle
-    - for each: sync-federation
+    # On entity change
+    - determine visibility scope (self or circle)
+    - for each substrate in scope: sync
 
-    # On channel message: process phoreta
-    - receive-phoreta
+    # On channel message
+    - verify phoreta signature
+    - check for conflict
+    - apply or create sync-conflict
 
-    # On disconnect: mark federation as degraded
-    # On reconnect: full delta sync
+    # On disconnect
+    - mark sync-cursor as degraded
+
+    # On reconnect
+    - delta sync from cursor position
 ```
 
 ---
 
 ## Integration with Distribution
 
-Oikos distribution falls out naturally:
+Oikos distribution uses circle-scoped reconciliation:
 
 ```
 commons/my-oikos ──[distributes]──► oikos-prod/foo-1.0.0
@@ -314,33 +387,34 @@ commons/my-oikos ──[distributes]──► oikos-prod/foo-1.0.0
 user joins commons/my-oikos via invitation
     │
     ▼
-commons/my-oikos ──[federates-with]──► user's self circle
+user's animus becomes sovereign to commons/my-oikos
     │
     ▼
-Federation sync delivers oikos-prod/foo-1.0.0
+circle-scoped reconciliation syncs oikos-prod/foo-1.0.0
+to user's substrate
 ```
 
-The `distributes` bond makes oikos-prod visible. The `federates-with` bond makes it sync. Same mechanism as expressions, theoria, or any other content.
+The `distributes` bond makes oikos-prod visible within the circle. Circle membership makes it sync to the member's substrate. Same mechanism as expressions, theoria, or any other content.
 
 ---
 
 ## Integration with Ergon
 
-Work coordination uses the same pipe:
+Work coordination uses the same mechanism:
 
 ```
-circle/project ──[federates-with]──► peer circles
+circle/project contains ergon/task-123
 
-ergon/task-123 created in circle/project
+Alice creates task in circle/project
     │
     ▼
-Federation sync delivers to all federated circles
+circle-scoped reconciliation delivers to Victor's substrate
     │
     ▼
-Remote circles see the task, can claim/execute
+Victor sees task, can claim/execute
 ```
 
-Continuous sync means work appears immediately. No polling.
+Continuous reconciliation means work appears immediately. No polling.
 
 ---
 
@@ -348,23 +422,23 @@ Continuous sync means work appears immediately. No polling.
 
 | Concern | Mitigation |
 |---------|------------|
-| Unauthorized sync | Must have mutual federates-with bond |
+| Unauthorized sync | Visibility determined by bond graph; no back doors |
 | Content tampering | Phoreta signature verification |
 | Replay attacks | Version vectors prevent re-application |
-| Visibility leak | Bond graph IS visibility; no back doors |
+| Substrate impersonation | Substrate ID tied to persona keypair |
 
 ---
 
 ## Implementation Path
 
-### Phase 1: Ontology (kosmos)
-1. Add `federates-with` desmos to politeia
-2. Add `sync-cursor` eidos to politeia
-3. Add `sync-conflict` eidos to politeia
-4. Add federation praxeis (federate-circles, sync-federation, etc.)
+### Phase 1: Ontology (kosmos) ✓
+1. Add `federates-with` desmos to politeia ✓
+2. Add `sync-cursor` eidos to politeia ✓
+3. Add `sync-conflict` eidos to politeia ✓
+4. Add reconciliation praxeis
 
 ### Phase 2: Reconciler (chora)
-1. Implement federation-reconciler in Rust
+1. Implement substrate-reconciler in Rust ✓ (partial)
 2. Wire to entity change events
 3. Wire to aither channel events
 4. Implement phoreta send/receive via data-channel
@@ -372,44 +446,31 @@ Continuous sync means work appears immediately. No polling.
 ### Phase 3: Conflict UI (thyra)
 1. Surface sync-conflicts in UI
 2. Resolution interface (local/remote/merge)
-3. Federation status indicator
+3. Reconciliation status indicator
 
-### Phase 4: Self-Federation
+### Phase 4: Self-Reconciliation
 1. Test same-persona across devices
 2. Use hypostasis export/import for initial sync
-3. Continuous sync via federation
+3. Continuous sync via reconciler
 
-### Phase 5: Circle Federation
-1. Test circle-to-circle across kosmoi
-2. Invitation flow creates federation
-3. Oikos distribution via commons
-
----
-
-## Comparison with Syndesmos V1
-
-| Aspect | Syndesmos V1 | Federation V2 |
-|--------|--------------|---------------|
-| Link model | Separate syndesmos-link entity | federates-with desmos (simpler) |
-| Sync trigger | Manual/batch | Continuous (entity change events) |
-| Transport | Uses data-channel | Uses data-channel (same) |
-| Phoreta | Separate tracking entity | Transport format only |
-| Policies | Per-link sync-policy entity | Properties on federates-with bond |
-| Conflicts | First-class entity | First-class entity (same) |
-
-Key simplification: The bond IS the federation. No separate "link" abstraction.
+### Phase 5: Circle-Scoped Reconciliation
+1. Test circle-to-circle across personas
+2. Invitation flow establishes federation
+3. Oikos distribution via commons circles
 
 ---
 
 ## Open Questions
 
-1. **Initial sync on federation**: Full dump or negotiated delta?
+1. **Initial sync**: Full dump or negotiated delta?
 2. **Large entity graphs**: How to handle entities with many bonds?
 3. **Offline/reconnect**: How long to buffer changes?
 4. **Bandwidth**: Compression? Binary protocol?
+5. **Substrate identity**: How does substrate ID relate to device vs app instance?
 
 ---
 
-*Federation is not a feature. It is the natural consequence of circles bonding across sovereign spaces.*
+*Reconciliation is the mechanism by which one kosmos stays coherent across its actualizations.*
+*Federation is what we call it when the scope extends beyond self.*
 
-*Drafted 2026-01-29*
+*Drafted 2026-01-29, revised 2026-01-29*

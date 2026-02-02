@@ -1,0 +1,50 @@
+# Dynamis Reflexes
+# Autonomic responses for reconciliation triggering
+
+entities:
+
+  # =============================================================================
+  # DEPLOYMENT RECONCILIATION REFLEXES
+  # =============================================================================
+
+  - eidos: reflex
+    id: reflex/dynamis/deployment-intent-changed
+    data:
+      name: deployment-intent-changed
+      description: |
+        Trigger reconciliation when deployment intent changes.
+
+        Bridge between reflex system (event detection) and reconciler
+        system (state alignment). When a deployment's desired_state
+        changes, the reconciler senses actuality and converges.
+      trigger:
+        event: entity_updated
+        eidos: deployment
+        condition: '$entity.data.desired_state != $previous.data.desired_state'
+      response:
+        praxis: dynamis/reconcile
+        params:
+          reconciler_id: "reconciler/deployment"
+          entity_id: "$entity.id"
+      enabled: true
+      scope: global
+
+  - eidos: reflex
+    id: reflex/dynamis/release-artifact-intent-changed
+    data:
+      name: release-artifact-intent-changed
+      description: |
+        Trigger reconciliation when release artifact upload intent changes.
+
+        For R2/S3 uploads — when uploaded flag changes, reconcile.
+      trigger:
+        event: entity_updated
+        eidos: release-artifact
+        condition: '$entity.data.uploaded != $previous.data.uploaded'
+      response:
+        praxis: dynamis/reconcile
+        params:
+          reconciler_id: "reconciler/release-artifact"
+          entity_id: "$entity.id"
+      enabled: true
+      scope: global

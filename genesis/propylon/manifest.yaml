@@ -17,6 +17,11 @@ oikos_description: |
   through which beings enter the kosmos. Authenticate, exchange, hand off, forget.
 oikos_scale: cross-scale
 
+# Development experience metadata
+oikos_category: infrastructure
+surfaces_provided: []   # Gateway is an operation, not a surface
+surfaces_consumed: []   # Foundational entry/authentication layer
+
 content_paths:
   - path: eide/
     content_types: [eidos]
@@ -26,6 +31,8 @@ content_paths:
     content_types: [praxis]
   - path: seeds/
     content_types: [seed]
+  - path: entities/
+    content_types: [render-spec]
 
 dependencies:
   - soma         # For dwelling context (create-self-link)
@@ -48,6 +55,17 @@ provides:
     - propylon-session
     - propylon-relay
     - session-token
+
+  # Oikos-centric rendering: propylon owns presentation for gateway entities
+  renderable:
+    - eidos: propylon-link
+      description: "Invitation link cards and management"
+    - eidos: entry-request
+      description: "Entry request notifications"
+    - eidos: propylon-session
+      description: "Authentication state display"
+    - eidos: propylon-relay
+      description: "Infrastructure status cards"
 
   attainments:
     - invite          # Create/manage invitation links

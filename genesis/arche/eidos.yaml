@@ -429,6 +429,9 @@
   description: |
     A domain of concern. Oikos group related definitions, praxeis, and eide.
     Each oikos establishes part of the kosmos structure.
+
+    Oikoi can be developed within kosmos (composed, elaborated, validated)
+    and then emitted to genesis for bootstrap.
   fields:
     id:
       type: string
@@ -439,11 +442,64 @@
     description:
       type: string
       required: true
+    purpose:
+      type: string
+      required: false
+      description: What ontological gap does this oikos address?
     scale:
       type: string
-      required: true
+      required: false
       enum: [kosmos, physis, polis, oikos, soma, psyche]
       description: Which klimax scale this oikos belongs to
+    status:
+      type: string
+      required: false
+      enum: [composing, validating, valid, emitting, emitted, bootstrapped]
+      default: bootstrapped
+      description: |
+        Lifecycle status:
+        - composing: Active development, definitions being added
+        - validating: Validation in progress
+        - valid: All definitions validate, ready to emit
+        - emitting: Emission to genesis in progress
+        - emitted: Written to genesis filesystem
+        - bootstrapped: Loaded from genesis at startup (default for existing oikoi)
+    version:
+      type: string
+      required: false
+      default: "0.1.0"
+      description: Semantic version
+    depends_on:
+      type: array
+      required: false
+      description: Other oikoi this depends on
+    requires_dynamis:
+      type: array
+      required: false
+      description: Dynamis capabilities required from substrate
+    validation_errors:
+      type: array
+      required: false
+      description: Current validation issues (empty when valid)
+    category:
+      type: string
+      required: false
+      enum: [interface, domain, infrastructure]
+      description: |
+        Oikos category for interaction surface palette:
+        - interface: Provides access to substrate capabilities (manteia, opsis, aither, thyra)
+        - domain: Models specific concerns (nous, politeia, psyche)
+        - infrastructure: Manages substrate resources (dynamis, ergon, soma)
+    surfaces:
+      type: array
+      required: false
+      description: |
+        Interaction surfaces this oikos leverages.
+        Populated during validation based on praxeis analysis.
+        Used to discover which interface oikoi are needed.
+      items:
+        type: string
+        enum: [rendering, reasoning, understanding, computation, transport, coordination, emission]
 
 - id: oikos-manifest
   description: |

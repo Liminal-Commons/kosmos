@@ -1,0 +1,66 @@
+# Politeia Render Specifications
+#
+# Rendering definitions for politeia eide: circle, attainment
+# Oikos-centric: politeia owns presentation for governance entities
+
+entities:
+
+# =============================================================================
+# CIRCLE RENDER SPECS
+# =============================================================================
+
+- eidos: render-spec
+  id: render-spec/circle-card
+  data:
+    name: circle-card
+    description: "Card view for circle — trust boundaries"
+    target_eidos: circle
+    fields_to_display:
+      - field: name
+        label: Name
+      - field: kind
+        label: Kind
+      - field: description
+        label: Description
+    layout_template: |
+      <article class="render-card circle-card circle-{kind}">
+        <header class="card-header">
+          <h3 class="circle-name">{name}</h3>
+          <span class="kind-badge kind-{kind}">{kind}</span>
+        </header>
+        <div class="card-body">
+          <p class="description">{description}</p>
+        </div>
+        <footer class="card-footer">
+          <span class="entity-id">{id}</span>
+        </footer>
+      </article>
+    style_bindings:
+      circle-self: "border-left: 3px solid var(--circle-self, #8b5cf6)"
+      circle-peer: "border-left: 3px solid var(--circle-peer, #3b82f6)"
+      circle-commons: "border-left: 3px solid var(--circle-commons, #10b981)"
+      kind-self: "background: var(--bg-self, #ede9fe); color: var(--text-self, #5b21b6)"
+      kind-peer: "background: var(--bg-peer, #dbeafe); color: var(--text-peer, #1e40af)"
+      kind-commons: "background: var(--bg-commons, #d1fae5); color: var(--text-commons, #065f46)"
+    created_at: "2025-01-29T00:00:00Z"
+
+- eidos: render-spec
+  id: render-spec/circle-list-item
+  data:
+    name: circle-list-item
+    description: "Compact list item view for circle navigation"
+    target_eidos: circle
+    fields_to_display:
+      - field: name
+      - field: kind
+    layout_template: |
+      <div class="list-item circle-list-item circle-{kind}">
+        <span class="circle-icon kind-{kind}"></span>
+        <span class="circle-name">{name}</span>
+        <span class="kind-label">{kind}</span>
+      </div>
+    style_bindings:
+      circle-self: "border-left: 2px solid var(--circle-self, #8b5cf6)"
+      circle-peer: "border-left: 2px solid var(--circle-peer, #3b82f6)"
+      circle-commons: "border-left: 2px solid var(--circle-commons, #10b981)"
+    created_at: "2025-01-29T00:00:00Z"

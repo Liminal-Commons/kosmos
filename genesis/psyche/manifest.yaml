@@ -16,6 +16,11 @@ oikos_description: |
   texture (prospect and kairos).
 oikos_scale: psyche
 
+# Development experience metadata
+oikos_category: domain
+surfaces_provided: []   # Models experiential state
+surfaces_consumed: []   # Foundational experiential layer
+
 content_paths:
   - path: eide/
     content_types: [eidos]
@@ -23,6 +28,8 @@ content_paths:
     content_types: [desmos]
   - path: praxeis/
     content_types: [praxis]
+  - path: entities/
+    content_types: [render-spec]
 
 requires_dynamis:
   - db.arise
@@ -41,6 +48,21 @@ provides:
     - thyra
     - prospect
     - kairos
+
+  # Oikos-centric rendering: psyche owns presentation for experiential state
+  renderable:
+    - eidos: attention
+      description: "Focus indicators and attention beam display"
+    - eidos: intention
+      description: "Goal cards and intention lists"
+    - eidos: mood
+      description: "Attunement indicators"
+    - eidos: thyra
+      description: "Portal interface status cards"
+    - eidos: prospect
+      description: "Anticipated possibility cards"
+    - eidos: kairos
+      description: "Opportune moment alerts"
 
   desmoi:
     - attends

@@ -1,0 +1,36 @@
+# Opsis Desmoi — Visual Rendering Bond Types
+#
+# Traces to: genesis/opsis/DESIGN.md
+
+entities:
+  # renders-with — panel uses renderer
+  - eidos: desmos
+    id: desmos/renders-with
+    data:
+      name: renders-with
+      description: |
+        Panel uses renderer.
+
+        A panel bonds to the renderer that displays it. This makes
+        rendering configuration traversable — you can query which
+        renderer handles a given panel.
+      from_eidos: panel
+      to_eidos: renderer
+      cardinality: many-to-one
+      symmetric: false
+
+  # displays-as — render-spec uses widget
+  - eidos: desmos
+    id: desmos/displays-as
+    data:
+      name: displays-as
+      description: |
+        Field uses widget.
+
+        A render-spec field binds to the widget that displays it.
+        This enables homoiconic rendering — the display configuration
+        is itself graph data, not hardcoded logic.
+      from_eidos: render-spec
+      to_eidos: widget
+      cardinality: many-to-many
+      symmetric: false

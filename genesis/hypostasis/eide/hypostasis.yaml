@@ -111,73 +111,62 @@ entities:
         required: false
         description: "When threshold was reached"
 
+# NOTE: credential eidos moved to genesis/credentials/eide/credentials.yaml
+
+# =============================================================================
+# SSH CREDENTIALS (for remote deployment)
+# =============================================================================
+
 - eidos: eidos
-  id: eidos/credential
+  id: eidos/ssh-credential
   data:
-    name: credential
+    name: ssh-credential
     description: |
-      An encrypted external service credential. Follows the kleidoura pattern:
-      stored encrypted at rest, unlocked into session memory when needed.
+      SSH authentication credential for remote node access.
+      Used by manifest-deployment when actuality_mode is nixos-rebuild.
 
-      When unlocked, the credential grants an attainment (e.g., "use-embedding-api").
-      Praxeis requiring the service check for the attainment before executing.
-      This integrates capability (credential) with governance (attainment).
+      Bonded to nodes via authenticates-to desmos.
+      The credential doesn't store secrets — it references how to authenticate:
+      - agent: Use SSH agent (keys already loaded)
+      - key: Use specific key file path
 
-      Session flow:
-      1. User provides password → session unlocks
-      2. Credentials decrypt into memory (chora, not kosmos)
-      3. Session gains attainments from unlocked credentials
-      4. Praxeis check attainments before using services
-      5. Session lock → credentials cleared → attainments removed
+      Secrets live in the environment or keyring, not the graph.
     fields:
-      service:
+      name:
         type: string
         required: true
-        description: "Service provider (e.g., 'openai', 'anthropic', 'cloudflare')"
-      credential_type:
+        description: "Human-readable credential name"
+      host:
+        type: string
+        required: true
+        description: "SSH host (IP address or hostname)"
+      user:
+        type: string
+        required: true
+        default: root
+        description: "SSH username"
+      port:
+        type: integer
+        required: true
+        default: 22
+        description: "SSH port"
+      auth_method:
         type: enum
-        values: [api-key, oauth-token, bearer-token, access-key]
+        values: [agent, key]
         required: true
-        default: api-key
-        description: "Type of credential"
-      encrypted_value:
+        default: agent
+        description: |
+          Authentication method:
+          - agent: Use running SSH agent (recommended)
+          - key: Use key file at key_path
+      key_path:
         type: string
-        required: true
-        description: "AES-256-GCM encrypted credential value (base64)"
-      salt:
-        type: string
-        required: true
-        description: "Per-credential salt for encryption key derivation (base64)"
-      label:
-        type: string
-        required: true
-        description: "Human-readable label (e.g., 'My OpenAI Key')"
-      scope:
-        type: enum
-        values: [persona, circle]
-        required: true
-        default: persona
-        description: "Who can use this credential"
-      grants_attainment:
-        type: string
-        required: true
-        description: "Attainment name granted when unlocked (e.g., 'use-embedding-api')"
-      status:
-        type: enum
-        values: [active, revoked, expired]
-        required: true
-        default: active
-      created_at:
-        type: timestamp
-        required: true
-      last_used_at:
-        type: timestamp
         required: false
-        description: "When this credential was last used"
-      expires_at:
-        type: timestamp
+        description: "Path to private key (only for auth_method: key)"
+      jump_host:
+        type: string
         required: false
-        description: "Optional expiration for time-limited tokens"
+        description: "Optional jump host for bastion access"
 
 # =============================================================================
 # ATTAINMENTS
@@ -223,18 +212,7 @@ entities:
       - praxis/hypostasis/create-keyring
       - praxis/hypostasis/change-keyring-password
 
-- eidos: attainment
-  id: attainment/manage-credentials
-  data:
-    name: manage-credentials
-    description: |
-      Capability to add and remove external service credentials.
-      Persona-scoped: only the persona owner can manage their credentials.
-    oikos: hypostasis
-    scope: persona
-    grants:
-      - praxis/hypostasis/add-credential
-      - praxis/hypostasis/remove-credential
+# NOTE: attainment/manage-credentials moved to genesis/credentials/eide/credentials.yaml
 
 - eidos: attainment
   id: attainment/genesis-signer

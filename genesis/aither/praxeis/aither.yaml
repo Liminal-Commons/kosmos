@@ -2103,3 +2103,175 @@ entities:
           skipped: "$skipped_count"
           total: "$entities | length"
           synced_at: "$now_ts"
+
+# =============================================================================
+# REFLEX RESPONSE PRAXEIS
+# =============================================================================
+
+# aither/process-sync-message — process federation sync message
+- eidos: praxis
+  id: praxis/aither/process-sync-message
+  data:
+    oikos: aither
+    name: process-sync-message
+    visible: false  # Internal, invoked by reflex
+    tier: 3  # Requires federation channel access
+    description: |
+      Process a federation sync message.
+
+      Called by reflex/aither/sync-message-received when sync-message
+      entity is created. Routes to appropriate handler based on message type.
+    params:
+      - name: message_id
+        type: string
+        required: true
+    steps:
+      - step: find
+        id: "$message_id"
+        bind_to: message
+
+      # Skip if already processed
+      - step: assert
+        condition: 'not $message.data.processed'
+        message: "Message already processed"
+
+      # Process based on message type
+      - step: switch
+        cases:
+          - when: '$message.data.type == "entity"'
+            then:
+              - step: call
+                praxis: aither/apply-entity-sync
+                params:
+                  entity: "$message.data.entity"
+                  action: "$message.data.action"
+                  circle_id: "$message.data.circle_id"
+                bind_to: result
+          - when: '$message.data.type == "expression"'
+            then:
+              - step: call
+                praxis: aither/apply-expression-sync
+                params:
+                  entity: "$message.data.entity"
+                  action: "$message.data.action"
+                  circle_id: "$message.data.circle_id"
+                bind_to: result
+          - when: '$message.data.type == "presence"'
+            then:
+              - step: call
+                praxis: aither/update-presence
+                params:
+                  persona_id: "$message.data.sender_id"
+                  circle_id: "$message.data.circle_id"
+                  status: "online"
+                bind_to: result
+          - when: '$message.data.type == "catch-up-request"'
+            then:
+              - step: call
+                praxis: aither/respond-catch-up
+                params:
+                  circle_id: "$message.data.circle_id"
+                  since: "$message.data.since"
+                  sender_id: "$message.data.sender_id"
+                bind_to: result
+          - when: '$message.data.type == "catch-up-response"'
+            then:
+              - step: call
+                praxis: aither/apply-catch-up
+                params:
+                  entities: "$message.data.entities"
+                  circle_id: "$message.data.circle_id"
+                bind_to: result
+        default:
+          - step: set
+            bindings:
+              result:
+                error: "Unknown message type"
+                type: "$message.data.type"
+
+      # Mark message as processed
+      - step: update
+        entity_id: "$message_id"
+        data:
+          processed: true
+
+      - step: return
+        value:
+          processed: true
+          message_id: "$message_id"
+          message_type: "$message.data.type"
+          result: "$result"
+
+# aither/apply-entity-sync — apply entity sync from federation
+- eidos: praxis
+  id: praxis/aither/apply-entity-sync
+  data:
+    oikos: aither
+    name: apply-entity-sync
+    visible: false  # Internal helper
+    tier: 2
+    description: |
+      Apply entity sync from federation message.
+
+      Handles create/update/delete actions for synced entities.
+    params:
+      - name: entity
+        type: object
+        required: true
+        description: "Entity data to sync"
+      - name: action
+        type: string
+        required: true
+        description: "Action: create, update, delete"
+      - name: circle_id
+        type: string
+        required: true
+    steps:
+      - step: switch
+        cases:
+          - when: '$action == "create"'
+            then:
+              # Check if already exists
+              - step: find
+                id: "$entity.id"
+                bind_to: existing
+              - step: switch
+                cases:
+                  - when: "not $existing"
+                    then:
+                      - step: arise
+                        eidos: "$entity.eidos"
+                        id: "$entity.id"
+                        data: "$entity.data"
+                        bind_to: created
+                      - step: return
+                        value:
+                          action: "created"
+                          entity_id: "$entity.id"
+                default:
+                  - step: return
+                    value:
+                      action: "skipped"
+                      entity_id: "$entity.id"
+                      reason: "already exists"
+          - when: '$action == "update"'
+            then:
+              - step: update
+                entity_id: "$entity.id"
+                data: "$entity.data"
+              - step: return
+                value:
+                  action: "updated"
+                  entity_id: "$entity.id"
+          - when: '$action == "delete"'
+            then:
+              # Note: delete stoicheion may not exist yet
+              - step: return
+                value:
+                  action: "delete_not_implemented"
+                  entity_id: "$entity.id"
+        default:
+          - step: return
+            value:
+              action: "unknown"
+              error: "Unknown action: $action"

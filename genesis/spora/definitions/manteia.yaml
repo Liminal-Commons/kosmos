@@ -1,0 +1,275 @@
+# Manteia Definitions
+# ====================
+#
+# Composition templates for governed inference.
+# These typos enable homoiconic prompt composition — prompts assembled
+# from graph context rather than hardcoded strings.
+#
+# The key insight: what goes into an inference call can itself be composed.
+# System prompts, user context, and constraints are all graph-derived.
+
+entities:
+
+# =============================================================================
+# INFERENCE CONTEXT COMPOSITION
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-inference-context
+  data:
+    name: inference-context
+    description: |
+      Compose an inference call context from graph operations.
+
+      The prompt isn't a flat string — it's assembled from discrete components:
+      - Schema source (what structured output we want)
+      - Domain theoria (relevant crystallized understanding)
+      - Role/persona (how to reason about this)
+      - Constraints (guardrails)
+      - Input artifacts (what's being worked on)
+      - Human expression (what the human said/wants)
+      - Additional context (gathered from graph)
+      - The request (what to do with all this)
+
+      This enables homoiconic prompt engineering — prompts are data, not code.
+      Domain-specific inference patterns extend this with appropriate defaults.
+    target_eidos: artifact
+    slots:
+      # ─────────────────────────────────────────────────────────────────────
+      # SYSTEM PROMPT COMPONENTS (assembled into system context)
+      # ─────────────────────────────────────────────────────────────────────
+
+      schema_source:
+        type: string
+        required: false
+        description: |
+          Entity ID of eidos or typos that defines the output schema.
+          The schema description is included in system prompt so the model
+          understands the target structure.
+
+      domain_theoria:
+        type: object
+        required: false
+        description: |
+          Query specification to surface relevant theoria.
+          Example: { query: "design principles", limit: 5 }
+          Theoria content is included in system prompt as domain knowledge.
+
+      role:
+        type: string
+        required: false
+        description: |
+          Persona/role for the inference. Describes how the model should
+          approach the task. Example: "You are a technical writer..."
+
+      constraints:
+        type: array
+        required: false
+        description: |
+          Explicit constraints on generation. Each constraint is a string
+          describing what to avoid or enforce.
+          Example: ["Preserve existing section structure", "Use same voice"]
+
+      # ─────────────────────────────────────────────────────────────────────
+      # USER PROMPT COMPONENTS (assembled into user context)
+      # ─────────────────────────────────────────────────────────────────────
+
+      input_artifacts:
+        type: array
+        required: false
+        description: |
+          Entity IDs of artifacts to include as input context.
+          These are the primary subjects of the inference (e.g., the document
+          being updated). Content is structured in the user prompt.
+
+      human_expression:
+        type: string
+        required: false
+        description: |
+          Entity ID of the expression driving this generation.
+          The expression content becomes the human's request/intent.
+
+      additional_context:
+        type: object
+        required: false
+        description: |
+          Query specification to gather additional context entities.
+          Example: { trace: { from: "$artifact_id", desmos: "depends-on", depth: 2 } }
+          Gathered entities are included in user prompt as supporting context.
+
+      context_depth:
+        type: number
+        required: false
+        default: 1
+        description: |
+          How deep to traverse bonds when gathering context.
+          1 = immediate bonds only (default)
+          2 = bonds of bonds
+          etc.
+          Corresponds to what's "expanded" in the navigation view.
+
+      request:
+        type: string
+        required: true
+        description: |
+          The actual instruction/request. This is the "do what" part.
+          Example: "Update the artifact based on the human's expression"
+
+      # ─────────────────────────────────────────────────────────────────────
+      # OUTPUT CONFIGURATION
+      # ─────────────────────────────────────────────────────────────────────
+
+      output_schema:
+        type: object
+        required: false
+        description: |
+          Explicit JSON schema for output. If not provided, derived from
+          schema_source (eidos fields or typos slots).
+
+      evaluate:
+        type: boolean
+        required: false
+        default: false
+        description: |
+          Whether to evaluate output against criteria (governed envelope).
+
+      criteria:
+        type: array
+        required: false
+        description: |
+          Evaluation criteria if evaluate=true.
+          Array of { name, description, weight } objects.
+
+    output_type: object
+    bonds:
+      - desmos: belongs-to
+        from_self: true
+        to_literal: oikos/manteia
+
+# =============================================================================
+# DOMAIN-SPECIFIC INFERENCE PATTERNS
+# =============================================================================
+
+- eidos: typos
+  id: typos-inference-update-artifact
+  data:
+    name: inference-update-artifact
+    description: |
+      Update an artifact based on human expression.
+
+      This is the core pattern for voice-authoring: human speaks about
+      an artifact, and the artifact updates to incorporate their intent.
+
+      Extends typos-def-inference-context with appropriate defaults for
+      artifact updating.
+    extends: typos-def-inference-context
+    slots:
+      # Inherited from typos-def-inference-context, with defaults
+      role:
+        type: string
+        default: |
+          You are an editor. Update documents based on human discussion
+          while maintaining consistency with existing style and structure.
+          Preserve the author's voice. Make minimal changes to achieve
+          the requested updates.
+
+      constraints:
+        type: array
+        default:
+          - "Preserve existing section structure unless explicitly asked to change"
+          - "Use the same voice and terminology as the existing document"
+          - "Make minimal changes to achieve the intent"
+          - "Do not add content beyond what is requested"
+
+      context_depth:
+        type: number
+        default: 1
+
+      # Required for this pattern
+      input_artifacts:
+        type: array
+        required: true
+        description: "The artifact(s) being updated"
+
+      human_expression:
+        type: string
+        required: true
+        description: "The expression describing the desired update"
+
+      request:
+        type: string
+        default: |
+          Update the artifact to incorporate the human's intent.
+          Return the complete updated content.
+
+    output_type: object
+
+- eidos: typos
+  id: typos-inference-generate-from-discussion
+  data:
+    name: inference-generate-from-discussion
+    description: |
+      Generate new content from a discussion thread.
+
+      Given a thread of expressions, synthesize new content.
+      Used when discussion should crystallize into an artifact.
+    extends: typos-def-inference-context
+    slots:
+      role:
+        type: string
+        default: |
+          You are a synthesizer. Given a discussion, extract and organize
+          the key points into well-structured content. Preserve the essence
+          of what was discussed while improving clarity and organization.
+
+      discussion_thread:
+        type: array
+        required: true
+        description: |
+          Entity IDs of expressions in the discussion thread.
+          These form the primary input for synthesis.
+
+      target_structure:
+        type: string
+        required: false
+        description: |
+          Optional guidance on the desired output structure.
+          Example: "Create an outline with sections and bullet points"
+
+      request:
+        type: string
+        default: |
+          Synthesize the discussion into coherent content.
+          Preserve key insights and decisions. Organize logically.
+
+    output_type: object
+
+- eidos: typos
+  id: typos-inference-with-theoria
+  data:
+    name: inference-with-theoria
+    description: |
+      Generate content informed by domain theoria.
+
+      Surfaces relevant crystallized understanding to inform generation.
+      The theoria becomes part of the system context.
+    extends: typos-def-inference-context
+    slots:
+      domain:
+        type: string
+        required: true
+        description: "Domain to surface theoria from"
+
+      theoria_limit:
+        type: number
+        default: 5
+        description: "Maximum number of theoria to include"
+
+      domain_theoria:
+        type: object
+        pattern: computed
+        description: |
+          Computed from domain and theoria_limit:
+          { surface: { query: "$domain", eidos: theoria, limit: $theoria_limit } }
+
+    output_type: object

@@ -229,7 +229,7 @@ entities:
 
       # Update status to accepted
       - step: update
-        entity_id: "$pragma_id"
+        id: "$pragma_id"
         data:
           status: "accepted"
 
@@ -280,7 +280,7 @@ entities:
 
       # Update status to resolved with resolution text
       - step: update
-        entity_id: "$pragma_id"
+        id: "$pragma_id"
         data:
           status: "resolved"
           resolution: "$resolution"
@@ -302,3 +302,62 @@ entities:
           resolution: "$resolution"
           resolved_by: "$resolving_entity_id"
           status: "resolved"
+
+# =============================================================================
+# BODY-SCHEMA CONTRIBUTION
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/ergon/sense-pragma
+  data:
+    oikos: ergon
+    name: sense-pragma
+    visible: true
+    tier: 1
+    description: |
+      Sense pragma state for body-schema contribution.
+
+      Returns a summary of work items signaled to the current circle:
+      - Open pragma awaiting attention
+      - In-progress pragma being worked
+      - Blocked pragma
+      - Recently resolved pragma
+    params: []
+    steps:
+      # Trace pragma signaled to current dwelling circle
+      - step: trace
+        to_id: "$_circle"
+        desmos: "signals-to"
+        direction: "inbound"
+        bind_to: all_pragma
+
+      # Count by status
+      - step: filter
+        items: "$all_pragma"
+        condition: "$item.data.status == 'open'"
+        bind_to: open_pragma
+
+      - step: filter
+        items: "$all_pragma"
+        condition: "$item.data.status == 'accepted' || $item.data.status == 'in_progress'"
+        bind_to: active_pragma
+
+      - step: filter
+        items: "$all_pragma"
+        condition: "$item.data.status == 'blocked'"
+        bind_to: blocked_pragma
+
+      - step: filter
+        items: "$all_pragma"
+        condition: "$item.data.priority == 'critical'"
+        bind_to: critical_pragma
+
+      - step: return
+        value:
+          circle_id: "$_circle"
+          total_count: "{{ $all_pragma | length }}"
+          open_count: "{{ $open_pragma | length }}"
+          active_count: "{{ $active_pragma | length }}"
+          blocked_count: "{{ $blocked_pragma | length }}"
+          critical_count: "{{ $critical_pragma | length }}"
+          has_urgent_work: "{{ $critical_pragma | length > 0 || $blocked_pragma | length > 0 }}"

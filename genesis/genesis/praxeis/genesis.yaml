@@ -1,0 +1,515 @@
+# genesis.yaml
+# Genesis praxeis — the source of truth operations
+#
+# γένεσις — origin, creation, coming into being.
+# The full-circle guarantee: emit → bootstrap → emit = same hash.
+#
+# Praxeis organized by function:
+# - Emission: Write definitions to filesystem
+# - Verification: Prove round-trip fidelity
+# - Content roots: Manage where content lives
+
+entities:
+
+# =============================================================================
+# EMISSION
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/genesis/emit-genesis
+  data:
+    oikos: genesis
+    name: emit-genesis
+    visible: true
+    tier: 3
+    description: |
+      Emit all genesis content to filesystem for full-circle verification.
+
+      Full-circle genesis is self-verifying coherence:
+        kosmos.db → emit-genesis → chora-output/
+                                        ↓
+                             bootstrap(chora-output/) → new-kosmos.db
+                                        ↓
+                                   emit-genesis → chora-output-2/
+                                        ↓
+                               hash(output) == hash(output-2) ✓
+
+      This praxis:
+      1. Gathers all genesis entities (arche, spora, oikoi)
+      2. Emits them to YAML files in the output directory
+      3. Computes BLAKE3 hash of the entire output
+      4. Returns the hash for verification
+
+      Constitutional content (arche, seed expressions) uses literal fill only.
+      Derivable content (oikoi with generation specs) is baked before emission.
+
+      The output can be used to:
+      - Bootstrap a new kosmos (recovery)
+      - Verify consistency (hash comparison)
+      - Audit constitutional content
+    params:
+      - name: output_path
+        type: string
+        required: true
+        description: Base directory path for emitted content (e.g., "./chora-output")
+      - name: include_oikoi
+        type: boolean
+        required: false
+        description: Include loaded oikoi in emission (default true)
+      - name: dry_run
+        type: boolean
+        required: false
+        description: Compute hash without emitting files (default false)
+    steps:
+      # Set defaults - dry_run is already a boolean, use directly
+      - step: set
+        bindings:
+          emit_oikoi: "$include_oikoi != false"
+          file_count: 0
+
+      # ===========================================
+      # GATHER ALL ENTITIES
+      # ===========================================
+
+      - step: gather
+        eidos: eidos
+        bind_to: all_eide
+
+      - step: gather
+        eidos: desmos
+        bind_to: all_desmoi
+
+      - step: gather
+        eidos: stoicheion
+        bind_to: all_stoicheia
+
+      - step: gather
+        eidos: persona
+        bind_to: all_personas
+
+      - step: gather
+        eidos: circle
+        bind_to: all_circles
+
+      - step: gather
+        eidos: typos
+        bind_to: all_artifact_defs
+
+      - step: gather
+        eidos: praxis
+        bind_to: all_praxeis
+
+      # ===========================================
+      # COMPUTE CONTENT HASH
+      # Hash is computed from JSON-encoded gathered data
+      # ===========================================
+
+      - step: set
+        bindings:
+          hash_content:
+            eidos: "$all_eide"
+            desmos: "$all_desmoi"
+            stoicheion: "$all_stoicheia"
+            persona: "$all_personas"
+            circle: "$all_circles"
+            artifact_definition: "$all_artifact_defs"
+            praxis: "$all_praxeis"
+
+      - step: digest
+        input: "json_encode($hash_content)"
+        bind_to: content_hash
+
+      # ===========================================
+      # EMIT FILES (if not dry run)
+      # ===========================================
+
+      - step: switch
+        cases:
+          - when: "!$dry_run"
+            then:
+              - step: emit
+                path: "$output_path/arche/eidos.yaml"
+                content: "yaml_encode($all_eide)"
+
+              - step: emit
+                path: "$output_path/arche/desmos.yaml"
+                content: "yaml_encode($all_desmoi)"
+
+              - step: emit
+                path: "$output_path/arche/stoicheion.yaml"
+                content: "yaml_encode($all_stoicheia)"
+
+              - step: emit
+                path: "$output_path/spora/personas.yaml"
+                content: "yaml_encode($all_personas)"
+
+              - step: emit
+                path: "$output_path/spora/circles.yaml"
+                content: "yaml_encode($all_circles)"
+
+              - step: emit
+                path: "$output_path/spora/definitions.yaml"
+                content: "yaml_encode($all_artifact_defs)"
+
+              - step: emit
+                path: "$output_path/spora/praxeis.yaml"
+                content: "yaml_encode($all_praxeis)"
+
+              # Emit manifest for re-bootstrap
+              - step: emit
+                path: "$output_path/manifest.yaml"
+                content: |
+                  # Generated by emit-genesis
+                  # Re-bootstrap: KOSMOS_SPORA=manifest.yaml ./kosmos-mcp
+                  oikos: emitted
+                  version: 0.1.0
+                  manifests:
+                    - arche/eidos.yaml
+                    - arche/desmos.yaml
+                    - arche/stoicheion.yaml
+                    - spora/personas.yaml
+                    - spora/circles.yaml
+                    - spora/definitions.yaml
+                    - spora/praxeis.yaml
+
+      # ===========================================
+      # RETURN RESULT
+      # ===========================================
+
+      - step: return
+        value:
+          success: true
+          content_hash: "$content_hash"
+          dry_run: "$dry_run"
+          entity_counts:
+            eidos: "length($all_eide)"
+            desmos: "length($all_desmoi)"
+            stoicheion: "length($all_stoicheia)"
+            persona: "length($all_personas)"
+            circle: "length($all_circles)"
+            artifact_definition: "length($all_artifact_defs)"
+            praxis: "length($all_praxeis)"
+
+- eidos: praxis
+  id: praxis/genesis/emit-oikos
+  data:
+    oikos: genesis
+    name: emit-oikos
+    visible: true
+    tier: 3
+    description: |
+      Emit a validated oikos to genesis filesystem.
+
+      Creates:
+      - genesis/{name}/manifest.yaml
+      - genesis/{name}/eide/{name}.yaml for each eidos
+      - genesis/{name}/praxeis/{name}.yaml for each praxis
+      - genesis/{name}/desmoi/{name}.yaml for each desmos
+
+      Updates status to 'emitted'.
+      Creates emitted-to bonds for provenance.
+    params:
+      - name: oikos_id
+        type: string
+        required: true
+        description: The oikos to emit
+      - name: genesis_path
+        type: string
+        required: false
+        description: Base path for genesis (default "genesis")
+    steps:
+      - step: find
+        entity_id: "$oikos_id"
+        bind_to: oikos
+
+      - step: assert
+        condition: "$oikos"
+        message: "Oikos not found: $oikos_id"
+
+      - step: assert
+        condition: '$oikos.data.status == "valid"'
+        message: "Cannot emit oikos that is not valid. Current status: $oikos.data.status"
+
+      # Update status to emitting
+      - step: update
+        id: "$oikos.id"
+        data:
+          status: emitting
+
+      # Set effective path
+      - step: set
+        bindings:
+          base_path: "$genesis_path"
+
+      - step: switch
+        cases:
+          - when: "!$genesis_path"
+            then:
+              - step: set
+                bindings:
+                  base_path: "genesis"
+
+      # Gather all contained definitions
+      - step: trace
+        from_id: "$oikos.id"
+        desmos: contains
+        resolve: to
+        bind_to: all_definitions
+
+      # Create manifest content
+      - step: set
+        bindings:
+          manifest_content:
+            format_version: "2.1"
+            oikos_id: "$oikos.data.name"
+            version: "$oikos.data.version"
+            oikos_name: "$oikos.data.name"
+            oikos_description: "$oikos.data.description"
+            depends_on: "$oikos.data.depends_on"
+            requires_dynamis: "$oikos.data.requires_dynamis"
+
+      # Emit manifest
+      - step: emit
+        path: "$base_path/$oikos.data.name/manifest.yaml"
+        content: "$manifest_content"
+        format: yaml
+
+      # Emit each definition
+      - step: for_each
+        items: "$all_definitions"
+        as: def
+        do:
+          - step: switch
+            cases:
+              - when: '$def.eidos == "eidos"'
+                then:
+                  - step: set
+                    bindings:
+                      def_name: "$def.id"
+                  - step: emit
+                    path: "$base_path/$oikos.data.name/eide/$def.data.name.yaml"
+                    entity_id: "$def.id"
+                    format: yaml
+              - when: '$def.eidos == "praxis"'
+                then:
+                  - step: emit
+                    path: "$base_path/$oikos.data.name/praxeis/$def.data.name.yaml"
+                    entity_id: "$def.id"
+                    format: yaml
+              - when: '$def.eidos == "desmos"'
+                then:
+                  - step: emit
+                    path: "$base_path/$oikos.data.name/desmoi/$def.data.name.yaml"
+                    entity_id: "$def.id"
+                    format: yaml
+
+      # Update status to emitted
+      - step: update
+        id: "$oikos.id"
+        data:
+          status: emitted
+
+      - step: return
+        value:
+          oikos_path: "$base_path/$oikos.data.name"
+          status: emitted
+          message: "Oikos '$oikos.data.name' emitted to genesis. Restart to bootstrap."
+
+# =============================================================================
+# VERIFICATION
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/genesis/verify-full-circle
+  data:
+    oikos: genesis
+    name: verify-full-circle
+    visible: true
+    tier: 3
+    description: |
+      Verify full-circle genesis by comparing two emission hashes.
+
+      Full-circle genesis verification:
+      1. Emit current kosmos to path A (get hash H1)
+      2. Bootstrap new kosmos from path A
+      3. Emit new kosmos to path B (get hash H2)
+      4. Verify H1 == H2
+
+      This proves the kosmos can reconstitute itself identically.
+      If hashes match, the system is coherent.
+
+      This praxis compares two previously computed emission hashes.
+      Use emit-genesis to generate the hashes first.
+    params:
+      - name: hash_a
+        type: string
+        required: true
+        description: First emission hash (from emit-genesis)
+      - name: hash_b
+        type: string
+        required: true
+        description: Second emission hash (from emit-genesis after re-bootstrap)
+    steps:
+      - step: set
+        bindings:
+          hashes_match: "$hash_a == $hash_b"
+
+      - step: switch
+        cases:
+          - when: "$hashes_match"
+            then:
+              - step: return
+                value:
+                  verified: true
+                  message: "Full-circle genesis verified: hashes match"
+                  hash_a: "$hash_a"
+                  hash_b: "$hash_b"
+
+      - step: return
+        value:
+          verified: false
+          message: "Full-circle genesis FAILED: hashes do not match"
+          hash_a: "$hash_a"
+          hash_b: "$hash_b"
+          divergence: "Content differs between emissions"
+
+# =============================================================================
+# CONTENT ROOTS
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/genesis/register-content-root
+  data:
+    oikos: genesis
+    name: register-content-root
+    visible: true
+    tier: 2
+    description: |
+      Register a new content location in genesis.
+
+      Creates a content-root entity and bonds it to the owning oikos
+      via sources-content-from. Bootstrap discovers content by
+      traversing these bonds.
+    params:
+      - name: path
+        type: string
+        required: true
+        description: Relative path within genesis (e.g., "nous/eide")
+      - name: oikos_id
+        type: string
+        required: true
+        description: The oikos that owns this content
+      - name: content_types
+        type: array
+        required: true
+        description: What kinds of entities live here (eidos, praxis, desmos, etc.)
+    steps:
+      - step: find
+        entity_id: "$oikos_id"
+        bind_to: oikos
+
+      - step: assert
+        condition: "$oikos"
+        message: "Oikos not found: $oikos_id"
+
+      # Create content-root entity
+      - step: arise
+        eidos: content-root
+        id: "content-root/$path"
+        data:
+          path: "$path"
+          content_types: "$content_types"
+          oikos_id: "$oikos_id"
+        bind_to: content_root
+
+      # Bond oikos to content-root
+      - step: bind
+        from_id: "$oikos_id"
+        to_id: "$content_root.id"
+        desmos: sources-content-from
+
+      - step: return
+        value:
+          content_root: "$content_root"
+          message: "Content root registered at $path"
+
+- eidos: praxis
+  id: praxis/genesis/list-content-roots
+  data:
+    oikos: genesis
+    name: list-content-roots
+    visible: true
+    tier: 1
+    description: |
+      List all registered content locations.
+
+      Returns all content-root entities with their paths and content types.
+    params:
+      - name: oikos_id
+        type: string
+        required: false
+        description: Filter by oikos (optional)
+    steps:
+      - step: gather
+        eidos: content-root
+        bind_to: all_roots
+
+      - step: switch
+        cases:
+          - when: "$oikos_id"
+            then:
+              - step: filter
+                items: "$all_roots"
+                condition: "$item.data.oikos_id == $oikos_id"
+                bind_to: all_roots
+
+      - step: return
+        value:
+          content_roots: "$all_roots"
+          count: "$all_roots | length"
+
+# =============================================================================
+# BODY-SCHEMA
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/genesis/sense-genesis
+  data:
+    oikos: genesis
+    name: sense-genesis
+    visible: false
+    tier: 2
+    description: |
+      Contribute genesis state to body-schema.
+
+      Returns:
+      - Content root count
+      - Total entities
+      - Last emission time
+      - Full-circle verification status
+    params: []
+    steps:
+      - step: gather
+        eidos: content-root
+        bind_to: content_roots
+
+      - step: gather
+        eidos: eidos
+        bind_to: all_eide
+
+      - step: gather
+        eidos: praxis
+        bind_to: all_praxeis
+
+      - step: gather
+        eidos: desmos
+        bind_to: all_desmoi
+
+      - step: return
+        value:
+          genesis:
+            content_roots: "$content_roots | length"
+            total_entities:
+              eide: "$all_eide | length"
+              praxeis: "$all_praxeis | length"
+              desmoi: "$all_desmoi | length"

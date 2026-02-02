@@ -435,10 +435,10 @@ entities:
             then:
               - step: set
                 bindings:
-                  previous_circle: "$current_dwelling[0].id"
+                  previous_circle: "$current_dwelling.0.id"
               - step: loose
                 from_id: "$_animus"
-                to_id: "$current_dwelling[0].id"
+                to_id: "$current_dwelling.0.id"
                 desmos: "dwells-in"
 
       # Create new dwells-in bond
@@ -537,7 +537,7 @@ entities:
             then:
               - step: switch
                 cases:
-                  - when: "$dwelling[0].id == $circle_id"
+                  - when: "$dwelling.0.id == $circle_id"
                     then:
                       - step: loose
                         from_id: "$_animus"
@@ -1441,7 +1441,7 @@ entities:
 
       - step: set
         bindings:
-          required_attainment_id: "$enabling_attainments[0].id"
+          required_attainment_id: "$enabling_attainments.0.id"
 
       - step: filter
         items: "$my_attainments"
@@ -2404,7 +2404,7 @@ entities:
       # Get the installed version
       - step: set
         bindings:
-          installed_version: "$matching_installed[0].data.version"
+          installed_version: "$matching_installed.0.data.version"
           distributed_version: "$oikos_prod.data.version"
 
       # Compare versions (simple string compare for now - semver compare would be better)

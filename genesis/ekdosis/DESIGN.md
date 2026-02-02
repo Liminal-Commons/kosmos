@@ -1,75 +1,87 @@
 # Ekdosis Design
 
-ἔκδοσις (ekdosis) — the giving out, publication, release.
+ἔκδοσις (ekdosis) — the giving out, publication, release
 
-## Purpose
+## Ontological Purpose
 
-Ekdosis governs the publication of kosmos content — oikoi, stoicheia, and composed artifacts. It is the content release system, complementary to dynamis which handles binary releases.
+Ekdosis addresses **the gap between private and public** — how content moves from local development to shared distribution.
 
-**Two Release Territories:**
+Without ekdosis:
+- Oikos packages have no versioning
+- Content cannot be shared between circles
+- Updates have no provenance
+- Distribution is manual
 
-| Territory | What | Where | How |
-|-----------|------|-------|-----|
-| **Dynamis** | Binary artifacts (Thyra app) | GitHub Releases, R2 | GitHub Actions, release-please |
-| **Ekdosis** | Content packages (oikoi) | R2, circle distribution | Kosmos praxeis, baking |
+With ekdosis:
+- **Baking**: oikos-dev → oikos-prod (frozen, hashable)
+- **Signing**: Cryptographic attestation of build provenance
+- **Publishing**: Versioned releases to channels
+- **Distribution**: Circles receive oikoi via bonds
 
-Dynamis releases are infrastructure — they happen outside kosmos via CI/CD. Ekdosis releases are ontological — they happen within kosmos, are traceable through the graph, and enable other developers to publish.
+The central concept is the **release** — a versioned, signed, distributable unit of content. Releases flow through circles to members via the reconciler.
 
-## The Developer Journey
+## Circle Context
 
-Ekdosis enables a progression from consumer to creator:
+### Self Circle
 
-```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│  Consumer   │ ──► │  Developer  │ ──► │  Publisher  │
-│             │     │             │     │             │
-│ Join circle │     │ Create      │     │ Bake, sign, │
-│ Receive     │     │ oikos-dev   │     │ distribute  │
-│ oikoi       │     │             │     │             │
-└─────────────┘     └─────────────┘     └─────────────┘
-```
+A solitary dweller uses ekdosis to:
+- Package their personal oikoi for backup
+- Create local releases for version tracking
+- Sign content for self-attestation
+- Maintain release history
 
-1. **Consumer**: Joins a circle, receives oikoi distributed by that circle
-2. **Developer**: Creates oikos-dev packages locally, iterates on content
-3. **Publisher**: Bakes oikos-dev → oikos-prod, signs, uploads, distributes via circles
+Self-publication enables personal version control.
 
-## Core Entities
+### Peer Circle
+
+Collaborators use ekdosis to:
+- Share oikos packages between circle members
+- Coordinate release channels (stable, beta)
+- Verify each other's releases via signatures
+- Receive updates through circle distribution
+
+Peer distribution enables collaborative development.
+
+### Commons Circle
+
+A commons uses ekdosis to:
+- Publish oikoi to the broader community
+- Maintain multiple release channels
+- Provide attestation for public trust
+- Enable fork-and-extend workflows
+
+Commons publishing enables ecosystem growth.
+
+## Core Entities (Eide)
 
 ### oikos-release
 
-A release is a versioned publication of an oikos-prod.
+A versioned publication of an oikos-prod.
 
-Named `oikos-release` to distinguish from `dynamis/release` which tracks binary releases.
+**Fields:**
+- `version` — semantic version
+- `oikos_prod_id` — what's being released
+- `channel` — stable, beta, alpha, canary
+- `notes` — release notes
+- `published_at` — timestamp
+- `publisher_persona` — who published
 
-```yaml
-eidos/oikos-release:
-  name: oikos-release
-  description: "A versioned publication of an oikos-prod"
-  fields:
-    version: string (semver)
-    oikos_prod_id: string
-    channel: enum [stable, beta, alpha, canary]
-    notes: string (optional, release notes)
-    published_at: timestamp
-    publisher_persona: string
-```
+**Lifecycle:**
+- Arise: publish-release creates after bake/sign/upload
+- Bond: releases → oikos-prod, published-to → channel
+- Traverse: succeeds chain for version history
 
 ### release-channel
 
-Channels control update behavior:
+A publication channel with update semantics.
 
-```yaml
-eidos/release-channel:
-  name: release-channel
-  description: "A publication channel with update semantics"
-  fields:
-    name: string
-    description: string
-    auto_update: boolean
-    requires_attestation: boolean
-```
+**Fields:**
+- `name` — channel identifier
+- `description` — channel purpose
+- `auto_update` — whether reconciler auto-updates
+- `requires_attestation` — whether signature required
 
-Channels:
+**Channels:**
 - **stable**: Production-ready, auto-update enabled
 - **beta**: Feature-complete, opt-in updates
 - **alpha**: Experimental, manual updates only
@@ -77,167 +89,167 @@ Channels:
 
 ### build-attestation
 
-Attestation provides provenance for builds:
+Cryptographic attestation of build provenance.
 
-```yaml
-eidos/build-attestation:
-  name: build-attestation
-  description: "Cryptographic attestation of build provenance"
-  fields:
-    builder_persona: string
-    build_timestamp: timestamp
-    source_hash: string (hash of oikos-dev content)
-    output_hash: string (hash of oikos-prod content)
-    signature: string (Ed25519 signature)
-    builder_pubkey: string
-```
+**Fields:**
+- `builder_persona` — who built
+- `build_timestamp` — when built
+- `source_hash` — hash of oikos-dev content
+- `output_hash` — hash of oikos-prod content
+- `signature` — Ed25519 signature
+- `builder_pubkey` — verification key
 
 ## Bonds (Desmoi)
 
-```yaml
-# Release bonds
-publishes:
-  from: [persona]
-  to: [oikos-release]
-  description: "Persona publishes an oikos-release"
+### publishes
 
-releases:
-  from: [oikos-release]
-  to: [oikos-prod]
-  description: "Oikos-release contains an oikos-prod"
+Persona publishes an oikos-release.
 
-published-to:
-  from: [oikos-release]
-  to: [release-channel]
-  description: "Oikos-release is published to a channel"
+- **From:** persona
+- **To:** oikos-release
+- **Cardinality:** one-to-many
+- **Traversal:** Find releases by a publisher
 
-succeeds:
-  from: [oikos-release]
-  to: [oikos-release]
-  description: "Oikos-release supersedes a previous release"
+### releases
 
-attests:
-  from: [build-attestation]
-  to: [oikos-prod]
-  description: "Attestation covers an oikos-prod"
+Oikos-release contains an oikos-prod.
 
-distributed-by:
-  from: [oikos-release]
-  to: [circle]
-  description: "Oikos-release is distributed through a circle"
-```
+- **From:** oikos-release
+- **To:** oikos-prod
+- **Cardinality:** many-to-one
+- **Traversal:** Find what's in a release
 
-## Praxeis
+### published-to
+
+Oikos-release is published to a channel.
+
+- **From:** oikos-release
+- **To:** release-channel
+- **Cardinality:** many-to-one
+- **Traversal:** Find releases in a channel
+
+### succeeds
+
+Oikos-release supersedes a previous release.
+
+- **From:** oikos-release
+- **To:** oikos-release
+- **Cardinality:** one-to-one
+- **Traversal:** Walk version history
+
+### attests
+
+Attestation covers an oikos-prod.
+
+- **From:** build-attestation
+- **To:** oikos-prod
+- **Cardinality:** one-to-one
+- **Traversal:** Verify build provenance
+
+### distributed-by
+
+Oikos-release is distributed through a circle.
+
+- **From:** oikos-release
+- **To:** circle
+- **Cardinality:** many-to-many
+- **Traversal:** Find distribution channels
+
+## Operations (Praxeis)
 
 ### bake-oikos
 
-Transforms oikos-dev → oikos-prod. Resolves all generation specs, freezes content, computes hashes.
-
-```yaml
-praxis/ekdosis/bake-oikos:
-  params:
-    - oikos_dev_id: string
-    - locale: string (optional, BCP-47)
-  steps:
-    - find oikos-dev
-    - resolve any generation specs (via manteia)
-    - freeze content (no more generation)
-    - compute content hash (BLAKE3)
-    - create oikos-prod entity
-    - return oikos-prod-id
-```
+Transform oikos-dev → oikos-prod. Resolves generation specs, freezes content, computes hashes.
 
 ### sign-oikos
 
-Signs an oikos-prod with publisher's key.
-
-```yaml
-praxis/ekdosis/sign-oikos:
-  params:
-    - oikos_prod_id: string
-  steps:
-    - find oikos-prod
-    - get publisher's keypair from keyring
-    - sign content hash with Ed25519
-    - update oikos-prod with signature, pubkey
-    - create build-attestation
-    - return signed oikos-prod-id
-```
+Sign an oikos-prod with publisher's key. Creates build-attestation.
 
 ### upload-oikos
 
-Uploads oikos-prod content to storage (R2).
-
-```yaml
-praxis/ekdosis/upload-oikos:
-  params:
-    - oikos_prod_id: string
-  steps:
-    - find oikos-prod
-    - serialize content to YAML
-    - upload to R2 bucket
-    - update oikos-prod with fetch_url
-    - return fetch_url
-```
+Upload oikos-prod content to storage (R2). Populates fetch_url.
 
 ### publish-release
 
-Creates a release and optionally distributes via circles.
-
-```yaml
-praxis/ekdosis/publish-release:
-  params:
-    - oikos_prod_id: string
-    - version: string
-    - channel: string (default: stable)
-    - notes: string (optional)
-    - circles: array[string] (optional, circle IDs to distribute to)
-  steps:
-    - verify oikos-prod is signed
-    - verify oikos-prod is uploaded
-    - create release entity
-    - bond release to oikos-prod
-    - bond release to channel
-    - if circles provided:
-      - for each circle:
-        - create distributes bond from circle to oikos-prod
-    - return release-id
-```
+Create a release and optionally distribute via circles.
 
 ### list-releases
 
-Lists releases for an oikos, optionally filtered by channel.
-
-```yaml
-praxis/ekdosis/list-releases:
-  params:
-    - oikos_id: string
-    - channel: string (optional)
-  steps:
-    - gather releases
-    - filter by oikos_id (via oikos-prod)
-    - filter by channel if specified
-    - sort by version descending
-    - return releases
-```
+List releases for an oikos, optionally filtered by channel.
 
 ### verify-release
 
-Verifies a release's signatures and hashes.
+Verify a release's signatures and hashes.
+
+## Attainments
+
+### attainment/publish
+
+Publication capability — can bake, sign, upload, and publish releases.
+
+- **Grants:** bake-oikos, sign-oikos, upload-oikos, publish-release, verify-release, list-releases
+- **Scope:** circle
+- **Rationale:** Publishing affects what circle members receive; requires trust
+
+## Embodiment
+
+### Completeness Status
+
+| Level | Status |
+|-------|--------|
+| Defined | 3 eide, 6 desmoi, 6 praxeis |
+| Loaded | ✅ Bootstrap loads all definitions |
+| Projected | ✅ All praxeis visible as MCP tools |
+| Embodied | ⏳ Body-schema pending |
+| Surfaced | ⏳ Publication reconciler pending |
+| Afforded | ⏳ Publishing UI pending |
+
+### Body-Schema Contribution
+
+When sense-body gathers ekdosis state:
 
 ```yaml
-praxis/ekdosis/verify-release:
-  params:
-    - release_id: string
-  steps:
-    - find release
-    - find oikos-prod via releases bond
-    - verify content hash matches content
-    - verify signature with publisher_pubkey
-    - return verification result
+publication:
+  publishable_oikoi: 2
+  pending_releases: 1
+  channels_available: [stable, beta]
+  recent_publications: 3
 ```
 
-## The Bake → Sign → Upload → Publish Flow
+This reveals publication readiness and history.
+
+### Reconciler
+
+An ekdosis reconciler would surface:
+
+- **Ready to publish** — "oikos-dev/my-oikos is ready to publish"
+- **New version available** — "ekdosis 0.2.0 available (you have 0.1.0)"
+- **Signature expired** — "Release signature older than 90 days"
+- **Distribution opportunity** — "3 circles could receive this release"
+
+## Compound Leverage
+
+### amplifies oikos
+
+Oikos packages are what ekdosis publishes. The oikos-dev → oikos-prod flow.
+
+### amplifies dynamis
+
+Dynamis handles binary releases (Thyra app). Ekdosis handles content releases (oikoi). Complementary territories.
+
+### amplifies hypostasis
+
+Signing requires keyring. Publisher identity traces through bonds.
+
+### amplifies politeia
+
+Circle distribution uses circle membership. Attainments gate publishing.
+
+### amplifies propylon
+
+Authentication via session. Signing key from keyring.
+
+## The Publication Flow
 
 ```
 ┌──────────────┐
@@ -264,193 +276,43 @@ praxis/ekdosis/verify-release:
        │ publish-release
        ▼
 ┌──────────────┐     ┌─────────────┐
-│ oikos-release│────►│   circle    │ (distributes bond)
-│              │     │             │
+│ oikos-release│────►│   circle    │ (distributed-by bond)
 └──────────────┘     └─────────────┘
 ```
 
-## Distribution Model
+## Theoria
 
-Oikoi are distributed through circles:
+### T18: Oikos embodiment requires body-schema contribution
 
-1. **Publisher** creates a release and bonds it to target circles
-2. **Circle** gains `distributes` bond to the oikos-prod
-3. **Members** of that circle receive the oikos via reconciler
+When an animus has the capability to publish, sense-body should reflect this. Capabilities become visible through the body, not just through explicit queries.
 
-This creates a pull model — members don't need to find packages, they receive what their circles provide.
+### T19: Reconcilers surface opportunities, not just drift
 
-## Integration with Existing Systems
+The oikos reconciler surfaces consumption opportunities. A publication reconciler surfaces creation opportunities. Reconcilers reveal what's possible, not just what's misaligned.
 
-### Oikos Reconciler (C6)
+### T20: Attainments make capabilities discoverable
 
-The existing oikos reconciler in `crates/kosmos/src/reconciler/oikos.rs` already handles:
-- Detecting oikoi distributed by dwelling circle
-- Comparing versions with installed oikoi
-- Fetching, verifying, and installing updates
-
-Ekdosis creates the content that the reconciler consumes.
-
-### Propylon (Authentication)
-
-Publishing requires:
-- Authenticated persona (via keyring/session)
-- Appropriate attainments (e.g., `attainment/publish`)
-- Signing key in keyring
-
-### Dynamis (Binary Releases)
-
-Ekdosis and dynamis are complementary:
-- **Dynamis** releases the Thyra app binary
-- **Ekdosis** releases oikos content packages
-- Both can be triggered by the same version bump
-- Thyra auto-updates itself (dynamis), then syncs oikoi (ekdosis)
-
-## Security Considerations
-
-1. **Signature verification**: Every oikos-prod must be signed; reconciler verifies before install
-2. **Content hashing**: BLAKE3 hash prevents tampering
-3. **Publisher identity**: Bonds trace to persona, providing accountability
-4. **Circle gatekeeping**: Only circle admins can add `distributes` bonds
-5. **Attainment gating**: Publishing requires `attainment/publish`
-
-## Embodiment: From Defined to Alive
-
-An oikos is merely *defined* when its eide, desmoi, and praxeis exist as YAML. An oikos becomes *alive* when the kosmos embodies it — when dwelling naturally surfaces its capabilities.
-
-### Completeness Levels
-
-| Level | What It Means | Ekdosis Status |
-|-------|---------------|----------------|
-| **Defined** | Eide, desmoi, praxeis exist in YAML | ✅ |
-| **Loaded** | Bootstrap loads into kosmos.db | ⏳ |
-| **Projected** | MCP projects praxeis as tools | ⏳ |
-| **Embodied** | Body-schema reflects capabilities | ⏳ |
-| **Surfaced** | Reconciler notices when actions are relevant | ⏳ |
-| **Afforded** | Thyra UI presents contextual actions | ⏳ |
-
-An oikos is *complete* when usage flows naturally from context, not just from explicit requests.
-
-### Proposed Theoria: Oikos Embodiment
-
-**T18: Oikos embodiment requires body-schema contribution**
-
-When an animus has the capability to publish (via `attainment/publish`), the `sense-body` praxis should reflect this:
-
-```yaml
-body-schema {
-  capabilities: [
-    { name: "publish",
-      available: true,
-      oikos: "ekdosis",
-      context: "oikos-dev/my-oikos has status: ready_to_publish" }
-  ]
-}
-```
-
-**T19: Reconcilers surface opportunities, not just drift**
-
-The oikos reconciler surfaces consumption opportunities (new oikoi available). A publication reconciler would surface creation opportunities:
-
-```yaml
-reconciler/ekdosis-publication:
-  trigger: on-dwell
-  sense: |
-    - Find oikos-dev with status: ready_to_publish
-    - Compare with published oikos-prod versions
-  surface: |
-    - Add publication-opportunity to pending_actions
-```
-
-**T20: Attainments make capabilities discoverable**
-
-Publishing requires `attainment/publish`. This makes the capability visible through the authorization graph. When Claude or Victor dwells, the kosmos can answer: "What can I do here?"
-
-### Publication Attainment
-
-```yaml
-attainment/publish:
-  name: publish
-  description: "Capability to publish oikoi to circles"
-  grants:
-    - praxis/ekdosis/bake-oikos
-    - praxis/ekdosis/sign-oikos
-    - praxis/ekdosis/upload-oikos
-    - praxis/ekdosis/publish-release
-```
-
-### Publication Reconciler
-
-```yaml
-reconciler/ekdosis-publication:
-  trigger: on-dwell
-  target_eidos: oikos-dev
-  steps:
-    - step: gather
-      eidos: oikos-dev
-      bind_to: all_dev
-
-    - step: filter
-      items: "$all_dev"
-      condition: "$item.data.status == 'ready_to_publish'"
-      bind_to: publishable
-
-    # For each publishable, check if already published
-    - step: for_each
-      items: "$publishable"
-      item_var: dev
-      steps:
-        - step: gather
-          eidos: oikos-prod
-          bind_to: prods
-        - step: filter
-          items: "$prods"
-          condition: "$item.data.baked_from == '$dev.id'"
-          bind_to: existing
-        - step: switch
-          cases:
-            - when: "$existing.length == 0"
-              then:
-                - step: append
-                  to: pending_publications
-                  value:
-                    oikos_dev_id: "$dev.id"
-                    action: "initial_publish"
-            - when: "$dev.data.version > $existing[0].data.version"
-              then:
-                - step: append
-                  to: pending_publications
-                  value:
-                    oikos_dev_id: "$dev.id"
-                    action: "version_bump"
-
-    - step: return
-      value:
-        pending: "$pending_publications"
-```
-
-### MCP Context Injection
-
-When Claude arises via MCP, the dwelling context could include:
-
-```
-You are dwelling in circle/liminalcommons.
-Publishable oikoi: [ekdosis (0.1.0, ready_to_publish)]
-Attainments: [publish, develop, administer]
-```
-
-This enables Claude to proactively offer: "I notice ekdosis is ready to publish. Shall I bake and release it?"
-
----
+Publishing requires `attainment/publish`. This makes the capability visible through the authorization graph. The kosmos can answer: "What can I do here?"
 
 ## Future Extensions
 
-- **Generative commons**: Share oikos-dev (with generation specs) for others to bake locally
-- **Differential updates**: Only transfer changed entities
-- **Rollback**: Revert to previous release via `succeeds` chain
-- **Announcements**: Notify circle members of new releases
-- **Body-schema integration**: Publish capability in sense-body output
-- **Thyra publishing UI**: Visual affordance for publication workflow
+### Generative Commons
+
+Share oikos-dev (with generation specs) for others to bake locally with their own context.
+
+### Differential Updates
+
+Only transfer changed entities, not entire oikos packages.
+
+### Rollback
+
+Revert to previous release via succeeds chain.
+
+### Announcements
+
+Notify circle members of new releases via expressions.
 
 ---
 
-*Ekdosis enables kosmos to publish itself — developers creating oikoi for other developers, all within the ontological framework. When embodied, the kosmos knows when to suggest publishing, and the act of publication becomes as natural as dwelling.*
+*Composed in service of the kosmogonia.*
+*Publication makes private public. Circles carry content to members.*

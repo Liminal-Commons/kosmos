@@ -1,0 +1,214 @@
+# Dynamis Render Specifications
+#
+# Rendering definitions for dynamis eide: substrate, deployment, actuality-record
+# Oikos-centric: dynamis owns presentation for infrastructure entities
+#
+# Discovery convention: render-spec/{eidos}-card, render-spec/{eidos}
+
+entities:
+
+# =============================================================================
+# SUBSTRATE RENDER SPECS
+# =============================================================================
+
+- eidos: render-spec
+  id: render-spec/substrate-card
+  data:
+    name: substrate-card
+    description: "Card view for substrate — target platform/environment"
+    target_eidos: substrate
+    fields_to_display:
+      - field: name
+      - field: kind
+      - field: os
+      - field: arch
+      - field: active
+    layout_template: |
+      <article class="render-card substrate-card kind-{kind} active-{active}">
+        <header class="card-header">
+          <span class="substrate-icon kind-{kind}">🖥️</span>
+          <span class="substrate-name">{name}</span>
+          <span class="kind-badge kind-{kind}">{kind}</span>
+        </header>
+        <div class="card-body">
+          <div class="platform-row">
+            <span class="os-badge os-{os}">{os}</span>
+            <span class="arch-badge">{arch}</span>
+          </div>
+          <div class="active-row">
+            <span class="active-indicator active-{active}"></span>
+            <span class="active-label">{active}</span>
+          </div>
+        </div>
+      </article>
+    style_bindings:
+      kind-platform: "border-left: 3px solid var(--kind-platform, #3b82f6)"
+      kind-runtime: "border-left: 3px solid var(--kind-runtime, #8b5cf6)"
+      kind-environment: "border-left: 3px solid var(--kind-environment, #10b981)"
+      active-true: "opacity: 1"
+      active-false: "opacity: 0.5"
+      os-macos: "background: var(--os-macos, #f3f4f6)"
+      os-windows: "background: var(--os-windows, #dbeafe)"
+      os-linux: "background: var(--os-linux, #fef3c7)"
+    created_at: "2025-01-29T00:00:00Z"
+
+- eidos: render-spec
+  id: render-spec/substrate-item
+  data:
+    name: substrate-item
+    description: "Compact list item for substrate"
+    target_eidos: substrate
+    fields_to_display:
+      - field: name
+      - field: kind
+      - field: active
+    layout_template: |
+      <div class="list-item substrate-item kind-{kind} active-{active}">
+        <span class="substrate-icon">🖥️</span>
+        <span class="substrate-name">{name}</span>
+        <span class="kind-badge">{kind}</span>
+      </div>
+    style_bindings:
+      active-false: "opacity: 0.5"
+    created_at: "2025-01-29T00:00:00Z"
+
+# =============================================================================
+# DEPLOYMENT RENDER SPECS
+# =============================================================================
+
+- eidos: render-spec
+  id: render-spec/deployment-card
+  data:
+    name: deployment-card
+    description: "Card view for deployment — manifestation to target"
+    target_eidos: deployment
+    fields_to_display:
+      - field: name
+      - field: desired_state
+      - field: actual_state
+      - field: last_sensed_at
+    layout_template: |
+      <article class="render-card deployment-card actual-{actual_state}">
+        <header class="card-header">
+          <span class="deployment-icon actual-{actual_state}">🚀</span>
+          <span class="deployment-name">{name}</span>
+        </header>
+        <div class="card-body">
+          <div class="state-row">
+            <div class="desired-state">
+              <span class="label">Desired:</span>
+              <span class="state-badge desired-{desired_state}">{desired_state}</span>
+            </div>
+            <span class="arrow">→</span>
+            <div class="actual-state">
+              <span class="label">Actual:</span>
+              <span class="state-badge actual-{actual_state}">{actual_state}</span>
+            </div>
+          </div>
+          <div class="drift-indicator">
+            <span class="drift-status"></span>
+          </div>
+        </div>
+        <footer class="card-footer">
+          <span class="last-sensed">Sensed {last_sensed_at}</span>
+        </footer>
+      </article>
+    style_bindings:
+      actual-running: "border-left: 3px solid var(--status-success, #10b981)"
+      actual-stopped: "border-left: 3px solid var(--status-muted, #6b7280)"
+      actual-degraded: "border-left: 3px solid var(--status-warning, #f59e0b)"
+      actual-failed: "border-left: 3px solid var(--status-error, #ef4444)"
+      actual-unknown: "border-left: 3px solid var(--status-muted, #6b7280); opacity: 0.7"
+    created_at: "2025-01-29T00:00:00Z"
+
+- eidos: render-spec
+  id: render-spec/deployment-item
+  data:
+    name: deployment-item
+    description: "Compact status item for deployment"
+    target_eidos: deployment
+    fields_to_display:
+      - field: name
+      - field: actual_state
+    layout_template: |
+      <div class="list-item deployment-item actual-{actual_state}">
+        <span class="status-dot actual-{actual_state}"></span>
+        <span class="deployment-name">{name}</span>
+        <span class="state-label">{actual_state}</span>
+      </div>
+    style_bindings:
+      actual-running: "color: var(--status-success, #10b981)"
+      actual-failed: "color: var(--status-error, #ef4444)"
+    created_at: "2025-01-29T00:00:00Z"
+
+# =============================================================================
+# ACTUALITY-RECORD RENDER SPECS
+# =============================================================================
+
+- eidos: render-spec
+  id: render-spec/actuality-record-card
+  data:
+    name: actuality-record-card
+    description: "Card view for actuality-record — sensed state snapshot"
+    target_eidos: actuality-record
+    fields_to_display:
+      - field: entity_id
+      - field: actual_state
+      - field: expected_state
+      - field: aligned
+      - field: drift_type
+      - field: sensed_at
+    layout_template: |
+      <article class="render-card actuality-record-card aligned-{aligned}">
+        <header class="card-header">
+          <span class="record-icon aligned-{aligned}">📊</span>
+          <span class="record-label">Actuality Record</span>
+          <span class="aligned-badge aligned-{aligned}">{aligned}</span>
+        </header>
+        <div class="card-body">
+          <div class="entity-row">
+            <span class="label">Entity:</span>
+            <code class="entity-id">{entity_id}</code>
+          </div>
+          <div class="state-comparison">
+            <span class="expected">{expected_state}</span>
+            <span class="arrow">→</span>
+            <span class="actual">{actual_state}</span>
+          </div>
+          <div class="drift-row drift-{drift_type}">
+            <span class="drift-type">{drift_type}</span>
+          </div>
+        </div>
+        <footer class="card-footer">
+          <span class="sensed-at">Sensed {sensed_at}</span>
+        </footer>
+      </article>
+    style_bindings:
+      aligned-true: "border-left: 3px solid var(--status-success, #10b981)"
+      aligned-false: "border-left: 3px solid var(--status-warning, #f59e0b)"
+      drift-none: "display: none"
+      drift-missing: "color: var(--status-error, #ef4444)"
+      drift-extra: "color: var(--status-warning, #f59e0b)"
+      drift-different: "color: var(--status-active, #3b82f6)"
+    created_at: "2025-01-29T00:00:00Z"
+
+- eidos: render-spec
+  id: render-spec/actuality-record-item
+  data:
+    name: actuality-record-item
+    description: "Compact audit log item for actuality-record"
+    target_eidos: actuality-record
+    fields_to_display:
+      - field: entity_id
+      - field: aligned
+      - field: sensed_at
+    layout_template: |
+      <div class="list-item actuality-record-item aligned-{aligned}">
+        <span class="aligned-dot aligned-{aligned}"></span>
+        <span class="entity-id">{entity_id}</span>
+        <span class="sensed-at">{sensed_at}</span>
+      </div>
+    style_bindings:
+      aligned-true: "color: var(--status-success, #10b981)"
+      aligned-false: "color: var(--status-warning, #f59e0b)"
+    created_at: "2025-01-29T00:00:00Z"

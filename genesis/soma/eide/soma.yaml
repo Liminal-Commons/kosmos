@@ -95,6 +95,48 @@ entities:
         type: timestamp
         required: true
 
+# notification — alert for attention
+- eidos: eidos
+  id: eidos/notification
+  data:
+    name: notification
+    description: |
+      A notification created by reflexes to signal events requiring attention.
+      Appears in body-schema awareness for persona to see.
+    fields:
+      type:
+        type: string
+        required: true
+        description: "Notification type (pragma_received, pragma_resolved, etc.)"
+      circle_id:
+        type: string
+        required: false
+        description: "Target circle for the notification"
+      pragma_id:
+        type: string
+        required: false
+        description: "Related pragma ID"
+      title:
+        type: string
+        required: false
+        description: "Notification title"
+      priority:
+        type: string
+        required: false
+        description: "Priority level"
+      resolution:
+        type: string
+        required: false
+        description: "Resolution text (for resolved pragmas)"
+      read:
+        type: boolean
+        required: false
+        default: false
+        description: "Whether notification has been read"
+      created_at:
+        type: timestamp
+        required: true
+
 # =============================================================================
 # ATTAINMENTS
 # =============================================================================
@@ -124,3 +166,224 @@ entities:
     grants:
       - praxis/soma/open-channel
       - praxis/soma/close-channel
+
+# =============================================================================
+# INFRASTRUCTURE EIDE
+# Physical substrate for distributed operation
+# =============================================================================
+
+# node — physical or virtual machine
+- eidos: eidos
+  id: eidos/node
+  data:
+    name: node
+    description: |
+      A physical or virtual machine in the infrastructure.
+      Personal nodes run individual chorai; commons nodes host shared infrastructure.
+    fields:
+      name:
+        type: string
+        required: true
+        description: "Node hostname or identifier"
+      kind:
+        type: enum
+        values: [personal, commons]
+        required: true
+        default: personal
+        description: "personal = individual chora; commons = shared infrastructure"
+      platform:
+        type: enum
+        values: [nixos, linux, darwin, other]
+        required: true
+        description: "Operating system"
+      address:
+        type: string
+        required: false
+        description: "Network address (Tailscale or public)"
+      public_endpoint:
+        type: string
+        required: false
+        description: "Public URL if accessible outside private network"
+      steward_circle_id:
+        type: string
+        required: false
+        description: "For commons nodes — which circle governs this infrastructure"
+      status:
+        type: enum
+        values: [online, offline, degraded, unknown]
+        required: true
+        default: unknown
+        description: "Current node status"
+
+# service-instance — running service on infrastructure
+- eidos: eidos
+  id: eidos/service-instance
+  data:
+    name: service-instance
+    description: |
+      A running service on infrastructure (commons or personal).
+      Examples: livekit-server, kosmos-server, transcription-daemon.
+    fields:
+      name:
+        type: string
+        required: true
+        description: "Human-readable service name"
+      service_kind:
+        type: string
+        required: true
+        description: "Type of service (livekit, kosmos-server, transcription, relay, etc.)"
+      endpoint:
+        type: string
+        required: true
+        description: "Connection URL for the service"
+      config:
+        type: object
+        required: false
+        description: "Service-specific configuration"
+      status:
+        type: enum
+        values: [provisioning, running, stopped, error]
+        required: true
+        default: provisioning
+      started_at:
+        type: timestamp
+        required: false
+      error_message:
+        type: string
+        required: false
+        description: "Error details if status is error"
+
+# kosmos-instance — running kosmos interpreter
+- eidos: eidos
+  id: eidos/kosmos-instance
+  data:
+    name: kosmos-instance
+    description: |
+      A running kosmos interpreter serving one circle's database.
+      Observational entity for health sensing and federation discovery.
+      Note: The substrate (systemd, Thyra) starts the instance; this entity describes it.
+    fields:
+      name:
+        type: string
+        required: true
+        description: "Instance identifier"
+      circle_id:
+        type: string
+        required: true
+        description: "Circle this instance serves"
+      server_url:
+        type: string
+        required: false
+        description: "HTTP endpoint if exposed"
+      mcp_available:
+        type: boolean
+        required: true
+        default: true
+        description: "Whether MCP protocol is available"
+      http_available:
+        type: boolean
+        required: true
+        default: false
+        description: "Whether HTTP REST API is available"
+      status:
+        type: enum
+        values: [starting, running, stopping, stopped, error]
+        required: true
+        default: stopped
+      version:
+        type: string
+        required: false
+        description: "Kosmos version"
+      last_health_check:
+        type: timestamp
+        required: false
+
+# =============================================================================
+# INFRASTRUCTURE ATTAINMENT
+# =============================================================================
+
+- eidos: attainment
+  id: attainment/infrastructure
+  data:
+    name: infrastructure
+    description: |
+      Capability to register and manage infrastructure entities (nodes, services).
+      Required for commons operations and self-hosting.
+    oikos: soma
+    scope: circle
+    grants:
+      - praxis/soma/register-node
+      - praxis/soma/sense-node
+      - praxis/soma/register-service
+      - praxis/soma/sense-service
+      - praxis/soma/sense-kosmos-instance
+
+# =============================================================================
+# CONFIGURATION EIDE
+# =============================================================================
+
+# mcp-bridge-config — timing and behavior for MCP bridge
+- eidos: eidos
+  id: eidos/mcp-bridge-config
+  data:
+    name: mcp-bridge-config
+    description: |
+      Configuration for MCP bridge timing and behavior.
+      Replaces hardcoded Duration values with graph-queryable config.
+      Bridge queries this entity at startup; code defaults used if not found.
+    fields:
+      # Connection Management
+      reconnect_interval_ms:
+        type: integer
+        required: false
+        description: "Interval between reconnection attempts (default: 5000)"
+      connection_timeout_ms:
+        type: integer
+        required: false
+        description: "Timeout for establishing connections (default: 10000)"
+      discovery_timeout_ms:
+        type: integer
+        required: false
+        description: "Timeout for circle discovery operations (default: 10000)"
+
+      # Health Checking
+      health_check_timeout_ms:
+        type: integer
+        required: false
+        description: "Timeout for health check requests (default: 2000)"
+      health_poll_interval_ms:
+        type: integer
+        required: false
+        description: "Interval between health check polls (default: 500)"
+
+      # HTTP Transport
+      http_request_timeout_ms:
+        type: integer
+        required: false
+        description: "Timeout for HTTP requests (default: 30000)"
+
+      # Federation
+      federation_timeout_ms:
+        type: integer
+        required: false
+        description: "Timeout for federation sync operations (default: 10000)"
+      federation_poll_interval_ms:
+        type: integer
+        required: false
+        description: "Interval between federation poll cycles (default: 3000)"
+
+      # SSE
+      sse_keep_alive_ms:
+        type: integer
+        required: false
+        description: "SSE keep-alive interval (default: 30000)"
+      sse_retry_ms:
+        type: integer
+        required: false
+        description: "SSE retry interval on disconnect (default: 3000)"
+
+      # Reconnection Backoff
+      max_backoff_ms:
+        type: integer
+        required: false
+        description: "Maximum backoff time for exponential backoff (default: 300000)"

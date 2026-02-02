@@ -18,6 +18,12 @@ oikos_description: |
   or governance (that's syndesmos).
 oikos_scale: physis
 
+# Development experience metadata
+oikos_category: interface
+surfaces_provided:
+  - transport           # P2P WebRTC connectivity
+surfaces_consumed: []   # Pure transport layer
+
 content_paths:
   - path: eide/
     content_types: [eidos]
@@ -25,6 +31,8 @@ content_paths:
     content_types: [desmos]
   - path: praxeis/
     content_types: [praxis]
+  - path: entities/
+    content_types: [render-spec, reflex]
 
 requires_dynamis:
   - db.arise
@@ -45,6 +53,20 @@ provides:
     - outbound-message
     - presence-record
     - sync-message
+
+  reflexes:
+    - reflex/aither/sync-message-received
+
+  # Oikos-centric rendering: aither owns presentation for network entities
+  renderable:
+    - eidos: syndesmos
+      description: "Connection state cards and indicators"
+    - eidos: data-channel
+      description: "P2P channel status display"
+    - eidos: presence-record
+      description: "Presence indicators"
+    - eidos: outbound-message
+      description: "Message queue display"
 
   attainments:
     - connect          # Establish and manage network connections
@@ -99,6 +121,9 @@ provides:
     - aither/request-catch-up
     - aither/respond-catch-up
     - aither/apply-catch-up
+    # Reflex response praxeis (internal)
+    - aither/process-sync-message
+    - aither/apply-entity-sync
 
 stoicheia_form:
   manifest: arche       # Routes to webrtc dynamis
@@ -113,3 +138,6 @@ actuality_modes:
     unmanifest: close_connection
     signal: sdp_exchange
 
+
+depends_on:
+  - syndesmos            # Connection state and sync (extracted from aither)

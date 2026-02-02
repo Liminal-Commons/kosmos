@@ -518,7 +518,8 @@ entities:
       Create a deployment target.
 
       Deployments track where releases are running — useful for services,
-      not just static file distribution.
+      not just static file distribution. The node_id specifies which
+      infrastructure node will host the deployment when manifested.
     params:
       - name: name
         type: string
@@ -529,6 +530,10 @@ entities:
       - name: substrate_id
         type: string
         required: true
+      - name: node_id
+        type: string
+        required: true
+        description: Target node for deployment (e.g., node/personal-mac)
       - name: channel_id
         type: string
         required: false
@@ -543,6 +548,10 @@ entities:
       - step: find
         id: "$substrate_id"
         bind_to: substrate
+
+      - step: find
+        id: "$node_id"
+        bind_to: node
 
       # Cache-driven: Use compose for provenance tracking.
       # Graph-driven: No embedded reference fields — relationships via bonds only.
@@ -565,6 +574,12 @@ entities:
         from_id: "$deployment.id"
         to_id: "$substrate.id"
         desmos: targets
+
+      # Bond: deployment → targets-node → node (required for manifest-deployment)
+      - step: bind
+        from_id: "$deployment.id"
+        to_id: "$node.id"
+        desmos: targets-node
 
       # Bond: deployment → uses-channel → channel (if provided)
       - step: switch
@@ -594,25 +609,105 @@ entities:
     description: |
       Bring a deployment into actuality.
 
-      Sets desired_state to running and manifests via energeia.
+      Sets desired_state to running, validates stewardship for commons nodes,
+      manifests via energeia, then creates service-instance entity with
+      proper topology bonds (manifests-as, hosts-service).
+
+      Ontological flow:
+        1. Validate steward-of bond for commons nodes (visibility = reachability)
+        2. Manifest deployment in substrate
+        3. Compose service-instance entity with provenance
+        4. Create manifests-as bond (deployment → service-instance)
+        5. Create hosts-service bond (node → service-instance)
     params:
       - name: deployment_id
         type: string
         required: true
     steps:
+      # 1. Find the deployment entity
       - step: find
         id: "$deployment_id"
         bind_to: deployment
 
+      # 2. Trace targets-node bond to get the target node
+      - step: trace
+        from_id: "$deployment.id"
+        desmos: targets-node
+        resolve: to
+        bind_to: target_nodes
+
+      # 3. Get the node (deployment targets exactly one node)
+      - step: set
+        bindings:
+          node: "$target_nodes.0"
+
+      # 4. STEWARDSHIP VALIDATION for commons nodes
+      # Personal nodes don't require steward validation — sovereignty is inherent
+      - step: switch
+        cases:
+          - when: "$node.data.kind == 'commons'"
+            then:
+              # Trace steward-of bonds TO this node (reverse direction)
+              - step: trace
+                to_id: "$node.id"
+                desmos: steward-of
+                resolve: from
+                bind_to: steward_circles
+
+              # Check if current circle is among stewards
+              - step: filter
+                items: "$steward_circles"
+                where: "$item.id == $_circle"
+                bind_to: authorized
+
+              # Reject if not authorized (returns 403)
+              - step: assert
+                condition: "$authorized.length > 0"
+                message: "Circle is not steward of this commons node"
+
+      # 5. Update deployment to running state
       - step: update
         id: "$deployment.id"
         data:
           desired_state: running
 
+      # 6. MANIFEST — actualize in substrate
       - step: manifest
         entity_id: "$deployment.id"
         bind_to: manifest_result
 
+      # 7. Generate service instance ID
+      - step: set
+        bindings:
+          service_id: "service-instance/$deployment.data.name"
+
+      # 8. COMPOSE service-instance entity (ontologically correct creation)
+      - step: compose
+        typos_id: typos-def-service-instance
+        id: "$service_id"
+        inputs:
+          name: "$deployment.data.name"
+          service_kind: "kosmos-server"
+          endpoint: "http://$node.data.address:3000"
+          status: running
+          started_at: "{{ now() }}"
+          config:
+            manifest_handle: "$manifest_result.handle"
+        bind_to: service_instance
+
+      # 9. Create manifests-as bond (deployment → service-instance)
+      - step: bind
+        from_id: "$deployment.id"
+        desmos: manifests-as
+        to_id: "$service_instance.id"
+
+      # 10. Create hosts-service bond (node → service-instance)
+      - step: bind
+        from_id: "$node.id"
+        desmos: hosts-service
+        to_id: "$service_instance.id"
+
+      # 11. Update deployment with actuality state
       - step: update
         id: "$deployment.id"
         data:
@@ -621,10 +716,13 @@ entities:
           deployed_at: "{{ now() }}"
           deployed_by: "$_persona"
 
+      # 12. Return complete result with topology
       - step: return
         value:
-          deployment_id: "$deployment.id"
-          status: "$manifest_result.status"
+          deployment: "$deployment"
+          service_instance: "$service_instance"
+          node: "$node"
+          status: manifested
 
 - eidos: praxis
   id: praxis/dynamis/sense-deployment
@@ -635,28 +733,60 @@ entities:
     tier: 3
     description: |
       Sense the actual state of a deployment.
+
+      Traces manifests-as bond to find associated service-instance
+      and updates both deployment and service-instance with sensed state.
+      Graph-driven: uses bond traversal to find related entities.
     params:
       - name: deployment_id
         type: string
         required: true
     steps:
+      # 1. Find deployment
       - step: find
         id: "$deployment_id"
         bind_to: deployment
 
+      # 2. Trace manifests-as bond to find service-instance (graph-driven)
+      - step: trace
+        from_id: "$deployment.id"
+        desmos: manifests-as
+        resolve: to
+        bind_to: service_instances
+
+      # 3. Set service_instance (may be null if not yet manifested)
+      - step: set
+        bindings:
+          service_instance: "$service_instances.0"
+
+      # 4. Sense the actual state
       - step: sense_actuality
         entity_id: "$deployment.id"
         bind_to: sense_result
 
+      # 5. Update deployment with sensed state
       - step: update
         id: "$deployment.id"
         data:
           actual_state: "$sense_result.status"
           last_sensed_at: "{{ now() }}"
 
+      # 6. Update service-instance if it exists
+      - step: switch
+        cases:
+          - when: "$service_instance"
+            then:
+              - step: update
+                id: "$service_instance.id"
+                data:
+                  status: "$sense_result.status"
+                  last_health_check: "{{ now() }}"
+
+      # 7. Return aligned status with topology
       - step: return
         value:
-          deployment_id: "$deployment.id"
+          deployment: "$deployment"
+          service_instance: "$service_instance"
           actual_state: "$sense_result.status"
           aligned: "$deployment.data.desired_state == $sense_result.status"
 
@@ -690,6 +820,57 @@ entities:
           deployment_id: "$deployment_id"
           action_taken: "$result.action_taken"
           reconciled_at: "$result.reconciled_at"
+
+- eidos: praxis
+  id: praxis/dynamis/restart-deployment
+  data:
+    oikos: dynamis
+    name: restart-deployment
+    visible: true
+    tier: 2
+    description: |
+      Restart a deployment by triggering stop and start transitions.
+
+      Useful for development iteration: rebuild code, restart server.
+      Directly calls unmanifest then manifest on the deployment.
+      Immediate effect - doesn't wait for reconciler cycle.
+    params:
+      - name: deployment_id
+        type: string
+        required: true
+        description: Deployment entity ID to restart
+    steps:
+      # Find the deployment
+      - step: find
+        id: "$deployment_id"
+        bind_to: deployment
+
+      - step: switch
+        cases:
+          - when: "!$deployment"
+            then:
+              - step: return
+                value:
+                  error: "Deployment not found"
+                  deployment_id: "$deployment_id"
+
+      # Stop the deployment (unmanifest)
+      - step: unmanifest
+        entity_id: "$deployment.id"
+        bind_to: stop_result
+
+      # Start the deployment (manifest)
+      - step: manifest
+        entity_id: "$deployment.id"
+        bind_to: start_result
+
+      - step: return
+        value:
+          deployment_id: "$deployment_id"
+          restarted: true
+          stop_result: "$stop_result"
+          start_result: "$start_result"
+          restarted_at: "{{ now() }}"
 
 # =============================================================================
 # LIST/QUERY OPERATIONS
@@ -855,18 +1036,18 @@ entities:
         bind_to: sensed
 
       # Extract intent and actual values from entity
-      # Uses the field paths defined in the reconciler
+      # NOTE: Using standard field names (desired_state/actual_state) for now
+      # TODO: Add dynamic property access to expression evaluator for generic field access
       - step: set
         bindings:
-          intent: "$entity.data[$reconciler.data.intent_field]"
+          intent: "$entity.data.desired_state"
           actual: "$sensed.status"
 
       # Find matching transition rule
+      # Matches if: (intent equals OR intent in array) AND (actual equals OR actual in array)
       - step: filter
         items: "$reconciler.data.transitions"
-        where: |
-          (($item.intent == $intent) || ($intent in $item.intent)) &&
-          (($item.actual == $actual) || ($actual in $item.actual))
+        condition: "$item.intent == $intent && $actual in $item.actual"
         bind_to: matches
 
       # Execute action if match found
@@ -876,7 +1057,7 @@ entities:
             then:
               - step: set
                 bindings:
-                  action: "$matches[0].action"
+                  action: "$matches.0.action"
 
               # Manifest action
               - step: switch
@@ -890,7 +1071,7 @@ entities:
                   - when: "$action == 'unmanifest'"
                     then:
                       - step: unmanifest
-                        id: "$entity.id"
+                        entity_id: "$entity.id"
                         bind_to: action_result
 
                   - when: "$action == 'none'"
@@ -901,11 +1082,13 @@ entities:
                             status: aligned
                             action: none
 
-      # Update entity with sensed state and reconciliation timestamp
+      # Update reconciliation timestamp only (manifest/unmanifest set actual_state)
+      # Note: We don't overwrite actual_state here because:
+      # - If action was manifest/unmanifest, those operations set actual_state
+      # - If action was none, the sensed state is already correct
       - step: update
         id: "$entity.id"
         data:
-          actual_state: "$sensed.status"
           last_reconciled_at: "{{ now() }}"
 
       - step: return
@@ -914,5 +1097,5 @@ entities:
           reconciler_id: "$reconciler.id"
           intent: "$intent"
           actual: "$actual"
-          action_taken: "$matches[0].action"
+          action_taken: "$matches.0.action"
           reconciled_at: "{{ now() }}"

@@ -1,0 +1,196 @@
+# Circle Membership Praxeis
+# Enables homoiconic circle discovery via member-of bonds
+#
+# These praxeis allow personas to manage their circle memberships,
+# enabling the MCP bridge to discover circles from within the graph
+# rather than external configuration.
+
+entities:
+
+# =============================================================================
+# JOIN CIRCLE
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/soma/join-circle
+  data:
+    oikos: soma
+    name: join-circle
+    visible: true
+    description: |
+      Join a circle by creating a member-of bond.
+      The circle must have an endpoint field for MCP discovery.
+
+      Creates:
+      - member-of bond from current persona to circle
+      - Optionally sets endpoint on circle if not already set
+
+      Returns the circle ID and endpoint for connection.
+    params:
+      - name: circle_id
+        type: string
+        required: true
+        description: "Circle entity ID (e.g., 'circle/work')"
+      - name: endpoint
+        type: string
+        required: false
+        description: "Optional endpoint URL to set on the circle if not already set"
+    steps:
+      # Verify circle exists
+      - step: find
+        id: "$circle_id"
+        bind_to: target_circle
+
+      - step: assert
+        condition: "$target_circle"
+        message: "Circle not found: $circle_id"
+
+      # Optionally update endpoint if provided and not set
+      - step: switch
+        cases:
+          - when: "$endpoint && !$target_circle.data.endpoint"
+            then:
+              - step: update
+                id: "$circle_id"
+                data:
+                  endpoint: "$endpoint"
+              - step: find
+                id: "$circle_id"
+                bind_to: target_circle
+
+      # Check if already a member
+      - step: trace
+        from_id: "$_persona"
+        desmos: member-of
+        bind_to: existing_memberships
+
+      # Filter to see if we're already in this circle
+      - step: filter
+        items: "$existing_memberships"
+        condition: "$item.to_id === $circle_id"
+        bind_to: already_member
+
+      # Create member-of bond if not already a member
+      - step: switch
+        cases:
+          - when: "$already_member.length === 0"
+            then:
+              - step: bind
+                from_id: "$_persona"
+                to_id: "$circle_id"
+                desmos: member-of
+                data:
+                  joined_at: "$_now"
+
+      - step: return
+        value:
+          joined: "$circle_id"
+          endpoint: "$target_circle.data.endpoint"
+          already_member: "$already_member.length > 0"
+
+# =============================================================================
+# LEAVE CIRCLE
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/soma/leave-circle
+  data:
+    oikos: soma
+    name: leave-circle
+    visible: true
+    description: |
+      Leave a circle by removing the member-of bond.
+    params:
+      - name: circle_id
+        type: string
+        required: true
+        description: "Circle entity ID to leave"
+    steps:
+      # Verify circle exists
+      - step: find
+        id: "$circle_id"
+        bind_to: target_circle
+
+      - step: assert
+        condition: "$target_circle"
+        message: "Circle not found: $circle_id"
+
+      # Remove member-of bond
+      - step: loose
+        from_id: "$_persona"
+        to_id: "$circle_id"
+        desmos: member-of
+
+      - step: return
+        value:
+          left: "$circle_id"
+
+# =============================================================================
+# LIST MEMBERSHIPS
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/soma/list-memberships
+  data:
+    oikos: soma
+    name: list-memberships
+    visible: true
+    description: |
+      List all circles the current persona is a member of.
+      Returns circles with their endpoints for MCP bridge discovery.
+    params: []
+    steps:
+      # Trace member-of bonds from current persona
+      - step: trace
+        from_id: "$_persona"
+        desmos: member-of
+        bind_to: memberships
+
+      # Gather all circles
+      - step: gather
+        eidos: circle
+        bind_to: all_circles
+
+      # Build membership info with circle details
+      - step: set
+        bindings:
+          result: []
+
+      - step: for_each
+        items: "$memberships"
+        item_var: membership
+        steps:
+          # Find the circle entity
+          - step: filter
+            items: "$all_circles"
+            condition: "$item.id === $membership.to_id"
+            bind_to: matching_circles
+
+          - step: switch
+            cases:
+              - when: "$matching_circles.length > 0"
+                then:
+                  - step: set
+                    bindings:
+                      circle: "$matching_circles.0"
+                  - step: append
+                    to: result
+                    value:
+                      id: "$membership.to_id"
+                      name: "$circle.data.name"
+                      kind: "$circle.data.kind"
+                      endpoint: "$circle.data.endpoint"
+                      joined_at: "$membership.data.joined_at"
+        lift:
+          - result
+
+      # Filter to circles with endpoints (for MCP discovery)
+      - step: filter
+        items: "$result"
+        condition: "$item.endpoint"
+        bind_to: discoverable
+
+      - step: return
+        value:
+          circles: "$result"
+          discoverable: "$discoverable"

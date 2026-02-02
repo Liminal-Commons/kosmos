@@ -14,6 +14,11 @@ oikos_description: |
   Manages channels, percepts, signals, and the body schema.
 oikos_scale: soma
 
+# Development experience metadata
+oikos_category: infrastructure
+surfaces_provided: []   # Foundational presence layer
+surfaces_consumed: []   # Provides channels/body-schema infrastructure
+
 content_paths:
   - path: eide/
     content_types: [eidos]
@@ -21,6 +26,8 @@ content_paths:
     content_types: [desmos]
   - path: praxeis/
     content_types: [praxis]
+  - path: entities/
+    content_types: [mcp-bridge-config]
 
 requires_dynamis:
   # Database operations for entity/bond management
@@ -39,16 +46,28 @@ provides:
     - percept
     - body-signal
     - body-schema
+    - notification
+    # Infrastructure eide
+    - node
+    - service-instance
+    - kosmos-instance
+    # Configuration eide
+    - mcp-bridge-config
 
   attainments:
     - embody              # Arise and depart as animus (presence management)
     - channel             # Open and close channels (I/O pathway management)
+    - infrastructure      # Manage nodes, services, kosmos instances
 
   desmoi:
     - channel-of
     - received-through
     - emitted-through
     - schema-of
+    # Infrastructure desmoi
+    - hosts-service
+    - provides-to
+    - runs-on
 
   praxeis:
     - soma/arise-animus
@@ -58,6 +77,18 @@ provides:
     - soma/perceive
     - soma/emit
     - soma/sense-body
+    # Reflex response praxeis (internal)
+    - soma/add-notification
+    # Infrastructure praxeis
+    - soma/register-node
+    - soma/sense-node
+    - soma/register-service
+    - soma/sense-service
+    - soma/sense-kosmos-instance
+    # Circle membership praxeis
+    - soma/join-circle
+    - soma/leave-circle
+    - soma/list-memberships
 
 stoicheia_form:
   # All stoicheia used by soma are currently arche-level (interpreted by host)

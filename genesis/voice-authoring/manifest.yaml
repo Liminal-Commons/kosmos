@@ -1,0 +1,67 @@
+# Voice-Authoring Oikos Manifest
+# ===============================
+#
+# φωνή-συγγραφή (phonē-syngraphē) — voice-writing, spoken composition
+#
+# Discussion drives authorship. Speaking about an artifact updates it.
+# No hand-editing. The conversation is the creation.
+
+oikos:
+  name: voice-authoring
+  description: |
+    Voice-authoring mode — a way of dwelling where discussion drives authorship.
+
+    Enter this oikos to author artifacts through conversation. The focused
+    artifact updates as you speak about it. Kosmos responds with changes,
+    clarifications, and suggestions.
+
+    This is not a feature — it's a mode, a game mode, a way of being.
+
+  purpose: |
+    Addresses the gap between conversation and artifact — the distance between
+    discussing something and having it exist as durable, structured content.
+
+  scale: psyche  # Innermost — the experiencing self authoring
+
+  depends_on:
+    - thyra      # Voice pipeline, expressions
+    - opsis      # Rendering, layout, panels
+    - manteia    # Governed inference
+    - demiurge   # Artifact composition
+    - nous       # Theoria for domain knowledge
+    - psyche     # Attention, intention
+
+  provides:
+    eide:
+      - authoring-session
+
+    praxeis:
+      - enter-voice-authoring
+      - exit-voice-authoring
+      - pause-voice-authoring
+      - resume-voice-authoring
+      - focus-artifact
+      - focus-sub-artifact
+      - expand-context
+      - collapse-context
+      - process-authoring-expression
+      - create-artifact-from-conversation
+
+    attainments:
+      - voice-author
+
+    layouts:
+      - voice-authoring
+
+    typos:
+      - typos-def-authoring-session
+
+  content_roots:
+    - path: eide/voice-authoring.yaml
+      contains: [eidos, attainment]
+    - path: praxeis/voice-authoring.yaml
+      contains: [praxis]
+    - path: entities/layout.yaml
+      contains: [layout, panel]
+    - path: entities/typos.yaml
+      contains: [typos]

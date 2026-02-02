@@ -111,3 +111,27 @@ entities:
       to_eidos: function
       cardinality: many-to-many
       symmetric: false
+
+  # =========================================================================
+  # SSH Credential Desmoi — remote node access
+  # =========================================================================
+
+  # authenticates-to — ssh-credential authenticates to node
+  - eidos: desmos
+    id: desmos/authenticates-to
+    data:
+      name: authenticates-to
+      description: |
+        SSH credential authenticates to this infrastructure node.
+        Used by manifest-deployment to find credentials for remote actuation.
+
+        Query pattern:
+          trace to_id: node/x, desmos: authenticates-to, resolve: from
+          → returns ssh-credentials that can access that node
+
+        Many-to-one: multiple credentials can authenticate to same node
+        (different users, different key types).
+      from_eidos: ssh-credential
+      to_eidos: node
+      cardinality: many-to-one
+      symmetric: false

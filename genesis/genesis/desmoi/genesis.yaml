@@ -1,0 +1,47 @@
+# Genesis Desmoi
+# γένεσις — the source of truth bonds
+#
+# Bonds for content provenance and emission tracking
+
+entities:
+
+  # sources-content-from — entity sources content from a content-root
+  - eidos: desmos
+    id: desmos/sources-content-from
+    data:
+      name: sources-content-from
+      description: |
+        Entity sources content from a content-root. Makes content provenance
+        traversable rather than implicit.
+
+        Bootstrap traces sources-content-from bonds to discover all content
+        locations. Adding a content root = creating an entity + bond.
+
+        Examples:
+        - oikos/nous sources-content-from content-root/nous
+        - oikos/agora sources-content-from content-root/agora
+        - kosmos sources-content-from content-root/arche (constitutional)
+      from_eidos: any
+      to_eidos: content-root
+      cardinality: many-to-many
+      symmetric: false
+
+  # emitted-to — entity was emitted to a filesystem path
+  - eidos: desmos
+    id: desmos/emitted-to
+    data:
+      name: emitted-to
+      description: |
+        Entity was emitted to a filesystem path.
+
+        Provides provenance for where definitions live in genesis.
+        The target is an artifact containing the path information.
+      from_eidos:
+        - oikos
+        - eidos
+        - praxis
+        - desmos
+      to_eidos:
+        - artifact
+      cardinality: many-to-one
+      symmetric: false

@@ -19,6 +19,13 @@ oikos_description: |
   traversal, and crystallization of knowledge.
 oikos_scale: cross-scale
 
+# Development experience metadata
+oikos_category: domain
+surfaces_provided:
+  - understanding    # Provides crystallize-theoria, surface, traverse for other oikoi
+surfaces_consumed:
+  - reasoning        # Uses manteia/governed-inference in invoke praxis
+
 content_paths:
   - path: eide/
     content_types: [eidos]
@@ -26,17 +33,23 @@ content_paths:
     content_types: [desmos]
   - path: praxeis/
     content_types: [praxis]
+  - path: entities/
+    content_types: [render-spec, reflex]
+  - path: theoria/
+    content_types: [theoria]
 
 requires_dynamis:
-  - db.arise
+  # Tier 2 stoicheia: find, bind, update, compose, index
   - db.find
   - db.bind
-  - db.trace
   - db.update
-  - db.loose
   - db.gather
+  - db.trace
+  # Semantic operations
   - aisthesis.surface
   - aisthesis.index
+  # Note: db.arise removed (using compose instead)
+  # Note: db.loose removed (not used in praxeis)
 
 provides:
   eide:
@@ -46,6 +59,19 @@ provides:
     - waypoint
     - inquiry
     - synthesis
+
+  reflexes:
+    - reflex/nous/theoria-created
+    - reflex/nous/expression-created
+
+  # Oikos-centric rendering: nous owns presentation for its eide
+  renderable:
+    - eidos: theoria
+      description: "Crystallized understanding cards and details"
+    - eidos: journey
+      description: "Teleological navigation cards"
+    - eidos: inquiry
+      description: "Open question cards"
 
   attainments:
     - crystallize           # Create and manage theoria (understanding lifecycle)
@@ -94,6 +120,13 @@ provides:
     - nous/abandon-journey
     - nous/list-journeys
     - nous/get-journey-waypoints
+    # Reflex response praxeis (internal)
+    - nous/index-entity
 
 stoicheia_form:
   # All stoicheia currently arche-level (Tier 2-3 operations)
+
+depends_on:
+  - manteia              # Uses governed-inference in invoke praxis
+  - politeia             # crystallized-in bond targets circle (politeia eidos)
+  # Note: synthesis is a nous eidos, not an oikos dependency

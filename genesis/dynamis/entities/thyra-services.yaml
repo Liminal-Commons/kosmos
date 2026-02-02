@@ -1,0 +1,53 @@
+# Thyra service deployments
+#
+# These entities define services managed by Thyra's reconciler loop.
+# When Thyra starts, it spawns these deployments and monitors them.
+#
+# The reconciler/deployment entity handles lifecycle:
+# - desired_state: running → manifest (spawn process)
+# - desired_state: stopped → unmanifest (kill process)
+# - Crash recovery: sense detects actual_state != running → reconcile
+
+entities:
+  # MCP server for Claude Code integration
+  # Runs in HTTP mode to support multiple Claude Code windows connecting
+  # to a single server process (avoids SQLite writer lock conflicts).
+  - eidos: deployment
+    id: deployment/thyra-mcp
+    data:
+      name: thyra-mcp
+      description: |
+        MCP server for Claude Code integration.
+        Runs in HTTP/SSE mode to support multiple client connections.
+        Managed by Thyra's reconciler loop for automatic crash recovery.
+
+      # Actuality mode: local process
+      actuality_mode: process
+      provider: local
+
+      # Start in running state when Thyra launches
+      desired_state: running
+      actual_state: unknown
+
+      # Process configuration
+      config:
+        # Relative to chora root - works cross-platform
+        # On Windows, Rust's Command handles .exe extension automatically
+        command: target/release/kosmos-mcp
+        args:
+          - "--transport"
+          - "http"
+          - "--port"
+          - "3000"
+          - "--host"
+          - "127.0.0.1"
+        env:
+          KOSMOS_SPORA: genesis/spora/spora.yaml
+        # Thyra sets this to chora root
+        working_dir: null
+
+        # Health check configuration
+        health_check:
+          endpoint: "http://127.0.0.1:3000/health"
+          interval_seconds: 30
+          timeout_seconds: 5

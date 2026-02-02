@@ -1,11 +1,14 @@
 # demiurge.yaml
-# Demiurge praxeis exposed as MCP tools
+# Demiurge praxeis — the craftsman's operations
 #
-# Demiurge is composition — the single interface for creating entities and artifacts.
-# These praxeis enable:
-# - Core composition (the fundamental operation)
-# - Content-addressed caching (Phase 14)
-# - Dependency tracking and invalidation (Phase 15)
+# δημιουργός — One verb. One tool. The compositor is simple.
+# Complexity lives in the definition.
+#
+# Praxeis organized by attainment:
+# - compose: Core composition, caching, dependencies
+# - develop: Generative Development Spiral (generate-*, actualize-*, validate-*)
+# - package: Oikos packaging (compose-oikos-dev, bake-oikos, publish-oikos, verify-oikos)
+# - emit: Genesis emission (emit-genesis, emit-oikos, verify-full-circle)
 
 entities:
 
@@ -307,41 +310,6 @@ entities:
           dependents_marked_stale: "$marked_count"
 
 - eidos: praxis
-  id: praxis/demiurge/invalidate-artifact
-  data:
-    oikos: demiurge
-    name: invalidate-artifact
-    visible: true
-    tier: 2
-    description: |
-      Mark a specific artifact as stale.
-
-      Use when you know an artifact needs to be recomposed.
-    params:
-      - name: artifact_id
-        type: string
-        required: true
-        description: The artifact to invalidate
-    steps:
-      - step: find
-        id: "$artifact_id"
-        bind_to: artifact
-
-      - step: assert
-        condition: "$artifact"
-        message: "Artifact not found: $artifact_id"
-
-      - step: update
-        id: "$artifact_id"
-        data:
-          stale: true
-
-      - step: return
-        value:
-          invalidated: true
-          artifact_id: "$artifact_id"
-
-- eidos: praxis
   id: praxis/demiurge/list-stale-artifacts
   data:
     oikos: demiurge
@@ -419,262 +387,7 @@ entities:
           artifact_id: "$artifact_id"
 
 # =============================================================================
-# SURFACEABLE COMPOSITION (V4.4)
-# =============================================================================
-
-- eidos: praxis
-  id: praxis/demiurge/compose-indexed
-  data:
-    oikos: demiurge
-    name: compose-indexed
-    visible: true
-    tier: 2
-    description: |
-      Compose an artifact and index it for semantic search.
-
-      This is the wrapper praxis pattern: composition stays pure at the
-      constitutional level, indexing is added at the operational level.
-
-      Use this when you want composed artifacts to be surfaceable
-      for future generation context.
-
-      The index text is derived from the artifact's identifying fields
-      (name, description, etc.) or can be provided explicitly.
-    params:
-      - name: typos_id
-        type: string
-        required: true
-        description: The artifact definition to compose from
-      - name: inputs
-        type: object
-        required: false
-        description: Values to fill (overrides defaults)
-      - name: id
-        type: string
-        required: false
-        description: Entity ID (generated if not provided)
-      - name: index_text
-        type: string
-        required: false
-        description: Text to index (derived from result if not provided)
-      - name: authorized_by
-        type: string
-        required: false
-        description: Expression ID that authorizes this composition
-    steps:
-      # 1. Compose the artifact
-      - step: compose
-        typos_id: "$typos_id"
-        inputs: "$inputs"
-        id: "$id"
-        bind_to: result
-
-      # 2. Derive index text if not provided
-      - step: set
-        bindings:
-          derived_text: "$result.data.name + ' ' + ($result.data.description // '')"
-
-      - step: switch
-        cases:
-          - when: "$index_text"
-            then:
-              - step: set
-                bindings:
-                  final_index_text: "$index_text"
-        default:
-          - step: set
-            bindings:
-              final_index_text: "$derived_text"
-
-      # 3. Index for surfacing
-      - step: index
-        entity_id: "$result.id"
-        text: "$final_index_text"
-
-      # 4. Return the surfaceable artifact
-      - step: return
-        value:
-          result: "$result"
-          indexed: true
-          index_text: "$final_index_text"
-
-- eidos: praxis
-  id: praxis/demiurge/compose-definition-indexed
-  data:
-    oikos: demiurge
-    name: compose-definition-indexed
-    visible: true
-    tier: 3
-    description: |
-      Generate and index an artifact definition.
-
-      Combines V4.3 (definition generation) with indexing to make
-      generated definitions surfaceable for meta-level composition (V4.4).
-
-      Use this when generating new artifact definitions that should
-      be discoverable via semantic search.
-    params:
-      - name: name
-        type: string
-        required: true
-        description: Name for the artifact definition
-      - name: purpose
-        type: string
-        required: true
-        description: What this definition composes (detailed description)
-      - name: target_eidos
-        type: string
-        required: false
-        description: For entity composition - the eidos to compose
-      - name: context
-        type: string
-        required: false
-        description: Additional context (surfaced definitions, etc.)
-      - name: authorized_by
-        type: string
-        required: false
-        description: Expression ID that authorizes this composition
-    steps:
-      # 1. Generate the typos via manteia
-      - step: call
-        praxis: "manteia/generate-typos"
-        params:
-          name: "$name"
-          purpose: "$purpose"
-          target_eidos: "$target_eidos"
-          context: "$context"
-        bind_to: definition
-
-      # 2. Compose into existence (CE4: compose instead of arise)
-      # Note: spreading $definition.data into inputs
-      - step: compose
-        typos_id: "typos-def-typos"
-        inputs:
-          id: "$definition.id"
-          name: "$definition.data.name"
-          description: "$definition.data.description"
-          target_eidos: "$definition.data.target_eidos"
-          slots: "$definition.data.slots"
-        bind_to: entity
-
-      # 3. Index for surfacing
-      - step: index
-        entity_id: "$entity.id"
-        text: "$definition.data.name + ' ' + $definition.data.description"
-
-      # 4. Return the surfaceable definition
-      - step: return
-        value:
-          definition: "$entity"
-          indexed: true
-
-- eidos: praxis
-  id: praxis/demiurge/generate-domain-definitions
-  data:
-    oikos: demiurge
-    name: generate-domain-definitions
-    visible: true
-    tier: 3
-    description: |
-      Generate multiple artifact definitions for a domain with surfaced context.
-
-      This is V4.4.3 — the meta-level praxis that demonstrates recursive composition:
-      1. Surface existing definitions as context (semantic search)
-      2. Generate new definitions using that context (LLM inference)
-      3. Index generated definitions (makes them surfaceable for future generation)
-
-      The loop closes: surfaced context → generation → indexing → future surfacing.
-
-      Use this to bootstrap a domain with coherent artifact definitions
-      that build on existing patterns in the kosmos.
-    params:
-      - name: domain
-        type: string
-        required: true
-        description: Domain name for surfacing context (e.g., "user management", "document editing")
-      - name: entity_specs
-        type: array
-        required: true
-        description: |
-          Array of entity specifications to generate definitions for.
-          Each spec should have: { name: string, purpose: string, target_eidos?: string }
-      - name: surface_limit
-        type: number
-        required: false
-        description: How many existing definitions to surface as context (default 10)
-      - name: authorized_by
-        type: string
-        required: false
-        description: Expression ID that authorizes generation
-    steps:
-      # 1. Surface existing definitions as context
-      - step: set
-        bindings:
-          effective_limit: "$surface_limit ? $surface_limit : 10"
-          surface_query: "$domain artifact definition composition"
-
-      - step: surface
-        query: "$surface_query"
-        eidos_filter: typos
-        limit: "$effective_limit"
-        bind_to: related_definitions
-
-      # 2. Format surfaced definitions as context string
-      - step: set
-        bindings:
-          context_items: []
-
-      - step: for_each
-        in: "$related_definitions"
-        as: def
-        do:
-          - step: set
-            bindings:
-              context_items: "$context_items + ['- ' + $def.data.name + ': ' + ($def.data.description | truncate(100))]"
-
-      - step: set
-        bindings:
-          context_string: |
-            Existing definitions in this domain:
-            $context_items | join('\n')
-
-            Build on these patterns for consistency.
-
-      # 3. Generate and index each definition
-      - step: set
-        bindings:
-          generated_definitions: []
-
-      - step: for_each
-        in: "$entity_specs"
-        as: spec
-        do:
-          # Generate + index via compose-definition-indexed
-          - step: call
-            praxis: "demiurge/compose-definition-indexed"
-            params:
-              name: "$spec.name"
-              purpose: "$spec.purpose"
-              target_eidos: "$spec.target_eidos"
-              context: "$context_string"
-              authorized_by: "$authorized_by"
-            bind_to: gen_result
-
-          - step: set
-            bindings:
-              generated_definitions: "$generated_definitions + [$gen_result.definition]"
-
-      # 4. Return all generated definitions
-      - step: return
-        value:
-          domain: "$domain"
-          surfaced_count: "$related_definitions | length"
-          generated_count: "$generated_definitions | length"
-          definitions: "$generated_definitions"
-          context_used: "$context_string"
-
-# =============================================================================
-# OIKOS ECOSYSTEM (Phase 30)
+# OIKOS PACKAGING
 # =============================================================================
 
 - eidos: praxis
@@ -853,58 +566,6 @@ entities:
             praxeis: "$oikos_praxeis | length"
             stoicheia: "$oikos_stoicheia | length"
           status: "draft"
-          distribution: "$effective_distribution"
-
-- eidos: praxis
-  id: praxis/demiurge/compose-all-oikoi-dev
-  data:
-    oikos: demiurge
-    name: compose-all-oikoi-dev
-    visible: true
-    tier: 3
-    description: |
-      Compose oikos-dev packages for all genesis oikoi.
-
-      Iterates through all oikos entities and creates oikos-dev packages.
-      Useful for full-kosmos packaging or release preparation.
-
-      Returns a summary of all created packages.
-    params:
-      - name: distribution
-        type: string
-        required: false
-        description: "Distribution mode for all packages (default: binary-only)"
-    steps:
-      # Gather all oikos entities
-      - step: gather
-        eidos: oikos
-        bind_to: all_oikoi
-
-      - step: set
-        bindings:
-          created_packages: []
-          effective_distribution: "$distribution ? $distribution : 'binary-only'"
-
-      # Create oikos-dev for each
-      - step: for_each
-        in: "$all_oikoi"
-        as: oikos
-        do:
-          - step: call
-            praxis: "demiurge/compose-oikos-dev"
-            params:
-              oikos_id: "$oikos.data.name"
-              distribution: "$effective_distribution"
-            bind_to: package_result
-
-          - step: set
-            bindings:
-              created_packages: "$created_packages + [$package_result]"
-
-      - step: return
-        value:
-          packages_created: "$created_packages | length"
-          packages: "$created_packages"
           distribution: "$effective_distribution"
 
 - eidos: praxis
@@ -1300,868 +961,1893 @@ entities:
           publisher_pubkey: "$prod_oikos.data.publisher_pubkey"
 
 - eidos: praxis
-  id: praxis/demiurge/publish-oikos-multilocale
+  id: praxis/demiurge/validate-oikos
   data:
     oikos: demiurge
-    name: publish-oikos-multilocale
-    visible: true
-    tier: 3
-    description: |
-      Publish an oikos-dev to multiple locales in one operation.
-
-      For each locale in the target_locales array:
-      1. Bake the oikos-dev with that locale context
-      2. Sign the baked content
-      3. Create locale-specific oikos-prod
-
-      Example:
-        oikos-dev/mypackage-1.0.0  (one source)
-          ├── publish(locale: "en-US") → oikos-prod/mypackage-1.0.0-en-US
-          ├── publish(locale: "zh-CN") → oikos-prod/mypackage-1.0.0-zh-CN
-          └── publish(locale: "ar-SA") → oikos-prod/mypackage-1.0.0-ar-SA
-
-      This enables a circle to provide localized versions of oikoi
-      from a single source package with generation specs.
-    params:
-      - name: oikos_dev_id
-        type: string
-        required: true
-        description: The oikos-dev to publish
-      - name: target_locales
-        type: array
-        required: true
-        description: |
-          Array of BCP 47 locale codes to publish (e.g., ["en-US", "zh-CN", "ar-SA"]).
-          Each locale produces a separate oikos-prod.
-      - name: mnemonic
-        type: string
-        required: true
-        description: BIP-39 mnemonic for signing
-      - name: circle_id
-        type: string
-        required: true
-        description: Circle context for key derivation
-      - name: authorized_by
-        type: string
-        required: true
-        description: Expression that authorizes this publication
-      - name: attestation
-        type: string
-        required: false
-        description: Optional attestation message from publisher
-    steps:
-      # Find and validate the dev oikos
-      - step: find
-        id: "$oikos_dev_id"
-        bind_to: dev_oikos
-
-      - step: assert
-        condition: "$dev_oikos"
-        message: "oikos-dev not found: $oikos_dev_id"
-
-      - step: assert
-        condition: "$dev_oikos.data.status == 'ready_to_publish'"
-        message: "oikos-dev is not ready to publish (status must be 'ready_to_publish')"
-
-      - step: assert
-        condition: "$target_locales | length > 0"
-        message: "target_locales must contain at least one locale"
-
-      # Track published versions
-      - step: set
-        bindings:
-          published_versions: []
-
-      # Publish to each locale
-      - step: for_each
-        in: "$target_locales"
-        as: locale
-        do:
-          - step: call
-            praxis: "demiurge/publish-oikos"
-            params:
-              oikos_dev_id: "$oikos_dev_id"
-              mnemonic: "$mnemonic"
-              circle_id: "$circle_id"
-              authorized_by: "$authorized_by"
-              attestation: "$attestation"
-              target_locale: "$locale"
-            bind_to: publish_result
-
-          - step: set
-            bindings:
-              published_versions: "$published_versions + [{ locale: $locale, prod_oikos_id: $publish_result.prod_oikos_id, content_hash: $publish_result.content_hash }]"
-
-      - step: return
-        value:
-          published: true
-          oikos_dev_id: "$oikos_dev_id"
-          locales_count: "$target_locales | length"
-          published_versions: "$published_versions"
-
-# =============================================================================
-# GENERATIVE COMMONS (Phase 31.1 extension)
-# =============================================================================
-
-- eidos: praxis
-  id: praxis/demiurge/set-distribution-mode
-  data:
-    oikos: demiurge
-    name: set-distribution-mode
+    name: validate-oikos
     visible: true
     tier: 2
     description: |
-      Set the distribution mode of an oikos-dev.
+      Validate an oikos and all its contained definitions.
 
-      Distribution modes:
-      - generative-commons: Share source (generation specs). Others can bake locally.
-      - binary-only: Share only baked oikos-prod. Generation specs stay private.
-      - private: Not shared at all. Internal use only.
+      Checks:
+      - All eide have valid field definitions
+      - All praxeis reference valid stoicheia
+      - All desmoi reference valid eide (in this oikos or existing)
+      - Cross-references resolve
 
-      Changing to generative-commons allows other circles to:
-      1. Receive the oikos-dev via federation
-      2. Bake locally with their own locale/context
-      3. Fork and adapt the generation specs
-
-      Requires oikos-develop attainment and ownership of the oikos-dev.
+      Updates oikos status to 'valid' or leaves as 'composing' with errors.
     params:
-      - name: oikos_dev_id
+      - name: oikos_id
         type: string
         required: true
-        description: The oikos-dev to update
-      - name: distribution
-        type: string
-        required: true
-        description: "Distribution mode: generative-commons, binary-only, or private"
+        description: The oikos to validate
     steps:
       - step: find
-        id: "$oikos_dev_id"
-        bind_to: dev_oikos
+        entity_id: "$oikos_id"
+        bind_to: oikos
 
       - step: assert
-        condition: "$dev_oikos"
-        message: "oikos-dev not found: $oikos_dev_id"
+        condition: "$oikos"
+        message: "Oikos not found: $oikos_id"
 
-      - step: assert
-        condition: "$dev_oikos.eidos == 'oikos-dev'"
-        message: "Entity is not an oikos-dev: $oikos_dev_id"
-
-      - step: assert
-        condition: "$distribution == 'generative-commons' or $distribution == 'binary-only' or $distribution == 'private'"
-        message: "Invalid distribution mode. Must be: generative-commons, binary-only, or private"
-
+      # Update status to validating
       - step: update
-        id: "$oikos_dev_id"
+        id: "$oikos.id"
         data:
-          distribution: "$distribution"
+          status: validating
 
-      - step: return
-        value:
-          updated: true
-          oikos_dev_id: "$oikos_dev_id"
-          distribution: "$distribution"
-
-- eidos: praxis
-  id: praxis/demiurge/fork-oikos
-  data:
-    oikos: demiurge
-    name: fork-oikos
-    visible: true
-    tier: 3
-    description: |
-      Fork an oikos-dev to create a derived version.
-
-      Only works on oikos-dev with distribution: generative-commons.
-      Creates a new oikos-dev with:
-      - Copied content and generation specs
-      - New oikos_id (based on fork_name)
-      - derives-from bond to original
-      - Status: draft
-
-      The forked version can then be modified to fit local ontology,
-      adapted with different generation specs, or localized.
-
-      Requires oikos-fork attainment.
-    params:
-      - name: source_oikos_dev_id
-        type: string
-        required: true
-        description: The generative-commons oikos-dev to fork
-      - name: fork_name
-        type: string
-        required: true
-        description: Name for the forked oikos (becomes new oikos_id)
-      - name: fork_version
-        type: string
-        required: false
-        description: Version for the fork (defaults to "0.1.0")
-    steps:
-      - step: find
-        id: "$source_oikos_dev_id"
-        bind_to: source_oikos
-
-      - step: assert
-        condition: "$source_oikos"
-        message: "Source oikos-dev not found: $source_oikos_dev_id"
-
-      - step: assert
-        condition: "$source_oikos.eidos == 'oikos-dev'"
-        message: "Source is not an oikos-dev: $source_oikos_dev_id"
-
-      - step: assert
-        condition: "$source_oikos.data.distribution == 'generative-commons'"
-        message: "Cannot fork: source oikos-dev is not generative-commons (distribution: $source_oikos.data.distribution)"
+      # Gather all contained definitions
+      - step: trace
+        from_id: "$oikos.id"
+        desmos: contains
+        resolve: to
+        bind_to: all_definitions
 
       - step: set
         bindings:
-          effective_version: "$fork_version ? $fork_version : '0.1.0'"
-          fork_id: "oikos-dev/$fork_name-$effective_version"
+          errors: []
+          eide: []
+          praxeis: []
+          desmoi: []
 
-      # Create the forked oikos-dev (CE4: compose instead of arise)
-      - step: compose
-        typos_id: "typos-def-oikos-dev"
-        inputs:
-          id: "$fork_id"
-          oikos_id: "$fork_name"
-          version: "$effective_version"
-          description: "Forked from $source_oikos.data.oikos_id ($source_oikos.data.version)"
-          manifest: "$source_oikos.data.manifest"
-          content: "$source_oikos.data.content"
-          generation_specs: "$source_oikos.data.generation_specs"
-          status: draft
-          distribution: binary-only  # Forks start as binary-only, can be upgraded
-          author_persona: "$dwelling.animus_id"
-          created_at: "{{ now() }}"
-        bind_to: forked_oikos
+      # Categorize by type
+      - step: for_each
+        items: "$all_definitions"
+        as: def
+        do:
+          - step: switch
+            cases:
+              - when: '$def.eidos == "eidos"'
+                then:
+                  - step: append
+                    to: "$eide"
+                    value: "$def"
+                    bind_to: eide
+              - when: '$def.eidos == "praxis"'
+                then:
+                  - step: append
+                    to: "$praxeis"
+                    value: "$def"
+                    bind_to: praxeis
+              - when: '$def.eidos == "desmos"'
+                then:
+                  - step: append
+                    to: "$desmoi"
+                    value: "$def"
+                    bind_to: desmoi
 
-      # Create derives-from bond
-      - step: bind
-        from_id: "$fork_id"
-        to_id: "$source_oikos_dev_id"
-        desmos: "derives-from"
+      # =============================================================================
+      # PRAXIS VALIDATION — Steps, Anti-Patterns, Dynamis Inference
+      # =============================================================================
+
+      - step: set
+        bindings:
+          warnings: []
+          max_tier: 0
+          inferred_dynamis: []
+          detected_surfaces: []
+
+      - step: for_each
+        items: "$praxeis"
+        as: praxis
+        do:
+          - step: for_each
+            items: "$praxis.data.steps"
+            as: step_def
+            do:
+              # Look up the stoicheion definition
+              - step: find
+                entity_id: "stoicheion/$step_def.step"
+                bind_to: stoicheion
+
+              # Check if stoicheion exists
+              - step: switch
+                cases:
+                  - when: "!$stoicheion"
+                    then:
+                      - step: append
+                        to: "$errors"
+                        value:
+                          type: unknown-stoicheion
+                          praxis: "$praxis.id"
+                          step: "$step_def.step"
+                          message: "Unknown stoicheion: $step_def.step"
+                        bind_to: errors
+
+              # Anti-pattern: raw arise
+              - step: switch
+                cases:
+                  - when: '$step_def.step == "arise"'
+                    then:
+                      - step: append
+                        to: "$warnings"
+                        value:
+                          type: anti-pattern
+                          praxis: "$praxis.id"
+                          step: "arise"
+                          message: "Use 'compose' with a typos instead of raw 'arise'"
+                          guidance: "compose provides provenance tracking via composed-from bonds"
+                        bind_to: warnings
+
+              # Anti-pattern: raw infer
+              - step: switch
+                cases:
+                  - when: '$step_def.step == "infer"'
+                    then:
+                      - step: append
+                        to: "$warnings"
+                        value:
+                          type: anti-pattern
+                          praxis: "$praxis.id"
+                          step: "infer"
+                          message: "Use 'call manteia/governed-inference' instead of raw 'infer'"
+                          guidance: "governed-inference provides schema validation and evaluation"
+                        bind_to: warnings
+
+              # Track max tier for dynamis inference
+              - step: switch
+                cases:
+                  - when: "$stoicheion and $stoicheion.data.tier > $max_tier"
+                    then:
+                      - step: set
+                        bindings:
+                          max_tier: "$stoicheion.data.tier"
+
+              # Detect surfaces based on stoicheia
+              - step: switch
+                cases:
+                  - when: '$step_def.step == "emit"'
+                    then:
+                      - step: switch
+                        cases:
+                          - when: '"emission" not in $detected_surfaces'
+                            then:
+                              - step: append
+                                to: "$detected_surfaces"
+                                value: "emission"
+                                bind_to: detected_surfaces
+                  - when: '$step_def.step == "signal"'
+                    then:
+                      - step: switch
+                        cases:
+                          - when: '"transport" not in $detected_surfaces'
+                            then:
+                              - step: append
+                                to: "$detected_surfaces"
+                                value: "transport"
+                                bind_to: detected_surfaces
+
+              # Detect reasoning surface from praxis calls
+              - step: switch
+                cases:
+                  - when: '$step_def.step == "call" and $step_def.praxis and "manteia" in $step_def.praxis'
+                    then:
+                      - step: switch
+                        cases:
+                          - when: '"reasoning" not in $detected_surfaces'
+                            then:
+                              - step: append
+                                to: "$detected_surfaces"
+                                value: "reasoning"
+                                bind_to: detected_surfaces
+                  - when: '$step_def.step == "call" and $step_def.praxis and "nous" in $step_def.praxis'
+                    then:
+                      - step: switch
+                        cases:
+                          - when: '"understanding" not in $detected_surfaces'
+                            then:
+                              - step: append
+                                to: "$detected_surfaces"
+                                value: "understanding"
+                                bind_to: detected_surfaces
+
+      # Infer dynamis requirements from max tier
+      - step: switch
+        cases:
+          - when: "$max_tier >= 3"
+            then:
+              - step: set
+                bindings:
+                  inferred_dynamis: ["chora"]
+          - when: "$max_tier >= 2"
+            then:
+              - step: set
+                bindings:
+                  inferred_dynamis: ["kosmos"]
+
+      # Compare inferred vs declared dynamis
+      - step: switch
+        cases:
+          - when: '$inferred_dynamis | length > 0 and (!$oikos.data.requires_dynamis or $oikos.data.requires_dynamis | length == 0)'
+            then:
+              - step: append
+                to: "$warnings"
+                value:
+                  type: missing-dynamis
+                  message: "Oikos uses tier $max_tier stoicheia but declares no requires_dynamis"
+                  inferred: "$inferred_dynamis"
+                  guidance: "Add requires_dynamis to oikos manifest for substrate compatibility"
+                bind_to: warnings
+
+      # =============================================================================
+      # DESMOS VALIDATION — from_eidos and to_eidos references
+      # =============================================================================
+
+      # Gather all known eide for reference checking
+      - step: gather
+        eidos: "eidos"
+        bind_to: all_known_eide
+
+      - step: set
+        bindings:
+          known_eidos_names: []
+
+      - step: for_each
+        items: "$all_known_eide"
+        as: e
+        do:
+          - step: append
+            to: "$known_eidos_names"
+            value: "$e.id"
+            bind_to: known_eidos_names
+
+      # Also add eide being defined in this oikos
+      - step: for_each
+        items: "$eide"
+        as: e
+        do:
+          - step: append
+            to: "$known_eidos_names"
+            value: "$e.id"
+            bind_to: known_eidos_names
+
+      # Validate desmoi references
+      - step: for_each
+        items: "$desmoi"
+        as: desmos
+        do:
+          # Check from_eidos references (if array)
+          - step: switch
+            cases:
+              - when: "$desmos.data.from_eidos"
+                then:
+                  - step: for_each
+                    items: "$desmos.data.from_eidos"
+                    as: from_e
+                    do:
+                      - step: switch
+                        cases:
+                          - when: '$from_e != "any" and "eidos/$from_e" not in $known_eidos_names and $from_e not in $known_eidos_names'
+                            then:
+                              - step: append
+                                to: "$warnings"
+                                value:
+                                  type: unknown-eidos-reference
+                                  desmos: "$desmos.id"
+                                  field: "from_eidos"
+                                  reference: "$from_e"
+                                  message: "Desmos references unknown eidos: $from_e"
+                                bind_to: warnings
+
+      # =============================================================================
+      # DETERMINE FINAL STATUS
+      # =============================================================================
+
+      - step: set
+        bindings:
+          is_valid: "$errors | length == 0"
+
+      - step: switch
+        cases:
+          - when: "$is_valid"
+            then:
+              - step: update
+                id: "$oikos.id"
+                data:
+                  status: valid
+                  validation_errors: []
+                  surfaces: "$detected_surfaces"
+          - when: "!$is_valid"
+            then:
+              - step: update
+                id: "$oikos.id"
+                data:
+                  status: composing
+                  validation_errors: "$errors"
+                  surfaces: "$detected_surfaces"
 
       - step: return
         value:
-          forked: true
-          fork_id: "$fork_id"
-          source_id: "$source_oikos_dev_id"
-          fork_name: "$fork_name"
-          fork_version: "$effective_version"
+          valid: "$is_valid"
+          errors: "$errors"
+          warnings: "$warnings"
+          inferred_dynamis: "$inferred_dynamis"
+          detected_surfaces: "$detected_surfaces"
+          summary:
+            eide: "$eide | length"
+            praxeis: "$praxeis | length"
+            desmoi: "$desmoi | length"
+            max_stoicheion_tier: "$max_tier"
 
 - eidos: praxis
-  id: praxis/demiurge/list-generative-commons
+  id: praxis/demiurge/discover-stoicheia
   data:
     oikos: demiurge
-    name: list-generative-commons
+    name: discover-stoicheia
     visible: true
-    tier: 2
+    tier: 1
     description: |
-      List all oikos-dev packages marked as generative-commons.
+      Discover available stoicheia for composing praxeis.
 
-      These are source packages that can be:
-      - Baked locally by other circles
-      - Forked and adapted
-      - Used as base for locale-specific versions
+      Returns stoicheia grouped by tier. Each stoicheion has:
+      - tier: dynamis requirement (0-3)
+      - fields: parameter schema
+      - description: usage guidance
+
+      Use this to understand what steps are available when composing praxeis.
     params:
-      - name: limit
+      - name: tier
         type: integer
         required: false
-        description: Maximum results (default 50)
+        description: Filter by tier (0, 1, 2, or 3)
     steps:
       - step: gather
-        eidos: "oikos-dev"
-        bind_to: all_dev_oikoi
+        eidos: "stoicheion"
+        bind_to: all_stoicheia
 
-      - step: filter
-        in: "$all_dev_oikoi"
-        as: oikos
-        condition: "$oikos.data.distribution == 'generative-commons'"
-        bind_to: commons_oikoi
+      - step: switch
+        cases:
+          - when: "$tier != null"
+            then:
+              - step: filter
+                items: "$all_stoicheia"
+                condition: "$item.data.tier == $tier"
+                bind_to: all_stoicheia
 
+      # Group by tier for display
       - step: set
         bindings:
-          effective_limit: "$limit ? $limit : 50"
-          result_count: "$commons_oikoi | length"
+          tier_0: []
+          tier_1: []
+          tier_2: []
+          tier_3: []
+
+      - step: for_each
+        items: "$all_stoicheia"
+        as: s
+        do:
+          - step: switch
+            cases:
+              - when: "$s.data.tier == 0"
+                then:
+                  - step: append
+                    to: "$tier_0"
+                    value: "$s"
+                    bind_to: tier_0
+              - when: "$s.data.tier == 1"
+                then:
+                  - step: append
+                    to: "$tier_1"
+                    value: "$s"
+                    bind_to: tier_1
+              - when: "$s.data.tier == 2"
+                then:
+                  - step: append
+                    to: "$tier_2"
+                    value: "$s"
+                    bind_to: tier_2
+              - when: "$s.data.tier == 3"
+                then:
+                  - step: append
+                    to: "$tier_3"
+                    value: "$s"
+                    bind_to: tier_3
 
       - step: return
         value:
-          count: "$result_count"
-          oikoi: "$commons_oikoi | take($effective_limit)"
+          total: "$all_stoicheia | length"
+          by_tier:
+            tier_0_elemental: "$tier_0"
+            tier_1_aggregate: "$tier_1"
+            tier_2_compositional: "$tier_2"
+            tier_3_generative: "$tier_3"
+          tier_summary:
+            tier_0: "$tier_0 | length"
+            tier_1: "$tier_1 | length"
+            tier_2: "$tier_2 | length"
+            tier_3: "$tier_3 | length"
 
 - eidos: praxis
-  id: praxis/demiurge/list-oikos-derivations
+  id: praxis/demiurge/discover-typos
   data:
     oikos: demiurge
-    name: list-oikos-derivations
+    name: discover-typos
     visible: true
-    tier: 2
+    tier: 1
     description: |
-      List all oikos-dev packages derived from a given source.
+      Discover available typos (composition templates).
 
-      Follows derives-from bonds to find forks and adaptations.
+      Returns typos grouped by category. Each typos has:
+      - target_eidos: what entity type it creates
+      - defaults: default field values
+      - description: usage guidance
+
+      Use this to understand what composition templates are available.
     params:
-      - name: source_oikos_dev_id
+      - name: target_eidos
         type: string
-        required: true
-        description: The source oikos-dev to find derivations of
+        required: false
+        description: Filter by target eidos (e.g., "theoria", "circle")
     steps:
-      - step: find
-        id: "$source_oikos_dev_id"
-        bind_to: source_oikos
+      - step: gather
+        eidos: "typos"
+        bind_to: all_typos
 
-      - step: assert
-        condition: "$source_oikos"
-        message: "Source oikos-dev not found: $source_oikos_dev_id"
+      - step: switch
+        cases:
+          - when: "$target_eidos"
+            then:
+              - step: filter
+                items: "$all_typos"
+                condition: "$item.data.target_eidos == $target_eidos"
+                bind_to: all_typos
 
-      # Find all oikos-dev that derive from this source
-      - step: trace
-        to: "$source_oikos_dev_id"
-        desmos: "derives-from"
-        bind_to: derivations
+      # Categorize: constitutional vs domain
+      - step: set
+        bindings:
+          constitutional: []
+          domain: []
+
+      - step: for_each
+        items: "$all_typos"
+        as: t
+        do:
+          - step: switch
+            cases:
+              - when: '$t.id == "typos-def-eidos" or $t.id == "typos-def-praxis" or $t.id == "typos-def-desmos" or $t.id == "typos-def-oikos" or $t.id == "typos-def-typos"'
+                then:
+                  - step: append
+                    to: "$constitutional"
+                    value: "$t"
+                    bind_to: constitutional
+            default:
+              - step: append
+                to: "$domain"
+                value: "$t"
+                bind_to: domain
 
       - step: return
         value:
-          source_id: "$source_oikos_dev_id"
-          source_name: "$source_oikos.data.oikos_id"
-          derivation_count: "$derivations | length"
-          derivations: "$derivations"
-
-# =============================================================================
-# FULL-CIRCLE GENESIS (Phase 10)
-# =============================================================================
+          total: "$all_typos | length"
+          constitutional: "$constitutional"
+          domain: "$domain"
+          summary:
+            constitutional_count: "$constitutional | length"
+            domain_count: "$domain | length"
 
 - eidos: praxis
-  id: praxis/demiurge/emit-genesis
+  id: praxis/demiurge/discover-desmoi
   data:
     oikos: demiurge
-    name: emit-genesis
+    name: discover-desmoi
     visible: true
-    tier: 3
+    tier: 1
     description: |
-      Emit all genesis content to filesystem for full-circle verification.
+      Discover available desmoi (bond types).
 
-      Full-circle genesis is self-verifying coherence:
-        kosmos.db → emit-genesis → chora-output/
-                                        ↓
-                             bootstrap(chora-output/) → new-kosmos.db
-                                        ↓
-                                   emit-genesis → chora-output-2/
-                                        ↓
-                               hash(output) == hash(output-2) ✓
+      Returns desmoi with their constraints. Each desmos has:
+      - from_eidos, to_eidos: what can be connected
+      - cardinality: relationship constraints
+      - description: semantic meaning
 
-      This praxis:
-      1. Gathers all genesis entities (arche, spora, oikoi)
-      2. Emits them to YAML files in the output directory
-      3. Computes BLAKE3 hash of the entire output
-      4. Returns the hash for verification
-
-      Constitutional content (arche, seed expressions) uses literal fill only.
-      Derivable content (oikoi with generation specs) is baked before emission.
-
-      The output can be used to:
-      - Bootstrap a new kosmos (recovery)
-      - Verify consistency (hash comparison)
-      - Audit constitutional content
+      Use this to understand what relationships are available.
     params:
-      - name: output_path
+      - name: from_eidos
         type: string
-        required: true
-        description: Base directory path for emitted content (e.g., "./chora-output")
-      - name: include_oikoi
-        type: boolean
         required: false
-        description: Include loaded oikoi in emission (default true)
-      - name: dry_run
-        type: boolean
+        description: Filter by source eidos
+      - name: to_eidos
+        type: string
         required: false
-        description: Compute hash without emitting files (default false)
+        description: Filter by target eidos
     steps:
-      # Set defaults - dry_run is already a boolean, use directly
-      - step: set
-        bindings:
-          emit_oikoi: "$include_oikoi != false"
-          file_count: 0
-
-      # ===========================================
-      # GATHER ALL ENTITIES
-      # ===========================================
-
       - step: gather
-        eidos: eidos
-        bind_to: all_eide
-
-      - step: gather
-        eidos: desmos
+        eidos: "desmos"
         bind_to: all_desmoi
 
+      # Filter by from_eidos if provided
+      - step: switch
+        cases:
+          - when: "$from_eidos"
+            then:
+              - step: filter
+                items: "$all_desmoi"
+                condition: '$from_eidos in $item.data.from_eidos or $item.data.from_eidos == "any"'
+                bind_to: all_desmoi
+
+      # Filter by to_eidos if provided
+      - step: switch
+        cases:
+          - when: "$to_eidos"
+            then:
+              - step: filter
+                items: "$all_desmoi"
+                condition: '$to_eidos in $item.data.to_eidos or $item.data.to_eidos == "any"'
+                bind_to: all_desmoi
+
+      - step: return
+        value:
+          total: "$all_desmoi | length"
+          desmoi: "$all_desmoi"
+
+- eidos: praxis
+  id: praxis/demiurge/sense-development
+  data:
+    oikos: demiurge
+    name: sense-development
+    visible: false  # Internal, called by sense-body
+    tier: 1
+    description: |
+      Sense development state for body-schema contribution.
+
+      Aggregates:
+      - Active oikoi the animus is developing
+      - Definition counts (eide, praxeis, desmoi) for each
+      - Palette awareness (stoicheia tiers, typos, desmoi counts)
+      - Pending actions (validation, emission opportunities)
+
+      This is called by soma/sense-body to include development state.
+    params: []
+    steps:
+      # Trace developing bonds from animus to find active oikoi
+      - step: trace
+        from_id: "$_animus.id"
+        desmos: developing
+        resolve: to
+        bind_to: developing_oikoi
+
+      # Build active oikoi list with definition counts
+      - step: set
+        bindings:
+          active_oikoi: []
+          needs_validation: 0
+          ready_to_emit: 0
+
+      - step: for_each
+        items: "$developing_oikoi"
+        as: oikos
+        do:
+          # Get all contained definitions
+          - step: trace
+            from_id: "$oikos.id"
+            desmos: contains
+            resolve: to
+            bind_to: definitions
+
+          # Count by type
+          - step: filter
+            items: "$definitions"
+            condition: '$item.eidos == "eidos"'
+            bind_to: eide
+
+          - step: filter
+            items: "$definitions"
+            condition: '$item.eidos == "praxis"'
+            bind_to: praxeis
+
+          - step: filter
+            items: "$definitions"
+            condition: '$item.eidos == "desmos"'
+            bind_to: desmoi
+
+          # Track validation/emission status
+          - step: switch
+            cases:
+              - when: '$oikos.data.status == "composing"'
+                then:
+                  - step: set
+                    bindings:
+                      needs_validation: "$needs_validation + 1"
+              - when: '$oikos.data.status == "valid"'
+                then:
+                  - step: set
+                    bindings:
+                      ready_to_emit: "$ready_to_emit + 1"
+
+          # Add to active oikoi list
+          - step: append
+            to: "$active_oikoi"
+            value:
+              id: "$oikos.id"
+              name: "$oikos.data.name"
+              status: "$oikos.data.status"
+              scale: "$oikos.data.scale"
+              eide_count: "$eide | length"
+              praxeis_count: "$praxeis | length"
+              desmoi_count: "$desmoi | length"
+            bind_to: active_oikoi
+
+      # Gather palette awareness
       - step: gather
-        eidos: stoicheion
+        eidos: "stoicheion"
         bind_to: all_stoicheia
 
       - step: gather
-        eidos: persona
-        bind_to: all_personas
+        eidos: "typos"
+        bind_to: all_typos
 
       - step: gather
-        eidos: circle
-        bind_to: all_circles
+        eidos: "desmos"
+        bind_to: all_desmoi
 
-      - step: gather
-        eidos: typos
-        bind_to: all_artifact_defs
+      # Count stoicheia by tier
+      - step: filter
+        items: "$all_stoicheia"
+        condition: "$item.data.tier == 0"
+        bind_to: tier_0
 
-      - step: gather
-        eidos: praxis
-        bind_to: all_praxeis
+      - step: filter
+        items: "$all_stoicheia"
+        condition: "$item.data.tier == 1"
+        bind_to: tier_1
 
-      # ===========================================
-      # COMPUTE CONTENT HASH
-      # Hash is computed from JSON-encoded gathered data
-      # ===========================================
+      - step: filter
+        items: "$all_stoicheia"
+        condition: "$item.data.tier == 2"
+        bind_to: tier_2
 
+      - step: filter
+        items: "$all_stoicheia"
+        condition: "$item.data.tier == 3"
+        bind_to: tier_3
+
+      # Build pending actions list
       - step: set
         bindings:
-          hash_content:
-            eidos: "$all_eide"
-            desmos: "$all_desmoi"
-            stoicheion: "$all_stoicheia"
-            persona: "$all_personas"
-            circle: "$all_circles"
-            artifact_definition: "$all_artifact_defs"
-            praxis: "$all_praxeis"
-
-      - step: digest
-        input: "json_encode($hash_content)"
-        bind_to: content_hash
-
-      # ===========================================
-      # EMIT FILES (if not dry run)
-      # ===========================================
+          pending_actions: []
 
       - step: switch
         cases:
-          - when: "!$dry_run"
+          - when: "$needs_validation > 0"
             then:
-              - step: emit
-                path: "$output_path/arche/eidos.yaml"
-                content: "yaml_encode($all_eide)"
-
-              - step: emit
-                path: "$output_path/arche/desmos.yaml"
-                content: "yaml_encode($all_desmoi)"
-
-              - step: emit
-                path: "$output_path/arche/stoicheion.yaml"
-                content: "yaml_encode($all_stoicheia)"
-
-              - step: emit
-                path: "$output_path/spora/personas.yaml"
-                content: "yaml_encode($all_personas)"
-
-              - step: emit
-                path: "$output_path/spora/circles.yaml"
-                content: "yaml_encode($all_circles)"
-
-              - step: emit
-                path: "$output_path/spora/definitions.yaml"
-                content: "yaml_encode($all_artifact_defs)"
-
-              - step: emit
-                path: "$output_path/spora/praxeis.yaml"
-                content: "yaml_encode($all_praxeis)"
-
-              # Emit manifest for re-bootstrap
-              - step: emit
-                path: "$output_path/manifest.yaml"
-                content: |
-                  # Generated by emit-genesis
-                  # Re-bootstrap: KOSMOS_SPORA=manifest.yaml ./kosmos-mcp
-                  oikos: emitted
-                  version: 0.1.0
-                  manifests:
-                    - arche/eidos.yaml
-                    - arche/desmos.yaml
-                    - arche/stoicheion.yaml
-                    - spora/personas.yaml
-                    - spora/circles.yaml
-                    - spora/definitions.yaml
-                    - spora/praxeis.yaml
-
-      # ===========================================
-      # RETURN RESULT
-      # ===========================================
-
-      - step: return
-        value:
-          success: true
-          content_hash: "$content_hash"
-          dry_run: "$dry_run"
-          entity_counts:
-            eidos: "length($all_eide)"
-            desmos: "length($all_desmoi)"
-            stoicheion: "length($all_stoicheia)"
-            persona: "length($all_personas)"
-            circle: "length($all_circles)"
-            artifact_definition: "length($all_artifact_defs)"
-            praxis: "length($all_praxeis)"
-
-- eidos: praxis
-  id: praxis/demiurge/verify-full-circle
-  data:
-    oikos: demiurge
-    name: verify-full-circle
-    visible: true
-    tier: 3
-    description: |
-      Verify full-circle genesis by comparing two emission hashes.
-
-      Full-circle genesis verification:
-      1. Emit current kosmos to path A (get hash H1)
-      2. Bootstrap new kosmos from path A
-      3. Emit new kosmos to path B (get hash H2)
-      4. Verify H1 == H2
-
-      This proves the kosmos can reconstitute itself identically.
-      If hashes match, the system is coherent.
-
-      This praxis compares two previously computed emission hashes.
-      Use emit-genesis to generate the hashes first.
-    params:
-      - name: hash_a
-        type: string
-        required: true
-        description: First emission hash (from emit-genesis)
-      - name: hash_b
-        type: string
-        required: true
-        description: Second emission hash (from emit-genesis after re-bootstrap)
-    steps:
-      - step: set
-        bindings:
-          hashes_match: "$hash_a == $hash_b"
-
-      - step: switch
-        cases:
-          - when: "$hashes_match"
-            then:
-              - step: return
+              - step: append
+                to: "$pending_actions"
                 value:
-                  verified: true
-                  message: "Full-circle genesis verified: hashes match"
-                  hash_a: "$hash_a"
-                  hash_b: "$hash_b"
+                  action: "validate-oikos"
+                  reason: "$needs_validation oikos in 'composing' status need validation"
+                bind_to: pending_actions
+
+      - step: switch
+        cases:
+          - when: "$ready_to_emit > 0"
+            then:
+              - step: append
+                to: "$pending_actions"
+                value:
+                  action: "emit-oikos"
+                  reason: "$ready_to_emit oikos are validated and ready to emit"
+                bind_to: pending_actions
 
       - step: return
         value:
-          verified: false
-          message: "Full-circle genesis FAILED: hashes do not match"
-          hash_a: "$hash_a"
-          hash_b: "$hash_b"
-          divergence: "Content differs between emissions"
+          active_oikoi: "$active_oikoi"
+          oikoi_count: "$active_oikoi | length"
+          palette_awareness:
+            stoicheia:
+              total: "$all_stoicheia | length"
+              tier_0_elemental: "$tier_0 | length"
+              tier_1_aggregate: "$tier_1 | length"
+              tier_2_compositional: "$tier_2 | length"
+              tier_3_generative: "$tier_3 | length"
+            typos_count: "$all_typos | length"
+            desmoi_count: "$all_desmoi | length"
+          pending_actions: "$pending_actions"
+          status_summary:
+            needs_validation: "$needs_validation"
+            ready_to_emit: "$ready_to_emit"
 
 # =============================================================================
-# SINGLE-STREAM GENESIS EMISSION
+# VALIDATION
 # =============================================================================
 
 - eidos: praxis
-  id: praxis/demiurge/emit-single-stream
+  id: praxis/demiurge/validate-praxis
   data:
     oikos: demiurge
-    name: emit-single-stream
-    visible: true
-    tier: 3
+    name: validate-praxis
+    visible: false  # Internal, invoked by reflex
+    tier: 2
     description: |
-      Emit kosmos in single-stream genesis format.
+      Validate praxis steps against stoicheion schemas.
 
-      Single-stream format: emitted format = source format. No translation.
-
-      Structure:
-        output_path/
-        ├── manifest.yaml           # The single source — what to load
-        ├── entities/               # All entities by eidos type
-        │   ├── eidos.yaml
-        │   ├── desmos.yaml
-        │   ├── praxis.yaml
-        │   └── ...
-        └── bonds/
-            └── bonds.yaml
-
-      Uses artifact definitions:
-        - typos-def-genesis-manifest
-        - typos-def-entity-file
-        - typos-def-bond-file
-
-      Full-circle verification:
-        emit(kosmos) → files → bootstrap(files) → kosmos' → emit(kosmos') → files'
-        Assert: hash(files) == hash(files')
-
-      This praxis:
-      1. Gathers all distinct eidos types with entities
-      2. For each eidos type, composes entity file using typos-def-entity-file
-      3. Composes bond file using typos-def-bond-file
-      4. Composes manifest using typos-def-genesis-manifest
-      5. Emits all files to output directory
-      6. Computes BLAKE3 hash for verification
+      Called by reflex/demiurge/praxis-changed.
+      Catches authoring errors early.
     params:
-      - name: output_path
+      - name: praxis_id
         type: string
         required: true
-        description: Base directory path for emitted content (e.g., "./genesis-output")
-      - name: dry_run
+        description: Praxis ID to validate
+    steps:
+      - step: find
+        id: "$praxis_id"
+        bind_to: praxis
+
+      # Validate each step against stoicheion schema
+      - step: set
+        bindings:
+          errors: []
+
+      - step: for_each
+        items: "$praxis.data.steps"
+        item_var: step_def
+        steps:
+          - step: try
+            do:
+              - step: find
+                id: "eidos/stoicheion/$step_def.step"
+                bind_to: stoicheion
+            catch:
+              - step: append
+                to: errors
+                value:
+                  step: "$step_def.step"
+                  error: "Unknown stoicheion: $step_def.step"
+
+      - step: switch
+        cases:
+          - when: "$errors | length > 0"
+            then:
+              - step: log
+                message: "Praxis $praxis_id has validation errors"
+                level: warn
+
+      - step: return
+        value:
+          praxis_id: "$praxis_id"
+          valid: "$errors | length == 0"
+          errors: "$errors"
+
+# =============================================================================
+# GENERATIVE DEVELOPMENT SPIRAL — Generation
+# =============================================================================
+#
+# These praxeis implement the canonical generation workflow:
+# 1. Compose inference context (from typos-inference-*)
+# 2. Surface domain theoria
+# 3. Call governed-inference
+# 4. Create entity from generated content
+# 5. Bond provenance (informed-by)
+#
+# Uses typos from genesis/spora/definitions/oikos-generation.yaml
+
+- eidos: praxis
+  id: praxis/demiurge/generate-eidos
+  data:
+    oikos: demiurge
+    name: generate-eidos
+    visible: true
+    tier: 3  # Requires inference (actuality)
+    description: |
+      Generate an eidos definition using inference-context.
+
+      The whole eidos (name, description, fields) is generated as a coherent
+      unit. Domain theoria informs the generation for consistency with
+      existing ontological patterns.
+
+      Returns an artifact containing the generated eidos definition,
+      which can then be actualized into the kosmos.
+    params:
+      - name: name
+        type: string
+        required: true
+        description: The eidos name (lowercase, no spaces)
+      - name: purpose
+        type: string
+        required: true
+        description: What ontological gap does this eidos address?
+      - name: domain
+        type: string
+        required: false
+        description: Domain to surface theoria from (e.g., 'cooking', 'governance')
+      - name: field_hints
+        type: array
+        required: false
+        description: Optional hints about what fields should exist
+      - name: existing_eide
+        type: array
+        required: false
+        description: Entity IDs of related eide to consider for consistency
+      - name: evaluate
         type: boolean
         required: false
-        description: Compute structure without writing files (default false)
+        default: true
+        description: Whether to evaluate output against criteria
     steps:
-      # ===========================================
-      # GATHER DISTINCT EIDOS TYPES
-      # ===========================================
-
-      - step: gather
-        eidos: eidos
-        bind_to: all_eide
-
-      # Filter to eidos types that have entities
-      - step: set
-        bindings:
-          eidos_names: []
-
-      - step: for_each
-        in: "$all_eide"
-        as: e
-        do:
-          - step: gather
-            eidos: "$e.data.name"
-            limit: 1
-            bind_to: sample_entities
-          - step: switch
-            cases:
-              - when: "length($sample_entities) > 0"
-                then:
-                  - step: set
-                    bindings:
-                      eidos_names: "$eidos_names + [$e.data.name]"
-
-      # ===========================================
-      # COMPOSE ENTITY FILES (with validation)
-      # ===========================================
-
-      - step: set
-        bindings:
-          entity_file_paths: []
-          entity_file_contents: []
-          validation_errors: []
-
-      - step: for_each
-        in: "$eidos_names"
-        as: eidos_name
-        do:
-          # Compose entity file using artifact definition
-          - step: compose
-            typos_id: "typos-def-entity-file"
-            inputs:
-              eidos_type: "$eidos_name"
-            bind_to: entity_artifact
-
-          # Validate entities match their eidos schema
-          - step: call
-            praxis: praxis/dokimasia/validate-schema
-            params:
-              eidos_id: "eidos/$eidos_name"
-              content: "$entity_artifact.data"
-            bind_to: schema_validation
-
-          # Collect any validation errors
-          - step: switch
-            cases:
-              - when: "$schema_validation.valid != true"
-                then:
-                  - step: set
-                    bindings:
-                      validation_errors: "$validation_errors + [{eidos: $eidos_name, errors: $schema_validation.errors}]"
-
-          # Set file_path first, then use it in the next step
-          - step: set
-            bindings:
-              file_path: "entities/$eidos_name.yaml"
-
-          - step: set
-            bindings:
-              entity_file_paths: "$entity_file_paths + [$file_path]"
-              entity_file_contents: "$entity_file_contents + [{path: $file_path, content: $entity_artifact.data.content}]"
-
-      # ===========================================
-      # VALIDATION GATE: Abort if errors
-      # ===========================================
-
-      - step: switch
-        cases:
-          - when: "length($validation_errors) > 0"
-            then:
-              - step: return
-                value:
-                  success: false
-                  errors: "$validation_errors"
-                  message: "Validation failed - invalid entities cannot be emitted"
-
-      # ===========================================
-      # COMPOSE BOND FILE
-      # ===========================================
-
+      # Step 1: Compose inference context
       - step: compose
-        typos_id: "typos-def-bond-file"
-        inputs: {}
-        bind_to: bond_artifact
-
-      - step: set
-        bindings:
-          bond_file_path: "bonds/bonds.yaml"
-          bond_file_content: "$bond_artifact.data.content"
-
-      # ===========================================
-      # COMPUTE CONTENT HASH (before manifest)
-      # ===========================================
-      # Hash is computed from entity + bond content (not manifest)
-      # This allows the manifest to embed the hash for verification
-
-      - step: set
-        bindings:
-          all_content: "$bond_file_content"
-
-      - step: for_each
-        in: "$entity_file_contents"
-        as: ef
-        do:
-          - step: set
-            bindings:
-              all_content: "$all_content + $ef.content"
-
-      - step: digest
-        input: "$all_content"
-        bind_to: content_hash
-
-      # ===========================================
-      # GET GENESIS ROOT
-      # ===========================================
-
-      - step: find
-        id: "expression/genesis-root"
-        bind_to: genesis_root
-
-      - step: set
-        bindings:
-          genesis_root_data:
-            id: "$genesis_root.id"
-            content: "$genesis_root.data.content"
-            signature: "$genesis_root.data.signature"
-            public_key: "$genesis_root.data.public_key"
-            algorithm: "ed25519"
-
-      # ===========================================
-      # COMPOSE MANIFEST
-      # ===========================================
-
-      - step: compose
-        typos_id: "typos-def-genesis-manifest"
+        typos_id: typos-inference-eidos
         inputs:
-          version: "0.1.0"
-          genesis_root: "$genesis_root_data"
-          entity_files: "$entity_file_paths"
-          bond_files: ["bonds/bonds.yaml"]
-          content_hash: "$content_hash"
-        bind_to: manifest_artifact
+          name: "$name"
+          purpose: "$purpose"
+          domain: "$domain"
+          field_hints: "$field_hints"
+          existing_eide: "$existing_eide"
+        bind_to: context
 
-      # ===========================================
-      # VALIDATE PROVENANCE: Genesis root exists
-      # ===========================================
+      # Step 2: Surface domain theoria
+      - step: switch
+        cases:
+          - when: "$domain"
+            then:
+              - step: surface
+                query: "$domain ontology eidos"
+                eidos: theoria
+                limit: 5
+                bind_to: theoria
+        default:
+          - step: set
+            bindings:
+              theoria: []
 
+      # Step 3: Build prompt with theoria
+      - step: set
+        bindings:
+          theoria_context: ""
+
+      - step: switch
+        cases:
+          - when: "$theoria | length > 0"
+            then:
+              - step: map
+                items: "$theoria"
+                as: t
+                transform: "{{ $t.data.insight }}"
+                bind_to: insights
+
+              - step: set
+                bindings:
+                  theoria_context: |
+                    Relevant understanding from the kosmos:
+                    {{ $insights | join("\n- ") }}
+
+      - step: set
+        bindings:
+          full_prompt: |
+            {{ $context.data.request }}
+
+            {{ $theoria_context }}
+
+      # Step 4: Call governed inference
       - step: call
-        praxis: praxis/dokimasia/validate-provenance
+        praxis: manteia/governed-inference
         params:
-          entity_id: "expression/genesis-root"
-        bind_to: provenance_validation
+          prompt: "$full_prompt"
+          system_prompt: "$context.data.role"
+          output_schema: "$context.data.output_schema"
+          evaluate: "$evaluate"
+          criteria:
+            - name: ontological_coherence
+              description: "Does this eidos have a clear ontological purpose?"
+              weight: 1.0
+            - name: field_completeness
+              description: "Are the fields sufficient to represent the concept?"
+              weight: 0.8
+            - name: naming_consistency
+              description: "Does naming follow kosmos conventions?"
+              weight: 0.6
+        bind_to: generated
+
+      # Step 5: Create artifact with generated content
+      - step: compose
+        typos_id: typos-def-artifact
+        inputs:
+          id: "artifact/eidos-$name"
+          title: "Eidos: $name"
+          kind: definition
+          domain: "$domain"
+          content: "$generated.content"
+        bind_to: artifact
+
+      # Step 6: Bond provenance
+      - step: for_each
+        items: "$theoria"
+        as: t
+        steps:
+          - step: bind
+            from: "$artifact.id"
+            to: "$t.id"
+            desmos: informed-by
+
+      # Step 7: Return
+      - step: return
+        value:
+          artifact: "$artifact"
+          generated: "$generated.content"
+          verdict: "$generated.verdict"
+          informed_by: "$theoria | map(.id)"
+
+- eidos: praxis
+  id: praxis/demiurge/generate-praxis
+  data:
+    oikos: demiurge
+    name: generate-praxis
+    visible: true
+    tier: 3  # Requires inference (actuality)
+    description: |
+      Generate a praxis definition using inference-context.
+
+      The whole praxis (name, params, steps) is generated as a coherent unit.
+      Stoicheion schemas inform the generation for valid step construction.
+
+      Returns an artifact containing the generated praxis definition.
+    params:
+      - name: name
+        type: string
+        required: true
+        description: The praxis name (kebab-case)
+      - name: oikos
+        type: string
+        required: true
+        description: Which oikos this praxis belongs to
+      - name: purpose
+        type: string
+        required: true
+        description: What does this praxis accomplish?
+      - name: params_spec
+        type: array
+        required: false
+        description: Optional hints about expected parameters
+      - name: available_stoicheia
+        type: array
+        required: false
+        description: Stoicheia available for use in steps
+      - name: related_eide
+        type: array
+        required: false
+        description: Entity IDs of eide this praxis will work with
+      - name: domain
+        type: string
+        required: false
+        description: Domain to surface theoria from
+      - name: evaluate
+        type: boolean
+        required: false
+        default: true
+        description: Whether to evaluate output against criteria
+    steps:
+      # Step 1: Compose inference context
+      - step: compose
+        typos_id: typos-inference-praxis
+        inputs:
+          name: "$name"
+          oikos: "$oikos"
+          purpose: "$purpose"
+          params_spec: "$params_spec"
+          available_stoicheia: "$available_stoicheia"
+          related_eide: "$related_eide"
+          domain: "$domain"
+        bind_to: context
+
+      # Step 2: Surface domain theoria
+      - step: switch
+        cases:
+          - when: "$domain"
+            then:
+              - step: surface
+                query: "$domain praxis workflow"
+                eidos: theoria
+                limit: 5
+                bind_to: theoria
+        default:
+          - step: set
+            bindings:
+              theoria: []
+
+      # Step 3: Build prompt with theoria
+      - step: set
+        bindings:
+          theoria_context: ""
 
       - step: switch
         cases:
-          - when: "$provenance_validation.valid != true"
+          - when: "$theoria | length > 0"
             then:
-              - step: return
-                value:
-                  success: false
-                  errors: [{layer: "provenance", message: "Genesis root provenance validation failed"}]
-                  message: "Provenance validation failed - cannot emit without valid genesis root"
+              - step: map
+                items: "$theoria"
+                as: t
+                transform: "{{ $t.data.insight }}"
+                bind_to: insights
 
-      # ===========================================
-      # EMIT FILES (unless dry_run)
-      # ===========================================
+              - step: set
+                bindings:
+                  theoria_context: |
+                    Relevant understanding from the kosmos:
+                    {{ $insights | join("\n- ") }}
+
+      - step: set
+        bindings:
+          full_prompt: |
+            {{ $context.data.request }}
+
+            {{ $theoria_context }}
+
+      # Step 4: Call governed inference
+      - step: call
+        praxis: manteia/governed-inference
+        params:
+          prompt: "$full_prompt"
+          system_prompt: "$context.data.role"
+          output_schema: "$context.data.output_schema"
+          evaluate: "$evaluate"
+          criteria:
+            - name: step_validity
+              description: "Do all steps use valid stoicheia?"
+              weight: 1.0
+            - name: workflow_coherence
+              description: "Is the step sequence logical and complete?"
+              weight: 0.9
+            - name: parameter_sufficiency
+              description: "Are parameters sufficient for the operation?"
+              weight: 0.7
+        bind_to: generated
+
+      # Step 5: Create artifact with generated content
+      - step: compose
+        typos_id: typos-def-artifact
+        inputs:
+          id: "artifact/praxis-$oikos-$name"
+          title: "Praxis: $oikos/$name"
+          kind: definition
+          domain: "$domain"
+          content: "$generated.content"
+        bind_to: artifact
+
+      # Step 6: Bond provenance
+      - step: for_each
+        items: "$theoria"
+        as: t
+        steps:
+          - step: bind
+            from: "$artifact.id"
+            to: "$t.id"
+            desmos: informed-by
+
+      # Step 7: Return
+      - step: return
+        value:
+          artifact: "$artifact"
+          generated: "$generated.content"
+          verdict: "$generated.verdict"
+          informed_by: "$theoria | map(.id)"
+
+- eidos: praxis
+  id: praxis/demiurge/generate-desmos
+  data:
+    oikos: demiurge
+    name: generate-desmos
+    visible: true
+    tier: 3  # Requires inference (actuality)
+    description: |
+      Generate a desmos (bond type) definition using inference-context.
+
+      The whole desmos is generated as a coherent unit, considering the
+      eide it connects and its semantic meaning.
+
+      Returns an artifact containing the generated desmos definition.
+    params:
+      - name: name
+        type: string
+        required: true
+        description: The desmos name (kebab-case, verb phrase)
+      - name: purpose
+        type: string
+        required: true
+        description: What relationship does this bond represent?
+      - name: from_eidos
+        type: string
+        required: true
+        description: The eidos this bond originates from
+      - name: to_eidos
+        type: string
+        required: true
+        description: The eidos this bond targets
+      - name: domain
+        type: string
+        required: false
+        description: Domain to surface theoria from
+      - name: evaluate
+        type: boolean
+        required: false
+        default: true
+        description: Whether to evaluate output against criteria
+    steps:
+      # Step 1: Compose inference context
+      - step: compose
+        typos_id: typos-inference-desmos
+        inputs:
+          name: "$name"
+          purpose: "$purpose"
+          from_eidos: "$from_eidos"
+          to_eidos: "$to_eidos"
+          domain: "$domain"
+        bind_to: context
+
+      # Step 2: Surface domain theoria
+      - step: switch
+        cases:
+          - when: "$domain"
+            then:
+              - step: surface
+                query: "$domain relationship bond"
+                eidos: theoria
+                limit: 5
+                bind_to: theoria
+        default:
+          - step: set
+            bindings:
+              theoria: []
+
+      # Step 3: Build prompt with theoria
+      - step: set
+        bindings:
+          theoria_context: ""
 
       - step: switch
         cases:
-          - when: "$dry_run != true"
+          - when: "$theoria | length > 0"
             then:
-              # Emit manifest
-              - step: emit
-                path: "$output_path/manifest.yaml"
-                content: "$manifest_artifact.data.content"
+              - step: map
+                items: "$theoria"
+                as: t
+                transform: "{{ $t.data.insight }}"
+                bind_to: insights
 
-              # Emit entity files
-              - step: for_each
-                in: "$entity_file_contents"
-                as: ef
-                do:
-                  - step: emit
-                    path: "$output_path/$ef.path"
-                    content: "$ef.content"
+              - step: set
+                bindings:
+                  theoria_context: |
+                    Relevant understanding from the kosmos:
+                    {{ $insights | join("\n- ") }}
 
-              # Emit bond file
-              - step: emit
-                path: "$output_path/$bond_file_path"
-                content: "$bond_file_content"
+      - step: set
+        bindings:
+          full_prompt: |
+            {{ $context.data.request }}
 
-      # ===========================================
-      # RETURN RESULT
-      # ===========================================
-      # Note: content_hash was computed before manifest composition
+            {{ $theoria_context }}
+
+      # Step 4: Call governed inference
+      - step: call
+        praxis: manteia/governed-inference
+        params:
+          prompt: "$full_prompt"
+          system_prompt: "$context.data.role"
+          output_schema: "$context.data.output_schema"
+          evaluate: "$evaluate"
+          criteria:
+            - name: semantic_clarity
+              description: "Is the relationship semantically clear?"
+              weight: 1.0
+            - name: cardinality_correctness
+              description: "Is the cardinality appropriate for the relationship?"
+              weight: 0.8
+            - name: naming_convention
+              description: "Does the name follow verb-phrase convention?"
+              weight: 0.6
+        bind_to: generated
+
+      # Step 5: Create artifact with generated content
+      - step: compose
+        typos_id: typos-def-artifact
+        inputs:
+          id: "artifact/desmos-$name"
+          title: "Desmos: $name"
+          kind: definition
+          domain: "$domain"
+          content: "$generated.content"
+        bind_to: artifact
+
+      # Step 6: Bond provenance
+      - step: for_each
+        items: "$theoria"
+        as: t
+        steps:
+          - step: bind
+            from: "$artifact.id"
+            to: "$t.id"
+            desmos: informed-by
+
+      # Step 7: Return
+      - step: return
+        value:
+          artifact: "$artifact"
+          generated: "$generated.content"
+          verdict: "$generated.verdict"
+          informed_by: "$theoria | map(.id)"
+
+- eidos: praxis
+  id: praxis/demiurge/generate-oikos
+  data:
+    oikos: demiurge
+    name: generate-oikos
+    visible: true
+    tier: 3  # Requires inference (actuality)
+    description: |
+      Generate an oikos design using inference-context.
+
+      This is the meta-level: generate the structure of an entire oikos,
+      including what eide, praxeis, and desmoi it should contain.
+
+      Returns a design artifact that can guide subsequent generation
+      of the individual components via generate-eidos, generate-praxis,
+      and generate-desmos.
+    params:
+      - name: name
+        type: string
+        required: true
+        description: The oikos name (lowercase)
+      - name: purpose
+        type: string
+        required: true
+        description: What ontological gap does this oikos address?
+      - name: scale
+        type: string
+        required: false
+        default: oikos
+        description: "Klimax scale: kosmos, polis, oikos, soma, psyche"
+      - name: capabilities
+        type: array
+        required: false
+        description: High-level capabilities this oikos should provide
+      - name: interaction_surfaces
+        type: array
+        required: false
+        description: "Which surfaces to leverage: rendering, reasoning, etc."
+      - name: existing_oikoi
+        type: array
+        required: false
+        description: Related oikoi to consider for dependencies
+      - name: evaluate
+        type: boolean
+        required: false
+        default: true
+        description: Whether to evaluate output against criteria
+    steps:
+      # Step 1: Compose inference context
+      - step: compose
+        typos_id: typos-inference-oikos
+        inputs:
+          name: "$name"
+          purpose: "$purpose"
+          scale: "$scale"
+          capabilities: "$capabilities"
+          interaction_surfaces: "$interaction_surfaces"
+          existing_oikoi: "$existing_oikoi"
+        bind_to: context
+
+      # Step 2: Surface domain theoria
+      - step: surface
+        query: "oikos design architecture capability"
+        eidos: theoria
+        limit: 5
+        bind_to: theoria
+
+      # Step 3: Build prompt with theoria
+      - step: set
+        bindings:
+          theoria_context: ""
+
+      - step: switch
+        cases:
+          - when: "$theoria | length > 0"
+            then:
+              - step: map
+                items: "$theoria"
+                as: t
+                transform: "{{ $t.data.insight }}"
+                bind_to: insights
+
+              - step: set
+                bindings:
+                  theoria_context: |
+                    Relevant understanding from the kosmos:
+                    {{ $insights | join("\n- ") }}
+
+      - step: set
+        bindings:
+          full_prompt: |
+            {{ $context.data.request }}
+
+            {{ $theoria_context }}
+
+      # Step 4: Call governed inference
+      - step: call
+        praxis: manteia/governed-inference
+        params:
+          prompt: "$full_prompt"
+          system_prompt: "$context.data.role"
+          output_schema: "$context.data.output_schema"
+          evaluate: "$evaluate"
+          criteria:
+            - name: ontological_coherence
+              description: "Does this oikos address a clear ontological gap?"
+              weight: 1.0
+            - name: component_completeness
+              description: "Are eide, praxeis, and desmoi sufficiently defined?"
+              weight: 0.9
+            - name: dependency_clarity
+              description: "Are dependencies on other oikoi clear and justified?"
+              weight: 0.7
+            - name: attainment_design
+              description: "Are capabilities properly gated by attainments?"
+              weight: 0.6
+        bind_to: generated
+
+      # Step 5: Create design artifact
+      - step: compose
+        typos_id: typos-def-artifact
+        inputs:
+          id: "artifact/oikos-$name-design"
+          title: "Oikos Design: $name"
+          kind: design
+          domain: "oikos"
+          content: "$generated.content"
+        bind_to: artifact
+
+      # Step 6: Bond provenance
+      - step: for_each
+        items: "$theoria"
+        as: t
+        steps:
+          - step: bind
+            from: "$artifact.id"
+            to: "$t.id"
+            desmos: informed-by
+
+      # Step 7: Return
+      - step: return
+        value:
+          artifact: "$artifact"
+          design: "$generated.content"
+          verdict: "$generated.verdict"
+          informed_by: "$theoria | map(.id)"
+          next_steps:
+            - "Use generate-eidos for each eidos in design.eide"
+            - "Use generate-praxis for each praxis in design.praxeis"
+            - "Use generate-desmos for each desmos in design.desmoi"
+
+- eidos: praxis
+  id: praxis/demiurge/actualize-eidos
+  data:
+    oikos: demiurge
+    name: actualize-eidos
+    visible: true
+    tier: 2
+    description: |
+      Actualize a generated eidos artifact into the kosmos.
+
+      Takes an artifact containing an eidos definition (from generate-eidos)
+      and creates the actual eidos entity in the kosmos.
+
+      This is the bridge from generated content to actual being.
+    params:
+      - name: artifact_id
+        type: string
+        required: true
+        description: ID of the artifact containing the eidos definition
+      - name: oikos_id
+        type: string
+        required: false
+        description: Oikos to bind the eidos to
+    steps:
+      # Step 1: Get the artifact
+      - step: find
+        id: "$artifact_id"
+        bind_to: artifact
+
+      - step: assert
+        condition: "$artifact"
+        message: "Artifact not found: $artifact_id"
+
+      - step: assert
+        condition: "$artifact.data.kind == 'definition'"
+        message: "Artifact is not a definition"
+
+      # Step 2: Extract the eidos definition
+      - step: set
+        bindings:
+          definition: "$artifact.data.content"
+
+      # Step 3: Compose the eidos entity
+      - step: compose
+        typos_id: typos-def-eidos
+        inputs:
+          id: "eidos/$definition.name"
+          name: "$definition.name"
+          description: "$definition.description"
+          constitutional: "$definition.constitutional"
+          fields: "$definition.fields"
+        bind_to: eidos
+
+      # Step 4: Bind to oikos if provided
+      - step: switch
+        cases:
+          - when: "$oikos_id"
+            then:
+              - step: bind
+                from: "$eidos.id"
+                to: "$oikos_id"
+                desmos: belongs-to
+
+      # Step 5: Bond provenance from artifact
+      - step: bind
+        from: "$eidos.id"
+        to: "$artifact_id"
+        desmos: composed-from
+
+      # Step 6: Return
+      - step: return
+        value:
+          eidos: "$eidos"
+          artifact_id: "$artifact_id"
+          actualized: true
+
+- eidos: praxis
+  id: praxis/demiurge/actualize-praxis
+  data:
+    oikos: demiurge
+    name: actualize-praxis
+    visible: true
+    tier: 2
+    description: |
+      Actualize a generated praxis artifact into the kosmos.
+
+      Takes an artifact containing a praxis definition (from generate-praxis)
+      and creates the actual praxis entity in the kosmos.
+    params:
+      - name: artifact_id
+        type: string
+        required: true
+        description: ID of the artifact containing the praxis definition
+    steps:
+      - step: find
+        id: "$artifact_id"
+        bind_to: artifact
+
+      - step: assert
+        condition: "$artifact"
+        message: "Artifact not found: $artifact_id"
+
+      - step: set
+        bindings:
+          definition: "$artifact.data.content"
+
+      - step: compose
+        typos_id: typos-def-praxis
+        inputs:
+          id: "praxis/$definition.oikos/$definition.name"
+          oikos: "$definition.oikos"
+          name: "$definition.name"
+          visible: "$definition.visible"
+          description: "$definition.description"
+          params: "$definition.params"
+          steps: "$definition.steps"
+        bind_to: praxis
+
+      - step: bind
+        from: "$praxis.id"
+        to: "$artifact_id"
+        desmos: composed-from
 
       - step: return
         value:
-          success: true
-          output_path: "$output_path"
-          dry_run: "$dry_run"
-          content_hash: "$content_hash"
-          eidos_count: "length($eidos_names)"
-          entity_files: "$entity_file_paths"
-          bond_file: "$bond_file_path"
+          praxis: "$praxis"
+          artifact_id: "$artifact_id"
+          actualized: true
 
 - eidos: praxis
-  id: praxis/demiurge/bootstrap-single-stream
+  id: praxis/demiurge/actualize-desmos
   data:
     oikos: demiurge
-    name: bootstrap-single-stream
-    visible: false
-    tier: 3
+    name: actualize-desmos
+    visible: true
+    tier: 2
     description: |
-      Bootstrap kosmos from single-stream genesis format.
+      Actualize a generated desmos artifact into the kosmos.
 
-      This is the inverse of emit-single-stream. Reads the manifest,
-      loads entity files, loads bond file, creates all entities and bonds.
-
-      NOTE: This is currently a specification. Actual bootstrap happens
-      in Rust code (crates/kosmos/src/bootstrap.rs). This praxis documents
-      the expected behavior for testing and verification.
-
-      To enable single-stream bootstrap:
-      1. Update bootstrap.rs to detect single-stream format
-      2. Load manifest.yaml
-      3. For each entity file: load entities
-      4. Load bond file: create all bonds
-      5. Verify content hash matches manifest
+      Takes an artifact containing a desmos definition (from generate-desmos)
+      and creates the actual desmos entity in the kosmos.
     params:
-      - name: genesis_path
+      - name: artifact_id
         type: string
         required: true
-        description: Path to genesis directory containing manifest.yaml
+        description: ID of the artifact containing the desmos definition
     steps:
-      # Specification only - actual implementation in Rust
+      - step: find
+        id: "$artifact_id"
+        bind_to: artifact
+
       - step: assert
-        condition: "false"
-        message: "bootstrap-single-stream is not yet implemented in praxis form. Use Rust bootstrap."
+        condition: "$artifact"
+        message: "Artifact not found: $artifact_id"
+
+      - step: set
+        bindings:
+          definition: "$artifact.data.content"
+
+      - step: compose
+        typos_id: typos-def-desmos
+        inputs:
+          id: "desmos/$definition.name"
+          name: "$definition.name"
+          description: "$definition.description"
+          from_eidos: "$definition.from_eidos"
+          to_eidos: "$definition.to_eidos"
+          cardinality: "$definition.cardinality"
+          symmetric: "$definition.symmetric"
+        bind_to: desmos
+
+      - step: bind
+        from: "$desmos.id"
+        to: "$artifact_id"
+        desmos: composed-from
+
+      - step: return
+        value:
+          desmos: "$desmos"
+          artifact_id: "$artifact_id"
+          actualized: true
+
+# =============================================================================
+# GENERATIVE DEVELOPMENT SPIRAL — Actualization & Workflow
+# =============================================================================
+#
+# The master workflow for developing an oikos from specification to actuality.
+# This is the compound leverage pattern — each step informs the next,
+# and provenance accumulates for future learning.
+
+- eidos: praxis
+  id: praxis/demiurge/develop-oikos-from-design
+  data:
+    oikos: demiurge
+    name: develop-oikos-from-design
+    visible: true
+    tier: 3
+    description: |
+      Develop an oikos from an existing DESIGN.md document.
+
+      Takes a design document and generates all components.
+      Use this when you have a detailed design spec ready.
+
+      The design document is parsed to extract structured specs,
+      then each component is generated through the inference-context
+      pipeline with provenance tracking.
+    params:
+      - name: design_content
+        type: string
+        required: true
+        description: The design document content (markdown)
+      - name: oikos_name
+        type: string
+        required: true
+        description: The oikos name
+      - name: actualize
+        type: boolean
+        required: false
+        default: false
+        description: Whether to actualize entities
+    steps:
+      # Parse the design document to extract structured info
+      - step: call
+        praxis: manteia/governed-inference
+        params:
+          prompt: |
+            Parse this oikos design document and extract a structured specification.
+
+            Design document:
+            {{ $design_content }}
+
+            Extract:
+            - purpose: The main purpose/gap this oikos addresses
+            - scale: The klimax scale (kosmos, polis, oikos, soma, psyche)
+            - eide: List of {name, purpose, key_fields, source?} — set source if defined elsewhere
+            - praxeis: List of {name, purpose, params, namespace?} — set namespace if different from oikos
+            - desmoi: List of {name, from, to, purpose, source?} — set source if defined elsewhere
+            - attainments: List of {name, purpose, grants, source?} — set source if defined elsewhere
+            - dependencies: List of other oikoi this depends on
+
+            Important patterns:
+            - If eidos says "(from X)" or "(defined in X)", set source: X
+            - If attainment says "(defined in X)", set source: X
+            - If praxeis are in another namespace, set namespace field
+          output_schema:
+            type: object
+            properties:
+              purpose:
+                type: string
+              scale:
+                type: string
+              eide:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    purpose:
+                      type: string
+                    key_fields:
+                      type: array
+                      items:
+                        type: string
+                    source:
+                      type: string
+                      description: "Oikos that defines this eidos, if external"
+              praxeis:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    purpose:
+                      type: string
+                    params:
+                      type: array
+                      items:
+                        type: string
+                    namespace:
+                      type: string
+                      description: "Override namespace if different from oikos name"
+              desmoi:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    from:
+                      type: string
+                    to:
+                      type: string
+                    purpose:
+                      type: string
+                    source:
+                      type: string
+                      description: "Oikos that defines this desmos, if external"
+              attainments:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    purpose:
+                      type: string
+                    grants:
+                      type: array
+                      items:
+                        type: string
+                    source:
+                      type: string
+                      description: "Oikos that defines this attainment, if external"
+              dependencies:
+                type: array
+                items:
+                  type: string
+            required: [purpose]
+        bind_to: parsed
+
+      # Store the parsed design as an artifact
+      - step: compose
+        typos_id: typos-def-artifact
+        inputs:
+          id: "artifact/oikos-$oikos_name-design"
+          title: "Oikos Design: $oikos_name"
+          kind: design
+          domain: "oikos"
+          content: "$parsed.content"
+        bind_to: design_artifact
+
+      # Now generate each component using the parsed design
+      - step: set
+        bindings:
+          design: "$parsed.content"
+          eidos_artifacts: []
+          praxis_artifacts: []
+          desmos_artifacts: []
+          external_eide: []
+          external_desmoi: []
+
+      # Filter eide: local vs external
+      - step: switch
+        cases:
+          - when: "$design.eide"
+            then:
+              - step: filter
+                items: "$design.eide"
+                condition: "not $item.source"
+                bind_to: local_eide
+              - step: filter
+                items: "$design.eide"
+                condition: "$item.source"
+                bind_to: external_eide
+        default:
+          - step: set
+            bindings:
+              local_eide: []
+
+      # Generate local eide only
+      - step: for_each
+        items: "$local_eide"
+        as: eidos_spec
+        steps:
+          - step: call
+            praxis: demiurge/generate-eidos
+            params:
+              name: "$eidos_spec.name"
+              purpose: "$eidos_spec.purpose"
+              domain: "$oikos_name"
+              field_hints: "$eidos_spec.key_fields"
+            bind_to: result
+
+          - step: append
+            to: eidos_artifacts
+            value: "$result.artifact"
+
+          - step: bind
+            from: "$result.artifact.id"
+            to: "$design_artifact.id"
+            desmos: composed-from
+
+      # Generate praxeis (handle namespace override)
+      - step: switch
+        cases:
+          - when: "$design.praxeis"
+            then:
+              - step: for_each
+                items: "$design.praxeis"
+                as: praxis_spec
+                steps:
+                  - step: set
+                    bindings:
+                      praxis_oikos: "$praxis_spec.namespace or $oikos_name"
+
+                  - step: call
+                    praxis: demiurge/generate-praxis
+                    params:
+                      name: "$praxis_spec.name"
+                      oikos: "$praxis_oikos"
+                      purpose: "$praxis_spec.purpose"
+                      params_spec: "$praxis_spec.params"
+                      domain: "$oikos_name"
+                    bind_to: result
+
+                  - step: append
+                    to: praxis_artifacts
+                    value: "$result.artifact"
+
+                  - step: bind
+                    from: "$result.artifact.id"
+                    to: "$design_artifact.id"
+                    desmos: composed-from
+
+      # Generate desmoi (filter out external)
+      - step: switch
+        cases:
+          - when: "$design.desmoi"
+            then:
+              - step: filter
+                items: "$design.desmoi"
+                condition: "not $item.source"
+                bind_to: local_desmoi
+              - step: filter
+                items: "$design.desmoi"
+                condition: "$item.source"
+                bind_to: external_desmoi
+
+              - step: for_each
+                items: "$local_desmoi"
+                as: desmos_spec
+                steps:
+                  - step: call
+                    praxis: demiurge/generate-desmos
+                    params:
+                      name: "$desmos_spec.name"
+                      purpose: "$desmos_spec.purpose"
+                      from_eidos: "$desmos_spec.from"
+                      to_eidos: "$desmos_spec.to"
+                      domain: "$oikos_name"
+                    bind_to: result
+
+                  - step: append
+                    to: desmos_artifacts
+                    value: "$result.artifact"
+
+                  - step: bind
+                    from: "$result.artifact.id"
+                    to: "$design_artifact.id"
+                    desmos: composed-from
+
+      # Actualize if requested
+      - step: set
+        bindings:
+          actualized: []
+
+      - step: switch
+        cases:
+          - when: "$actualize"
+            then:
+              - step: for_each
+                items: "$eidos_artifacts"
+                as: artifact
+                steps:
+                  - step: call
+                    praxis: demiurge/actualize-eidos
+                    params:
+                      artifact_id: "$artifact.id"
+                      oikos_id: "oikos/$oikos_name"
+                    bind_to: result
+                  - step: append
+                    to: actualized
+                    value: "$result"
+
+              - step: for_each
+                items: "$praxis_artifacts"
+                as: artifact
+                steps:
+                  - step: call
+                    praxis: demiurge/actualize-praxis
+                    params:
+                      artifact_id: "$artifact.id"
+                    bind_to: result
+                  - step: append
+                    to: actualized
+                    value: "$result"
+
+              - step: for_each
+                items: "$desmos_artifacts"
+                as: artifact
+                steps:
+                  - step: call
+                    praxis: demiurge/actualize-desmos
+                    params:
+                      artifact_id: "$artifact.id"
+                    bind_to: result
+                  - step: append
+                    to: actualized
+                    value: "$result"
+
+      - step: return
+        value:
+          oikos_name: "$oikos_name"
+          design_artifact: "$design_artifact"
+          design: "$design"
+          artifacts:
+            eide: "$eidos_artifacts"
+            praxeis: "$praxis_artifacts"
+            desmoi: "$desmos_artifacts"
+          external:
+            eide: "$external_eide"
+            desmoi: "$external_desmoi"
+          actualized: "$actualized"

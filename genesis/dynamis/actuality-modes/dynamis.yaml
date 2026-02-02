@@ -275,6 +275,135 @@ entities:
         required: false
         description: Volume mounts
 
+- eidos: actuality-mode
+  id: actuality-mode/process-nixos
+  data:
+    name: process
+    provider: nixos
+    description: |
+      NixOS module deployment mode.
+
+      Used for deploying services on NixOS systems via declarative configuration.
+      Generates NixOS module configuration and triggers nixos-rebuild.
+      The service runs as a systemd unit managed by NixOS.
+    operations:
+      manifest:
+        stoicheion: nixos-activate
+        params:
+          - module_path
+          - service_name
+          - config
+        returns:
+          status: string
+          generation: number
+        description: Generate NixOS module and rebuild system
+      sense:
+        stoicheion: systemctl-status
+        params:
+          - unit_name
+        returns:
+          running: boolean
+          active_state: string
+          sub_state: string
+          main_pid: number
+        description: Query systemd for service status
+      unmanifest:
+        stoicheion: nixos-deactivate
+        params:
+          - service_name
+          - module_path
+        description: Remove service from NixOS config and rebuild
+    config_schema:
+      module_path:
+        type: string
+        required: true
+        description: Path to write NixOS module (e.g., /etc/nixos/services/kosmos.nix)
+      service_name:
+        type: string
+        required: true
+        description: Service name (used in systemd unit)
+      circle_id:
+        type: string
+        required: true
+        description: Circle this instance serves
+      host:
+        type: string
+        required: false
+        description: Address to bind (default 127.0.0.1)
+      port:
+        type: number
+        required: false
+        description: Port to bind (default 3000)
+      data_dir:
+        type: string
+        required: false
+        description: Data directory (default /var/lib/kosmos)
+
+- eidos: actuality-mode
+  id: actuality-mode/process-systemd
+  data:
+    name: process
+    provider: systemd
+    description: |
+      Direct systemd unit deployment mode.
+
+      Used for deploying services on Linux systems via systemd.
+      Writes unit file and manages service via systemctl.
+      Use for non-NixOS Linux systems.
+    operations:
+      manifest:
+        stoicheion: systemd-enable
+        params:
+          - unit_path
+          - unit_name
+          - unit_content
+        returns:
+          status: string
+          pid: number
+        description: Write systemd unit and enable/start service
+      sense:
+        stoicheion: systemctl-status
+        params:
+          - unit_name
+        returns:
+          running: boolean
+          active_state: string
+          sub_state: string
+          main_pid: number
+        description: Query systemd for service status
+      unmanifest:
+        stoicheion: systemd-disable
+        params:
+          - unit_name
+          - remove_unit
+          - unit_path
+        description: Stop, disable, and optionally remove service
+    config_schema:
+      unit_path:
+        type: string
+        required: true
+        description: Path to write systemd unit (e.g., /etc/systemd/system/kosmos@.service)
+      unit_name:
+        type: string
+        required: true
+        description: Unit name including instance (e.g., kosmos-server@circle-id.service)
+      circle_id:
+        type: string
+        required: true
+        description: Circle this instance serves
+      host:
+        type: string
+        required: false
+        description: Address to bind (default 127.0.0.1)
+      port:
+        type: number
+        required: false
+        description: Port to bind (default 3000)
+      data_dir:
+        type: string
+        required: false
+        description: Data directory (default /var/lib/kosmos)
+
 # =============================================================================
 # DNS MODES
 # =============================================================================

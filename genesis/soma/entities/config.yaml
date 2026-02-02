@@ -1,0 +1,33 @@
+# MCP Bridge Configuration Entity
+# Default values for bridge timing - can be modified at runtime
+#
+# Bridge queries this entity at startup; code defaults used if not found.
+# Modify these values to tune bridge behavior without code changes.
+
+entities:
+
+- eidos: mcp-bridge-config
+  id: config/mcp-bridge
+  data:
+    # Connection Management
+    reconnect_interval_ms: 5000
+    connection_timeout_ms: 10000
+    discovery_timeout_ms: 10000
+
+    # Health Checking
+    health_check_timeout_ms: 2000
+    health_poll_interval_ms: 500
+
+    # HTTP Transport
+    http_request_timeout_ms: 30000
+
+    # Federation
+    federation_timeout_ms: 10000
+    federation_poll_interval_ms: 3000
+
+    # SSE
+    sse_keep_alive_ms: 30000
+    sse_retry_ms: 3000
+
+    # Reconnection Backoff
+    max_backoff_ms: 300000

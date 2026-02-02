@@ -33,6 +33,12 @@ entities:
         type: object
         required: false
         description: "Optional constraints (e.g., rate limits, resource quotas)"
+      grants:
+        type: array
+        required: false
+        description: |
+          List of praxis IDs this attainment grants access to.
+          Used by MCP bridge for runtime-configurable tool visibility.
       created_at:
         type: timestamp
         required: true

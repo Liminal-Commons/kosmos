@@ -200,6 +200,38 @@ Generate proprioceptive snapshot of current state.
 - **Effect:** Body-schema created/updated
 - **Returns:** Current capabilities, channels, mood
 
+### Circle Membership Operations
+
+Circle membership management enables homoiconic circle discovery — the graph IS the configuration for which circles a persona belongs to.
+
+#### join-circle
+Join a circle by creating a member-of bond.
+- **When:** Connecting to a new circle, accepting invitation
+- **Requires:** Circle exists, optionally endpoint URL
+- **Effect:** member-of bond created from persona to circle
+- **Returns:** Circle ID and endpoint for connection
+
+#### leave-circle
+Leave a circle by removing the member-of bond.
+- **When:** Disconnecting from a circle, revoking membership
+- **Requires:** Circle exists
+- **Effect:** member-of bond removed via `loose`
+
+#### list-memberships
+List all circles the current persona is a member of.
+- **When:** MCP bridge discovery, membership inventory
+- **Returns:** Circles with endpoints for homoiconic discovery
+- **Enables:** Graph-based circle discovery instead of external config
+
+**Homoiconic Discovery Pattern:**
+```
+1. Bootstrap: Connect to KOSMOS_HOME
+2. Authenticate as persona
+3. Call soma/list-memberships
+4. Get circles with endpoints
+5. Connect to each discovered circle
+```
+
 ## Attainments
 
 ### attainment/embody

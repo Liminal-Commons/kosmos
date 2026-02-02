@@ -1,0 +1,70 @@
+# Oikos Manifest: Release
+# Artifact lifecycle — the journey from build to user
+#
+# Manifest v2.1 — oikos metadata for entity composition
+
+format_version: "2.1"
+oikos_id: release
+version: "0.1.0"
+
+# Oikos metadata (v2.1)
+oikos_name: Release
+oikos_description: |
+  Artifact lifecycle — the journey from build to user. Release addresses
+  the gap between built artifact and available download. Versioned artifacts,
+  their distribution channels, and the pipeline from git commit to user download.
+oikos_scale: cross-scale
+
+# Development experience metadata
+oikos_category: infrastructure
+surfaces_provided: []   # Release lifecycle is an operation, not a surface
+surfaces_consumed:
+  - computation         # Uses dynamis for substrate capabilities
+  - emission            # Uses thyra/emit for artifact distribution
+
+content_paths:
+  - path: eide/
+    content_types: [eidos]
+  - path: desmoi/
+    content_types: [desmos]
+  - path: praxeis/
+    content_types: [praxis]
+
+requires_dynamis:
+  - db.arise
+  - db.find
+  - db.bind
+  - db.trace
+  - db.gather
+  - db.update
+
+provides:
+  eide:
+    - release
+    - release-artifact
+    - distribution-channel
+
+  attainments:
+    - release           # Create and manage releases
+    - distribute        # Upload to channels
+
+  desmoi:
+    - contains-artifact  # release → release-artifact
+    - distributed-via    # release → distribution-channel
+
+  praxeis:
+    - release/create-release
+    - release/register-artifact
+    - release/mark-built
+    - release/distribute
+    - release/sense-release
+    - release/reconcile-release
+    - release/list-releases
+    - release/get-release
+
+stoicheia_form:
+  # All stoicheia currently arche-level
+
+depends_on:
+  - dynamis     # For substrate capabilities
+  - hypostasis  # For signing releases

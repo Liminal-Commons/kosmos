@@ -1,0 +1,72 @@
+# Generic Declarative Renderers
+#
+# These renderers use render_strategy: declarative and work with
+# any eidos that has an associated render-spec. The chora DeclarativeEngine
+# implements the actual rendering logic.
+#
+# Discovery: renderers claim render-types via accepts_render_types,
+# but declarative renderers are fallbacks when no specific renderer exists.
+
+entities:
+
+# =============================================================================
+# GENERIC DECLARATIVE RENDERERS
+# =============================================================================
+
+- eidos: renderer
+  id: renderer/DeclarativeCard
+  data:
+    name: DeclarativeCard
+    description: |
+      Generic card renderer for any eidos with a render-spec.
+      Falls back to this when no specific core renderer exists.
+      Uses render-spec/{eidos}-card or render-spec/{eidos} convention.
+    render_strategy: declarative
+    substrate: universal
+    # Empty accepts_render_types = generic fallback
+    accepts_render_types: []
+    component_path: DeclarativeEngine
+    created_at: "2025-01-29T00:00:00Z"
+
+- eidos: renderer
+  id: renderer/DeclarativeList
+  data:
+    name: DeclarativeList
+    description: |
+      Generic list renderer using declarative render-specs.
+      Renders multiple entities of the same eidos in a list layout.
+    render_strategy: declarative
+    substrate: universal
+    accepts_render_types: []
+    component_path: DeclarativeEngine
+    created_at: "2025-01-29T00:00:00Z"
+
+- eidos: renderer
+  id: renderer/DeclarativeDetail
+  data:
+    name: DeclarativeDetail
+    description: |
+      Generic detail view renderer using declarative render-specs.
+      Full entity display with all fields.
+    render_strategy: declarative
+    substrate: universal
+    accepts_render_types: []
+    component_path: DeclarativeEngine
+    created_at: "2025-01-29T00:00:00Z"
+
+# =============================================================================
+# FALLBACK RENDERER
+# =============================================================================
+
+- eidos: renderer
+  id: renderer/GenericEntity
+  data:
+    name: GenericEntity
+    description: |
+      Ultimate fallback renderer - displays entity as formatted JSON.
+      Used when no render-spec exists for the eidos.
+    render_strategy: core
+    substrate: universal
+    accepts_render_types: []
+    component_path: GenericEntityViewer
+    created_at: "2025-01-29T00:00:00Z"

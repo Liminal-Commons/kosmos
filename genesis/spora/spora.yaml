@@ -172,6 +172,25 @@ stages:
           data:
             name: theoria
             description: "Crystallized understanding"
+            fields:
+              insight:
+                type: string
+                required: true
+                description: "The crystallized understanding"
+              domain:
+                type: string
+                required: true
+                description: "Knowledge domain this theoria belongs to"
+              status:
+                type: enum
+                values: [provisional, confirmed, superseded]
+                required: true
+                default: provisional
+                description: "Lifecycle status"
+              source:
+                type: string
+                required: false
+                description: "Where this understanding came from (e.g., conversation, observation)"
 
       # principle — commitment adopted
       - compose:
@@ -1236,6 +1255,13 @@ stages:
               public_key:
                 type: string
                 required: true
+              home_circle:
+                type: string
+                required: false
+                description: |
+                  Default circle for this persona.
+                  Used by MCP bridge when KOSMOS_CIRCLE env var not set.
+                  Enables graph-based configuration of dwelling defaults.
 
       # animus — dwelling presence
       - compose:
@@ -1304,6 +1330,13 @@ stages:
               description:
                 type: string
                 required: false
+              endpoint:
+                type: string
+                required: false
+                description: |
+                  HTTP endpoint for this circle's kosmos-server.
+                  Used by MCP bridge for graph-based circle discovery.
+                  Example: "http://127.0.0.1:3000" or "https://commons.liminal.is"
 
   # NOTE: Domain-specific eide (session, channel, etc.) are now loaded from
   # oikos directories. See genesis/*/eide/ for extracted definitions.
@@ -1349,6 +1382,7 @@ stages:
             name: Claude
             kind: ai
             description: "The animus that dwells when Claude connects"
+            home_circle: circle/kosmos
 
       # Root public circle — visible to all
       - compose:
@@ -1374,6 +1408,13 @@ stages:
           from: persona/victor
           to: circle/victor-self
           desmos: member-of
+
+      # Grant mcp-essential attainment to the kosmos circle
+      # This makes it available to all members dwelling in circle/kosmos
+      - bond:
+          from: circle/kosmos
+          to: attainment/mcp-essential
+          desmos: grants-attainment
 
   # ---------------------------------------------------------------------------
   # STAGE 3.5: POLITEIA BOOTSTRAP — foundation attainments and HUD
@@ -1653,6 +1694,12 @@ stages:
           to: attainment/use-anthropic-api
           desmos: grants-attainment
 
+      # Voice-authoring attainment grant
+      - bond:
+          from: circle/kosmos
+          to: attainment/voice-author
+          desmos: grants-attainment
+
       # ------------------------------------
       # Attainment Holdings (genesis animus → attainment)
       # ------------------------------------
@@ -1731,6 +1778,12 @@ stages:
       - bond:
           from: animus/genesis
           to: attainment/use-anthropic-api
+          desmos: has-attainment
+
+      # Voice-authoring attainment holding
+      - bond:
+          from: animus/genesis
+          to: attainment/voice-author
           desmos: has-attainment
 
       # ------------------------------------

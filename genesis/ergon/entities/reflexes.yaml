@@ -1,0 +1,55 @@
+# Ergon Reflexes
+# Autonomic responses for work coordination
+
+entities:
+
+  # =============================================================================
+  # PRAGMA NOTIFICATION REFLEXES
+  # =============================================================================
+
+  - eidos: reflex
+    id: reflex/ergon/pragma-signaled
+    data:
+      name: pragma-signaled
+      description: |
+        Add notification when pragma signals to a circle.
+
+        Creates soma notification entity for circle members to see.
+        This is how cross-circle work items get attention.
+      trigger:
+        event: bond_created
+        desmos: signals-to
+        from_eidos: pragma
+        to_eidos: circle
+      response:
+        praxis: soma/add-notification
+        params:
+          type: pragma_received
+          circle_id: "$to.id"
+          pragma_id: "$from.id"
+          title: "$from.data.title"
+          priority: "$from.data.priority"
+      enabled: true
+      scope: global
+
+  - eidos: reflex
+    id: reflex/ergon/pragma-resolved
+    data:
+      name: pragma-resolved
+      description: |
+        Notify when pragma is resolved.
+
+        Signals back to the originating context that work is complete.
+      trigger:
+        event: entity_updated
+        eidos: pragma
+        condition: '$entity.data.status == "resolved" && $previous.data.status != "resolved"'
+      response:
+        praxis: soma/add-notification
+        params:
+          type: pragma_resolved
+          pragma_id: "$entity.id"
+          title: "$entity.data.title"
+          resolution: "$entity.data.resolution"
+      enabled: true
+      scope: global

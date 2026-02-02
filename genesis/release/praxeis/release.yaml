@@ -1,0 +1,534 @@
+# Release Praxeis — Artifact Lifecycle Operations
+#
+# Versioned releases, artifacts, and distribution channels.
+# Implements the pipeline: draft → building → built → distributing → distributed
+#
+# Traces to: genesis/release/DESIGN.md
+
+entities:
+
+# =============================================================================
+# RELEASE CREATION
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/release/create-release
+  data:
+    oikos: release
+    name: create-release
+    visible: true
+    tier: 2
+    description: |
+      Create a new release entity in draft state.
+
+      Use when starting a new version. Provide the release name (e.g., 'thyra')
+      and version (e.g., '0.1.0'). The release starts in draft status and
+      progresses through the lifecycle as artifacts are registered and distributed.
+    params:
+      - name: release_id
+        type: string
+        required: true
+        description: ID for the release (e.g., release/thyra-0.1.0)
+      - name: name
+        type: string
+        required: true
+        description: Release name (e.g., 'thyra')
+      - name: version
+        type: string
+        required: true
+        description: Semantic version (e.g., '0.1.0')
+      - name: description
+        type: string
+        required: false
+        description: Release notes or description
+      - name: changelog
+        type: string
+        required: false
+        description: What changed in this version
+      - name: build_commit
+        type: string
+        required: false
+        description: Git commit SHA this release is built from
+    steps:
+      - step: compose
+        typos_id: typos-def-release
+        inputs:
+          id: "$release_id"
+          name: "$name"
+          version: "$version"
+          description: "$description"
+          changelog: "$changelog"
+          build_commit: "$build_commit"
+          status: "draft"
+          created_at: "{{ now() }}"
+          created_by: "$_persona"
+        bind_to: release_entity
+
+      - step: return
+        value:
+          release_id: "$release_id"
+          name: "$name"
+          version: "$version"
+          status: "draft"
+
+# =============================================================================
+# ARTIFACT REGISTRATION
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/release/register-artifact
+  data:
+    oikos: release
+    name: register-artifact
+    visible: true
+    tier: 2
+    description: |
+      Register an artifact for a release.
+
+      Use after building a platform binary. Creates a release-artifact entity
+      and bonds it to the parent release via contains-artifact.
+    params:
+      - name: artifact_id
+        type: string
+        required: true
+        description: ID for the artifact (e.g., artifact/thyra-0.1.0-mac-arm64)
+      - name: release_id
+        type: string
+        required: true
+        description: Parent release ID
+      - name: filename
+        type: string
+        required: true
+        description: Artifact filename
+      - name: artifact_type
+        type: string
+        required: true
+        description: "Type: binary, checksum, signature, archive, installer, metadata"
+      - name: platform
+        type: string
+        required: false
+        description: Target platform (e.g., 'mac-arm64')
+      - name: local_path
+        type: string
+        required: false
+        description: Local filesystem path
+      - name: content_hash
+        type: string
+        required: false
+        description: BLAKE3 hash of file contents
+      - name: size_bytes
+        type: integer
+        required: false
+        description: File size in bytes
+    steps:
+      # Verify release exists
+      - step: find
+        id: "$release_id"
+        bind_to: release
+
+      - step: assert
+        condition: "$release"
+        message: "Release not found: $release_id"
+
+      # Create the artifact entity
+      - step: compose
+        typos_id: typos-def-release-artifact
+        inputs:
+          id: "$artifact_id"
+          filename: "$filename"
+          artifact_type: "$artifact_type"
+          platform: "$platform"
+          local_path: "$local_path"
+          content_hash: "$content_hash"
+          size_bytes: "$size_bytes"
+          uploaded: false
+          built_at: "{{ now() }}"
+        bind_to: artifact_entity
+
+      # Bond artifact to release
+      - step: bind
+        from_id: "$release_id"
+        to_id: "$artifact_id"
+        desmos: "contains-artifact"
+
+      - step: return
+        value:
+          artifact_id: "$artifact_id"
+          release_id: "$release_id"
+          filename: "$filename"
+          artifact_type: "$artifact_type"
+
+# =============================================================================
+# LIFECYCLE TRANSITIONS
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/release/mark-built
+  data:
+    oikos: release
+    name: mark-built
+    visible: true
+    tier: 2
+    description: |
+      Transition a release from draft/building to built status.
+
+      Use when all artifacts have been registered and the release
+      is ready for distribution.
+    params:
+      - name: release_id
+        type: string
+        required: true
+        description: ID of the release to mark built
+    steps:
+      - step: find
+        id: "$release_id"
+        bind_to: release
+
+      - step: assert
+        condition: "$release"
+        message: "Release not found: $release_id"
+
+      # Verify release is in valid state for transition
+      - step: assert
+        condition: "$release.data.status == 'draft' || $release.data.status == 'building'"
+        message: "Release must be in draft or building status to mark built"
+
+      - step: update
+        id: "$release_id"
+        data:
+          status: "built"
+          build_timestamp: "{{ now() }}"
+
+      - step: return
+        value:
+          release_id: "$release_id"
+          previous_status: "$release.data.status"
+          new_status: "built"
+
+# =============================================================================
+# DISTRIBUTION
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/release/distribute
+  data:
+    oikos: release
+    name: distribute
+    visible: true
+    tier: 3
+    description: |
+      Distribute a release to specified channels.
+
+      Uploads artifacts to distribution channels and updates release status.
+      This is a tier-3 operation as it manifests artifacts externally.
+    params:
+      - name: release_id
+        type: string
+        required: true
+        description: ID of the release to distribute
+      - name: channel_ids
+        type: array
+        required: true
+        description: Distribution channel IDs to upload to
+    steps:
+      - step: find
+        id: "$release_id"
+        bind_to: release
+
+      - step: assert
+        condition: "$release"
+        message: "Release not found: $release_id"
+
+      - step: assert
+        condition: "$release.data.status == 'built'"
+        message: "Release must be built before distribution"
+
+      # Update status to distributing
+      - step: update
+        id: "$release_id"
+        data:
+          status: "distributing"
+
+      # Get all artifacts for this release
+      - step: trace
+        from_id: "$release_id"
+        desmos: "contains-artifact"
+        direction: "outbound"
+        bind_to: artifacts
+
+      # Bond release to each channel
+      - step: for_each
+        items: "$channel_ids"
+        as: channel_id
+        do:
+          - step: find
+            id: "$channel_id"
+            bind_to: channel
+          - step: assert
+            condition: "$channel"
+            message: "Channel not found: $channel_id"
+          - step: bind
+            from_id: "$release_id"
+            to_id: "$channel_id"
+            desmos: "distributed-via"
+
+      # Mark as distributed
+      - step: update
+        id: "$release_id"
+        data:
+          status: "distributed"
+          distributed_at: "{{ now() }}"
+          distribution_channels: "$channel_ids"
+
+      - step: return
+        value:
+          release_id: "$release_id"
+          status: "distributed"
+          channels: "$channel_ids"
+          artifact_count: "{{ $artifacts | length }}"
+
+# =============================================================================
+# RECONCILIATION (DYNAMIS PATTERN)
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/release/sense-release
+  data:
+    oikos: release
+    name: sense-release
+    visible: true
+    tier: 3
+    description: |
+      Sense the actual state of a distributed release.
+
+      Checks whether artifacts exist at their distribution URLs.
+      Returns actuality record for reconciliation.
+    params:
+      - name: release_id
+        type: string
+        required: true
+        description: ID of the release to sense
+    steps:
+      - step: find
+        id: "$release_id"
+        bind_to: release
+
+      - step: assert
+        condition: "$release"
+        message: "Release not found: $release_id"
+
+      # Get artifacts and channels
+      - step: trace
+        from_id: "$release_id"
+        desmos: "contains-artifact"
+        direction: "outbound"
+        bind_to: artifacts
+
+      - step: trace
+        from_id: "$release_id"
+        desmos: "distributed-via"
+        direction: "outbound"
+        bind_to: channels
+
+      # Return current state for reconciliation
+      - step: return
+        value:
+          release_id: "$release_id"
+          intent_status: "$release.data.status"
+          artifact_count: "{{ $artifacts | length }}"
+          channel_count: "{{ $channels | length }}"
+          sensed_at: "{{ now() }}"
+
+- eidos: praxis
+  id: praxis/release/reconcile-release
+  data:
+    oikos: release
+    name: reconcile-release
+    visible: true
+    tier: 3
+    description: |
+      Compare release intent with actuality and return reconciliation actions.
+
+      Identifies drift between what the release declares and what
+      actually exists at distribution channels.
+    params:
+      - name: release_id
+        type: string
+        required: true
+        description: ID of the release to reconcile
+    steps:
+      - step: find
+        id: "$release_id"
+        bind_to: release
+
+      - step: assert
+        condition: "$release"
+        message: "Release not found: $release_id"
+
+      # Sense current state
+      - step: call
+        praxis: release/sense-release
+        params:
+          release_id: "$release_id"
+        bind_to: sensed_state
+
+      - step: return
+        value:
+          release_id: "$release_id"
+          intent: "$release.data"
+          actuality: "$sensed_state"
+          reconciled_at: "{{ now() }}"
+
+# =============================================================================
+# QUERIES
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/release/list-releases
+  data:
+    oikos: release
+    name: list-releases
+    visible: true
+    tier: 1
+    description: |
+      List all releases, optionally filtered by name or status.
+    params:
+      - name: name
+        type: string
+        required: false
+        description: Filter by release name
+      - name: status
+        type: string
+        required: false
+        description: Filter by status
+    steps:
+      - step: gather
+        eidos: release
+        bind_to: all_releases
+
+      # Filter by name if provided
+      - step: switch
+        cases:
+          - when: "$name"
+            then:
+              - step: filter
+                items: "$all_releases"
+                condition: "$item.data.name == $name"
+                bind_to: all_releases
+
+      # Filter by status if provided
+      - step: switch
+        cases:
+          - when: "$status"
+            then:
+              - step: filter
+                items: "$all_releases"
+                condition: "$item.data.status == $status"
+                bind_to: all_releases
+
+      - step: return
+        value:
+          releases: "$all_releases"
+          count: "{{ $all_releases | length }}"
+
+- eidos: praxis
+  id: praxis/release/get-release
+  data:
+    oikos: release
+    name: get-release
+    visible: true
+    tier: 1
+    description: |
+      Get a release by ID with its artifacts and distribution channels.
+    params:
+      - name: release_id
+        type: string
+        required: true
+        description: ID of the release to get
+    steps:
+      - step: find
+        id: "$release_id"
+        bind_to: release
+
+      - step: assert
+        condition: "$release"
+        message: "Release not found: $release_id"
+
+      # Get related entities
+      - step: trace
+        from_id: "$release_id"
+        desmos: "contains-artifact"
+        direction: "outbound"
+        bind_to: artifacts
+
+      - step: trace
+        from_id: "$release_id"
+        desmos: "distributed-via"
+        direction: "outbound"
+        bind_to: channels
+
+      - step: return
+        value:
+          release: "$release"
+          artifacts: "$artifacts"
+          channels: "$channels"
+
+# =============================================================================
+# BODY-SCHEMA CONTRIBUTION
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/release/sense-releases
+  data:
+    oikos: release
+    name: sense-releases
+    visible: true
+    tier: 1
+    description: |
+      Sense release state for body-schema contribution.
+
+      Returns a summary of release lifecycle activity:
+      - Total releases
+      - Releases by status (draft, building, built, distributing, distributed)
+      - Recent activity
+    params: []
+    steps:
+      - step: gather
+        eidos: release
+        bind_to: all_releases
+
+      # Count by status
+      - step: filter
+        items: "$all_releases"
+        condition: "$item.data.status == 'draft'"
+        bind_to: draft_releases
+
+      - step: filter
+        items: "$all_releases"
+        condition: "$item.data.status == 'building'"
+        bind_to: building_releases
+
+      - step: filter
+        items: "$all_releases"
+        condition: "$item.data.status == 'built'"
+        bind_to: built_releases
+
+      - step: filter
+        items: "$all_releases"
+        condition: "$item.data.status == 'distributing'"
+        bind_to: distributing_releases
+
+      - step: filter
+        items: "$all_releases"
+        condition: "$item.data.status == 'distributed'"
+        bind_to: distributed_releases
+
+      - step: return
+        value:
+          total_count: "{{ $all_releases | length }}"
+          draft_count: "{{ $draft_releases | length }}"
+          building_count: "{{ $building_releases | length }}"
+          built_count: "{{ $built_releases | length }}"
+          distributing_count: "{{ $distributing_releases | length }}"
+          distributed_count: "{{ $distributed_releases | length }}"
+          has_pending_work: "{{ $building_releases | length > 0 || $distributing_releases | length > 0 }}"

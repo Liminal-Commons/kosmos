@@ -1,0 +1,28 @@
+# Aither Reflexes
+# Autonomic responses for federation sync message processing
+
+entities:
+
+  # =============================================================================
+  # FEDERATION SYNC REFLEXES
+  # =============================================================================
+
+  - eidos: reflex
+    id: reflex/aither/sync-message-received
+    data:
+      name: sync-message-received
+      description: |
+        Process federation sync message when it arrives.
+
+        When a sync-message entity is created (message received via WebRTC),
+        this reflex triggers processing. Replaces poll_channels() interval
+        with event-driven message handling.
+      trigger:
+        event: entity_created
+        eidos: sync-message
+      response:
+        praxis: aither/process-sync-message
+        params:
+          message_id: "$entity.id"
+      enabled: true
+      scope: global

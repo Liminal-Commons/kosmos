@@ -16,6 +16,13 @@ oikos_description: |
   Phaser.js for spatial rendering and LiveKit for real-time audio/video.
 oikos_scale: oikos
 
+# Development experience metadata
+oikos_category: domain
+surfaces_provided: []   # Domain-specific spatial gathering
+surfaces_consumed:
+  - rendering           # Uses opsis for territory rendering
+  - transport           # Uses aither for WebRTC signaling
+
 content_paths:
   - path: eide/
     content_types: [eidos]
@@ -23,6 +30,8 @@ content_paths:
     content_types: [desmos]
   - path: praxeis/
     content_types: [praxis]
+  - path: entities/
+    content_types: [render-spec]
 
 description: |
   The agora (ἀγορά) is where members of a circle gather — 2D spatial territories
@@ -45,6 +54,17 @@ provides:
     - presence            # An animus present in a territory
     - livekit-server      # Real-time communication infrastructure
     - room                # A LiveKit room for audio/video
+
+  # Oikos-centric rendering: agora owns presentation for spatial gathering entities
+  renderable:
+    - eidos: territory
+      description: "Spatial territory cards and list items"
+    - eidos: presence
+      description: "Avatar and presence state display"
+    - eidos: livekit-server
+      description: "Infrastructure status cards"
+    - eidos: room
+      description: "Communication room cards"
 
   desmoi:
     - hosts-territory        # circle → territory

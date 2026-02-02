@@ -55,7 +55,7 @@ data:
   - cases:
     - then:
       - bindings:
-          cached_response: $cached[0].data.response
+          cached_response: $cached.0.data.response
         step: set
       - step: return
         value:

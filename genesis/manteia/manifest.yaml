@@ -15,9 +15,17 @@ oikos_description: |
   from stoicheion eide.
 oikos_scale: cross-scale
 
+# Development experience metadata
+oikos_category: interface
+surfaces_provided:
+  - reasoning    # Provides governed-inference for other oikoi
+surfaces_consumed: []  # Manteia is the interface, doesn't consume other surfaces
+
 content_paths:
   - path: eide/
     content_types: [eidos]
+  - path: desmoi/
+    content_types: [desmos]
   - path: praxeis/
     content_types: [praxis]
 
@@ -35,8 +43,8 @@ description: |
   - Schema introspection (query stoicheion schemas)
 klimax_level: 3
 depends_on:
-  - nous
-  - stoicheia-portable
+  - stoicheia-portable  # Uses stoicheion schemas for constrained generation
+  # Note: nous removed (manteia doesn't call nous praxeis)
 
 requires_dynamis:
   - db.find
@@ -48,6 +56,11 @@ provides:
     - governed-envelope
     - evaluation-criterion
     - criterion-result
+
+  desmoi:
+    - generated-by
+    - evaluated-against
+    - constrained-to
 
   attainments:
     - manteia           # Core governed inference (schema-constrained generation)

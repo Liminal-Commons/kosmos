@@ -170,6 +170,70 @@ entities:
           description: "Variable to bind hash to"
 
   # =============================================================================
+  # Tier 1: Cursor/Observation Operations
+  # =============================================================================
+
+  - eidos: eidos
+    id: eidos/stoicheion/get_cursor
+    data:
+      name: get_cursor
+      description: "Get observation cursor for a persona's view of a circle"
+      tier: 1
+      fields:
+        persona_id:
+          type: string
+          required: true
+          description: "Persona ID"
+        circle_id:
+          type: string
+          required: true
+          description: "Circle ID"
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind cursor version to"
+
+  - eidos: eidos
+    id: eidos/stoicheion/get_notifications
+    data:
+      name: get_notifications
+      description: "Get notification counts for all circles a persona can see"
+      tier: 1
+      fields:
+        persona_id:
+          type: string
+          required: true
+          description: "Persona ID"
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind notification list to"
+
+  - eidos: eidos
+    id: eidos/stoicheion/gather_since
+    data:
+      name: gather_since
+      description: "Gather entities in a circle that changed since a version"
+      tier: 1
+      fields:
+        circle_id:
+          type: string
+          required: true
+          description: "Circle ID"
+        since_version:
+          type: integer
+          required: true
+          description: "Version to compare against"
+        limit:
+          type: integer
+          required: false
+          description: "Maximum entities to return"
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind entities to"
+
+  # =============================================================================
   # Tier 1: Collection Operations
   # =============================================================================
 
@@ -376,6 +440,26 @@ entities:
           type: string
           required: false
           description: "Variable to bind updated entity to"
+
+  - eidos: eidos
+    id: eidos/stoicheion/update_cursor
+    data:
+      name: update_cursor
+      description: "Update observation cursor to current version"
+      tier: 2
+      fields:
+        persona_id:
+          type: string
+          required: true
+          description: "Persona ID"
+        circle_id:
+          type: string
+          required: true
+          description: "Circle ID"
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind new cursor version to"
 
   - eidos: eidos
     id: eidos/stoicheion/dissolve
@@ -949,3 +1033,249 @@ entities:
           type: string
           required: false
           description: "Variable to bind installation result to"
+
+  # =============================================================================
+  # Tier 3: Process Actuality Operations
+  # =============================================================================
+
+  - eidos: eidos
+    id: eidos/stoicheion/spawn-process
+    data:
+      name: spawn-process
+      tier: 3
+      description: |
+        Spawn a background process.
+
+        Used by process actuality mode to manifest deployments.
+        Returns PID and initial status.
+      fields:
+        command:
+          type: string
+          required: true
+          description: "Command to execute"
+        args:
+          type: array
+          required: false
+          description: "Command arguments"
+        env:
+          type: object
+          required: false
+          description: "Environment variables"
+        working_dir:
+          type: string
+          required: false
+          description: "Working directory for the process"
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind result to (pid, status)"
+
+  - eidos: eidos
+    id: eidos/stoicheion/check-process
+    data:
+      name: check-process
+      tier: 3
+      description: |
+        Check if a process is running.
+
+        Used by process actuality mode to sense deployment state.
+      fields:
+        pid:
+          type: integer
+          required: true
+          description: "Process ID to check"
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind result to (running, exit_code, cpu_usage, memory_usage)"
+
+  - eidos: eidos
+    id: eidos/stoicheion/kill-process
+    data:
+      name: kill-process
+      tier: 3
+      description: |
+        Terminate a process.
+
+        Used by process actuality mode to unmanifest deployments.
+      fields:
+        pid:
+          type: integer
+          required: true
+          description: "Process ID to kill"
+        signal:
+          type: integer
+          required: false
+          default: 15
+          description: "Signal to send (default SIGTERM/15)"
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind result to (success)"
+
+  # =============================================================================
+  # Tier 3: MCP Registration Operations
+  # =============================================================================
+
+  - eidos: eidos
+    id: eidos/stoicheion/register-mcp-tool
+    data:
+      name: register-mcp-tool
+      tier: 3
+      description: |
+        Dynamically register a praxis as an MCP tool.
+
+        Used by oikos development for testing praxeis without emission.
+        Enables live development workflow where praxeis appear as
+        MCP tools immediately upon composition.
+      fields:
+        praxis_id:
+          type: string
+          required: true
+          description: "Praxis ID to register as tool"
+        prefix:
+          type: string
+          required: false
+          default: "dev"
+          description: "Tool name prefix (default 'dev')"
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind result to (tool_name, success)"
+
+  # =============================================================================
+  # Tier 3: NixOS Actuality Operations
+  # =============================================================================
+
+  - eidos: eidos
+    id: eidos/stoicheion/nixos-activate
+    data:
+      name: nixos-activate
+      tier: 3
+      description: |
+        Generate NixOS module and activate via nixos-rebuild.
+
+        Used by process/nixos actuality mode to manifest deployments.
+        Writes configuration to module_path and runs nixos-rebuild switch.
+      fields:
+        module_path:
+          type: string
+          required: true
+          description: "Path to write NixOS module configuration"
+        service_name:
+          type: string
+          required: true
+          description: "systemd service name (used in NixOS config)"
+        config:
+          type: object
+          required: true
+          description: "Service configuration (host, port, circle_id, etc.)"
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind result to (status, generation)"
+
+  - eidos: eidos
+    id: eidos/stoicheion/nixos-deactivate
+    data:
+      name: nixos-deactivate
+      tier: 3
+      description: |
+        Remove service from NixOS configuration and rebuild.
+
+        Used by process/nixos actuality mode to unmanifest deployments.
+        Sets enable = false and runs nixos-rebuild switch.
+      fields:
+        service_name:
+          type: string
+          required: true
+          description: "Service to deactivate"
+        module_path:
+          type: string
+          required: false
+          description: "Path to module file (for removal)"
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind result to (status)"
+
+  # =============================================================================
+  # Tier 3: systemd Actuality Operations
+  # =============================================================================
+
+  - eidos: eidos
+    id: eidos/stoicheion/systemd-enable
+    data:
+      name: systemd-enable
+      tier: 3
+      description: |
+        Write systemd unit file and enable/start the service.
+
+        Used by process/systemd actuality mode to manifest deployments.
+        Writes unit to unit_path, runs daemon-reload, then enable --now.
+      fields:
+        unit_path:
+          type: string
+          required: true
+          description: "Path to write systemd unit file (e.g., /etc/systemd/system/kosmos@.service)"
+        unit_name:
+          type: string
+          required: true
+          description: "Unit name to enable (e.g., kosmos-server@circle-id)"
+        unit_content:
+          type: string
+          required: true
+          description: "Complete systemd unit file content"
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind result to (status, pid)"
+
+  - eidos: eidos
+    id: eidos/stoicheion/systemd-disable
+    data:
+      name: systemd-disable
+      tier: 3
+      description: |
+        Stop and disable systemd service.
+
+        Used by process/systemd actuality mode to unmanifest deployments.
+        Runs systemctl stop, systemctl disable, optionally removes unit file.
+      fields:
+        unit_name:
+          type: string
+          required: true
+          description: "Unit name to disable"
+        remove_unit:
+          type: boolean
+          required: false
+          default: false
+          description: "Whether to remove the unit file after disabling"
+        unit_path:
+          type: string
+          required: false
+          description: "Path to unit file (required if remove_unit is true)"
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind result to (status)"
+
+  - eidos: eidos
+    id: eidos/stoicheion/systemctl-status
+    data:
+      name: systemctl-status
+      tier: 3
+      description: |
+        Query systemd for unit status.
+
+        Used by process/systemd and process/nixos actuality modes for sensing.
+        Parses systemctl show output to determine running state.
+      fields:
+        unit_name:
+          type: string
+          required: true
+          description: "Unit name to query"
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind result to (running, active_state, sub_state, main_pid)"

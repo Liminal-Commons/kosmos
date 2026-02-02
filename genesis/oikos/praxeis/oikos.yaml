@@ -561,12 +561,12 @@ entities:
       # Extract major, minor, patch (handling pre-release suffixes)
       - step: set
         bindings:
-          a_major: "{{ parseInt($a_parts[0]) || 0 }}"
-          a_minor: "{{ parseInt($a_parts[1]) || 0 }}"
-          a_patch_raw: "{{ $a_parts[2] || '0' }}"
-          b_major: "{{ parseInt($b_parts[0]) || 0 }}"
-          b_minor: "{{ parseInt($b_parts[1]) || 0 }}"
-          b_patch_raw: "{{ $b_parts[2] || '0' }}"
+          a_major: "{{ parseInt($a_parts.0) || 0 }}"
+          a_minor: "{{ parseInt($a_parts.1) || 0 }}"
+          a_patch_raw: "{{ $a_parts.2 || '0' }}"
+          b_major: "{{ parseInt($b_parts.0) || 0 }}"
+          b_minor: "{{ parseInt($b_parts.1) || 0 }}"
+          b_patch_raw: "{{ $b_parts.2 || '0' }}"
 
       # Strip pre-release suffix from patch
       - step: set

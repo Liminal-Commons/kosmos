@@ -18,6 +18,11 @@ oikos_description: |
   translates to "being able to do things."
 oikos_scale: polis
 
+# Development experience metadata
+oikos_category: domain
+surfaces_provided: []   # Politeia is foundational governance, not an interaction surface
+surfaces_consumed: []   # No external surfaces consumed
+
 # =============================================================================
 # CONTENT PATHS — Where this oikos sources content from
 # =============================================================================
@@ -31,6 +36,8 @@ content_paths:
     content_types: [desmos]
   - path: praxeis/
     content_types: [praxis]
+  - path: entities/
+    content_types: [render-spec, attainment]
 
 requires_dynamis:
   - db.arise
@@ -50,6 +57,11 @@ provides:
     - hud-region
     - invitation
     - membership-event
+
+  # Oikos-centric rendering: politeia owns presentation for governance entities
+  renderable:
+    - eidos: circle
+      description: "Trust boundary cards and list items"
 
   attainments:
     - govern              # Create circles, manage attainments

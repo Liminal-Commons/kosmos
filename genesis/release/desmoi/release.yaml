@@ -1,0 +1,36 @@
+# Release Desmoi — Artifact Lifecycle Bond Types
+#
+# Traces to: genesis/release/DESIGN.md
+
+entities:
+  # contains-artifact — release contains release-artifact
+  - eidos: desmos
+    id: desmos/contains-artifact
+    data:
+      name: contains-artifact
+      description: |
+        Release contains artifacts.
+
+        A release entity bonds to the release-artifact entities that comprise it.
+        Each artifact (binary, checksum, signature) is linked to its parent release.
+        Traversing this bond answers: "What files are in this release?"
+      from_eidos: release
+      to_eidos: release-artifact
+      cardinality: one-to-many
+      symmetric: false
+
+  # distributed-via — release distributed through channel
+  - eidos: desmos
+    id: desmos/distributed-via
+    data:
+      name: distributed-via
+      description: |
+        Release distributed through channel.
+
+        A release entity bonds to the distribution-channel entities where it's available.
+        Multiple channels can distribute the same release (R2, GitHub, Homebrew).
+        Traversing this bond answers: "Where can users download this release?"
+      from_eidos: release
+      to_eidos: distribution-channel
+      cardinality: many-to-many
+      symmetric: false

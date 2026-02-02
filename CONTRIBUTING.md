@@ -23,11 +23,14 @@ kosmos/genesis/  →  symlink  →  chora/genesis/  →  bootstrap  →  runtime
 
 | Change Type | Repository | Location |
 |-------------|------------|----------|
-| New eidos definition | **kosmos** | `genesis/[oikos]/eide/` |
-| New desmos definition | **kosmos** | `genesis/[oikos]/desmoi/` |
-| New praxis | **kosmos** | `genesis/[oikos]/praxeis/` |
+| **New oikos** | **kosmos** | `genesis/{oikos}/` (see "How to Create an Oikos") |
+| New eidos definition | **kosmos** | `genesis/{oikos}/eide/{oikos}.yaml` |
+| New attainment | **kosmos** | `genesis/{oikos}/eide/{oikos}.yaml` (with eide) |
+| New desmos definition | **kosmos** | `genesis/{oikos}/desmoi/{oikos}.yaml` |
+| New praxis | **kosmos** | `genesis/{oikos}/praxeis/{oikos}.yaml` |
 | New stoicheion schema | **kosmos** | `genesis/stoicheia-portable/eide/stoicheion.yaml` |
-| Design document | **kosmos** | `genesis/[oikos]/DESIGN.md` |
+| Oikos manifest | **kosmos** | `genesis/{oikos}/manifest.yaml` |
+| Design document | **kosmos** | `genesis/{oikos}/DESIGN.md` |
 | Constitutional document | **kosmos** | `KOSMOGONIA.md`, `ARCHITECTURE.md`, etc. |
 | Interpreter bug fix | **chora** | `crates/kosmos/src/` |
 | Step implementation | **chora** | `crates/kosmos/src/interpreter/steps.rs` |
@@ -130,18 +133,30 @@ A composed action made of steps. Each step invokes a stoicheion. A praxis's tier
 
 ### Oikos (οἶκος) — Domain
 
-A coherent capability region. The kosmos is organized into oikoi:
+A coherent capability region addressing a specific ontological gap. The kosmos is organized into 20 oikoi:
 
-| Oikos | Purpose |
-|-------|---------|
-| **nous** | The mind — thinking, understanding, theoria |
-| **soma** | The body — sensing, channels, embodiment |
-| **thyra** | The portal — streams, expressions, emission |
-| **demiurge** | The craftsman — artifact composition |
-| **politeia** | Governance — circles, attainments |
-| **manteia** | Oracle — governed inference |
-| **psyche** | The soul — attention, intention |
-| **aither** | The ether — WebRTC channels, signaling |
+| Oikos | Greek | Purpose |
+|-------|-------|---------|
+| **hypostasis** | ὑπόστασις | Identity — cryptographic keys, personas |
+| **politeia** | πολιτεία | Governance — circles, attainments, membership |
+| **soma** | σῶμα | Body — embodiment, channels, presence |
+| **nous** | νοῦς | Mind — theoria, journeys, understanding |
+| **demiurge** | δημιουργός | Craftsman — composition, artifacts |
+| **manteia** | μαντεία | Oracle — governed inference, generation |
+| **oikos** | οἶκος | Dwelling — sessions, notes, personal knowledge |
+| **ekdosis** | ἔκδοσις | Publication — content releases, signing |
+| **dynamis** | δύναμις | Power — intent/actuality reconciliation |
+| **propylon** | πρόπυλον | Gateway — entry, authentication |
+| **thyra** | θύρα | Door — streams, expression, emission |
+| **ergon** | ἔργον | Work — cross-circle coordination (pragma) |
+| **aither** | αἰθήρ | Ether — P2P network, WebRTC |
+| **agora** | ἀγορά | Gathering — spatial presence, meetings |
+| **dokimasia** | δοκιμασία | Testing — validation before realization |
+| **hodos** | ὁδός | Way — navigation through journeys |
+| **opsis** | ὄψις | Sight — visual rendering, appearance |
+| **release** | — | Distribution — artifact lifecycle |
+| **credentials** | — | Access — external service credentials |
+| **dns** | — | Naming — DNS infrastructure (thyra sub-module) |
 
 ### Dwelling Context
 
@@ -290,6 +305,394 @@ impl MyStepStep {
 
 ---
 
+## How to Create an Oikos
+
+An oikos is a coherent capability region addressing a specific **ontological gap** — what becomes possible that wasn't before?
+
+### When to Create a New Oikos
+
+Ask: *Does this address a genuinely distinct gap, or is it the same gap viewed differently?*
+
+**Create a new oikos when:**
+- The gap is ontologically distinct (e.g., "here ↔ there" is different from "ignorance ↔ understanding")
+- The eide are genuinely different entity types, not variations
+- The attainments grant distinct capabilities
+
+**Don't create a new oikos when:**
+- It's a method within an existing domain (synthesis is a method of understanding → belongs in nous)
+- It's the dynamis pattern applied to an existing domain (connection state → belongs in aither)
+
+### Oikos Directory Structure
+
+```
+genesis/{oikos}/
+├── DESIGN.md           # Ontological purpose, circle context, completeness
+├── manifest.yaml       # v2.1 format declaring what the oikos provides
+├── eide/
+│   └── {oikos}.yaml    # Entity types + attainments
+├── desmoi/
+│   └── {oikos}.yaml    # Bond types (if any)
+└── praxeis/
+    └── {oikos}.yaml    # Operations
+```
+
+### Step 1: Write the DESIGN.md
+
+Every oikos needs a design document explaining its purpose. Follow this template:
+
+```markdown
+# {Oikos} Design
+
+{Greek} ({transliteration}) — {meaning}
+
+## Ontological Purpose
+
+What gap in being does this oikos address?
+What becomes possible that wasn't before?
+
+## Circle Context
+
+### Self Circle
+How does a solitary dweller use this?
+
+### Peer Circle
+How do collaborators use this together?
+
+### Commons Circle
+How does this serve a community?
+
+## Core Entities (Eide)
+
+### {eidos-name}
+- Fields and their purpose
+- Lifecycle (how instances arise, change, depart)
+
+## Bonds (Desmoi)
+
+### {desmos-name}
+- from/to eidos
+- Cardinality
+- Traversal semantics
+
+## Operations (Praxeis)
+
+### {praxis-name}
+- What it does
+- When to use it
+- What it requires (attainments, context)
+
+## Attainments
+
+### attainment/{name}
+- What capability it grants
+- Which praxeis it gates
+- Scope (soma, circle, animus)
+
+## Embodiment
+
+### Completeness Status
+| Level | Status |
+|-------|--------|
+| Defined | ⏳/✅ |
+| Loaded | ⏳/✅ |
+| Projected | ⏳/✅ |
+| Embodied | ⏳/✅ |
+| Surfaced | ⏳/✅ |
+| Afforded | ⏳/✅ |
+
+## Compound Leverage
+
+How does this oikos amplify other oikoi?
+```
+
+### Step 2: Write the Manifest (v2.1 Format)
+
+The manifest declares what the oikos provides:
+
+```yaml
+# Manifest v2.1 format
+format_version: "2.1"
+oikos_id: {oikos}
+version: "0.1.0"
+
+oikos_name: {Name}
+oikos_description: |
+  {Greek} ({transliteration}) — {meaning}
+
+  What gap this oikos addresses.
+  Why it's distinct from other oikoi.
+
+oikos_scale: {soma|circle|animus|cross-scale}
+
+content_paths:
+  - path: eide/
+    content_types: [eidos, attainment]
+  - path: desmoi/
+    content_types: [desmos]
+  - path: praxeis/
+    content_types: [praxis]
+
+depends_on:
+  - {other-oikos}    # Oikoi this one requires
+
+requires_dynamis:
+  - db.find
+  - db.arise
+  - db.bind
+  # ... dynamis capabilities needed
+
+provides:
+  eide:
+    - {eidos-name}
+    - {eidos-name}
+
+  attainments:
+    - {attainment-name}
+
+  desmoi:
+    - {desmos-name}    # Only if this oikos defines bonds
+
+  praxeis:
+    - {oikos}/{praxis-name}
+    - {oikos}/{praxis-name}
+```
+
+### Step 3: Define Eide and Attainments
+
+In `genesis/{oikos}/eide/{oikos}.yaml`:
+
+```yaml
+entities:
+  # Entity type definition
+  - eidos: eidos
+    id: eidos/{entity-name}
+    data:
+      name: {entity-name}
+      description: |
+        What this entity type represents.
+      fields:
+        field_name:
+          type: string|integer|boolean|timestamp|enum|array|object
+          required: true|false
+          default: {value}           # Optional
+          enum: [value1, value2]     # For enum type
+          description: "What this field is"
+      actuality:                     # Optional: for entities with external state
+        mode: {actuality-mode}
+
+  # Attainment definition (in same file)
+  - eidos: attainment
+    id: attainment/{name}
+    data:
+      name: {name}
+      description: |
+        What capability this attainment grants.
+      oikos: {oikos}
+      scope: soma|circle|animus
+      grants:
+        - praxis/{oikos}/{praxis-name}
+        - praxis/{oikos}/{praxis-name}
+```
+
+**Attainment scopes:**
+- `soma` — substrate-local (network interfaces, file system)
+- `circle` — shared within a circle (governance, shared data)
+- `animus` — personal to the dwelling presence (navigation state)
+
+---
+
+## How to Define Desmoi
+
+Desmoi (bonds) define typed relationships between entities. Not all oikoi need desmoi — only define them if your oikos introduces new relationship types.
+
+### When to Define Desmoi
+
+- Your entities have relationships that don't exist in other oikoi
+- The relationship has specific semantics (cardinality, traversal meaning)
+- You need to query/traverse these relationships
+
+### Desmos Format
+
+In `genesis/{oikos}/desmoi/{oikos}.yaml`:
+
+```yaml
+# Bond type definitions
+- id: {desmos-name}
+  description: |
+    What this bond represents.
+    When it's created and what it means for traversal.
+  from_eidos: [{source-eidos}, ...]
+  to_eidos: [{target-eidos}, ...]
+  cardinality: one-to-one|one-to-many|many-to-one|many-to-many
+
+- id: {another-desmos}
+  description: |
+    Another bond type.
+  from_eidos: [any]        # 'any' means any eidos can be source
+  to_eidos: [{target}]
+  cardinality: many-to-one
+```
+
+### Example: ergon Desmoi
+
+```yaml
+- id: signals-to
+  description: |
+    Pragma signals to a circle for attention.
+    The target circle is where the capability exists to resolve it.
+  from_eidos: [pragma]
+  to_eidos: [circle]
+  cardinality: many-to-one
+
+- id: evidenced-by
+  description: |
+    Pragma is evidenced by an entity — the thing that demonstrates the gap.
+  from_eidos: [pragma]
+  to_eidos: [any]
+  cardinality: many-to-many
+
+- id: blocks
+  description: |
+    Pragma blocks another pragma — dependency relationship.
+  from_eidos: [pragma]
+  to_eidos: [pragma]
+  cardinality: many-to-many
+
+- id: resolves
+  description: |
+    Entity resolves a pragma — the fix that addressed it.
+  from_eidos: [any]
+  to_eidos: [pragma]
+  cardinality: many-to-one
+```
+
+### Using Bonds in Praxeis
+
+Create bonds with `bind` step:
+```yaml
+- step: bind
+  from_id: "$pragma_id"
+  to_id: "$circle_id"
+  desmos: "signals-to"
+```
+
+Query bonds with `trace` step:
+```yaml
+- step: trace
+  to_id: "$circle_id"
+  desmos: "signals-to"
+  direction: "inbound"
+  bind_to: all_pragma
+```
+
+---
+
+## How to Define Attainments
+
+Attainments gate capabilities. They're defined alongside eide in the same file.
+
+### Attainment Structure
+
+```yaml
+- eidos: attainment
+  id: attainment/{name}
+  data:
+    name: {name}
+    description: |
+      What capability this attainment grants.
+      Who should have it and why.
+    oikos: {oikos}           # Which oikos this belongs to
+    scope: soma|circle|animus
+    grants:
+      - praxis/{oikos}/{praxis-1}
+      - praxis/{oikos}/{praxis-2}
+```
+
+### Scope Guidelines
+
+| Scope | Meaning | Example |
+|-------|---------|---------|
+| `soma` | Substrate-local operations | Network connections, file I/O |
+| `circle` | Shared within circle | Governance, shared data |
+| `animus` | Personal to dwelling presence | Navigation state, workspace |
+
+### Example: Multiple Attainments
+
+```yaml
+# From release/eide/release.yaml
+- eidos: attainment
+  id: attainment/release
+  data:
+    name: release
+    description: |
+      Release management — creating and tracking releases.
+    oikos: release
+    scope: circle
+    grants:
+      - praxis/release/create-release
+      - praxis/release/register-artifact
+      - praxis/release/mark-built
+      - praxis/release/list-releases
+      - praxis/release/get-release
+
+- eidos: attainment
+  id: attainment/distribute
+  data:
+    name: distribute
+    description: |
+      Distribution capability — uploading to channels.
+      Tier-3 operations that manifest artifacts externally.
+    oikos: release
+    scope: circle
+    grants:
+      - praxis/release/distribute
+      - praxis/release/sense-release
+      - praxis/release/reconcile-release
+```
+
+---
+
+## Oikos Completeness Levels
+
+An oikos progresses through levels of aliveness:
+
+| Level | What It Means | How to Verify |
+|-------|---------------|---------------|
+| **Defined** | Eide, desmoi, praxeis exist in YAML | Files exist, manifest declares them |
+| **Loaded** | Bootstrap loads into kosmos.db | `cargo run -p kosmos-mcp` succeeds |
+| **Projected** | MCP projects praxeis as tools | Tools appear in MCP client |
+| **Embodied** | Body-schema reflects capabilities | `sense-body` shows attainments |
+| **Surfaced** | Reconciler notices relevant actions | Opportunities appear in context |
+| **Afforded** | Thyra UI presents contextual actions | UI shows affordances |
+
+### Defined Level Checklist
+
+For an oikos to be "Defined complete":
+
+- [ ] `DESIGN.md` exists and follows template
+- [ ] `manifest.yaml` exists in v2.1 format
+- [ ] `manifest.yaml` declares all eide, attainments, desmoi, praxeis
+- [ ] `eide/{oikos}.yaml` defines all declared eide
+- [ ] `eide/{oikos}.yaml` defines all declared attainments with scope + grants
+- [ ] `desmoi/{oikos}.yaml` defines all declared desmoi (if any declared)
+- [ ] `praxeis/{oikos}.yaml` defines all declared praxeis
+
+**Design complete** = manifest declares what the oikos provides
+**Implementation complete** = YAML files implement what's declared
+
+### Verifying Completeness
+
+```bash
+# Check if bootstrap loads the oikos
+cd chora
+cargo run -p kosmos-mcp
+
+# In MCP client, test a praxis
+{oikos}_{praxis-name} with params...
+```
+
+---
+
 ## The Three Development Pillars
 
 Every contribution must align with:
@@ -323,6 +726,26 @@ Every contribution must align with:
 
 **Wrong**: `useState` for data that should live in kosmos
 **Right**: Store in kosmos, render from subscription
+
+### 5. Creating unnecessary oikoi
+
+**Wrong**: Creating a new oikos for every feature
+**Right**: Ask "Is this a distinct ontological gap?" — methods belong in their parent oikos
+
+### 6. Manifest without implementation
+
+**Wrong**: Declaring praxeis in manifest but not creating YAML files
+**Right**: Everything declared in `provides:` must have corresponding definitions
+
+### 7. Attainments without grants
+
+**Wrong**: Defining attainments without specifying which praxeis they grant
+**Right**: Every attainment needs `scope` and `grants` list
+
+### 8. Storing relationships as fields
+
+**Wrong**: Adding `parent_id` field to an eidos
+**Right**: Use desmoi (bonds) for relationships — they're traversable
 
 ---
 

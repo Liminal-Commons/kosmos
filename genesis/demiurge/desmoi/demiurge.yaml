@@ -81,23 +81,44 @@ entities:
       cardinality: many-to-one
       symmetric: false
 
-  # sources-content-from — oikos/entity sources content from a content-root
+  # =============================================================================
+  # OIKOS DEVELOPMENT BONDS
+  # =============================================================================
+
+  # contains — oikos contains a definition
   - eidos: desmos
-    id: desmos/sources-content-from
+    id: desmos/contains
     data:
-      name: sources-content-from
+      name: contains
       description: |
-        Entity sources content from a content-root. Makes content provenance
-        traversable rather than implicit.
+        Oikos contains a definition (eidos, praxis, or desmos).
+        The oikos is the package; contained entities belong to it.
 
-        Bootstrap traces sources-content-from bonds to discover all content
-        locations. Adding a content root = creating an entity + bond.
-
-        Examples:
-        - oikos/nous sources-content-from content-root/nous
-        - oikos/agora sources-content-from content-root/agora
-        - kosmos sources-content-from content-root/arche (constitutional)
-      from_eidos: any
-      to_eidos: content-root
-      cardinality: many-to-many
+        Used during oikos development to track which definitions
+        are part of an oikos being composed.
+      from_eidos:
+        - oikos
+      to_eidos:
+        - eidos
+        - praxis
+        - desmos
+      cardinality: one-to-many
       symmetric: false
+
+  # developing — animus is actively developing an oikos
+  - eidos: desmos
+    id: desmos/developing
+    data:
+      name: developing
+      description: |
+        Animus is actively developing an oikos.
+
+        This bond surfaces in body-schema as the current development
+        context. An animus may develop multiple oikoi simultaneously.
+      from_eidos:
+        - animus
+      to_eidos:
+        - oikos
+      cardinality: one-to-many
+      symmetric: false
+

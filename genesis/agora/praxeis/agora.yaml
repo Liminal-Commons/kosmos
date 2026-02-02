@@ -43,7 +43,7 @@ entities:
         bind_to: hosting_circle
 
       - step: assert
-        condition: "$_dwelling.circle_id == $hosting_circle[0].id"
+        condition: "$_dwelling.circle_id == $hosting_circle.0.id"
         message: "Not a member of this circle"
 
       # Get LiveKit token
@@ -68,14 +68,14 @@ entities:
 
       # Bind presence to territory
       - step: bind
-        from: "$presence.id"
-        to: "$territory_id"
+        from_id: "$presence.id"
+        to_id: "$territory_id"
         desmos: present-in
 
       # Bind animus to presence
       - step: bind
-        from: "$_dwelling.animus_id"
-        to: "$presence.id"
+        from_id: "$_dwelling.animus_id"
+        to_id: "$presence.id"
         desmos: instantiates-presence
 
       - step: return
@@ -121,15 +121,16 @@ entities:
         message: "This presence is not yours"
 
       - step: update
-        entity_id: "$presence_id"
+        id: "$presence_id"
         data:
           position: "$position"
           facing: "$facing ?? null"
 
       # Signal to other presences (real-time sync via data channel)
       - step: signal
-        kind: presence-moved
-        data:
+        operation: broadcast
+        message:
+          kind: presence-moved
           presence_id: "$presence_id"
           position: "$position"
           facing: "$facing"
@@ -161,20 +162,10 @@ entities:
         condition: "$presence_id in $my_presences.*.id"
         message: "This presence is not yours"
 
-      # Unbind from territory
-      - step: unbind
-        from: "$presence_id"
-        desmos: present-in
-
-      # Unbind from animus
-      - step: unbind
-        from: "$_dwelling.animus_id"
-        to: "$presence_id"
-        desmos: instantiates-presence
-
-      # Destroy presence
+      # Note: Bonds are dissolved when entity is dissolved
+      # Destroy presence (bonds become orphaned and are cleaned up)
       - step: dissolve
-        entity_id: "$presence_id"
+        id: "$presence_id"
 
       - step: return
         value:
@@ -219,9 +210,9 @@ entities:
         message: "Not permitted to create territories"
 
       # Generate room name
-      - step: compute
-        expression: "'agora-' + uuid().substring(0, 8)"
-        bind_to: room_name
+      - step: set
+        bindings:
+          room_name: "agora-{{ uuid() }}"
 
       # Create room entity (CE4: compose instead of arise)
       - step: compose
@@ -250,19 +241,19 @@ entities:
 
       # Bind territory to circle
       - step: bind
-        from: "$_dwelling.circle_id"
-        to: "$territory.id"
+        from_id: "$_dwelling.circle_id"
+        to_id: "$territory.id"
         desmos: hosts-territory
 
       # Bind territory to room
       - step: bind
-        from: "$territory.id"
-        to: "$room.id"
+        from_id: "$territory.id"
+        to_id: "$room.id"
         desmos: uses-room
 
       # Find circle's LiveKit server
       - step: trace
-        from: "$_dwelling.circle_id"
+        from_id: "$_dwelling.circle_id"
         desmos: operates-server
         bind_to: servers
 
@@ -272,8 +263,8 @@ entities:
           - when: "$servers.length > 0"
             then:
               - step: bind
-                from: "$room.id"
-                to: "$servers[0].id"
+                from_id: "$room.id"
+                to_id: "$servers.0.id"
                 desmos: served-by
 
       - step: return
@@ -312,7 +303,7 @@ entities:
 
       # Get server
       - step: trace
-        from: "$rooms[0].id"
+        from: "$rooms.0.id"
         desmos: served-by
         bind_to: servers
 
@@ -325,7 +316,7 @@ entities:
         dynamis: livekit
         operation: create-token
         params:
-          server: "$servers[0].data"
+          server: "$servers.0.data"
           room: "$room_name"
           identity: "$_dwelling.animus_id"
           name: "$_dwelling.persona_name ?? 'Participant'"
@@ -334,7 +325,7 @@ entities:
       - step: return
         value:
           token: "$token_result.token"
-          ws_url: "$servers[0].data.ws_url"
+          ws_url: "$servers.0.data.ws_url"
 
 # ─────────────────────────────────────────────────────────────────
 # actualize-server — Reconcile infrastructure
@@ -359,7 +350,7 @@ entities:
         bind_to: server
 
       # Sense current actuality
-      - step: sense
+      - step: sense_actuality
         entity_id: "$server_id"
         bind_to: actual
 
@@ -443,7 +434,7 @@ entities:
         bind_to: hosting_circle
 
       - step: assert
-        condition: "$_dwelling.circle_id == $hosting_circle[0].id"
+        condition: "$_dwelling.circle_id == $hosting_circle.0.id"
         message: "Not a member of this circle"
 
       # Trace all presences in territory
@@ -500,14 +491,15 @@ entities:
                 message: "Not permitted to speak in agora"
 
       - step: update
-        entity_id: "$presence_id"
+        id: "$presence_id"
         data:
           audio_enabled: "$enabled"
 
       # Signal state change
       - step: signal
-        kind: presence-audio-changed
-        data:
+        operation: broadcast
+        message:
+          kind: presence-audio-changed
           presence_id: "$presence_id"
           audio_enabled: "$enabled"
 
@@ -557,14 +549,15 @@ entities:
                 message: "Not permitted to use video in agora"
 
       - step: update
-        entity_id: "$presence_id"
+        id: "$presence_id"
         data:
           video_enabled: "$enabled"
 
       # Signal state change
       - step: signal
-        kind: presence-video-changed
-        data:
+        operation: broadcast
+        message:
+          kind: presence-video-changed
           presence_id: "$presence_id"
           video_enabled: "$enabled"
 
@@ -606,14 +599,15 @@ entities:
         message: "This presence is not yours"
 
       - step: update
-        entity_id: "$presence_id"
+        id: "$presence_id"
         data:
           status: "$status"
 
       # Signal state change
       - step: signal
-        kind: presence-status-changed
-        data:
+        operation: broadcast
+        message:
+          kind: presence-status-changed
           presence_id: "$presence_id"
           status: "$status"
 
@@ -661,9 +655,9 @@ entities:
         message: "Not permitted to manage infrastructure"
 
       # Compute ws_url if not provided
-      - step: compute
-        expression: "$ws_url ?? ('wss://' + $host)"
-        bind_to: computed_ws_url
+      - step: set
+        bindings:
+          computed_ws_url: "{{ $ws_url ?? 'wss://' + $host }}"
 
       # Create server entity (CE4: compose instead of arise)
       - step: compose
@@ -679,8 +673,8 @@ entities:
 
       # Bind server to circle
       - step: bind
-        from: "$_dwelling.circle_id"
-        to: "$server.id"
+        from_id: "$_dwelling.circle_id"
+        to_id: "$server.id"
         desmos: operates-server
 
       - step: return
@@ -719,7 +713,7 @@ entities:
         bind_to: hosting_circle
 
       - step: assert
-        condition: "$_dwelling.circle_id == $hosting_circle[0].id"
+        condition: "$_dwelling.circle_id == $hosting_circle.0.id"
         message: "Territory not in your circle"
 
       # Get all presences in territory
@@ -741,7 +735,7 @@ entities:
 
       # Update territory status to archived
       - step: update
-        entity_id: "$territory_id"
+        id: "$territory_id"
         data:
           status: archived
 

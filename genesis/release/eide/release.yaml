@@ -1,0 +1,208 @@
+# Release Eide
+# Artifact lifecycle — releases, artifacts, distribution channels
+#
+# Traces to: genesis/release/DESIGN.md
+
+entities:
+  # =========================================================================
+  # Release — versioned build artifact
+  # =========================================================================
+
+  - eidos: eidos
+    id: eidos/release
+    data:
+      name: release
+      description: |
+        A versioned build artifact. Exists in kosmos as intention,
+        actualizes in chora as downloadable binary. Follows the
+        existence/actuality distinction.
+      fields:
+        name:
+          type: string
+          required: true
+          description: "Release name (e.g., 'thyra')"
+        version:
+          type: string
+          required: true
+          description: "Semantic version (e.g., '0.1.0')"
+        status:
+          type: enum
+          values: [draft, building, built, distributing, distributed, failed, deprecated]
+          required: true
+          default: draft
+          description: "Release lifecycle state"
+        description:
+          type: string
+          required: false
+          description: "Release notes or description"
+        changelog:
+          type: string
+          required: false
+          description: "What changed in this version"
+        build_commit:
+          type: string
+          required: false
+          description: "Git commit SHA this release was built from"
+        build_timestamp:
+          type: timestamp
+          required: false
+          description: "When the build completed"
+        build_command:
+          type: string
+          required: false
+          description: "Command used to build"
+        distributed_at:
+          type: timestamp
+          required: false
+          description: "When distribution completed"
+        distribution_channels:
+          type: array
+          required: false
+          description: "Channel IDs where this release is distributed"
+        created_at:
+          type: timestamp
+          required: true
+        created_by:
+          type: string
+          required: false
+          description: "Persona ID who created this release"
+      actuality:
+        mode: object-storage
+        provider: r2
+
+  # =========================================================================
+  # Release Artifact — individual file within a release
+  # =========================================================================
+
+  - eidos: eidos
+    id: eidos/release-artifact
+    data:
+      name: release-artifact
+      description: |
+        An individual file within a release — a platform-specific binary,
+        checksum file, or signature. Linked to release via contains-artifact.
+      fields:
+        filename:
+          type: string
+          required: true
+          description: "Artifact filename"
+        artifact_type:
+          type: enum
+          values: [binary, checksum, signature, archive, installer, metadata]
+          required: true
+          description: "Type of artifact"
+        platform:
+          type: string
+          required: false
+          description: "Target platform (e.g., 'mac-arm64', 'windows-x64')"
+        size_bytes:
+          type: integer
+          required: false
+          description: "File size in bytes"
+        content_hash:
+          type: string
+          required: false
+          description: "BLAKE3 hash of file contents"
+        mime_type:
+          type: string
+          required: false
+          description: "MIME type"
+        uploaded:
+          type: boolean
+          required: true
+          default: false
+          description: "Whether artifact has been uploaded"
+        uploaded_at:
+          type: timestamp
+          required: false
+        upload_url:
+          type: string
+          required: false
+          description: "URL where artifact is accessible"
+        local_path:
+          type: string
+          required: false
+          description: "Local filesystem path if built locally"
+        built_at:
+          type: timestamp
+          required: false
+      actuality:
+        mode: object-storage
+        provider: r2
+
+  # =========================================================================
+  # Distribution Channel — pathway for releases to reach users
+  # =========================================================================
+
+  - eidos: eidos
+    id: eidos/distribution-channel
+    data:
+      name: distribution-channel
+      description: |
+        A pathway for releases to reach users. Channels have providers
+        (R2, GitHub, Homebrew) and actuality modes.
+      fields:
+        name:
+          type: string
+          required: true
+          description: "Channel identifier"
+        provider:
+          type: enum
+          values: [r2, github, homebrew, npm, crates, direct]
+          required: true
+          description: "Distribution provider"
+        description:
+          type: string
+          required: false
+        config:
+          type: object
+          required: true
+          description: "Provider-specific configuration"
+        base_url:
+          type: string
+          required: false
+          description: "Base URL for downloads"
+        status:
+          type: enum
+          values: [active, paused, deprecated]
+          required: true
+          default: active
+        created_at:
+          type: timestamp
+          required: true
+      actuality:
+        mode: provider-specific
+
+  # =========================================================================
+  # ATTAINMENTS
+  # =========================================================================
+
+  - eidos: attainment
+    id: attainment/release
+    data:
+      name: release
+      description: |
+        Release management capability — creating and tracking releases.
+        Enables creating releases, registering artifacts, and marking built.
+      oikos: release
+      scope: circle
+      grants:
+        - praxis/release/create-release
+        - praxis/release/register-artifact
+        - praxis/release/mark-built
+        - praxis/release/list-releases
+        - praxis/release/get-release
+
+  - eidos: attainment
+    id: attainment/distribute
+    data:
+      name: distribute
+      description: |
+        Distribution capability — uploading releases to channels.
+        Tier-3 operations that manifest artifacts into external storage.
+      oikos: release
+      scope: circle
+      grants:
+        - praxis/release/distribute
+        - praxis/release/sense-release
+        - praxis/release/reconcile-release

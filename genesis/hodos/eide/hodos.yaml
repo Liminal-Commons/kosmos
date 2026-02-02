@@ -1,0 +1,29 @@
+# Hodos Eide
+# The way, the path — navigation through journeys
+#
+# Hodos defines no entity types (uses nous journey/waypoint).
+# It provides the navigate attainment for journey navigation.
+
+entities:
+  # =========================================================================
+  # ATTAINMENTS
+  # =========================================================================
+
+  - eidos: attainment
+    id: attainment/navigate
+    data:
+      name: navigate
+      description: |
+        Journey navigation capability — moving through waypoints.
+        Enables getting current position, advancing, branching, and
+        validating forms along the way. Per-animus scope for personal
+        journey progress.
+      oikos: hodos
+      scope: animus
+      grants:
+        - praxis/hodos/get-current-waypoint
+        - praxis/hodos/advance-waypoint
+        - praxis/hodos/branch-waypoint
+        - praxis/hodos/get-panel-render-data
+        - praxis/hodos/validate-form
+        - praxis/hodos/start-onboarding

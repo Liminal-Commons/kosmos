@@ -1047,7 +1047,7 @@ entities:
                       - step: set
                         bindings:
                           keyring_exists: true
-                          keyring_id: "$keyrings[0].id"
+                          keyring_id: "$keyrings.0.id"
                 default:
                   - step: set
                     bindings:

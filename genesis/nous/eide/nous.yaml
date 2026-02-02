@@ -114,41 +114,69 @@ entities:
           required: false
           description: "Entity types this waypoint yields on completion"
 
-  # inquiry — open question
+  # =========================================================================
+  # Inquiry — open question driving understanding
+  # =========================================================================
+
   - eidos: eidos
     id: eidos/inquiry
     data:
       name: inquiry
-      description: "An open question. Inquiries drive understanding forward."
+      description: |
+        An open question that drives understanding forward.
+        Inquiries are first-class entities — not just strings but
+        trackable, bondable, resolvable.
       fields:
         question:
           type: string
           required: true
+          description: "The open question"
         domain:
           type: string
           required: true
+          description: "Knowledge domain"
         status:
-          type: string
+          type: enum
+          values: [open, exploring, answered, dissolved]
           required: true
-          enum: [open, exploring, answered, dissolved]
           default: open
+          description: |
+            - open: Question posed, no progress
+            - exploring: Actively being investigated
+            - answered: Direct answer found
+            - dissolved: Question became irrelevant through synthesis
+        context:
+          type: string
+          required: false
+          description: "Additional context for the question"
         opened_at:
           type: timestamp
           required: true
         answered_at:
           type: timestamp
           required: false
+        opened_by:
+          type: string
+          required: false
+          description: "Persona ID who posed the question"
 
-  # synthesis — combining understanding
+  # =========================================================================
+  # Synthesis — bringing-together of multiple theoria
+  # =========================================================================
+
   - eidos: eidos
     id: eidos/synthesis
     data:
       name: synthesis
-      description: "A bringing-together of multiple theoria into higher understanding."
+      description: |
+        A bringing-together of multiple theoria into higher understanding.
+        Synthesis is ontologically distinct from summary — it creates
+        something that didn't exist in any single source.
       fields:
         insight:
           type: string
           required: true
+          description: "The synthesized understanding"
         sources:
           type: array
           required: true
@@ -156,9 +184,19 @@ entities:
         domain:
           type: string
           required: true
+          description: "Knowledge domain"
+        status:
+          type: enum
+          values: [provisional, confirmed, superseded]
+          required: true
+          default: provisional
         synthesized_at:
           type: timestamp
           required: true
+        synthesized_by:
+          type: string
+          required: false
+          description: "Persona ID who created this synthesis"
 
 # =============================================================================
 # ATTAINMENTS
@@ -183,14 +221,18 @@ entities:
     data:
       name: inquire
       description: |
-        Capability to open inquiries and create syntheses — questioning and combining.
-        Required to pose questions and bring together multiple understandings.
+        Inquiry and synthesis capability — posing questions and combining insights.
+        Circle-scoped because questions and syntheses are shared knowledge.
       oikos: nous
       scope: circle
       grants:
         - praxis/nous/open-inquiry
         - praxis/nous/answer-inquiry
+        - praxis/nous/dissolve-inquiry
         - praxis/nous/synthesize
+        - praxis/nous/list-open-inquiries
+        - praxis/nous/get-sources
+        - praxis/nous/trace-synthesis
 
   - eidos: attainment
     id: attainment/journey

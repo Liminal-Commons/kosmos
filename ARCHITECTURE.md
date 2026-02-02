@@ -70,6 +70,126 @@ stoicheion.yaml  →  build.rs  →  step_types.rs
 
 ---
 
+## Cursor-Based Change Detection
+
+Change detection implements the cache-driven pillar: changes are computed from deltas, not stored as entities.
+
+### The Model
+
+```
+persona --last-saw[version=38]--> circle/chora
+
+Notification query:
+  entities in circle/chora WHERE version > 38
+  → 4 entities changed since you last looked
+```
+
+**Key insight:** A "change" isn't an entity. A change is the delta between:
+1. The state you last observed (your cursor)
+2. The current state (entity versions)
+
+### Entity Versioning
+
+Every entity has:
+- `version` — Monotonically increasing global sequence number
+- `content_hash` — Blake3 hash of entity data
+
+When an entity is created or updated:
+1. Assign next global version
+2. Compute content_hash from data
+3. Store entity
+
+### The `last-saw` Desmos
+
+```yaml
+- id: last-saw
+  from_eidos: [persona]
+  to_eidos: [circle]
+  cardinality: one-to-one
+  data_schema:
+    version:
+      type: integer
+      description: Version when persona last observed this circle
+```
+
+### Notification Query
+
+For each circle a persona is member-of:
+1. Get persona's `last-saw` version for that circle
+2. Count entities in circle with `version > cursor`
+3. Return `{ circle_id, unseen_count }`
+
+### Cursor Update
+
+When persona views a circle:
+1. Get current max version in circle
+2. Upsert `last-saw` bond with that version
+3. Notification count becomes 0
+
+### Why Not Change-Record Entities?
+
+| Approach | Storage | Consistency | Cleanup |
+|----------|---------|-------------|---------|
+| Change-record entities | Proliferates | Can drift | Needs policy |
+| Cursor bonds | O(personas × circles) | Always consistent | Nothing to prune |
+
+The cursor model is simpler and aligns with content-addressing: the cache key (content_hash) already tells you if something changed.
+
+### Cache Alignment
+
+For artifact rendering:
+```
+cache_key = (entity_id, content_hash, render_spec_id)
+```
+
+When content_hash changes, cache misses. No explicit invalidation needed — content-addressing handles it automatically.
+
+---
+
+## Reactive System
+
+The reactive system is the autonomic nervous system of kosmos. It unifies three layers:
+
+| Layer | Purpose | Question | Home |
+|-------|---------|----------|------|
+| **Reflex** | Event detection | "Something changed — what should happen?" | ergon |
+| **Reconciler** | State alignment | "Is intent aligned with actuality?" | dynamis |
+| **Actuality Mode** | Substrate interface | "How does this type become actual?" | dynamis |
+
+### The Complete Flow
+
+```
+Graph mutation (entity/bond created, updated, deleted)
+    ↓
+Reflex fires (post-commit hook checks trigger patterns)
+    ↓
+Response praxis invokes reconciler
+    ↓
+Reconciler senses actuality, compares to intent
+    ↓
+Reconciler action (manifest/unmanifest) via actuality mode
+    ↓
+Stoicheion executes against substrate
+```
+
+### Relationship to Cursor Model
+
+| System | Question | Tracks |
+|--------|----------|--------|
+| Cursor | "What's new for Claude to see?" | Observation |
+| Reflex | "What should happen automatically?" | Action |
+| Reconciler | "Are we where we want to be?" | Alignment |
+
+Cursors track what Claude has *observed*. Reflexes track what the *system* should *do*.
+
+### See Also
+
+- [genesis/REACTIVE-SYSTEM.md](genesis/REACTIVE-SYSTEM.md) — Complete reactive system design
+- [genesis/ergon/DESIGN.md](genesis/ergon/DESIGN.md) — Reflex system (Layer 1)
+- [genesis/dynamis/DESIGN.md](genesis/dynamis/DESIGN.md) — Reconciler and actuality modes (Layers 2-3)
+
+---
+
 ## Stoicheia Architecture
 
 Stoicheia are the vocabulary of praxis steps. Each stoicheion defines:

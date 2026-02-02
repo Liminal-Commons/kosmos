@@ -1,0 +1,74 @@
+# Demiurge Reflexes
+# Autonomic responses for oikos development workflows
+
+entities:
+
+  # =============================================================================
+  # OIKOS DEVELOPMENT REFLEXES
+  # =============================================================================
+
+  - eidos: reflex
+    id: reflex/demiurge/artifact-added
+    data:
+      name: artifact-added
+      description: |
+        Update oikos manifest when artifact is added.
+
+        Fires when a contains bond is created from a composing oikos
+        to any artifact (eidos, praxis, desmos).
+      trigger:
+        event: bond_created
+        desmos: contains
+        from_eidos: oikos
+        to_eidos: [eidos, praxis, desmos]
+        condition: '$from.data.status == "composing"'
+      response:
+        praxis: demiurge/update-manifest
+        params:
+          oikos_id: "$from.id"
+          artifact_id: "$to.id"
+      enabled: true
+      scope: global
+
+  - eidos: reflex
+    id: reflex/demiurge/praxis-added
+    data:
+      name: praxis-added
+      description: |
+        Auto-register praxis as MCP tool when added to developing oikos.
+
+        This obsoletes explicit project-oikos invocation. Praxeis become
+        available as MCP tools immediately upon composition.
+      trigger:
+        event: bond_created
+        desmos: contains
+        from_eidos: oikos
+        to_eidos: praxis
+        condition: '$from.data.status == "composing"'
+      response:
+        praxis: demiurge/register-praxis-tool
+        params:
+          oikos_id: "$from.id"
+          praxis_id: "$to.id"
+      enabled: true
+      scope: global
+
+  - eidos: reflex
+    id: reflex/demiurge/praxis-changed
+    data:
+      name: praxis-changed
+      description: |
+        Re-validate praxis when its steps change.
+
+        Catches authoring errors early by validating step definitions
+        against stoicheion schemas immediately after edit.
+      trigger:
+        event: entity_updated
+        eidos: praxis
+        condition: '$entity.data.steps != $previous.data.steps'
+      response:
+        praxis: demiurge/validate-praxis
+        params:
+          praxis_id: "$entity.id"
+      enabled: true
+      scope: global

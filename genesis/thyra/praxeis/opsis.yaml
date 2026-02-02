@@ -63,7 +63,7 @@ entities:
                 then:
                   - step: set
                     bindings:
-                      active_layout: "$layout_bonds[0].id"
+                      active_layout: "$layout_bonds.0.id"
 
       # Get panels that render in this region
       - step: trace
@@ -85,7 +85,7 @@ entities:
           visible_entities: []
           panel_intents: []
 
-      - step: foreach
+      - step: for_each
         items: "$panels"
         as: panel
         do:
@@ -126,9 +126,8 @@ entities:
                     eidos: accumulation
                     bind_to: all_accumulations
                   - step: filter
-                    in: "$all_accumulations"
-                    as: a
-                    where: '$a.data.status == "active"'
+                    items: "$all_accumulations"
+                    condition: '$item.data.status == "active"'
                     bind_to: panel_entities
 
               # Journey view — gather active journeys
@@ -157,7 +156,7 @@ entities:
                         then:
                           - step: set
                             bindings:
-                              workspace: "$workspaces[0]"
+                              workspace: "$workspaces.0"
                           - step: trace
                             from_id: "$workspace.id"
                             desmos: "has-open"
@@ -182,7 +181,7 @@ entities:
                         then:
                           - step: set
                             bindings:
-                              workspace: "$workspaces[0]"
+                              workspace: "$workspaces.0"
                           - step: trace
                             from_id: "$workspace.id"
                             desmos: "focused-on"
@@ -421,11 +420,11 @@ entities:
         resolve: "bond"
         bind_to: existing_bonds
 
-      - step: foreach
+      - step: for_each
         items: "$existing_bonds"
         as: bond
         do:
-          - step: unbind
+          - step: loose
             bond_id: "$bond.id"
 
       # Create new active-layout bond
@@ -445,7 +444,7 @@ entities:
         bindings:
           regions_reconciled: 0
 
-      - step: foreach
+      - step: for_each
         items: "$layout.data.regions"
         as: region
         do:
@@ -491,8 +490,8 @@ entities:
             then:
               - step: return
                 value:
-                  layout: "$layouts[0]"
-                  layout_id: "$layouts[0].id"
+                  layout: "$layouts.0"
+                  layout_id: "$layouts.0.id"
                   circle_id: "$_circle.id"
         default:
           - step: return
@@ -542,11 +541,11 @@ entities:
         resolve: "bond"
         bind_to: existing_bonds
 
-      - step: foreach
+      - step: for_each
         items: "$existing_bonds"
         as: bond
         do:
-          - step: unbind
+          - step: loose
             bond_id: "$bond.id"
 
       # Create new active-theme bond
@@ -602,8 +601,8 @@ entities:
             then:
               - step: return
                 value:
-                  theme: "$themes[0]"
-                  theme_id: "$themes[0].id"
+                  theme: "$themes.0"
+                  theme_id: "$themes.0.id"
                   circle_id: "$_circle.id"
         default:
           - step: return
@@ -664,7 +663,7 @@ entities:
             then:
               - step: set
                 bindings:
-                  workspace: "$workspaces[0]"
+                  workspace: "$workspaces.0"
         default:
           # Create workspace for animus (CE4: compose instead of arise)
           - step: compose
@@ -692,7 +691,7 @@ entities:
         bindings:
           already_open: false
 
-      - step: foreach
+      - step: for_each
         items: "$open_artifacts"
         as: open_artifact
         do:
@@ -778,7 +777,7 @@ entities:
 
       - step: set
         bindings:
-          workspace: "$workspaces[0]"
+          workspace: "$workspaces.0"
 
       # Find the has-open bond
       - step: trace
@@ -792,8 +791,8 @@ entities:
         cases:
           - when: "$open_bonds | length > 0"
             then:
-              - step: unbind
-                bond_id: "$open_bonds[0].id"
+              - step: loose
+                bond_id: "$open_bonds.0.id"
 
       # Check if was focused
       - step: trace
@@ -809,7 +808,7 @@ entities:
 
       - step: switch
         cases:
-          - when: "$focused_artifacts | length > 0 and $focused_artifacts[0].id == $artifact_id"
+          - when: "$focused_artifacts | length > 0 and $focused_artifacts.0.id == $artifact_id"
             then:
               - step: set
                 bindings:
@@ -825,8 +824,8 @@ entities:
                 cases:
                   - when: "$focus_bonds | length > 0"
                     then:
-                      - step: unbind
-                        bond_id: "$focus_bonds[0].id"
+                      - step: loose
+                        bond_id: "$focus_bonds.0.id"
 
               # Focus next available
               - step: trace
@@ -841,10 +840,10 @@ entities:
                       - step: call
                         praxis: "thyra/focus-artifact"
                         params:
-                          artifact_id: "$remaining_artifacts[0].id"
+                          artifact_id: "$remaining_artifacts.0.id"
                       - step: set
                         bindings:
-                          next_focus: "$remaining_artifacts[0].id"
+                          next_focus: "$remaining_artifacts.0.id"
 
       - step: return
         value:
@@ -888,7 +887,7 @@ entities:
 
       - step: set
         bindings:
-          workspace: "$workspaces[0]"
+          workspace: "$workspaces.0"
 
       # Remove existing focused-on bond
       - step: trace
@@ -897,11 +896,11 @@ entities:
         resolve: "bond"
         bind_to: existing_focus
 
-      - step: foreach
+      - step: for_each
         items: "$existing_focus"
         as: bond
         do:
-          - step: unbind
+          - step: loose
             bond_id: "$bond.id"
 
       # Create new focused-on bond
@@ -962,7 +961,7 @@ entities:
             then:
               - step: set
                 bindings:
-                  workspace: "$workspaces[0]"
+                  workspace: "$workspaces.0"
 
               # Get open artifacts
               - step: trace
@@ -988,7 +987,7 @@ entities:
                     then:
                       - step: set
                         bindings:
-                          focused: "$focused_artifacts[0]"
+                          focused: "$focused_artifacts.0"
 
               - step: return
                 value:
@@ -1130,9 +1129,8 @@ entities:
           - when: "$region_id"
             then:
               - step: filter
-                in: "$panels"
-                as: p
-                where: "$p.data.region_id == '$region_id'"
+                items: "$panels"
+                condition: "$item.data.region_id == $region_id"
                 bind_to: panels
 
       # Filter by render_type if specified
@@ -1141,9 +1139,8 @@ entities:
           - when: "$render_type"
             then:
               - step: filter
-                in: "$panels"
-                as: p
-                where: "$p.data.render_type == '$render_type'"
+                items: "$panels"
+                condition: "$item.data.render_type == $render_type"
                 bind_to: panels
 
       # Sort by priority
@@ -1201,7 +1198,7 @@ entities:
           regions_rendered: []
 
       # Reconcile each region
-      - step: foreach
+      - step: for_each
         items: "$layout.data.regions"
         as: region
         do:

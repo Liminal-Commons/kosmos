@@ -2,6 +2,8 @@
 
 A high-touch, comprehensive redesign of each oikos in the kosmos genesis layer. The goal is ontological coherence and compound leverage through intentional design.
 
+**Related:** [CHORA-HANDOFF-OIKOS-DEV.md](CHORA-HANDOFF-OIKOS-DEV.md) — Implementation requirements for Projected/Embodied/Surfaced/Afforded levels.
+
 ---
 
 ## Guiding Principles
@@ -140,6 +142,17 @@ Ordered by dependency (foundational first):
 | 15 | **dokimasia** | δοκιμασία | Testing — validation | ✅ |
 | 16 | **dns** | — | Infrastructure — DNS substrate (thyra sub-module) | ✅ |
 
+### Phase 2 Oikoi (Separated from parents)
+
+| # | Oikos | Greek | Purpose | Extracted From | Status |
+|---|-------|-------|---------|----------------|--------|
+| 17 | **hodos** | ὁδός | Journey navigation — the way | thyra | ✅ |
+| 18 | **opsis** | ὄψις | Visual rendering — appearance | thyra | ✅ |
+| 19 | **release** | — | Artifact lifecycle — distribution | dynamis | ✅ |
+| 20 | **credentials** | — | External service credentials | hypostasis | ✅ |
+| ~~21~~ | ~~syndesmos~~ | — | ~~Connection state~~ | aither | ↩️ merged back |
+| ~~22~~ | ~~synthesis~~ | — | ~~Combining understandings~~ | nous | ↩️ merged back |
+
 ---
 
 ## Outputs Per Oikos
@@ -243,6 +256,24 @@ Theoria crystallized during redesign:
 | T67 | DNS makes the kosmos addressable from outside | dns |
 | T68 | Infrastructure sovereignty extends to naming | dns |
 | T69 | Zone management is circle governance in network form | dns |
+| T70 | The way is distinct from the destination | hodos |
+| T71 | Navigation is personal | hodos |
+| T72 | Form validation belongs to navigation | hodos |
+| T73 | Appearance is not existence | opsis |
+| T74 | Rendering is reconciliation | opsis |
+| T75 | Homoiconic rendering | opsis |
+| T76 | Releases are journeys | release |
+| T77 | Artifacts are the actuality of releases | release |
+| T78 | Channels multiply reach | release |
+| T79 | Credentials are capability bridges | credentials |
+| T80 | Session is the trust boundary | credentials |
+| T81 | Attainment unifies capability sources | credentials |
+| T82 | Connection intent survives failure | syndesmos |
+| T83 | Messages deserve delivery attempts | syndesmos |
+| T84 | Sync is eventual consistency | syndesmos |
+| T85 | Synthesis is not summary | synthesis |
+| T86 | Inquiries drive understanding forward | synthesis |
+| T87 | Sources preserve provenance | synthesis |
 
 ---
 
@@ -362,24 +393,272 @@ Theoria crystallized during redesign:
   - Note: DNS is under genesis/thyra/dns/ as a sub-module, praxeis in thyra namespace
   - Crystallized T67-T69 theoria
 
+- **Created hodos as standalone oikos** (Phase 2)
+  - Created DESIGN.md following template (ontological purpose, circle context, embodiment)
+  - Hodos addresses the gap between knowing the destination and arriving — navigation mechanics
+  - Central concept: the way (kinetics of movement through journeys)
+  - Moved praxeis from thyra/praxeis/hodos.yaml to genesis/hodos/praxeis/
+  - Added 1 attainment: navigate (scope: animus)
+  - Crystallized T70-T72 theoria
+- **Created opsis as standalone oikos** (Phase 2, extracted from thyra)
+  - Created DESIGN.md following template
+  - Opsis addresses the gap between existence and appearance — visual rendering
+  - Central concept: appearance (how entities show up visually)
+  - 9 eide: layout, panel, style-theme, render-intent, workspace, render-type, renderer, render-spec, widget
+  - 1 attainment: render (scope: soma)
+  - Praxis namespace: praxis/opsis/*
+  - Crystallized T73-T75 theoria
+- **Created release as standalone oikos** (Phase 2, extracted from dynamis)
+  - Created DESIGN.md following template
+  - Release addresses the gap between built artifact and available download
+  - Central concept: artifact journey (from git commit to user installation)
+  - 3 eide: release, release-artifact, distribution-channel
+  - 1 attainment: release (scope: circle)
+  - Praxis namespace: praxis/release/*
+  - Crystallized T76-T78 theoria
+- **Created credentials as standalone oikos** (Phase 2, extracted from hypostasis)
+  - Created DESIGN.md following template
+  - Credentials addresses the gap between external service access and kosmos capability
+  - Central concept: capability bridge (external credentials become internal attainments)
+  - 1 eidos: credential
+  - 2 attainments: unlock-credential, use-credential
+  - Praxis namespace: praxis/credentials/*
+  - Crystallized T79-T81 theoria
+- **Created syndesmos as standalone oikos** (Phase 2, extracted from aither)
+  - Created DESIGN.md following template
+  - Syndesmos addresses the gap between connection intent and connection actuality
+  - Central concept: the desired connection (intent that persists across failures)
+  - 3 eide: syndesmos, outbound-message, sync-message
+  - 1 attainment: sync (scope: circle)
+  - Praxis namespace: praxis/syndesmos/*
+  - Crystallized T82-T84 theoria
+- **Created synthesis as standalone oikos** (Phase 2, extracted from nous)
+  - Created DESIGN.md following template
+  - Synthesis addresses the gap between multiple insights and unified understanding
+  - Central concept: the bringing-together (many become one, greater than sum)
+  - 2 eide: synthesis, inquiry
+  - 1 attainment: inquire (scope: circle)
+  - Praxis namespace: praxis/synthesis/*
+  - Crystallized T85-T87 theoria
+
+- **Merged syndesmos back into aither** (first principles review)
+  - Syndesmos addresses the same gap as aither (here ↔ there) via dynamis pattern
+  - Connection intent/actuality is *how* aither works, not a distinct gap
+  - Eide (syndesmos, outbound-message, sync-message) merged into aither/eide/aither.yaml
+  - Sync attainment merged into aither with praxis/aither/* grants
+  - Removed genesis/syndesmos/ directory
+  - T82-T84 theoria remain valid (describe the pattern, not the oikos)
+
+- **Merged synthesis back into nous** (first principles review)
+  - Synthesis addresses the same gap as nous (ignorance ↔ understanding)
+  - Combining insights is a *method* of understanding, not a distinct kind
+  - Eide (synthesis, inquiry) merged into nous/eide/nous.yaml
+  - Inquire attainment merged into nous with praxis/nous/* grants
+  - Removed genesis/synthesis/ directory
+  - T85-T87 theoria remain valid (describe the pattern, not the oikos)
+
+### 2026-01-29 (continued)
+- **Completed oikos-centric rendering** (Phase 4 of rendering architecture)
+  - Added render-specs for all user-facing eide across 15+ oikoi
+  - Added `provides.renderable` declarations to all manifests
+  - Added `entities/` content_paths for render-spec files
+  - Render-spec convention: `render-spec/{eidos}-card`, `render-spec/{eidos}-item`
+  - Created rendering.yaml files: psyche, oikos, propylon, aither, agora, dynamis, dokimasia, ekdosis
+
+- **Updated completeness ladder status**
+  - All 20 oikoi now at Loaded level
+  - Documented what's possible (kosmos-side) vs what requires chora
+  - Linked to CHORA-HANDOFF-OIKOS-DEV.md for implementation requirements
+  - Split post-redesign tasks into kosmos-side and chora-side
+
 ---
 
 ## Completion Summary
 
-**All 16 oikoi redesigned.** Each now has:
+**20 oikoi total** (16 original + 4 extracted in Phase 2). Each now has:
 - DESIGN.md following the standard template
 - eide/*.yaml in `entities:` format with attainments (scope + grants)
 - manifest.yaml with attainments section
+- Own praxis namespace (praxis/{oikos}/*)
+- Render-specs for user-facing eide (oikos-centric rendering)
 
-**52 theoria crystallized** (T18-T69) capturing insights across all domains.
+**70 theoria crystallized** (T18-T87) capturing insights across all domains.
+
+---
+
+## Completeness Ladder Implementation Status
+
+All 20 oikoi have achieved **Loaded** level. The path to full completeness requires chora implementation.
+
+See [CHORA-HANDOFF-OIKOS-DEV.md](CHORA-HANDOFF-OIKOS-DEV.md) for detailed implementation requirements.
+
+### Current State
+
+| Level | Status | What's Required |
+|-------|--------|-----------------|
+| **Defined** | ✅ All 20 oikoi | YAML definitions in genesis |
+| **Loaded** | ✅ All 20 oikoi | Bootstrap loads into kosmos.db |
+| **Projected** | ⏳ Chora-dependent | Dynamic praxis registration at runtime |
+| **Embodied** | ⏳ Chora-dependent | Body-schema aggregates oikos state |
+| **Surfaced** | ⏳ Chora-dependent | Reconcilers surface opportunities |
+| **Afforded** | ⏳ Chora-dependent | Thyra renders contextual actions |
+
+### Implementation Priority (from handoff)
+
+| Feature | Chora Subsystem | Impact |
+|---------|-----------------|--------|
+| **Body-schema contribution** | soma | Enables Claude awareness of oikos state |
+| **Development reconciler** | ergon | Surfaces opportunities contextually |
+| **project-oikos** | kosmos-mcp | Dynamic tool registration for testing |
+| **Thyra oikos-view** | opsis/thyra | Visual development environment |
+
+### What's Possible Now (Kosmos-side)
+
+With Loaded level complete, the following patterns work:
+
+1. **Praxis composition** — All praxeis can be authored and validated
+2. **Entity creation** — Entities arise via compose/typos pattern
+3. **Bond traversal** — Graph queries work (trace, traverse, gather)
+4. **Render-specs** — Declarative rendering definitions exist for all user-facing eide
+5. **Attainment definitions** — All oikoi declare what capabilities they gate
+6. **MCP projection** — Praxeis project as MCP tools at bootstrap
+
+### What Requires Chora
+
+The remaining completeness levels require Rust implementation:
+
+1. **Dynamic projection** — Register/unregister praxeis at runtime (project stoicheion)
+2. **Body-schema sensing** — Aggregate development state into sense-body output
+3. **Reconciler infrastructure** — On-dwell triggers, pending action surfacing
+4. **Declarative rendering** — Template parsing, data preparation, component binding
+
+---
+
+## Completeness Strategy by Oikos Type
+
+The path to "Afforded" differs by oikos category and scale. Not all oikoi need full UI — infrastructure oikoi operate quietly while interface oikoi need rich rendering.
+
+### Oikos Taxonomy
+
+| Category | Oikoi | What "Complete" Means |
+|----------|-------|----------------------|
+| **infrastructure** | hypostasis, soma, propylon, demiurge, ekdosis, dokimasia, dynamis, ergon, credentials, release, stoicheia | Projected + Embodied. Minimal UI (admin views). Reconcilers sense drift. |
+| **interface** | thyra, opsis, aither, manteia | Full stack. These ARE the rendering/interaction layer. |
+| **domain** | oikos, politeia, psyche, nous, agora, hodos | Afforded. User-facing with contextual actions in Thyra. |
+
+### Implementation Tiers
+
+**Tier 0: Foundation (unlocks all others)**
+
+| Oikos | Scale | Why First | Chora Work |
+|-------|-------|-----------|------------|
+| **soma** | soma | Owns body-schema. All embodiment flows through soma. | sense-body extension |
+| **politeia** | polis | Attainment checks gate all praxeis. | attainment enforcement |
+
+**Tier 1: Interface Layer (visual experience)**
+
+| Oikos | Scale | Why | Chora Work |
+|-------|-------|-----|------------|
+| **opsis** | soma | Owns rendering. All visual display flows through opsis. | render-spec processing |
+| **thyra** | soma | Owns streams/expression. Commitment boundary. | panel/view rendering |
+| **hodos** | animus | Navigation kinetics. Journey execution. | step navigation |
+
+**Tier 2: User-Facing Domains**
+
+| Oikos | Scale | Why | Chora Work |
+|-------|-------|-----|------------|
+| **oikos** | oikos | Dwelling experience. Sessions, notes, insights. | session reconciler |
+| **psyche** | psyche | Attention/intention. What matters now. | attention surfacing |
+| **agora** | oikos | Spatial presence. Gathering space. | territory rendering |
+| **nous** | cross | Understanding. Theoria discovery. | semantic surfacing |
+
+**Tier 3: Capability Projection**
+
+| Oikos | Scale | Why | Chora Work |
+|-------|-------|-----|------------|
+| **manteia** | cross | Generation. Claude's creative faculty. | inference pipeline |
+| **demiurge** | cross | Composition. Entity creation. | typos resolution |
+| **ergon** | cross | Work coordination. Pragma flow. | pragma reconciler |
+| **aither** | physis | Networking. P2P transport. | connection reconciler |
+
+**Tier 4: Infrastructure (quiet operation)**
+
+| Oikos | Scale | Why Last | Chora Work |
+|-------|-------|----------|------------|
+| **hypostasis** | cross | Identity. Cryptographic substrate. | keyring UI (admin) |
+| **propylon** | cross | Entry. Authentication flows. | entry flow UI |
+| **dynamis** | cross | Actuality bridging. Deployment. | deployment reconciler |
+| **ekdosis** | cross | Publication. Release management. | release reconciler |
+| **dokimasia** | cross | Validation. Schema enforcement. | validation reporting |
+| **credentials** | cross | External access. API keys. | credential admin UI |
+| **release** | cross | Artifact lifecycle. Distribution. | artifact reconciler |
+
+### Category-Specific Completion Criteria
+
+**Infrastructure oikoi** are complete when:
+- ✅ Defined (YAML exists)
+- ✅ Loaded (in kosmos.db)
+- ⬜ Projected (praxeis as MCP tools — at bootstrap, sufficient)
+- ⬜ Embodied (state in body-schema — only relevant subset)
+- ⬜ Surfaced (reconciler for drift/errors — operational alerts)
+- ⬜ Afforded (admin views only — not user-facing)
+
+**Interface oikoi** are complete when:
+- ✅ Defined
+- ✅ Loaded
+- ⬜ Projected (full dynamic projection for development)
+- ⬜ Embodied (rendering state in body-schema)
+- ⬜ Surfaced (rendering opportunities)
+- ⬜ Afforded (full declarative rendering pipeline)
+
+**Domain oikoi** are complete when:
+- ✅ Defined
+- ✅ Loaded
+- ⬜ Projected (praxeis available contextually)
+- ⬜ Embodied (domain state in body-schema)
+- ⬜ Surfaced (contextual actions based on dwelling)
+- ⬜ Afforded (domain-specific views and affordances)
+
+### Recommended Sequence
+
+```
+Tier 0 ─────────────────────────────────────────────────────►
+        soma (body-schema) → politeia (attainments)
+
+Tier 1 ─────────────────────────────────────────────────────►
+        opsis (rendering) → thyra (streams) → hodos (navigation)
+
+Tier 2 ─────────────────────────────────────────────────────►
+        oikos → psyche → agora → nous
+
+Tier 3 ─────────────────────────────────────────────────────►
+        manteia → demiurge → ergon → aither
+
+Tier 4 ─────────────────────────────────────────────────────►
+        hypostasis → propylon → dynamis → ekdosis → dokimasia → credentials → release
+```
+
+Each tier unlocks capabilities for the next. Soma enables body-schema for all. Opsis enables rendering for all. Domain oikoi need both before they can be fully afforded.
+
+---
 
 ### Post-Redesign Tasks
 
+**Kosmos-side (complete in genesis):**
+
 1. ✅ Update this completion summary
-2. ⏳ Crystallize theoria as entities in `genesis/nous/theoria/`
-3. ⏳ Wire attainment checks into praxeis (enforcement)
-4. ⏳ Run bootstrap validation in chora
-5. ⏳ Create oikos map summary document
+2. ✅ Add render-specs for all user-facing eide
+3. ✅ Crystallize theoria as entities in `genesis/nous/theoria/`
+4. ~~Wire attainment checks~~ — Redundant per KOSMOGONIA: "Visibility = Reachability" means attainments are positions in the bond graph, not separate gates
+5. ✅ Create oikos map summary document (OIKOS-MAP.md)
+
+**Chora-side (requires Rust implementation):**
+
+6. ⏳ Extend sense-body with development state
+7. ⏳ Implement reconciler infrastructure
+8. ⏳ Add project stoicheion for dynamic praxis registration
+9. ⏳ Implement declarative render-spec processing
+10. ⏳ Run bootstrap validation across all 20 oikoi
 
 ---
 

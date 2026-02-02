@@ -207,6 +207,29 @@
   cardinality: many-to-one
 
 # =============================================================================
+# OBSERVATION DESMOI — How observation state is tracked
+# =============================================================================
+
+- id: last-saw
+  description: |
+    Persona's observation cursor. Tracks the version at which a persona
+    last observed a circle. Used to compute "what's new" via delta query:
+
+      entities in circle WHERE version > cursor
+
+    Changes aren't reified as entities. They're computed from the delta
+    between cursor and current state. This implements the cache-driven
+    pillar: no explicit change tracking, just version comparison.
+  from_eidos: [persona]
+  to_eidos: [circle]
+  cardinality: one-to-one
+  data_schema:
+    version:
+      type: integer
+      required: true
+      description: The version number when persona last observed this circle
+
+# =============================================================================
 # PROVENANCE DESMOI — How authenticity chains
 # =============================================================================
 

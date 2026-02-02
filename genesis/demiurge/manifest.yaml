@@ -17,6 +17,12 @@ oikos_description: |
   The compositor is simple; complexity lives in the definition.
 oikos_scale: cross-scale
 
+# Development experience metadata
+oikos_category: infrastructure
+surfaces_provided: []   # Composition is the mechanism, not a surface
+surfaces_consumed:
+  - reasoning           # Uses manteia/governed-inference for definition generation
+
 content_paths:
   - path: eide/
     content_types: [eidos]
@@ -24,6 +30,8 @@ content_paths:
     content_types: [desmos]
   - path: praxeis/
     content_types: [praxis]
+  - path: entities/
+    content_types: [reflex]
 
 requires_dynamis:
   - db.arise
@@ -37,51 +45,89 @@ provides:
     - typos
     - artifact
 
+  reflexes:
+    - reflex/demiurge/artifact-composed
+    - reflex/demiurge/definition-actualized
+
   attainments:
-    - compose              # Core composition (create, cache, dependencies)
-    - generate-definitions # Definition generation via inference
-    - oikos-develop        # Package development (oikos-dev creation)
-    - oikos-bake           # Generation resolution (baking)
-    - oikos-publish        # Package publishing (signing, releasing)
-    - oikos-fork           # Commons forking (derivation)
-    - genesis-emit         # Genesis emission (full-circle verification)
+    - compose              # Core composition (always indexes, tracks dependencies)
+    - develop              # Oikos development via Generative Development Spiral
+    - package              # Oikos packaging and publishing
 
   desmoi:
-    - composed-from
-    - authorized-by
-    - depends-on
-    - packages
-    - baked-from
-    - published-by
-    - attests-to
-    - derives-from
+    - composed-from        # Entity was composed from typos (constitutional, in arche)
+    - authorized-by        # Composition was authorized by expression (constitutional, in arche)
+    - depends-on           # Artifact depends on entity for invalidation
+    - informed-by          # Generation was informed by theoria
+    - contains             # Oikos contains definition
+    - packages             # oikos-dev packages oikos
+    - baked-from           # oikos-prod was baked from oikos-dev
+    - published-by         # oikos-prod was published by animus
 
   praxeis:
-    - demiurge/compose
-    - demiurge/compose-cached
-    - demiurge/check-cache
-    - demiurge/bind-dependencies
-    - demiurge/mark-dependents-stale
-    - demiurge/invalidate-artifact
-    - demiurge/list-stale-artifacts
-    - demiurge/refresh-stale
-    - demiurge/compose-indexed
-    - demiurge/compose-definition-indexed
-    - demiurge/generate-domain-definitions
-    - demiurge/compose-oikos-dev
-    - demiurge/compose-all-oikoi-dev
-    - demiurge/bake-oikos
-    - demiurge/publish-oikos
-    - demiurge/verify-oikos
-    - demiurge/publish-oikos-multilocale
-    - demiurge/set-distribution-mode
-    - demiurge/fork-oikos
-    - demiurge/list-generative-commons
-    - demiurge/list-oikos-derivations
-    - demiurge/emit-genesis
-    - demiurge/verify-full-circle
-    - demiurge/emit-single-stream
+    # ─────────────────────────────────────────────────────────────────────────
+    # CORE COMPOSITION — The single interface for all creation
+    # ─────────────────────────────────────────────────────────────────────────
+    - demiurge/compose                # Always indexes, tracks provenance
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # CACHING — Content-addressed artifact caching
+    # ─────────────────────────────────────────────────────────────────────────
+    - demiurge/compose-cached         # Compose with cache lookup
+    - demiurge/check-cache            # Query cache without composing
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # DEPENDENCIES — Staleness propagation through artifact graph
+    # ─────────────────────────────────────────────────────────────────────────
+    - demiurge/bind-dependencies      # Track what artifact depends on
+    - demiurge/mark-dependents-stale  # Propagate staleness
+    - demiurge/list-stale-artifacts   # Query stale artifacts
+    - demiurge/refresh-stale          # Recompose stale artifacts
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # GENERATIVE DEVELOPMENT SPIRAL — The canonical path for oikos development
+    # Intent → Generate → Review → Actualize → Emit → Crystallize
+    # ─────────────────────────────────────────────────────────────────────────
+    - demiurge/develop-oikos-from-design  # Entry point: DESIGN.md → artifacts
+    - demiurge/generate-eidos             # Compose inference context → generate
+    - demiurge/generate-praxis            # Compose inference context → generate
+    - demiurge/generate-desmos            # Compose inference context → generate
+    - demiurge/generate-oikos             # Compose inference context → generate design
+    - demiurge/actualize-eidos            # Artifact → entity in kosmos
+    - demiurge/actualize-praxis           # Artifact → entity in kosmos
+    - demiurge/actualize-desmos           # Artifact → entity in kosmos
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # VALIDATION — Check definitions before emission
+    # ─────────────────────────────────────────────────────────────────────────
+    - demiurge/validate-oikos             # Validate all definitions in oikos
+    - demiurge/validate-praxis            # Validate single praxis
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # PACKAGING — Prepare oikos for distribution
+    # ─────────────────────────────────────────────────────────────────────────
+    - demiurge/compose-oikos-dev          # Package oikos from genesis
+    - demiurge/bake-oikos                 # Resolve generation specs
+    - demiurge/publish-oikos              # Sign and release
+    - demiurge/verify-oikos               # Verify package integrity
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # DISCOVERY — Explore the compositional palette
+    # ─────────────────────────────────────────────────────────────────────────
+    - demiurge/discover-stoicheia         # Available step types
+    - demiurge/discover-typos             # Available composition templates
+    - demiurge/discover-desmoi            # Available bond types
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # INTERNAL — Body-schema and reflex responses
+    # ─────────────────────────────────────────────────────────────────────────
+    - demiurge/sense-development          # Body-schema contribution
 
 stoicheia_form:
   # Demiurge stoicheia interpreted by host
   # render, fill_slots, render_graph — all arche-level
+
+depends_on:
+  - manteia              # Uses governed-inference for definition generation
+  - nous                 # Theoria surfaces into generation context
+  - genesis              # Emission praxeis moved to genesis oikos

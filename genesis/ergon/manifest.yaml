@@ -13,6 +13,12 @@ oikos_description: |
   into conversation.
 oikos_scale: cross-scale
 
+# Development experience metadata
+oikos_category: infrastructure
+surfaces_provided:
+  - coordination        # Cross-circle work coordination via pragma
+surfaces_consumed: []   # Foundational coordination layer
+
 content_paths:
   - path: eide/
     content_types: [eidos]
@@ -22,6 +28,8 @@ content_paths:
     content_types: [praxis]
   - path: pragma/
     content_types: [pragma]
+  - path: entities/
+    content_types: [render-spec, reflex]
 
 depends_on:
   - politeia
@@ -37,20 +45,37 @@ requires_dynamis:
 provides:
   eide:
     - pragma
+    - reflex
+
+  reflexes:
+    - reflex/ergon/pragma-signaled
+    - reflex/ergon/pragma-resolved
+
+  # Oikos-centric rendering: ergon owns presentation for pragma
+  renderable:
+    - eidos: pragma
+      description: "Work item cards and detail views"
 
   attainments:
-    - signal          # Create pragma for other circles
-    - work            # Manage pragma lifecycle
+    - signal             # Create pragma for other circles
+    - work               # Manage pragma lifecycle
+    - configure-reflex   # Create and manage reflexes
 
   desmoi:
     - signals-to
     - evidenced-by
     - blocks
     - resolves
+
   praxeis:
+    # Pragma lifecycle
     - ergon/create-pragma
     - ergon/list-pragma
     - ergon/accept-pragma
     - ergon/resolve-pragma
+    # Reflex management
+    - ergon/create-reflex
+    - ergon/disable-reflex
+    - ergon/list-reflexes
 
 stoicheia_form: {}

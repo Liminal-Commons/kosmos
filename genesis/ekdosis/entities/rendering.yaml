@@ -1,0 +1,182 @@
+# Ekdosis Render Specifications
+#
+# Rendering definitions for ekdosis eide: oikos-release, release-channel, build-attestation
+# Oikos-centric: ekdosis owns presentation for publication entities
+#
+# Discovery convention: render-spec/{eidos}-card, render-spec/{eidos}
+
+entities:
+
+# =============================================================================
+# OIKOS-RELEASE RENDER SPECS
+# =============================================================================
+
+- eidos: render-spec
+  id: render-spec/oikos-release-card
+  data:
+    name: oikos-release-card
+    description: "Card view for oikos-release — versioned publication"
+    target_eidos: oikos-release
+    fields_to_display:
+      - field: version
+      - field: channel
+      - field: notes
+      - field: published_at
+      - field: publisher_persona
+    layout_template: |
+      <article class="render-card oikos-release-card channel-{channel}">
+        <header class="card-header">
+          <span class="release-icon">📦</span>
+          <span class="version-badge">v{version}</span>
+          <span class="channel-badge channel-{channel}">{channel}</span>
+        </header>
+        <div class="card-body">
+          <div class="notes-row">
+            <p class="release-notes">{notes}</p>
+          </div>
+          <div class="publisher-row">
+            <span class="label">By:</span>
+            <span class="publisher">{publisher_persona}</span>
+          </div>
+        </div>
+        <footer class="card-footer">
+          <span class="published-at">Published {published_at}</span>
+        </footer>
+      </article>
+    style_bindings:
+      channel-stable: "border-left: 3px solid var(--channel-stable, #10b981)"
+      channel-beta: "border-left: 3px solid var(--channel-beta, #3b82f6)"
+      channel-alpha: "border-left: 3px solid var(--channel-alpha, #f59e0b)"
+      channel-canary: "border-left: 3px solid var(--channel-canary, #ef4444)"
+    created_at: "2025-01-29T00:00:00Z"
+
+- eidos: render-spec
+  id: render-spec/oikos-release-item
+  data:
+    name: oikos-release-item
+    description: "Compact list item for oikos-release"
+    target_eidos: oikos-release
+    fields_to_display:
+      - field: version
+      - field: channel
+      - field: published_at
+    layout_template: |
+      <div class="list-item oikos-release-item channel-{channel}">
+        <span class="release-icon">📦</span>
+        <span class="version">v{version}</span>
+        <span class="channel-badge">{channel}</span>
+        <span class="published-at">{published_at}</span>
+      </div>
+    style_bindings:
+      channel-stable: "font-weight: 600"
+    created_at: "2025-01-29T00:00:00Z"
+
+# =============================================================================
+# RELEASE-CHANNEL RENDER SPECS
+# =============================================================================
+
+- eidos: render-spec
+  id: render-spec/release-channel-card
+  data:
+    name: release-channel-card
+    description: "Card view for release-channel — publication channel"
+    target_eidos: release-channel
+    fields_to_display:
+      - field: name
+      - field: description
+      - field: auto_update
+      - field: requires_attestation
+    layout_template: |
+      <article class="render-card release-channel-card channel-{name}">
+        <header class="card-header">
+          <span class="channel-icon channel-{name}">📢</span>
+          <span class="channel-name">{name}</span>
+        </header>
+        <div class="card-body">
+          <p class="channel-description">{description}</p>
+          <div class="flags-row">
+            <span class="flag auto-update-{auto_update}">
+              Auto-update: {auto_update}
+            </span>
+            <span class="flag attestation-{requires_attestation}">
+              Attestation: {requires_attestation}
+            </span>
+          </div>
+        </div>
+      </article>
+    style_bindings:
+      channel-stable: "border-left: 3px solid var(--channel-stable, #10b981)"
+      channel-beta: "border-left: 3px solid var(--channel-beta, #3b82f6)"
+      channel-alpha: "border-left: 3px solid var(--channel-alpha, #f59e0b)"
+      channel-canary: "border-left: 3px solid var(--channel-canary, #ef4444)"
+      auto-update-true: "color: var(--status-success, #10b981)"
+      auto-update-false: "color: var(--status-muted, #6b7280)"
+      attestation-true: "color: var(--status-success, #10b981)"
+      attestation-false: "color: var(--status-muted, #6b7280)"
+    created_at: "2025-01-29T00:00:00Z"
+
+# =============================================================================
+# BUILD-ATTESTATION RENDER SPECS
+# =============================================================================
+
+- eidos: render-spec
+  id: render-spec/build-attestation-card
+  data:
+    name: build-attestation-card
+    description: "Card view for build-attestation — cryptographic provenance"
+    target_eidos: build-attestation
+    fields_to_display:
+      - field: builder_persona
+      - field: build_timestamp
+      - field: source_hash
+      - field: output_hash
+    layout_template: |
+      <article class="render-card build-attestation-card">
+        <header class="card-header">
+          <span class="attestation-icon">🔏</span>
+          <span class="attestation-label">Build Attestation</span>
+        </header>
+        <div class="card-body">
+          <div class="builder-row">
+            <span class="label">Builder:</span>
+            <span class="builder-persona">{builder_persona}</span>
+          </div>
+          <div class="hashes-section">
+            <div class="hash-row">
+              <span class="label">Source:</span>
+              <code class="hash source-hash">{source_hash}</code>
+            </div>
+            <div class="hash-row">
+              <span class="label">Output:</span>
+              <code class="hash output-hash">{output_hash}</code>
+            </div>
+          </div>
+        </div>
+        <footer class="card-footer">
+          <span class="build-timestamp">Built {build_timestamp}</span>
+          <span class="verified-badge">✓ Signed</span>
+        </footer>
+      </article>
+    style_bindings:
+      build-attestation-card: "border-left: 3px solid var(--attestation-color, #8b5cf6)"
+    created_at: "2025-01-29T00:00:00Z"
+
+- eidos: render-spec
+  id: render-spec/build-attestation-item
+  data:
+    name: build-attestation-item
+    description: "Compact list item for build-attestation"
+    target_eidos: build-attestation
+    fields_to_display:
+      - field: builder_persona
+      - field: build_timestamp
+    layout_template: |
+      <div class="list-item build-attestation-item">
+        <span class="attestation-icon">🔏</span>
+        <span class="builder-persona">{builder_persona}</span>
+        <span class="build-timestamp">{build_timestamp}</span>
+        <span class="verified-badge">✓</span>
+      </div>
+    style_bindings:
+      build-attestation-item: "background: var(--attestation-bg, #faf5ff)"
+    created_at: "2025-01-29T00:00:00Z"

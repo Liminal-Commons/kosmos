@@ -183,15 +183,20 @@ Entity sources content from a content-root.
 
 ## Operations (Praxeis)
 
-### compose
+### Core Composition
 
-The single composition interface. Routes based on definition shape.
+#### compose
+
+The single interface for all creation. Every composition:
+- Creates entity with provenance (composed-from, authorized-by bonds)
+- Indexes for semantic search (circle-scoped)
+- Routes based on definition shape (entity, graph, or template mode)
 
 - **When:** Any creation act
 - **Requires:** compose attainment
-- **Provides:** Entity with provenance, or rendered content
+- **Provides:** Entity with provenance, indexed for search
 
-### compose-cached
+#### compose-cached
 
 Content-addressed cached composition.
 
@@ -199,159 +204,144 @@ Content-addressed cached composition.
 - **Requires:** compose attainment
 - **Provides:** Artifact from cache or fresh composition
 
-### compose-indexed
+#### check-cache
 
-Compose and index for semantic search.
+Query cache without composing.
 
-- **When:** Artifacts that should be surfaceable
+- **When:** Checking if composition is needed
 - **Requires:** compose attainment
-- **Provides:** Indexed, searchable artifact
+- **Provides:** Cache hit/miss status
 
-### compose-definition-indexed
+### Dependency Management
 
-Generate and index an artifact definition.
+#### bind-dependencies / mark-dependents-stale / list-stale-artifacts / refresh-stale
 
-- **When:** Creating new composition patterns via inference
-- **Requires:** generate-definitions attainment
-- **Provides:** New typos entity, indexed for discovery
+Staleness propagation through artifact graph.
 
-### generate-domain-definitions
-
-Generate multiple artifact definitions with surfaced context.
-
-- **When:** Bootstrapping a domain with coherent definitions
-- **Requires:** generate-definitions attainment
-- **Provides:** Multiple indexed definitions building on existing patterns
-
-### bind-dependencies / mark-dependents-stale / invalidate-artifact / list-stale-artifacts / refresh-stale
-
-Dependency management for cache invalidation.
-
-- **When:** Tracking what needs recomposition when sources change
+- **When:** Sources change, dependents need recomposition
 - **Requires:** compose attainment
-- **Provides:** Staleness propagation through artifact graph
+- **Provides:** Dependency tracking and batch refresh
 
-### compose-oikos-dev / compose-all-oikoi-dev
+### Generative Development Spiral
 
-Package oikoi from genesis source.
+The canonical path for oikos development. See § The Generative Development Spiral below.
 
-- **When:** Preparing oikos for baking and distribution
-- **Requires:** oikos-develop attainment
-- **Provides:** oikos-dev entity with gathered content
+#### develop-oikos-from-design
 
-### bake-oikos
+Entry point: parse DESIGN.md and generate all artifacts.
 
-Resolve generation specs in an oikos-dev.
+- **When:** Developing a new oikos from human intent
+- **Requires:** develop attainment
+- **Provides:** Design artifact + generated component artifacts
 
-- **When:** Preparing for publication (localization, generation resolution)
-- **Requires:** oikos-bake attainment
-- **Provides:** Baked content with all specs resolved to literals
+#### generate-eidos / generate-praxis / generate-desmos / generate-oikos
 
-### publish-oikos / publish-oikos-multilocale
+Generate definitions using inference context composition.
 
-Sign and publish oikos-prod packages.
+Each generation:
+1. Composes an inference context (typos-inference-*)
+2. Surfaces relevant theoria
+3. Calls manteia/governed-inference
+4. Returns artifact ready for actualization
 
-- **When:** Releasing packages for distribution
-- **Requires:** oikos-publish attainment, signing capability
+- **When:** Creating definitions with AI assistance
+- **Requires:** develop attainment
+- **Provides:** Artifact containing generated definition
+
+#### actualize-eidos / actualize-praxis / actualize-desmos
+
+Create real entities from generated artifacts.
+
+- **When:** Artifact reviewed and approved
+- **Requires:** develop attainment
+- **Provides:** Entity in kosmos with provenance
+
+### Validation
+
+#### validate-oikos / validate-praxis
+
+Check definitions before emission.
+
+- **When:** Before emitting to genesis
+- **Requires:** develop attainment
+- **Provides:** Validation result with errors if any
+
+### Discovery
+
+#### discover-stoicheia / discover-typos / discover-desmoi
+
+Explore the compositional palette.
+
+- **When:** Understanding available building blocks
+- **Requires:** develop attainment
+- **Provides:** Available step types, templates, bond types
+
+### Packaging
+
+#### compose-oikos-dev
+
+Package oikos from genesis source.
+
+- **When:** Preparing for distribution
+- **Requires:** package attainment
+- **Provides:** oikos-dev entity with content
+
+#### bake-oikos
+
+Resolve generation specs to literals.
+
+- **When:** Before publication
+- **Requires:** package attainment
+- **Provides:** Baked content ready for signing
+
+#### publish-oikos
+
+Sign and release oikos-prod.
+
+- **When:** Distributing to other circles
+- **Requires:** package attainment + signing capability
 - **Provides:** Signed oikos-prod with attestation
 
-### verify-oikos
+#### verify-oikos
 
-Verify oikos-prod integrity.
+Verify package integrity.
 
-- **When:** Validating received packages
-- **Requires:** None (read-only verification)
-- **Provides:** Validity status, hash verification
+- **When:** Receiving packages
+- **Requires:** None (read-only)
+- **Provides:** Validity status
 
-### set-distribution-mode
+### Emission
 
-Change distribution mode of oikos-dev.
-
-- **When:** Sharing as generative-commons vs binary-only
-- **Requires:** oikos-develop attainment
-- **Provides:** Updated distribution policy
-
-### fork-oikos
-
-Fork a generative-commons package.
-
-- **When:** Creating derivative oikos with local adaptations
-- **Requires:** oikos-fork attainment
-- **Provides:** New oikos-dev with derives-from bond
-
-### list-generative-commons / list-oikos-derivations
-
-Query available commons and fork lineages.
-
-- **When:** Discovering forkable packages
-- **Requires:** oikos-fork attainment (for list-generative-commons)
-- **Provides:** Available packages, derivation trees
-
-### emit-genesis / emit-single-stream / verify-full-circle
-
-Full-circle genesis emission and verification.
-
-- **When:** Backup, recovery, verification, audit
-- **Requires:** genesis-emit attainment
-- **Provides:** Emitted files, content hash, verification result
+> **Note:** Emission operations have moved to the **genesis** oikos.
+> See [genesis/DESIGN.md](../genesis/DESIGN.md) for emit-genesis, genesis/emit-oikos, and verify-full-circle.
 
 ## Attainments
+
+Three attainments gate demiurge capabilities:
 
 ### attainment/compose
 
 Core composition capability — the fundamental demiurge act.
 
-- **Grants:** compose, compose-cached, check-cache, compose-indexed, bind-dependencies, mark-dependents-stale, invalidate-artifact, list-stale-artifacts, refresh-stale
+- **Grants:** compose, compose-cached, check-cache, bind-dependencies, mark-dependents-stale, list-stale-artifacts, refresh-stale
 - **Scope:** circle
-- **Rationale:** Composition is the basic creation act; dependency management follows from it
+- **Rationale:** Composition is the basic creation act; every entity arises through compose
 
-### attainment/generate-definitions
+### attainment/develop
 
-Definition generation capability — creating composition patterns via inference.
+Oikos development capability — the Generative Development Spiral.
 
-- **Grants:** compose-definition-indexed, generate-domain-definitions
+- **Grants:** develop-oikos-from-design, generate-eidos, generate-praxis, generate-desmos, generate-oikos, actualize-eidos, actualize-praxis, actualize-desmos, validate-oikos, validate-praxis, discover-stoicheia, discover-typos, discover-desmoi
 - **Scope:** circle
-- **Rationale:** Tier-3 inference operations require explicit authorization
+- **Rationale:** Definition generation uses inference and affects kosmos structure
 
-### attainment/oikos-develop
+### attainment/package
 
-Package development capability — creating oikos-dev packages.
+Oikos packaging and publishing capability.
 
-- **Grants:** compose-oikos-dev, compose-all-oikoi-dev, set-distribution-mode
+- **Grants:** compose-oikos-dev, bake-oikos, publish-oikos, verify-oikos
 - **Scope:** circle
-- **Rationale:** Packaging for distribution is a governance-level act
-
-### attainment/oikos-bake
-
-Generation resolution capability — baking oikos for publication.
-
-- **Grants:** bake-oikos
-- **Scope:** circle
-- **Rationale:** Baking involves inference; separate from development
-
-### attainment/oikos-publish
-
-Package publishing capability — signing and releasing oikos-prod.
-
-- **Grants:** publish-oikos, verify-oikos, publish-oikos-multilocale
-- **Scope:** circle
-- **Rationale:** Publication affects others; requires signing authority
-
-### attainment/oikos-fork
-
-Commons forking capability — deriving from generative-commons.
-
-- **Grants:** fork-oikos, list-generative-commons, list-oikos-derivations
-- **Scope:** circle
-- **Rationale:** Forking creates derivatives with attribution bonds
-
-### attainment/genesis-emit
-
-Genesis emission capability — full-circle verification.
-
-- **Grants:** emit-genesis, verify-full-circle, emit-single-stream
-- **Scope:** circle
-- **Rationale:** Genesis emission is a powerful audit/recovery operation
+- **Rationale:** Publishing affects other circles; requires signing authority
 
 ## Embodiment
 
@@ -359,7 +349,7 @@ Genesis emission capability — full-circle verification.
 
 | Level | Status |
 |-------|--------|
-| Defined | ✅ typos, artifact, 9 desmoi, 24 praxeis |
+| Defined | ✅ typos, artifact, 8 desmoi, 25 praxeis |
 | Loaded | ✅ Bootstrap loads all definitions |
 | Projected | ✅ All praxeis visible as MCP tools |
 | Embodied | ⏳ Body-schema contribution pending |
@@ -375,22 +365,28 @@ composition:
   available_definitions: 47    # typos entities
   cached_artifacts: 128        # artifacts with cache_key
   stale_artifacts: 3           # artifacts needing refresh
-  oikos_packages:
-    draft: 2
-    ready_to_publish: 1
-    published: 5
-```
 
-This reveals composition capacity and pending refresh work.
+development:
+  current_oikos: "oikos/recipes"
+  pending_artifacts: 3         # Generated, not yet actualized
+  actualized_definitions: 5
+  validation_status: valid
+  theoria_used: 4              # Theoria that informed generation
+
+packaging:
+  draft: 2
+  ready_to_publish: 1
+  published: 5
+```
 
 ### Reconciler
 
 A demiurge reconciler would surface:
 
 - **Stale artifacts** — "3 artifacts need refresh after dependency changes"
-- **Pending publications** — "oikos-dev/mypackage-1.0.0 is ready to publish"
-- **Missing definitions** — "No typos found for common patterns in this context"
-- **Orphaned artifacts** — "12 artifacts have no depends-on bonds (unreachable for invalidation)"
+- **Pending actualizations** — "3 generated artifacts await review and actualization"
+- **Validation opportunities** — "oikos/recipes has 5 actualized definitions, ready for validation"
+- **Emission readiness** — "oikos/recipes is valid and ready to emit"
 
 ## Compound Leverage
 
@@ -432,7 +428,479 @@ When a source changes, staleness propagates through depends-on bonds. This is la
 
 By sharing generation specs rather than just baked content, circles enable local adaptation. Fork lineage through derives-from maintains attribution.
 
+## The Generative Development Spiral
+
+The canonical path for developing oikoi. This replaces manual composition with AI-assisted generation that accumulates learning.
+
+### The Pattern
+
+```
+DESIGN.md (human intent)
+    ↓ develop-oikos-from-design
+Design Artifact (structured spec)
+    ↓ generate-eidos/praxis/desmos for each
+Component Artifacts (definitions)
+    ↓ review
+Human Approval
+    ↓ actualize-*
+Entities in Kosmos
+    ↓ validate-oikos
+Validated Definitions
+    ↓ genesis/emit-oikos
+Genesis Filesystem
+    ↓ crystallize-theoria
+Theoria (accumulated understanding)
+    ↓ surfaces into future generations
+Better Generations...
+```
+
+### Why This Pattern
+
+1. **Intent is explicit** — DESIGN.md captures human reasoning
+2. **Generation is informed** — Theoria surfaces into inference context
+3. **Review is possible** — Artifacts exist before actualization
+4. **Provenance is complete** — Every entity traces to what informed it
+5. **Learning accumulates** — Insights crystallize for future use
+
+### Inference Context Integration
+
+Each generation step uses inference context composition from manteia:
+
+```yaml
+# generate-eidos internally:
+- step: compose
+  typos_id: typos-inference-eidos
+  inputs:
+    name: "$name"
+    purpose: "$purpose"
+    domain: "$domain"
+  bind_to: inference_context
+
+- step: surface
+  query: "$domain ontology eidos"
+  eidos: theoria
+  limit: 5
+  bind_to: theoria
+
+- step: call
+  praxis: manteia/governed-inference
+  params:
+    prompt: "$inference_context.request"
+    system_prompt: "$inference_context.role"
+    output_schema: "$inference_context.output_schema"
+```
+
+The inference context slots:
+- `schema_source` — What output structure we want
+- `domain_theoria` — Relevant crystallized understanding
+- `role` — Persona for reasoning
+- `constraints` — Guardrails on generation
+- `request` — The actual instruction
+
+See manteia DESIGN.md § Inference Context Composition for the full pattern.
+
+### The Workflow
+
+#### Step 1: Write DESIGN.md
+
+Human writes a DESIGN.md capturing:
+- Ontological purpose (what gap this addresses)
+- Circle contexts (self, peer, commons usage)
+- Eide (entity types)
+- Desmoi (bond types)
+- Praxeis (operations)
+- Attainments (capability gates)
+
+Template:
+
+```markdown
+# {Oikos} Design
+
+{Greek etymology} — meaning
+
+## Ontological Purpose
+
+{Oikos} addresses **the gap between X and Y** — what becomes possible.
+
+## Circle Context
+
+### Self Circle / Peer Circle / Commons Circle
+How each circle type uses this oikos.
+
+## Core Entities (Eide)
+### {eidos-name}
+Purpose and fields.
+
+## Bonds (Desmoi)
+### {desmos-name}
+From → To, meaning.
+
+## Operations (Praxeis)
+### {praxis-name}
+When, requires, provides.
+
+## Attainments
+### attainment/{name}
+Capability gating.
+```
+
+#### Step 2: Generate Design Artifact
+
+```
+develop-oikos-from-design(design_content: "...")
+  → Parses DESIGN.md
+  → Generates design artifact with structured spec
+  → Returns: { design_artifact, eide_specs, praxeis_specs, desmoi_specs }
+```
+
+#### Step 3: Generate Components
+
+```
+generate-eidos(name, purpose, domain, field_hints)
+  → Composes inference context
+  → Surfaces domain theoria
+  → Calls governed-inference
+  → Returns: artifact containing eidos definition
+
+generate-praxis(name, oikos, purpose, params)
+  → Same pattern
+  → Returns: artifact containing praxis definition
+
+generate-desmos(name, purpose, from_eidos, to_eidos)
+  → Same pattern
+  → Returns: artifact containing desmos definition
+```
+
+#### Step 4: Review Artifacts
+
+Human reviews generated artifacts. Each artifact contains:
+- The generated definition
+- Verdict (TRUE/FALSE/UNDECIDABLE)
+- Guidance if issues
+- Provenance (what theoria informed it)
+
+#### Step 5: Actualize
+
+```
+actualize-eidos(artifact_id)
+  → Creates real eidos entity
+  → Bonds: composed-from → typos-def-eidos
+  → Bonds: informed-by → [theoria used]
+  → Bonds: contains ← oikos
+
+actualize-praxis(artifact_id)
+  → Same pattern
+
+actualize-desmos(artifact_id)
+  → Same pattern
+```
+
+#### Step 6: Validate and Emit
+
+```
+validate-oikos(oikos_id)
+  → Checks all definitions resolve
+  → Checks praxeis use valid stoicheia
+  → Returns: { valid: true/false, errors: [...] }
+
+genesis/emit-oikos(oikos_id)
+  → Writes to genesis/{oikos}/
+  → Creates manifest.yaml, eide/, praxeis/, desmoi/
+```
+
+#### Step 7: Crystallize Theoria
+
+```
+nous/crystallize-theoria(
+  insight: "Field naming pattern X works well for...",
+  domain: "ontology"
+)
+  → Theoria surfaces in future generations
+```
+
+### Direct Composition (No AI)
+
+For cases where you know exactly what you want:
+
+```yaml
+compose(typos-def-eidos, {
+  name: "recipe",
+  description: "A cooking recipe with ingredients and steps",
+  fields: { ... }
+})
+```
+
+This bypasses generation but maintains provenance. Use when:
+- Migrating existing definitions
+- Simple, well-understood structures
+- Testing
+
+### Bonds
+
+**informed-by** — Generation was informed by theoria
+```yaml
+desmos/informed-by:
+  from_eidos: any
+  to_eidos: theoria
+  cardinality: many-to-many
+```
+Traces what shaped each generated definition.
+
+**contains** — Oikos contains definition
+```yaml
+desmos/contains:
+  from_eidos: oikos
+  to_eidos: [eidos, praxis, desmos]
+  cardinality: one-to-many
+```
+The package relationship.
+
+### Body-Schema Contribution
+
+```yaml
+development:
+  current_oikos: "oikos/recipes"
+  pending_artifacts: 3        # Generated, not yet actualized
+  actualized_definitions: 5   # Real entities
+  validation_status: valid
+  theoria_used: 4             # Theoria that informed generation
+
+pending_actions:
+  - action: actualize-eidos
+    artifact_id: "artifact/eidos-recipe"
+    reason: "Generated and approved"
+  - action: genesis/emit-oikos
+    reason: "All definitions valid"
+```
+
+---
+
+## Interaction Surface Palette
+
+When developing an oikos, you're not just defining structure — you're choosing which **interaction surfaces** to engage to make your domain "come alive" within kosmos.
+
+### The Surfaces
+
+| Surface | What It Provides | Interface Oikos | Integration Pattern |
+|---------|------------------|-----------------|---------------------|
+| **Rendering** | Visual presence | opsis | eidos → render-type → renderer |
+| **Reasoning** | Intelligence | manteia | prompt + context → governed-inference → yield |
+| **Understanding** | Knowledge crystallization | nous | insight → theoria → surfaceable |
+| **Computation** | Sandboxed execution | ergon/WASM | entity → manifest → execution |
+| **Transport** | Cross-boundary flow | aither | syndesmos → presence → sync |
+| **Coordination** | Cross-circle work | ergon | gap → pragma → signals-to → resolution |
+| **Emission** | Filesystem persistence | thyra | entity → emit → chora |
+
+### Oikos Categories
+
+Oikoi fall into three categories based on their relationship to these surfaces:
+
+| Category | Character | Examples |
+|----------|-----------|----------|
+| **Interface** | Provide access to substrate capabilities | manteia, opsis, aither, thyra |
+| **Domain** | Model specific concerns | nous, politeia, psyche |
+| **Infrastructure** | Manage substrate resources | dynamis, ergon, soma |
+
+An oikos developer should ask: "Which interaction surfaces does my domain need?"
+
+### Example: Recipe Oikos
+
+| Surface | How Used |
+|---------|----------|
+| Rendering | Recipe cards, ingredient lists, step-by-step views |
+| Reasoning | "Suggest recipes from these ingredients" via manteia |
+| Understanding | Cooking techniques crystallize as theoria |
+| Computation | Nutrition calculation via WASM |
+| Transport | Recipes sync across family circle |
+
+### Example: Code Review Oikos
+
+| Surface | How Used |
+|---------|----------|
+| Rendering | Diff views, comment threads, approval badges |
+| Reasoning | Pattern analysis, suggestions via manteia |
+| Understanding | Review patterns crystallize as theoria |
+| Coordination | Review requests as pragma to dev circle |
+| Transport | Reviews sync across team circles |
+
+### Surface Integration Patterns
+
+Each surface has a composition pattern — how your oikos connects to it:
+
+**Rendering integration:**
+```yaml
+# Define or reference render-types for your eide
+- eidos: render-type
+  id: render-type/recipes/recipe-card
+  data:
+    for_eidos: recipes/recipe
+    renderer: renderer/recipes/card
+```
+
+**Reasoning integration:**
+```yaml
+# In your praxis, call manteia with domain context
+- step: call
+  praxis: manteia/governed-inference
+  params:
+    prompt: "Suggest recipes using: $ingredients"
+    context:
+      theoria_domain: "cooking"
+    output_schema: { ... }
+```
+
+**Understanding integration:**
+```yaml
+# Crystallize domain insights as theoria
+- step: call
+  praxis: nous/crystallize-theoria
+  params:
+    insight: "When searing meat, always preheat the pan"
+    domain: "cooking-techniques"
+```
+
+### Attainments as Surface Access
+
+Attainments gate which surfaces an oikos can leverage:
+
+| Surface | Required Attainment |
+|---------|---------------------|
+| Rendering | attainment/render (opsis) |
+| Reasoning | attainment/manteia (manteia) |
+| Understanding | attainment/crystallize (nous) |
+| Computation | attainment/execute (ergon) |
+| Transport | attainment/sync (aither) |
+| Coordination | attainment/signal (ergon) |
+
+When composing an oikos, declaring `depends_on: [manteia]` signals you'll use reasoning integration.
+
+---
+
+## Compositional Palette
+
+The building blocks for developing an oikos are discovered via the graph itself — the palette IS the kosmos:
+
+### Stoicheia Discovery
+
+```
+gather(eidos: "stoicheion") → all step types
+```
+
+Each stoicheion has:
+- `tier` — dynamis requirement (0-3)
+- `fields` — parameter schema
+- `description` — usage guidance
+
+**Tier Summary:**
+
+| Tier | Dynamis | Available Stoicheia |
+|------|---------|---------------------|
+| 0 | None | set, return, assert |
+| 1 | None | gather, trace, surface, filter, map, reduce, sort, limit |
+| 2 | Kosmos | find, update, bind, loose, compose, switch, for_each, try, append |
+| 3 | Chora | embed, manifest, signal, emit, invoke |
+| internal | — | arise, infer (use compose/governed-inference instead) |
+
+### Typos Discovery
+
+```
+gather(eidos: "typos") → all composition templates
+```
+
+Each typos has:
+- `target_eidos` — what entity type it creates
+- `defaults` — default field values
+- `bonds` — automatic bonds to create
+
+**Typos Categories:**
+- **Constitutional** — typos-def-eidos, typos-def-praxis, typos-def-desmos, typos-def-oikos
+- **Domain** — typos-def-theoria, typos-def-journey, typos-def-circle, etc.
+
+### Desmoi Discovery
+
+```
+gather(eidos: "desmos") → all bond types
+```
+
+Each desmos has:
+- `from_eidos`, `to_eidos` — what can be connected
+- `cardinality` — relationship constraints
+- `description` — semantic meaning
+
+### Dynamis Inference
+
+When you compose a praxis, the stoicheia used determine dynamis requirements:
+
+```
+praxis uses emit (tier 3) → oikos requires_dynamis: [chora.emit]
+praxis uses compose (tier 2) → oikos requires_dynamis: [kosmos]
+praxis uses only set, return (tier 0) → portable, no dynamis needed
+```
+
+The `validate-oikos` operation infers these requirements and warns on mismatches.
+
+### Anti-Pattern Detection
+
+Certain patterns violate KOSMOGONIA principles:
+
+| Anti-Pattern | Issue | Correct Pattern |
+|--------------|-------|-----------------|
+| Raw `arise` | No provenance | Use `compose` with typos |
+| Raw `infer` | Ungoverned inference | Use `call manteia/governed-inference` |
+| Missing depends_on | Silent failures | Declare oikos dependencies explicitly |
+
+Validation surfaces these during development.
+
+---
+
 ## Future Extensions
+
+### Meta-Pattern Completeness
+
+The oikos development experience currently reaches the **Loaded** level of the completeness ladder. Full completion requires:
+
+| Level | Current | Future Work |
+|-------|---------|-------------|
+| **Defined** | ✓ | — |
+| **Loaded** | ✓ | — |
+| **Projected** | ✗ | `project-oikos` — temporarily project praxeis as MCP tools without emission |
+| **Embodied** | ✗ | Development context in body-schema via sense-body gathering |
+| **Surfaced** | ✗ | Development reconciler surfaces validation/emit opportunities |
+| **Afforded** | ✗ | Thyra `oikos-view` render-type with contextual actions |
+
+**project-oikos** would enable testing praxeis during development without emitting to genesis:
+```
+project-oikos(oikos_id: "oikos/recipes")
+  → praxis/recipes/create becomes testable MCP tool
+  → changes don't persist to genesis
+  → teardown removes projection
+```
+
+**Development reconciler** would surface opportunities on-dwell:
+```yaml
+# Reconciler output
+pending_actions:
+  - action: validate-oikos
+    oikos_id: "oikos/recipes"
+    reason: "Has 3 eide, 2 praxeis — ready for validation"
+  - action: genesis/emit-oikos
+    oikos_id: "oikos/recipes"
+    reason: "Validated and ready"
+```
+
+**Body-schema contribution** would show development state:
+```yaml
+development:
+  active_oikoi:
+    - id: "oikos/recipes"
+      status: composing
+      eide_count: 3
+      praxeis_count: 2
+  available_surfaces:
+    rendering: available
+    reasoning: available
+    computation: requires_wasm
+```
 
 ### Automatic Invalidation Hooks
 
@@ -449,6 +917,18 @@ Current: composition happens in dwelling circle context. Future: compose-for-cir
 ### Streaming Composition
 
 Current: compose returns complete result. Future: compose-stream for large artifacts with progress reporting.
+
+### Hot Registration
+
+Currently, emitted oikoi require restart to bootstrap. Future: dynamic schema registry that recognizes newly composed eide/praxeis without restart.
+
+### Theoria Integration
+
+Auto-surface design patterns during oikos development via nous. When composing praxeis, relevant theoria about stoicheia usage would surface contextually.
+
+### Oikos Templates
+
+Start from oikos templates (e.g., "CRUD oikos", "integration oikos") that provide common scaffolding.
 
 ---
 

@@ -135,11 +135,11 @@ entities:
         next_retry_at:
           type: timestamp
           required: false
-          description: "Next scheduled reconnection attempt (exponential backoff)"
+          description: "Next scheduled reconnection attempt"
         max_retries:
           type: integer
           default: 10
-          description: "Maximum reconnection attempts before giving up"
+          description: "Maximum reconnection attempts"
         backoff_ms:
           type: integer
           default: 1000
@@ -292,6 +292,11 @@ entities:
           type: timestamp
           required: false
           description: "For catch-up-request: fetch entities since this time"
+        processed:
+          type: boolean
+          required: false
+          default: false
+          description: "Whether this message has been processed by a reflex"
 
   # ============================================================================
   # ATTAINMENTS
@@ -358,11 +363,11 @@ entities:
     id: attainment/sync
     data:
       name: sync
-      oikos: aither
-      scope: circle
       description: |
         Synchronization capability — P2P entity replication.
         Circle-scoped because sync operates on circle data.
+      oikos: aither
+      scope: circle
       grants:
         - praxis/aither/broadcast-sync
         - praxis/aither/receive-sync

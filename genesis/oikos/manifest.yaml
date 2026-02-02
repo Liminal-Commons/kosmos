@@ -14,6 +14,12 @@ oikos_description: |
   Where personal knowledge work happens within a dwelling.
 oikos_scale: oikos
 
+# Development experience metadata
+oikos_category: domain
+surfaces_provided: []   # Personal knowledge work domain
+surfaces_consumed:
+  - understanding       # Uses nous for insight crystallization
+
 content_paths:
   - path: eide/
     content_types: [eidos]
@@ -21,6 +27,8 @@ content_paths:
     content_types: [desmos]
   - path: praxeis/
     content_types: [praxis]
+  - path: entities/
+    content_types: [render-spec]
 
 requires_dynamis:
   - db.arise
@@ -42,6 +50,19 @@ provides:
     - oikos-dev
     - oikos-prod
     - publish-attestation
+
+  # Oikos-centric rendering: oikos owns presentation for intimate dwelling entities
+  renderable:
+    - eidos: session
+      description: "Dwelling activity period cards"
+    - eidos: conversation
+      description: "Dialogue cards and lists"
+    - eidos: segment
+      description: "Message and turn cards"
+    - eidos: note
+      description: "Attention marker cards"
+    - eidos: insight
+      description: "Emerging understanding cards"
 
   attainments:
     - dwell          # Session and conversation management

@@ -143,3 +143,58 @@ entities:
       to_eidos: release
       cardinality: many-to-many
       note: "Different from succeeds — supersedes implies the old should not be used"
+
+  # =========================================================================
+  # Infrastructure Deployment Relationships
+  # =========================================================================
+
+  # deployment → node
+  - eidos: desmos
+    id: desmos/targets-node
+    data:
+      name: targets-node
+      description: |
+        Deployment targets this specific node for execution.
+        Unlike 'targets' (which points to abstract substrate), targets-node
+        points to a concrete machine where the deployment should run.
+      from_eidos: deployment
+      to_eidos: node
+      cardinality: many-to-many
+      symmetric: false
+      note: |
+        Many-to-many allows: same deployment on multiple nodes (replication),
+        or different deployments on same node (multi-service).
+
+  # deployment → service-instance
+  - eidos: desmos
+    id: desmos/manifests-as
+    data:
+      name: manifests-as
+      description: |
+        Deployment manifested as this service-instance.
+        Created when reconciliation actualizes the deployment.
+        The bridge from intent (deployment) to actuality (service-instance).
+      from_eidos: deployment
+      to_eidos: service-instance
+      cardinality: one-to-many
+      symmetric: false
+      note: |
+        One-to-many allows: one deployment manifests multiple instances
+        (for HA/replication). Query via trace to find what a deployment became.
+
+  # circle → node
+  - eidos: desmos
+    id: desmos/steward-of
+    data:
+      name: steward-of
+      description: |
+        Circle stewards (governs) this commons node.
+        Replaces the embedded node.steward_circle_id field with a proper bond.
+        The steward circle has authority over node configuration and service allocation.
+      from_eidos: circle
+      to_eidos: node
+      cardinality: one-to-many
+      symmetric: false
+      note: |
+        A commons node has exactly one steward circle.
+        Query: from node, trace steward-of (reverse) to find governing circle.

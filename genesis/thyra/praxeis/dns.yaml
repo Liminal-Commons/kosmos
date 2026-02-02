@@ -167,9 +167,8 @@ entities:
                 direction: outward
                 bind_to: managed_zone_ids
               - step: filter
-                in: "$zones"
-                as: z
-                where: "$z.id in $managed_zone_ids"
+                items: "$zones"
+                condition: "$item.id in $managed_zone_ids"
                 bind_to: zones
 
       - step: return
@@ -521,20 +520,19 @@ entities:
           - when: "$record_type"
             then:
               - step: filter
-                in: "$records"
-                as: r
-                where: "$r.data.record_type == '$record_type'"
+                items: "$records"
+                condition: "$item.data.record_type == $record_type"
                 bind_to: records
 
-      # Apply limit if specified
+      # Apply limit if specified (use filter with length check since limit may not be a stoicheion)
+      # Note: The 'limit' stoicheion needs to use 'items' field
       - step: switch
         cases:
           - when: "$limit"
             then:
-              - step: limit
-                in: "$records"
-                count: "$limit"
-                bind_to: records
+              - step: set
+                bindings:
+                  records: "{{ $records | take($limit) }}"
 
       - step: return
         value:

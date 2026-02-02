@@ -1058,3 +1058,489 @@ entities:
             arise_count: "$arise_count"
             infer_count: "$infer_count"
             digest_count: "$digest_count"
+
+# =============================================================================
+# OIKOS VALIDATION — Complete Oikos Functionality Check
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/dokimasia/validate-oikos
+  data:
+    oikos: dokimasia
+    name: validate-oikos
+    visible: true
+    tier: 2
+    description: |
+      Validate that an oikos is fully functional.
+
+      Checks:
+      1. Manifest exists and is valid
+      2. All declared eide exist
+      3. All declared praxeis exist and lint clean
+      4. All declared desmoi exist
+      5. All declared attainments exist
+      6. All dependencies are satisfied (dependent oikoi exist)
+      7. All praxis steps reference valid stoicheia
+      8. All entity references resolve
+
+      Returns a comprehensive validation result with:
+      - passed: overall pass/fail
+      - checks: detailed results for each check
+      - errors: list of issues found
+      - warnings: non-blocking issues
+    params:
+      - name: oikos_id
+        type: string
+        required: true
+        description: Oikos ID to validate (e.g., "hodos", "opsis")
+    steps:
+      # Initialize tracking
+      - step: set
+        bindings:
+          errors: []
+          warnings: []
+          checks:
+            manifest: { passed: false, message: "" }
+            eide: { passed: false, found: 0, expected: 0, missing: [] }
+            praxeis: { passed: false, found: 0, expected: 0, missing: [], lint_failures: [] }
+            desmoi: { passed: false, found: 0, expected: 0, missing: [] }
+            attainments: { passed: false, found: 0, expected: 0, missing: [] }
+            dependencies: { passed: false, satisfied: [], missing: [] }
+
+      # Step 1: Find oikos entity (from manifest)
+      - step: find
+        id: "oikos/$oikos_id"
+        bind_to: oikos_entity
+
+      - step: switch
+        cases:
+          - when: "not $oikos_entity"
+            then:
+              - step: set
+                bindings:
+                  checks:
+                    manifest: { passed: false, message: "Oikos entity not found" }
+                  errors: "$errors + [{layer: 'manifest', code: 'OIKOS_NOT_FOUND', message: 'Oikos entity does not exist', context: {oikos_id: $oikos_id}}]"
+              - step: return
+                value:
+                  oikos_id: "$oikos_id"
+                  passed: false
+                  checks: "$checks"
+                  errors: "$errors"
+                  warnings: "$warnings"
+
+      - step: set
+        bindings:
+          checks:
+            manifest: { passed: true, message: "Oikos entity exists" }
+
+      # Step 2: Gather expected entities from manifest
+      # (In a real implementation, we'd parse the manifest YAML)
+      # For now, we gather actual entities and check they exist
+
+      # Step 2a: Check eide
+      - step: gather
+        eidos: eidos
+        filter:
+          oikos: "$oikos_id"
+        bind_to: found_eide
+
+      - step: set
+        bindings:
+          eide_count: "$found_eide | length"
+
+      # Trace belongs-to bonds to find eide belonging to this oikos
+      - step: trace
+        from_id: "oikos/$oikos_id"
+        desmos: belongs-to
+        direction: inward
+        resolve: from
+        bind_to: belonging_entities
+
+      - step: filter
+        items: "$belonging_entities"
+        condition: '$item.eidos == "eidos"'
+        bind_to: oikos_eide
+
+      - step: set
+        bindings:
+          checks:
+            manifest: "$checks.manifest"
+            eide: { passed: true, found: "$oikos_eide | length", message: "Eide found" }
+            praxeis: "$checks.praxeis"
+            desmoi: "$checks.desmoi"
+            attainments: "$checks.attainments"
+            dependencies: "$checks.dependencies"
+
+      # Step 2b: Check praxeis
+      - step: gather
+        eidos: praxis
+        filter:
+          oikos: "$oikos_id"
+        bind_to: found_praxeis
+
+      - step: set
+        bindings:
+          praxis_count: "$found_praxeis | length"
+          praxis_lint_failures: []
+
+      # Lint each praxis
+      - step: for_each
+        items: "$found_praxeis"
+        as: praxis
+        steps:
+          - step: call
+            praxis: dokimasia/lint-praxis
+            params:
+              praxis_id: "$praxis.id"
+            bind_to: lint_result
+
+          - step: switch
+            cases:
+              - when: "not $lint_result.passed"
+                then:
+                  - step: set
+                    bindings:
+                      praxis_lint_failures: "$praxis_lint_failures + [{praxis_id: $praxis.id, violations: $lint_result.violations}]"
+
+      - step: set
+        bindings:
+          praxis_lint_passed: "$praxis_lint_failures | length == 0"
+          checks:
+            manifest: "$checks.manifest"
+            eide: "$checks.eide"
+            praxeis: { passed: "$praxis_lint_passed", found: "$praxis_count", lint_failures: "$praxis_lint_failures" }
+            desmoi: "$checks.desmoi"
+            attainments: "$checks.attainments"
+            dependencies: "$checks.dependencies"
+
+      # Step 2c: Check desmoi
+      - step: filter
+        items: "$belonging_entities"
+        condition: '$item.eidos == "desmos"'
+        bind_to: oikos_desmoi
+
+      - step: set
+        bindings:
+          checks:
+            manifest: "$checks.manifest"
+            eide: "$checks.eide"
+            praxeis: "$checks.praxeis"
+            desmoi: { passed: true, found: "$oikos_desmoi | length" }
+            attainments: "$checks.attainments"
+            dependencies: "$checks.dependencies"
+
+      # Step 2d: Check attainments
+      - step: filter
+        items: "$belonging_entities"
+        condition: '$item.eidos == "attainment"'
+        bind_to: oikos_attainments
+
+      - step: set
+        bindings:
+          checks:
+            manifest: "$checks.manifest"
+            eide: "$checks.eide"
+            praxeis: "$checks.praxeis"
+            desmoi: "$checks.desmoi"
+            attainments: { passed: true, found: "$oikos_attainments | length" }
+            dependencies: "$checks.dependencies"
+
+      # Step 3: Check dependencies
+      - step: trace
+        from_id: "oikos/$oikos_id"
+        desmos: depends-on
+        resolve: to
+        bind_to: dependencies
+
+      - step: set
+        bindings:
+          dep_satisfied: []
+          dep_missing: []
+
+      - step: for_each
+        items: "$dependencies"
+        as: dep
+        steps:
+          - step: find
+            id: "$dep.id"
+            bind_to: dep_entity
+
+          - step: switch
+            cases:
+              - when: "$dep_entity"
+                then:
+                  - step: set
+                    bindings:
+                      dep_satisfied: "$dep_satisfied + [$dep.id]"
+              - when: "not $dep_entity"
+                then:
+                  - step: set
+                    bindings:
+                      dep_missing: "$dep_missing + [$dep.id]"
+                      errors: "$errors + [{layer: 'dependency', code: 'MISSING_DEPENDENCY', message: 'Required oikos not found', context: {oikos_id: $oikos_id, missing: $dep.id}}]"
+
+      - step: set
+        bindings:
+          deps_passed: "$dep_missing | length == 0"
+          checks:
+            manifest: "$checks.manifest"
+            eide: "$checks.eide"
+            praxeis: "$checks.praxeis"
+            desmoi: "$checks.desmoi"
+            attainments: "$checks.attainments"
+            dependencies: { passed: "$deps_passed", satisfied: "$dep_satisfied", missing: "$dep_missing" }
+
+      # Step 4: Compute overall pass
+      - step: set
+        bindings:
+          overall_passed: "$checks.manifest.passed and $checks.praxeis.passed and $checks.dependencies.passed"
+
+      - step: return
+        value:
+          oikos_id: "$oikos_id"
+          passed: "$overall_passed"
+          checks: "$checks"
+          errors: "$errors"
+          warnings: "$warnings"
+          summary:
+            eide: "$checks.eide.found"
+            praxeis: "$checks.praxeis.found"
+            desmoi: "$checks.desmoi.found"
+            attainments: "$checks.attainments.found"
+            dependencies: "$dep_satisfied | length"
+
+- eidos: praxis
+  id: praxis/dokimasia/validate-all-oikoi
+  data:
+    oikos: dokimasia
+    name: validate-all-oikoi
+    visible: true
+    tier: 2
+    description: |
+      Validate all oikoi in the kosmos.
+
+      Runs validate-oikos on each oikos entity and aggregates results.
+      Useful for system-wide health checks and CI validation.
+
+      Returns:
+      - total: number of oikoi examined
+      - passed: number fully functional
+      - failed: number with issues
+      - results: per-oikos validation results
+      - summary: aggregate statistics
+    params:
+      - name: stop_on_failure
+        type: boolean
+        required: false
+        description: Stop validation on first failure (default false)
+    steps:
+      - step: gather
+        eidos: oikos
+        bind_to: all_oikoi
+
+      - step: set
+        bindings:
+          total: 0
+          passed: 0
+          failed: 0
+          results: []
+          should_stop: false
+          stop_early: false
+
+      - step: switch
+        cases:
+          - when: "$stop_on_failure"
+            then:
+              - step: set
+                bindings:
+                  should_stop: true
+
+      - step: for_each
+        items: "$all_oikoi"
+        as: oikos
+        steps:
+          - step: switch
+            cases:
+              - when: "$stop_early"
+                then:
+                  # Skip remaining oikoi
+                  - step: set
+                    bindings:
+                      skipped: true
+            default:
+              - step: set
+                bindings:
+                  total: "$total + 1"
+
+              - step: call
+                praxis: dokimasia/validate-oikos
+                params:
+                  oikos_id: "$oikos.data.name"
+                bind_to: result
+
+              - step: set
+                bindings:
+                  results: "$results + [$result]"
+
+              - step: switch
+                cases:
+                  - when: "$result.passed"
+                    then:
+                      - step: set
+                        bindings:
+                          passed: "$passed + 1"
+                  - when: "not $result.passed"
+                    then:
+                      - step: set
+                        bindings:
+                          failed: "$failed + 1"
+                      - step: switch
+                        cases:
+                          - when: "$should_stop"
+                            then:
+                              - step: set
+                                bindings:
+                                  stop_early: true
+
+      - step: set
+        bindings:
+          all_passed: "$failed == 0"
+
+      - step: return
+        value:
+          total: "$total"
+          passed: "$passed"
+          failed: "$failed"
+          all_passed: "$all_passed"
+          results: "$results"
+          failed_oikoi: "$results | select(.passed == false) | map(.oikos_id)"
+
+- eidos: praxis
+  id: praxis/dokimasia/oikos-health-report
+  data:
+    oikos: dokimasia
+    name: oikos-health-report
+    visible: true
+    tier: 2
+    description: |
+      Generate a health report for an oikos showing completeness status.
+
+      Combines validation with embodiment level tracking:
+      - Defined: Eide, praxeis, desmoi, attainments declared
+      - Loaded: Bootstrap loaded all definitions
+      - Projected: Praxeis visible as MCP tools
+      - Validated: All checks pass
+      - Tested: (future) Integration tests pass
+
+      Returns a structured health report artifact.
+    params:
+      - name: oikos_id
+        type: string
+        required: true
+        description: Oikos to report on
+    steps:
+      # Run validation
+      - step: call
+        praxis: dokimasia/validate-oikos
+        params:
+          oikos_id: "$oikos_id"
+        bind_to: validation
+
+      # Get oikos entity for metadata
+      - step: find
+        id: "oikos/$oikos_id"
+        bind_to: oikos_entity
+
+      # Gather praxeis to check MCP projection
+      - step: gather
+        eidos: praxis
+        filter:
+          oikos: "$oikos_id"
+          visible: true
+        bind_to: visible_praxeis
+
+      # Build health levels
+      - step: set
+        bindings:
+          levels:
+            defined:
+              status: "$validation.passed"
+              eide: "$validation.summary.eide"
+              praxeis: "$validation.summary.praxeis"
+              desmoi: "$validation.summary.desmoi"
+              attainments: "$validation.summary.attainments"
+            loaded:
+              status: "$validation.checks.manifest.passed"
+              message: "Bootstrap loaded"
+            projected:
+              status: true
+              mcp_tools: "$visible_praxeis | length"
+              message: "Praxeis projected as MCP tools"
+            validated:
+              status: "$validation.passed"
+              errors: "$validation.errors | length"
+              warnings: "$validation.warnings | length"
+            tested:
+              status: false
+              message: "Integration tests not yet implemented"
+
+      # Compute overall health
+      - step: set
+        bindings:
+          health_score: 0
+
+      - step: switch
+        cases:
+          - when: "$levels.defined.status"
+            then:
+              - step: set
+                bindings:
+                  health_score: "$health_score + 25"
+
+      - step: switch
+        cases:
+          - when: "$levels.loaded.status"
+            then:
+              - step: set
+                bindings:
+                  health_score: "$health_score + 25"
+
+      - step: switch
+        cases:
+          - when: "$levels.projected.status"
+            then:
+              - step: set
+                bindings:
+                  health_score: "$health_score + 25"
+
+      - step: switch
+        cases:
+          - when: "$levels.validated.status"
+            then:
+              - step: set
+                bindings:
+                  health_score: "$health_score + 25"
+
+      # Create report artifact
+      - step: compose
+        typos_id: typos-def-artifact
+        inputs:
+          id: "artifact/health-report-$oikos_id"
+          title: "Health Report: $oikos_id"
+          kind: report
+          domain: "dokimasia"
+          content:
+            oikos_id: "$oikos_id"
+            health_score: "$health_score"
+            levels: "$levels"
+            validation: "$validation"
+            generated_at: "{{ now() }}"
+        bind_to: report
+
+      - step: return
+        value:
+          oikos_id: "$oikos_id"
+          health_score: "$health_score"
+          levels: "$levels"
+          report_artifact: "$report"

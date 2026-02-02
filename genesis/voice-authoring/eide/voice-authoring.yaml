@@ -1,0 +1,117 @@
+# Voice-Authoring Eide
+# =====================
+#
+# Entity types for voice-authoring mode.
+# Traces to: genesis/voice-authoring/DESIGN.md
+
+entities:
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # CORE EIDOS
+  # ─────────────────────────────────────────────────────────────────────────
+
+  # authoring-session — active voice-authoring context
+  - eidos: eidos
+    id: eidos/authoring-session
+    data:
+      name: authoring-session
+      description: |
+        Active voice-authoring context.
+
+        Tracks the state of a voice-authoring session: what artifact is
+        focused, what context is expanded, what inference pattern to use.
+
+        The session is the "game mode" state — what's active while dwelling
+        in voice-authoring oikos.
+      fields:
+        focused_artifact_id:
+          type: string
+          required: false
+          description: "The artifact currently being authored"
+        expanded_bonds:
+          type: array
+          required: false
+          default: []
+          description: |
+            Bond IDs that are "expanded" in the view.
+            These determine what context is included in inference.
+            Example: ["depends-on/artifact/requirements"]
+        context_depth:
+          type: number
+          required: true
+          default: 1
+          description: |
+            How deep to traverse expanded bonds for context.
+            1 = immediate only, 2 = bonds of bonds, etc.
+        inference_pattern_id:
+          type: string
+          required: true
+          default: typos-inference-update-artifact
+          description: "Typos ID for generating artifact updates"
+        status:
+          type: enum
+          values: [active, paused, ended]
+          required: true
+          default: active
+        animus_id:
+          type: string
+          required: true
+          description: "The animus who is authoring"
+        circle_id:
+          type: string
+          required: true
+          description: "The circle context for authoring"
+        started_at:
+          type: timestamp
+          required: true
+        paused_at:
+          type: timestamp
+          required: false
+        ended_at:
+          type: timestamp
+          required: false
+        expressions_count:
+          type: number
+          required: false
+          default: 0
+          description: "Number of expressions committed this session"
+        artifacts_updated_count:
+          type: number
+          required: false
+          default: 0
+          description: "Number of artifacts updated this session"
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # ATTAINMENTS
+  # ─────────────────────────────────────────────────────────────────────────
+
+  - eidos: attainment
+    id: attainment/voice-author
+    data:
+      name: voice-author
+      description: |
+        Voice-authoring capability — entering mode and authoring via voice.
+
+        Enables the full voice-authoring experience: entering mode, focusing
+        artifacts, managing context, processing expressions into updates.
+
+        Requires underlying attainments from thyra (perceive, express),
+        opsis (render), and manteia (manteia).
+      oikos: voice-authoring
+      scope: circle
+      grants:
+        - praxis/voice-authoring/enter-voice-authoring
+        - praxis/voice-authoring/exit-voice-authoring
+        - praxis/voice-authoring/pause-voice-authoring
+        - praxis/voice-authoring/resume-voice-authoring
+        - praxis/voice-authoring/focus-artifact
+        - praxis/voice-authoring/focus-sub-artifact
+        - praxis/voice-authoring/expand-context
+        - praxis/voice-authoring/collapse-context
+        - praxis/voice-authoring/process-authoring-expression
+        - praxis/voice-authoring/create-artifact-from-conversation
+      requires:
+        - attainment/perceive
+        - attainment/express
+        - attainment/render
+        - attainment/manteia

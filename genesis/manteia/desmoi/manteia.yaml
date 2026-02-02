@@ -1,0 +1,101 @@
+# Manteia Desmoi
+# Governed generation bonds — provenance for inference results
+#
+# These bonds track the relationships between generations,
+# their governance context, and schema constraints.
+
+entities:
+  # generated-by — generation was produced by this inference call
+  - eidos: desmos
+    id: desmos/generated-by
+    data:
+      name: generated-by
+      description: |
+        Generation was produced by this governed inference call.
+        Links the generated content to its governance envelope,
+        providing provenance for quality assessment.
+      from_eidos: artifact
+      to_eidos: governed-envelope
+      cardinality: one-to-one
+      symmetric: false
+
+  # evaluated-against — generation was evaluated against these criteria
+  - eidos: desmos
+    id: desmos/evaluated-against
+    data:
+      name: evaluated-against
+      description: |
+        Governed envelope was evaluated against these criteria.
+        Links to the evaluation criteria used for quality gates.
+      from_eidos: governed-envelope
+      to_eidos: evaluation-criterion
+      cardinality: one-to-many
+      symmetric: false
+
+  # constrained-to — generation was constrained to this schema
+  - eidos: desmos
+    id: desmos/constrained-to
+    data:
+      name: constrained-to
+      description: |
+        Generation was constrained to this schema source.
+        The schema can come from an eidos or stoicheion.
+        Provides traceability from generated content to its type.
+      from_eidos:
+        - artifact
+        - governed-envelope
+      to_eidos:
+        - eidos
+        - stoicheion
+      cardinality: many-to-one
+      symmetric: false
+
+  # informed-by — generation was informed by this context
+  - eidos: desmos
+    id: desmos/informed-by
+    data:
+      name: informed-by
+      description: |
+        Generation was informed by this context entity.
+
+        Tracks what shaped the generation — theoria, artifacts, expressions.
+        This enables:
+        - Provenance: understanding what influenced an artifact
+        - Re-generation: repeating with different context
+        - Explanation: answering "why does it say this?"
+
+        Multiple informed-by bonds are normal; generation draws from
+        many context sources.
+      from_eidos:
+        - artifact
+        - governed-envelope
+      to_eidos:
+        - theoria
+        - artifact
+        - expression
+      cardinality: many-to-many
+      symmetric: false
+
+  # discusses-about — expression targets artifact for discussion
+  - eidos: desmos
+    id: desmos/discusses-about
+    data:
+      name: discusses-about
+      description: |
+        Expression targets an artifact for discussion.
+
+        In voice-authoring mode, when a human speaks about the focused
+        artifact, the expression may bond to it via discusses-about.
+        This is optional — expressions are valuable standalone — but
+        enables:
+        - Finding discussions about an artifact
+        - Understanding what drove artifact changes
+        - Reviewing conversation history for a document
+
+        Note: the artifact doesn't need all discusses-about bonds to
+        update. The artifact at any moment is self-sufficient. This
+        bond is for provenance and retrieval, not structural necessity.
+      from_eidos: expression
+      to_eidos: artifact
+      cardinality: many-to-many
+      symmetric: false

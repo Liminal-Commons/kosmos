@@ -18,6 +18,11 @@ oikos_description: |
   schema, and semantic validation.
 oikos_scale: cross-scale
 
+# Development experience metadata
+oikos_category: infrastructure
+surfaces_provided: []   # Validation is an operation, not a surface
+surfaces_consumed: []   # Foundational validation layer
+
 content_paths:
   - path: eide/
     content_types: [eidos]
@@ -25,6 +30,8 @@ content_paths:
     content_types: [desmos]
   - path: praxeis/
     content_types: [praxis]
+  - path: entities/
+    content_types: [render-spec]
 
 requires_dynamis:
   - db.arise
@@ -37,6 +44,13 @@ provides:
   eide:
     - validation-result
     - validation-error
+
+  # Oikos-centric rendering: dokimasia owns presentation for validation entities
+  renderable:
+    - eidos: validation-result
+      description: "Validation outcome cards"
+    - eidos: validation-error
+      description: "Validation error items"
 
   attainments:
     - examine            # Validation capability — verify authenticity
@@ -51,6 +65,11 @@ provides:
     - dokimasia/validate-semantic
     - dokimasia/validate-generation
     - dokimasia/compose-validation-report
+    - dokimasia/lint-praxis
+    - dokimasia/lint-all-praxeis
+    - dokimasia/validate-oikos
+    - dokimasia/validate-all-oikoi
+    - dokimasia/oikos-health-report
 
 stoicheia_form:
   # All validation logic in praxeis

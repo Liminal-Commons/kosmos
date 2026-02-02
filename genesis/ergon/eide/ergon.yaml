@@ -116,3 +116,109 @@ entities:
         - praxis/ergon/list-pragma
         - praxis/ergon/accept-pragma
         - praxis/ergon/resolve-pragma
+
+  # =========================================================================
+  # reflex — autonomic response to graph mutations
+  # =========================================================================
+
+  - eidos: eidos
+    id: eidos/reflex
+    data:
+      name: reflex
+      description: |
+        Autonomic response to graph mutations.
+
+        A reflex fires automatically when a graph mutation matches its
+        trigger pattern. This implements the somatic architecture principle:
+        the system feels its state and responds without explicit invocation.
+
+        Reflexes close the loop between change detection and response:
+          Graph mutation → Trigger match → Response praxis fires
+
+        Use cases:
+        - Update oikos manifest when artifacts are added
+        - Validate praxis when it changes
+        - Notify when pragma arrives
+        - Auto-register MCP tools during oikos development
+
+        Reflexes complement the cursor model:
+        - Cursor: What's new for Claude to observe?
+        - Reflex: What should the system do automatically?
+      constitutional: false
+      fields:
+        name:
+          type: string
+          required: true
+          description: Short identifier for the reflex
+
+        description:
+          type: string
+          required: true
+          description: What this reflex does and why
+
+        trigger:
+          type: object
+          required: true
+          description: |
+            Pattern that activates this reflex. Structure:
+              event: entity_created | entity_updated | entity_deleted |
+                     bond_created | bond_updated | bond_deleted
+              eidos: Entity type filter (for entity events)
+              desmos: Bond type filter (for bond events)
+              from_eidos: Source entity type (for bond events)
+              to_eidos: Target entity type(s) (for bond events)
+              condition: Expression evaluated against mutation context
+
+        response:
+          type: object
+          required: true
+          description: |
+            Action to take when trigger matches. Structure:
+              praxis: Praxis ID to invoke
+              params: Parameters (can reference $from, $to, $entity, $bond)
+
+        enabled:
+          type: boolean
+          required: false
+          default: true
+          description: Whether this reflex is active
+
+        scope:
+          type: enum
+          values: [circle, oikos, global]
+          required: false
+          default: global
+          description: |
+            Where this reflex applies:
+            - circle: Only mutations within a specific circle
+            - oikos: Only mutations involving entities of an oikos
+            - global: All matching mutations
+
+        circle_id:
+          type: string
+          required: false
+          description: Circle ID when scope is 'circle'
+
+        oikos_id:
+          type: string
+          required: false
+          description: Oikos ID when scope is 'oikos'
+
+  # =========================================================================
+  # REFLEX ATTAINMENT
+  # =========================================================================
+
+  - eidos: attainment
+    id: attainment/configure-reflex
+    data:
+      name: configure-reflex
+      description: |
+        Reflex configuration capability — creating and managing reflexes.
+        This is a privileged operation as reflexes can invoke arbitrary
+        praxeis in response to graph mutations.
+      oikos: ergon
+      scope: circle
+      grants:
+        - praxis/ergon/create-reflex
+        - praxis/ergon/disable-reflex
+        - praxis/ergon/list-reflexes

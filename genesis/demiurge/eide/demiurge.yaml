@@ -60,8 +60,15 @@ entities:
       description: |
         A composed artifact — the result of template or graph composition.
         Entity composition produces the entity directly, not an artifact wrapper.
+
+        Artifacts can be:
+        - Documents authored through voice-authoring
+        - Generated content from inference
+        - Composed templates
+        - Sub-artifacts of larger documents
       constitutional: false
       fields:
+        # Core composition fields
         typos_id:
           type: string
           required: true
@@ -87,6 +94,47 @@ entities:
           required: false
           description: Whether the artifact needs recomposition
 
+        # Document/authoring fields
+        title:
+          type: string
+          required: false
+          description: Human-readable title for the artifact
+        kind:
+          type: enum
+          values: [document, note, design, code, template, other]
+          required: false
+          default: document
+          description: What kind of artifact this is
+        domain:
+          type: string
+          required: false
+          description: Domain for surfacing relevant theoria during updates
+        circle_id:
+          type: string
+          required: false
+          description: Circle this artifact belongs to
+
+        # Composition hierarchy fields
+        parent_artifact_id:
+          type: string
+          required: false
+          description: Parent artifact if this is a sub-artifact
+        section_path:
+          type: string
+          required: false
+          description: Path within parent (e.g., 'introduction', 'section-2')
+
+        # Update tracking
+        updated_at:
+          type: timestamp
+          required: false
+          description: Last update time (may differ from composed_at)
+        update_count:
+          type: number
+          required: false
+          default: 0
+          description: Number of times this artifact has been updated
+
   # =============================================================================
   # ATTAINMENTS
   # =============================================================================
@@ -97,102 +145,73 @@ entities:
       name: compose
       description: |
         Core composition capability — the fundamental demiurge act.
-        Enables creating entities and artifacts through composition,
-        managing artifact dependencies, and cache operations.
+
+        Compose is the single interface for all creation. Every composition:
+        - Creates entity with provenance (composed-from, authorized-by bonds)
+        - Indexes for semantic search (circle-scoped)
+        - Tracks dependencies for cache invalidation
       oikos: demiurge
       scope: circle
       grants:
         - praxis/demiurge/compose
         - praxis/demiurge/compose-cached
         - praxis/demiurge/check-cache
-        - praxis/demiurge/compose-indexed
         - praxis/demiurge/bind-dependencies
         - praxis/demiurge/mark-dependents-stale
-        - praxis/demiurge/invalidate-artifact
         - praxis/demiurge/list-stale-artifacts
         - praxis/demiurge/refresh-stale
 
   - eidos: attainment
-    id: attainment/generate-definitions
+    id: attainment/develop
     data:
-      name: generate-definitions
+      name: develop
       description: |
-        Definition generation capability — creating composition patterns via inference.
-        Tier-3 operations that use LLM to generate new typos definitions.
+        Oikos development capability — the Generative Development Spiral.
+
+        The canonical path for developing oikoi:
+        1. Write DESIGN.md (human intent)
+        2. develop-oikos-from-design (parses, generates artifacts)
+        3. Review generated artifacts
+        4. actualize-* (creates real entities)
+        5. validate-oikos (checks definitions)
+        6. emit-oikos (writes to genesis)
+
+        Each generation step uses inference context composition to surface
+        relevant theoria and produce schema-constrained output.
       oikos: demiurge
       scope: circle
       grants:
-        - praxis/demiurge/compose-definition-indexed
-        - praxis/demiurge/generate-domain-definitions
+        - praxis/demiurge/develop-oikos-from-design
+        - praxis/demiurge/generate-eidos
+        - praxis/demiurge/generate-praxis
+        - praxis/demiurge/generate-desmos
+        - praxis/demiurge/generate-oikos
+        - praxis/demiurge/actualize-eidos
+        - praxis/demiurge/actualize-praxis
+        - praxis/demiurge/actualize-desmos
+        - praxis/demiurge/validate-oikos
+        - praxis/demiurge/validate-praxis
+        - praxis/demiurge/discover-stoicheia
+        - praxis/demiurge/discover-typos
+        - praxis/demiurge/discover-desmoi
 
   - eidos: attainment
-    id: attainment/oikos-develop
+    id: attainment/package
     data:
-      name: oikos-develop
+      name: package
       description: |
-        Package development capability — creating oikos-dev packages.
-        Enables packaging oikoi from genesis source and managing distribution modes.
+        Oikos packaging and publishing capability.
+
+        Prepares oikoi for distribution:
+        - compose-oikos-dev: Package from genesis source
+        - bake-oikos: Resolve generation specs to literals
+        - publish-oikos: Sign and release
+        - verify-oikos: Verify package integrity
       oikos: demiurge
       scope: circle
       grants:
         - praxis/demiurge/compose-oikos-dev
-        - praxis/demiurge/compose-all-oikoi-dev
-        - praxis/demiurge/set-distribution-mode
-
-  - eidos: attainment
-    id: attainment/oikos-bake
-    data:
-      name: oikos-bake
-      description: |
-        Generation resolution capability — baking oikos for publication.
-        Resolves all generation specs in an oikos-dev to literals,
-        preparing it for signing and distribution.
-      oikos: demiurge
-      scope: circle
-      grants:
         - praxis/demiurge/bake-oikos
-
-  - eidos: attainment
-    id: attainment/oikos-publish
-    data:
-      name: oikos-publish
-      description: |
-        Package publishing capability — signing and releasing oikos-prod.
-        Creates signed, verified packages for distribution to other circles.
-        Requires signing authority (hypostasis).
-      oikos: demiurge
-      scope: circle
-      grants:
         - praxis/demiurge/publish-oikos
         - praxis/demiurge/verify-oikos
-        - praxis/demiurge/publish-oikos-multilocale
 
-  - eidos: attainment
-    id: attainment/oikos-fork
-    data:
-      name: oikos-fork
-      description: |
-        Commons forking capability — deriving from generative-commons.
-        Enables forking shared packages for local adaptation while
-        maintaining attribution through derives-from bonds.
-      oikos: demiurge
-      scope: circle
-      grants:
-        - praxis/demiurge/fork-oikos
-        - praxis/demiurge/list-generative-commons
-        - praxis/demiurge/list-oikos-derivations
-
-  - eidos: attainment
-    id: attainment/genesis-emit
-    data:
-      name: genesis-emit
-      description: |
-        Genesis emission capability — full-circle verification.
-        Enables emitting all genesis content to filesystem and
-        verifying kosmos coherence through hash comparison.
-      oikos: demiurge
-      scope: circle
-      grants:
-        - praxis/demiurge/emit-genesis
-        - praxis/demiurge/verify-full-circle
-        - praxis/demiurge/emit-single-stream

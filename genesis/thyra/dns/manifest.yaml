@@ -1,0 +1,49 @@
+# DNS Manifest
+# Sub-module of thyra for DNS infrastructure actualization
+#
+# Note: DNS praxeis live in the thyra namespace (praxis/thyra/*)
+# This manifest documents what dns provides as a sub-module
+
+version: "2.1"
+
+oikos: dns
+parent: thyra
+description: |
+  DNS infrastructure actualization — how the kosmos becomes addressable.
+  A sub-module of thyra addressing the naming/routing aspect of the boundary.
+
+provides:
+  eide:
+    - dns-zone
+    - dns-record
+    - dns-provider-binding
+
+  attainments:
+    - dns-read           # List zones/records, sense state
+    - dns-write          # Create/delete records
+    - dns-admin          # Zone management, reconciliation
+
+  desmoi:
+    - manages-zone       # Circle → dns-zone
+    - in-zone            # dns-record → dns-zone
+    - provided-by        # dns-zone → dns-provider-binding
+    - addresses          # dns-record → entity
+
+  # Note: Praxeis are in thyra namespace
+  praxeis:
+    - thyra/create-zone
+    - thyra/bind-zone-provider
+    - thyra/list-zones
+    - thyra/create-dns-record
+    - thyra/delete-dns-record
+    - thyra/list-dns-records
+    - thyra/sense-dns-record
+    - thyra/reconcile-dns-record
+    - thyra/reconcile-zone
+
+depends_on:
+  - politeia            # Circle governance for zone management
+  - dynamis             # Actuality mode: dns
+
+actuality_modes:
+  - dns                 # Provider API actualization (Cloudflare, Route53)

@@ -18,6 +18,12 @@ oikos_description: |
   implementations of tier-2 stoicheia.
 oikos_scale: cross-scale
 
+# Development experience metadata
+oikos_category: infrastructure
+surfaces_provided: []   # Foundational step definitions
+surfaces_consumed:
+  - reasoning           # Step eide enable constrained generation via manteia
+
 content_paths:
   - path: eide/
     content_types: [eidos, stoicheion]

@@ -58,3 +58,55 @@ entities:
       to_eidos: animus
       cardinality: one-to-one
       symmetric: false
+
+  # =============================================================================
+  # INFRASTRUCTURE DESMOI
+  # =============================================================================
+
+  # hosts-service — node hosts a service instance
+  - eidos: desmos
+    id: desmos/hosts-service
+    data:
+      name: hosts-service
+      description: "A node hosts a service instance"
+      from_eidos:
+        - node
+      to_eidos:
+        - service-instance
+      cardinality: one-to-many
+      symmetric: false
+
+  # provides-to — service instance provides capability to a circle
+  - eidos: desmos
+    id: desmos/provides-to
+    data:
+      name: provides-to
+      description: "A service instance provides capability to a circle"
+      from_eidos:
+        - service-instance
+      to_eidos:
+        - circle
+      cardinality: many-to-many
+      symmetric: false
+      data_fields:
+        quota:
+          type: object
+          required: false
+          description: "Resource limits for this circle"
+        config:
+          type: object
+          required: false
+          description: "Circle-specific service configuration"
+
+  # runs-on — kosmos instance runs on a node
+  - eidos: desmos
+    id: desmos/runs-on
+    data:
+      name: runs-on
+      description: "A kosmos instance runs on a node"
+      from_eidos:
+        - kosmos-instance
+      to_eidos:
+        - node
+      cardinality: many-to-one
+      symmetric: false

@@ -1,0 +1,723 @@
+# Theoria Crystallized During Oikos Redesign
+#
+# 70 theoria (T18-T87) captured during comprehensive oikos redesign.
+# Each theoria represents understanding that stabilized into knowledge.
+#
+# Organized by source domain (the oikos where insight emerged).
+# Reviewed and expanded 2026-01-29 for clarity and completeness.
+
+entities:
+
+# =============================================================================
+# EKDOSIS — Publication (T18-T20)
+# =============================================================================
+
+- eidos: theoria
+  id: theoria/T18
+  data:
+    insight: "An oikos becomes embodied when sense-body includes its state — without body-schema contribution, an oikos remains invisible to the animus"
+    domain: ekdosis
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T19
+  data:
+    insight: "Reconcilers surface opportunities for action, not just drift from intent — they notice what could be done, not only what went wrong"
+    domain: ekdosis
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T20
+  data:
+    insight: "Attainments make capabilities discoverable by declaring what actions an entity enables — the graph reveals what is possible"
+    domain: ekdosis
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+# =============================================================================
+# HYPOSTASIS — Identity (T21-T23)
+# =============================================================================
+
+- eidos: theoria
+  id: theoria/T21
+  data:
+    insight: "Identity is the foundation of all capability — without knowing who acts, no action can be authorized or attributed"
+    domain: hypostasis
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T22
+  data:
+    insight: "Cryptographic bonds create structural trust — signatures on entities make provenance verifiable without requiring trusted intermediaries"
+    domain: hypostasis
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T23
+  data:
+    insight: "Session state bridges security and usability — unlocked keyrings enable signing without repeated authentication while maintaining key protection"
+    domain: hypostasis
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+# =============================================================================
+# POLITEIA — Governance (T24-T26)
+# =============================================================================
+
+- eidos: theoria
+  id: theoria/T24
+  data:
+    insight: "Governance flows through the bond graph — membership, delegation, and authority derive from traversable relationships, not central assignment"
+    domain: politeia
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T25
+  data:
+    insight: "Attainments are derived, not assigned — capabilities emerge from circle membership and credential bonds rather than explicit role grants"
+    domain: politeia
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T26
+  data:
+    insight: "Affordances surface capabilities contextually — what actions appear depends on current dwelling, not a global menu of all possible operations"
+    domain: politeia
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+# =============================================================================
+# SOMA — Body (T27-T29)
+# =============================================================================
+
+- eidos: theoria
+  id: theoria/T27
+  data:
+    insight: "Presence precedes perception — to perceive through a channel, animus must first be present in soma; embodiment enables sensing"
+    domain: soma
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T28
+  data:
+    insight: "Channels are typed attention — each channel (audio, video, text) directs perception to specific aspects of the environment"
+    domain: soma
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T29
+  data:
+    insight: "Body-schema is proprioceptive truth — it reveals what the animus can do and sense right now, not what might theoretically be possible"
+    domain: soma
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+# =============================================================================
+# NOUS — Mind (T30-T33)
+# =============================================================================
+
+- eidos: theoria
+  id: theoria/T30
+  data:
+    insight: "Understanding compounds through explicit capture — knowledge grows exponentially when insights crystallize as theoria rather than remaining implicit"
+    domain: nous
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T31
+  data:
+    insight: "Questions are first-class entities — inquiries persist in the graph, accumulate answers, and make knowledge gaps visible and trackable"
+    domain: nous
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T32
+  data:
+    insight: "Journeys make goals navigable — teleological structure (waypoints toward telos) transforms abstract objectives into concrete steps"
+    domain: nous
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T33
+  data:
+    insight: "Semantic proximity enables serendipitous discovery — embedding-based surfacing reveals related theoria that keyword search would miss"
+    domain: nous
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+# =============================================================================
+# DEMIURGE — Craftsman (T34-T37)
+# =============================================================================
+
+- eidos: theoria
+  id: theoria/T34
+  data:
+    insight: "Composition is the single act of creation — all entities arise through typos, ensuring provenance and consistent structure"
+    domain: demiurge
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T35
+  data:
+    insight: "Definition shape determines behavior — typos routing (entity/graph/template) follows from which fields are present, not explicit type declarations"
+    domain: demiurge
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T36
+  data:
+    insight: "Artifact graphs enable smart invalidation — tracking composed-from bonds allows targeted rebuilds when sources change, avoiding full regeneration"
+    domain: demiurge
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T37
+  data:
+    insight: "Typos bridge creation and adaptation — the same template can be filled by human input or generative inference, unifying manual and AI authoring"
+    domain: demiurge
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+# =============================================================================
+# MANTEIA — Prophecy (T38-T40)
+# =============================================================================
+
+- eidos: theoria
+  id: theoria/T38
+  data:
+    insight: "Schema-driven generation enables valid-by-construction outputs — constraining inference to JSON schema eliminates post-generation validation failures"
+    domain: manteia
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T39
+  data:
+    insight: "Evaluation closes the generation loop — governed inference with criteria assessment transforms one-shot generation into iterative refinement"
+    domain: manteia
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T40
+  data:
+    insight: "Meta-generation enables kosmos self-extension — manteia can generate praxeis, eide, and typos definitions, allowing the system to grow itself"
+    domain: manteia
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+# =============================================================================
+# OIKOS — Household (T41-T43)
+# =============================================================================
+
+- eidos: theoria
+  id: theoria/T41
+  data:
+    insight: "Dwelling is structured presence — a session creates bounded context where attention, notes, and insights accumulate coherently"
+    domain: oikos
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T42
+  data:
+    insight: "Notes bridge perception and understanding — they capture observations before crystallization, serving as raw material for theoria"
+    domain: oikos
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T43
+  data:
+    insight: "Insights are understanding in motion — they capture ephemeral realizations during a session before they solidify or fade"
+    domain: oikos
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+# =============================================================================
+# DYNAMIS — Power (T44-T46)
+# =============================================================================
+
+- eidos: theoria
+  id: theoria/T44
+  data:
+    insight: "Actuality is sensed, not assumed — the phylax pattern requires reading real state from substrates rather than trusting cached intent"
+    domain: dynamis
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T45
+  data:
+    insight: "Reconciliation is declarative, not procedural — you specify desired state, the reconciler determines and executes the diff"
+    domain: dynamis
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T46
+  data:
+    insight: "Distribution channels are typed pathways — each channel (R2, GitHub, direct) has specific mechanics for how artifacts reach substrates"
+    domain: dynamis
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+# =============================================================================
+# PROPYLON — Gateway (T47-T49)
+# =============================================================================
+
+- eidos: theoria
+  id: theoria/T47
+  data:
+    insight: "Links are primary, channels are orthogonal — an invitation link is self-contained and self-validating; how you share it is a separate concern"
+    domain: propylon
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T48
+  data:
+    insight: "Human verification is the highest assurance — for critical operations, a person vouching for another person exceeds any cryptographic proof"
+    domain: propylon
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T49
+  data:
+    insight: "Sovereignty includes the right to lose everything — no backdoors means recovery depends solely on the user's mnemonic; this is a feature"
+    domain: propylon
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+# =============================================================================
+# THYRA — Door (T50-T54)
+# =============================================================================
+
+- eidos: theoria
+  id: theoria/T50
+  data:
+    insight: "The commitment boundary is the send moment — until expression commits, content is ephemeral and retractable; after, it enters the durable graph"
+    domain: thyra
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T51
+  data:
+    insight: "Streams follow the reconciler pattern — output streams sense actual display state, compare to intended content, then emit the difference"
+    domain: thyra
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T52
+  data:
+    insight: "Expression modes signal stance — draft vs final, tentative vs committed; the mode communicates certainty level to recipients"
+    domain: thyra
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T53
+  data:
+    insight: "Two paths to render: structural and content — entities render via bond traversal revealing structure; artifacts render via templates revealing content"
+    domain: thyra
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T54
+  data:
+    insight: "Homoiconic rendering makes display traversable — what you see is an entity; clicking navigates the graph rather than triggering arbitrary handlers"
+    domain: thyra
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+# =============================================================================
+# ERGON — Work (T55-T57)
+# =============================================================================
+
+- eidos: theoria
+  id: theoria/T55
+  data:
+    insight: "Gaps discovered are gaps captured — when something fails or is missing, a pragma entity records it rather than letting it vanish into logs"
+    domain: ergon
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T56
+  data:
+    insight: "Work flows to capability — pragma signals from the circle that discovered a gap to the circle that can resolve it, crossing discipline boundaries"
+    domain: ergon
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T57
+  data:
+    insight: "Resolution completes the loop — when pragma resolves, a resolves bond links the fix back to the gap, creating traceable cause-and-effect"
+    domain: ergon
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+# =============================================================================
+# AITHER — Ether (T58-T60, T82-T84)
+# =============================================================================
+
+- eidos: theoria
+  id: theoria/T58
+  data:
+    insight: "Connection state is intent reconciling with actuality — syndesmos represents desired connection; the reconciler works to make reality match"
+    domain: aither
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T59
+  data:
+    insight: "The network forgets, the graph remembers — TCP connections drop, but syndesmos persists; reconnection resumes where intent left off"
+    domain: aither
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T60
+  data:
+    insight: "Presence is ephemeral state, syndesmos is durable intent — presence vanishes on disconnect; the desire to connect survives and drives retry"
+    domain: aither
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T82
+  data:
+    insight: "Connection intent survives failure — syndesmos persists through network partitions, enabling automatic reconnection when paths restore"
+    domain: aither
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T83
+  data:
+    insight: "Messages deserve delivery attempts — outbound messages queue for retry until delivered or explicitly expired, not silently dropped on first failure"
+    domain: aither
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T84
+  data:
+    insight: "Sync is eventual consistency — distributed state converges over time through message exchange; temporary divergence is normal, not error"
+    domain: aither
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+# =============================================================================
+# AGORA — Gathering (T61-T63)
+# =============================================================================
+
+- eidos: theoria
+  id: theoria/T61
+  data:
+    insight: "Gathering creates the space, not the other way around — territory exists because people want to meet; the space serves the meeting"
+    domain: agora
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T62
+  data:
+    insight: "Infrastructure sovereignty enables authentic assembly — owning your LiveKit server means no platform can surveil or disrupt your gatherings"
+    domain: agora
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T63
+  data:
+    insight: "Presence is spatial embodiment — your avatar's position in territory creates proximity, enabling natural encounter rather than explicit addressing"
+    domain: agora
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+# =============================================================================
+# DOKIMASIA — Testing (T64-T66)
+# =============================================================================
+
+- eidos: theoria
+  id: theoria/T64
+  data:
+    insight: "Validation is verification, not permission — dokimasia checks if something can work, not if you're allowed to do it; politeia handles authorization"
+    domain: dokimasia
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T65
+  data:
+    insight: "Three validation loops operate at different layers — provenance checks signatures, schema checks structure, semantic checks meaning"
+    domain: dokimasia
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T66
+  data:
+    insight: "Schema-as-eidos makes the kosmos self-describing — eidos definitions are themselves entities, enabling introspection and meta-validation"
+    domain: dokimasia
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+# =============================================================================
+# DNS — Naming (T67-T69)
+# =============================================================================
+
+- eidos: theoria
+  id: theoria/T67
+  data:
+    insight: "DNS makes the kosmos addressable from outside — domain names let external systems reach kosmos endpoints without knowing internal structure"
+    domain: dns
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T68
+  data:
+    insight: "Infrastructure sovereignty extends to naming — owning your DNS zone means no registrar can redirect or seize your addresses"
+    domain: dns
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T69
+  data:
+    insight: "Zone management is circle governance in network form — who can create subdomains follows the same attainment pattern as other capabilities"
+    domain: dns
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+# =============================================================================
+# HODOS — Way (T70-T72)
+# =============================================================================
+
+- eidos: theoria
+  id: theoria/T70
+  data:
+    insight: "The way is distinct from the destination — hodos manages how you navigate, nous manages what you're navigating toward; kinetics vs teleology"
+    domain: hodos
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T71
+  data:
+    insight: "Navigation is personal — each animus has their own position and history through a shared journey definition; the path walked is individual"
+    domain: hodos
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T72
+  data:
+    insight: "Form validation belongs to navigation — checking input validity is a step in the journey through a form, not an external gate"
+    domain: hodos
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+# =============================================================================
+# OPSIS — Appearance (T73-T75)
+# =============================================================================
+
+- eidos: theoria
+  id: theoria/T73
+  data:
+    insight: "Appearance is not existence — opsis transforms entities into visual form without modifying them; rendering is read-only projection"
+    domain: opsis
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T74
+  data:
+    insight: "Rendering is reconciliation — opsis continuously aligns visual state with entity state, not one-time transformation"
+    domain: opsis
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T75
+  data:
+    insight: "Homoiconic rendering means display elements are entity references — what renders is what exists; visual structure mirrors graph structure"
+    domain: opsis
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+# =============================================================================
+# RELEASE — Artifacts (T76-T78)
+# =============================================================================
+
+- eidos: theoria
+  id: theoria/T76
+  data:
+    insight: "Releases are journeys — a release progresses through stages (draft, built, distributed, deployed) like waypoints toward availability"
+    domain: release
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T77
+  data:
+    insight: "Artifacts are the actuality of releases — the release entity is intent; artifacts are the actual files that exist on substrates"
+    domain: release
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T78
+  data:
+    insight: "Channels multiply reach — publishing to multiple distribution channels (R2, GitHub, direct) serves different user populations and use cases"
+    domain: release
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+# =============================================================================
+# CREDENTIALS — Capability Bridges (T79-T81)
+# =============================================================================
+
+- eidos: theoria
+  id: theoria/T79
+  data:
+    insight: "Credentials are capability bridges — external API keys become internal attainments, unifying authorization regardless of source"
+    domain: credentials
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T80
+  data:
+    insight: "Session is the trust boundary — unlocking credentials for a session creates a time-bounded context where external capabilities are available"
+    domain: credentials
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T81
+  data:
+    insight: "Attainment unifies capability sources — whether from circle membership or API credential, the check is the same: does animus have attainment X?"
+    domain: credentials
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+# =============================================================================
+# NOUS (from synthesis) — Understanding (T85-T87)
+# =============================================================================
+
+- eidos: theoria
+  id: theoria/T85
+  data:
+    insight: "Synthesis is not summary — combining theoria creates new understanding greater than the sum, not compression of existing content"
+    domain: nous
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T86
+  data:
+    insight: "Inquiries drive understanding forward — open questions make knowledge gaps explicit and trackable, inviting resolution"
+    domain: nous
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"
+
+- eidos: theoria
+  id: theoria/T87
+  data:
+    insight: "Sources preserve provenance — synthesis traces to contributing theoria via synthesizes bonds, maintaining attribution chain"
+    domain: nous
+    source: reasoning
+    status: crystallized
+    crystallized_at: "2026-01-28T00:00:00Z"

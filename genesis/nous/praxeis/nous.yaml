@@ -1438,3 +1438,63 @@ entities:
           done: "$done"
           final_yield: "$step_result.yield"
           all_results: "$results"
+
+# =============================================================================
+# REFLEX RESPONSE PRAXEIS
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/nous/index-entity
+  data:
+    oikos: nous
+    name: index-entity
+    visible: false  # Internal, invoked by reflexes
+    tier: 3  # Requires embedding generation
+    description: |
+      Index entity for semantic search.
+
+      Called by theoria/expression creation reflexes.
+      Generates embedding and indexes for nous/surface queries.
+    params:
+      - name: entity_id
+        type: string
+        required: true
+        description: Entity ID to index
+    steps:
+      - step: find
+        id: "$entity_id"
+        bind_to: entity
+
+      # Extract text based on entity type
+      - step: switch
+        cases:
+          - when: '$entity.eidos == "theoria"'
+            then:
+              - step: set
+                bindings:
+                  text_to_embed: "$entity.data.insight"
+          - when: '$entity.eidos == "expression"'
+            then:
+              - step: set
+                bindings:
+                  text_to_embed: "$entity.data.content"
+        default:
+          - step: set
+            bindings:
+              text_to_embed: "$entity.data.description || $entity.data.content || $entity.data.insight"
+
+      # Index the entity with extracted text
+      - step: index
+        entity_id: "$entity_id"
+        text: "$text_to_embed"
+        bind_to: indexed
+
+      - step: log
+        message: "Indexed entity $entity_id for semantic search"
+        level: info
+
+      - step: return
+        value:
+          indexed: true
+          entity_id: "$entity_id"
+          entity_eidos: "$entity.eidos"

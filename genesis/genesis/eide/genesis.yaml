@@ -1,0 +1,62 @@
+# Genesis Eide
+# γένεσις — the source of truth
+#
+# Eide + attainments for genesis operations
+
+entities:
+
+  # =============================================================================
+  # EIDE
+  # =============================================================================
+
+  - eidos: eidos
+    id: eidos/content-root
+    data:
+      name: content-root
+      description: |
+        A location where kosmos content lives.
+
+        Bootstrap traces sources-content-from bonds to discover all content
+        locations. Adding a content root = creating an entity + bond.
+      constitutional: false
+      fields:
+        path:
+          type: string
+          required: true
+          description: Filesystem path relative to genesis
+        content_types:
+          type: array
+          required: true
+          description: What kinds of entities live here (eidos, praxis, desmos, etc.)
+        oikos_id:
+          type: string
+          required: true
+          description: Which oikos this content belongs to
+
+  # =============================================================================
+  # ATTAINMENTS
+  # =============================================================================
+
+  - eidos: attainment
+    id: attainment/emit
+    data:
+      name: emit
+      description: |
+        Genesis emission capability — write to filesystem and verify.
+
+        The source of truth is the filesystem. The kosmos is a projection.
+        Emission persists definitions; bootstrap restores them.
+        The full-circle property guarantees fidelity.
+
+        Enables:
+        - emit-genesis: Full genesis emission
+        - emit-oikos: Single oikos emission
+        - verify-full-circle: Prove kosmos coherence
+        - register-content-root: Add content locations
+      oikos: genesis
+      scope: circle
+      grants:
+        - praxis/genesis/emit-genesis
+        - praxis/genesis/emit-oikos
+        - praxis/genesis/verify-full-circle
+        - praxis/genesis/register-content-root

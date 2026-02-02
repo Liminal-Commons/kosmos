@@ -142,8 +142,8 @@ entities:
       # Create grants-entry-to bond
       - step: bind
         desmos: grants-entry-to
-        from: "$link_entity.id"
-        to: "$circle_id"
+        from_id: "$link_entity.id"
+        to_id: "$circle_id"
 
       # Encode the link for sharing
       - step: call
@@ -422,12 +422,19 @@ entities:
           created_at: "{{ now() }}"
         bind_to: session
 
-      # Bond session to link
-      - step: find
+      # Bond session to link - gather and filter since find only takes id
+      - step: gather
         eidos: propylon-link
-        where:
-          invitation_id: "$validation.invitation_id"
-        bind_to: link
+        bind_to: all_links
+
+      - step: filter
+        items: "$all_links"
+        condition: "$item.data.invitation_id == $validation.invitation_id"
+        bind_to: matching_links
+
+      - step: set
+        bindings:
+          link: "{{ $matching_links | first }}"
 
       - step: switch
         cases:
@@ -435,8 +442,8 @@ entities:
             then:
               - step: bind
                 desmos: used-link
-                from: "$session_id"
-                to: "$link.id"
+                from_id: "$session_id"
+                to_id: "$link.id"
 
       - step: return
         value:
@@ -584,14 +591,14 @@ entities:
       # Add membership to circle
       - step: bind
         desmos: member-of
-        from: "$animus_id"
-        to: "$session.data.circle_id"
+        from_id: "$animus_id"
+        to_id: "$session.data.circle_id"
 
       # Bond animus to session for audit
       - step: bind
         desmos: authenticated-via
-        from: "$animus_id"
-        to: "$session_id"
+        from_id: "$animus_id"
+        to_id: "$session_id"
 
       # Update session to authenticated
       - step: update
@@ -682,12 +689,19 @@ entities:
           status: revoked
           revoked_at: "{{ now() }}"
 
-      # Find and update associated link
-      - step: find
+      # Find and update associated link - gather and filter since find only takes id
+      - step: gather
         eidos: propylon-link
-        where:
-          invitation_id: "$invitation_id"
-        bind_to: link
+        bind_to: all_links
+
+      - step: filter
+        items: "$all_links"
+        condition: "$item.data.invitation_id == $invitation_id"
+        bind_to: matching_links
+
+      - step: set
+        bindings:
+          link: "{{ $matching_links | first }}"
 
       - step: switch
         cases:
@@ -750,7 +764,7 @@ entities:
 
       # Sort by created_at descending
       - step: sort
-        input: "$sessions"
+        items: "$sessions"
         by: "data.created_at"
         order: desc
         bind_to: sessions
@@ -833,13 +847,13 @@ entities:
 
       - step: bind
         desmos: member-of
-        from: "$animus_id"
-        to: "$session.data.circle_id"
+        from_id: "$animus_id"
+        to_id: "$session.data.circle_id"
 
       - step: bind
         desmos: authenticated-via
-        from: "$animus_id"
-        to: "$session_id"
+        from_id: "$animus_id"
+        to_id: "$session_id"
 
       - step: update
         id: "$session_id"
@@ -1042,8 +1056,8 @@ entities:
       # Create grants-entry-to bond
       - step: bind
         desmos: grants-entry-to
-        from: "$link_entity.id"
-        to: "$circle_id"
+        from_id: "$link_entity.id"
+        to_id: "$circle_id"
 
       # Encode the link for sharing
       - step: call
@@ -1163,8 +1177,8 @@ entities:
       # Bond token to persona
       - step: bind
         desmos: issued-token
-        from: "$persona_id"
-        to: "$token_id"
+        from_id: "$persona_id"
+        to_id: "$token_id"
 
       # Encode as JWT-like structure: base64url(payload).base64url(signature)
       - step: set
@@ -1212,9 +1226,9 @@ entities:
       # Decode payload
       - step: set
         bindings:
-          payload_json: "{{ base64url_decode($parts[0]) }}"
+          payload_json: "{{ base64url_decode($parts.0) }}"
           payload: "{{ json_decode($payload_json) }}"
-          signature: "{{ base64url_decode($parts[1]) }}"
+          signature: "{{ base64url_decode($parts.1) }}"
 
       # Check expiry
       - step: set

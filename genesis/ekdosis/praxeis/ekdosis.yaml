@@ -535,7 +535,7 @@ entities:
 
       - step: set
         bindings:
-          previous_release_id: "$previous_bonds[0].to_id"
+          previous_release_id: "$previous_bonds.0.to_id"
 
       - step: find
         id: "$previous_release_id"

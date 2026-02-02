@@ -86,6 +86,19 @@ entities:
     description: "Compose a credential entity"
     target_eidos: credential
 
+- eidos: typos
+  id: typos-def-ssh-credential
+  data:
+    name: ssh-credential
+    description: |
+      Compose an SSH credential for remote node access.
+      Used by manifest-deployment for nixos-rebuild actuality mode.
+    target_eidos: ssh-credential
+    defaults:
+      auth_method: agent
+      port: 22
+      user: root
+
 # =============================================================================
 # Propylon (entry/invitation links)
 # =============================================================================
@@ -391,6 +404,65 @@ entities:
     description: "Compose a typos entity (meta-circular)"
     target_eidos: typos
 
+# -----------------------------------------------------------------------------
+# Constitutional Typos — How to compose the archai themselves
+# These enable oikos development: composing eide, praxeis, desmoi, and oikoi.
+# -----------------------------------------------------------------------------
+
+- eidos: typos
+  id: typos-def-eidos
+  data:
+    name: eidos
+    description: |
+      Compose an eidos (entity type definition).
+
+      Eide define what kind of things can exist. When developing an oikos,
+      compose eide for your domain's entity types.
+    target_eidos: eidos
+    defaults:
+      constitutional: false
+
+- eidos: typos
+  id: typos-def-praxis
+  data:
+    name: praxis
+    description: |
+      Compose a praxis (action definition).
+
+      Praxeis are executable sequences of stoicheia. When developing an oikos,
+      compose praxeis for your domain's operations.
+    target_eidos: praxis
+    defaults:
+      visible: true
+      tier: 2
+
+- eidos: typos
+  id: typos-def-desmos
+  data:
+    name: desmos
+    description: |
+      Compose a desmos (bond type definition).
+
+      Desmoi define relationships between entities. When developing an oikos,
+      compose desmoi for your domain's relationships.
+    target_eidos: desmos
+    defaults:
+      cardinality: many-to-many
+
+- eidos: typos
+  id: typos-def-oikos
+  data:
+    name: oikos
+    description: |
+      Compose an oikos (domain package).
+
+      Oikoi are containers for eide, praxeis, and desmoi. Begin oikos
+      development by composing an oikos entity, then add definitions to it.
+    target_eidos: oikos
+    defaults:
+      status: composing
+      version: "0.1.0"
+
 # =============================================================================
 # Dokimasia (testing/validation)
 # =============================================================================
@@ -427,6 +499,42 @@ entities:
     description: "Compose a publish-attestation entity"
     target_eidos: publish-attestation
 
+# Deployment infrastructure typos (Phase 6)
+- eidos: typos
+  id: typos-def-deployment
+  data:
+    name: deployment
+    description: |
+      Compose a deployment entity for infrastructure management.
+      Deployments track intent (desired state) and actuality (manifested instances).
+    target_eidos: deployment
+    defaults:
+      desired_state: stopped
+      actual_state: unknown
+      actuality_mode: process
+
+- eidos: typos
+  id: typos-def-service-instance
+  data:
+    name: service-instance
+    description: |
+      Compose a service-instance entity representing running actuality.
+      Created when deployments are manifested to infrastructure.
+    target_eidos: service-instance
+    defaults:
+      status: starting
+
+- eidos: typos
+  id: typos-def-node
+  data:
+    name: node
+    description: |
+      Compose a node entity representing infrastructure.
+      Nodes are physical or virtual machines that can host service instances.
+    target_eidos: node
+    defaults:
+      kind: personal
+
 # =============================================================================
 # Agora (spatial gathering)
 # =============================================================================
@@ -458,3 +566,21 @@ entities:
     name: agora-livekit-server
     description: "Compose an agora livekit-server infrastructure entity"
     target_eidos: agora/livekit-server
+
+# =============================================================================
+# Voice-Authoring (spoken composition)
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-authoring-session
+  data:
+    name: authoring-session
+    description: "Compose an authoring-session entity for voice-authoring mode"
+    target_eidos: authoring-session
+
+- eidos: typos
+  id: typos-def-artifact
+  data:
+    name: artifact
+    description: "Compose an artifact entity (composed content)"
+    target_eidos: artifact

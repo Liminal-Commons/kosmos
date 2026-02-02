@@ -27,9 +27,9 @@ data:
       - step: return
         value:
           cached: true
-          model: $cached[0].data.model
+          model: $cached.0.data.model
           prompt_hash: $prompt_hash
-          response: $cached[0].data.response
+          response: $cached.0.data.response
       when: $cached
     step: switch
   - step: return

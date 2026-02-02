@@ -1,0 +1,31 @@
+# MCP-related attainments
+# Enables runtime-configurable tool visibility via session tokens
+#
+# This replaces the compile-time essential-praxeis.yaml with
+# a runtime-queryable attainment. Adding/removing praxeis from
+# the grants list changes MCP tool exposure without rebuild.
+
+entities:
+
+- eidos: attainment
+  id: attainment/mcp-essential
+  data:
+    name: mcp-essential
+    description: |
+      Access to essential MCP tools. Enables core navigation
+      and meta-invocation praxeis for AI agents.
+
+      This replaces the compile-time essential-praxeis.yaml with
+      a runtime-queryable attainment. Adding/removing praxeis from
+      the grants list changes MCP tool exposure without rebuild.
+    oikos: politeia
+    scope: global
+    grants:
+      - praxis/nous/find
+      - praxis/nous/surface
+      - praxis/nous/traverse
+      - praxis/nous/call-praxis
+      - praxis/nous/crystallize-theoria
+      - praxis/thyra/emit
+      - praxis/demiurge/compose
+      - praxis/manteia/governed-inference

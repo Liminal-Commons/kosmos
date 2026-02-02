@@ -408,13 +408,18 @@ entities:
     oikos: soma
     name: sense-body
     visible: true
+    tier: 1
     description: |
       Sense the current body schema (idioaisthesis).
 
-      Returns the animus's sense of its own shape and capacity:
-      - Available channels
-      - Capabilities
-      - Limits
+      Aggregates proprioceptive state from across oikoi:
+      - Core soma: channels, capabilities, limits
+      - Credentials: stored/unlocked credentials, granted attainments
+      - Opsis: visual state (layout, theme, workspace)
+      - Ergon: work items (pragma signaled to circle)
+      - Release: release lifecycle activity
+
+      This is the answer to "what can I do right now?"
     params:
       - name: animus_id
         type: string
@@ -434,12 +439,11 @@ entities:
             then:
               - step: set
                 bindings:
-                  schema: "$schemas[0]"
+                  schema: "$schemas.0"
         default:
-          - step: return
-            value:
-              found: false
-              animus_id: "$animus_id"
+          - step: set
+            bindings:
+              schema: null
 
       # Get channel states
       - step: trace
@@ -448,11 +452,532 @@ entities:
         resolve: "from"
         bind_to: channels
 
+      # Aggregate from credentials oikos
+      - step: call
+        praxis: praxis/credentials/sense-credentials
+        params: {}
+        bind_to: credentials_state
+
+      # Aggregate from opsis oikos
+      - step: call
+        praxis: praxis/opsis/sense-opsis
+        params: {}
+        bind_to: opsis_state
+
+      # Aggregate from ergon oikos
+      - step: call
+        praxis: praxis/ergon/sense-pragma
+        params: {}
+        bind_to: ergon_state
+
+      # Aggregate from release oikos
+      - step: call
+        praxis: praxis/release/sense-releases
+        params: {}
+        bind_to: release_state
+
+      # Aggregate from demiurge oikos (development state)
+      - step: call
+        praxis: praxis/demiurge/sense-development
+        params: {}
+        bind_to: development_state
+
       - step: return
         value:
           found: true
           animus_id: "$animus_id"
-          schema: "$schema"
-          channels: "$channels"
-          capabilities: "$schema.data.capabilities"
-          limits: "$schema.data.limits"
+          sensed_at: "{{ now() }}"
+          # Core soma state
+          soma:
+            schema: "$schema"
+            channels: "$channels"
+            capabilities: "$schema.data.capabilities"
+            limits: "$schema.data.limits"
+          # Cross-oikos contributions
+          credentials: "$credentials_state"
+          opsis: "$opsis_state"
+          ergon: "$ergon_state"
+          release: "$release_state"
+          development: "$development_state"
+
+# =============================================================================
+# CURSOR / NOTIFICATION OPERATIONS
+# =============================================================================
+# These praxeis expose the cursor model for change awareness.
+# Changes are computed as delta between cursor (last-saw version) and current state.
+# No change-record entities — just cursor position and delta queries.
+
+- eidos: praxis
+  id: praxis/soma/get-notifications
+  data:
+    oikos: soma
+    name: get-notifications
+    visible: true
+    tier: 1
+    description: |
+      Get notification counts for all circles visible to a persona.
+
+      Returns an array of {circle_id, count} objects where count > 0.
+      The count represents entities changed since the persona's cursor position.
+
+      This powers notification badges in the UI — showing which circles
+      have new content to review.
+    params:
+      - name: persona_id
+        type: string
+        required: true
+        description: The persona to get notifications for
+    steps:
+      - step: get_notifications
+        persona_id: "$persona_id"
+        bind_to: notifications
+
+      # Filter to only circles with changes
+      - step: filter
+        items: "$notifications"
+        condition: "$item.count > 0"
+        bind_to: filtered
+
+      - step: return
+        value:
+          persona_id: "$persona_id"
+          notifications: "$filtered"
+
+- eidos: praxis
+  id: praxis/soma/mark-circle-seen
+  data:
+    oikos: soma
+    name: mark-circle-seen
+    visible: true
+    tier: 2
+    description: |
+      Mark a circle as seen by updating the persona's cursor.
+
+      Sets the persona's cursor for this circle to the current max version,
+      effectively acknowledging all current changes.
+
+      Call this when the user views a circle's content to clear notifications.
+    params:
+      - name: persona_id
+        type: string
+        required: true
+        description: The persona marking the circle as seen
+      - name: circle_id
+        type: string
+        required: true
+        description: The circle being marked as seen
+    steps:
+      - step: update_cursor
+        persona_id: "$persona_id"
+        circle_id: "$circle_id"
+        bind_to: new_version
+
+      - step: return
+        value:
+          marked_seen: true
+          persona_id: "$persona_id"
+          circle_id: "$circle_id"
+          cursor_version: "$new_version"
+
+- eidos: praxis
+  id: praxis/soma/get-circle-changes
+  data:
+    oikos: soma
+    name: get-circle-changes
+    visible: true
+    tier: 1
+    description: |
+      Get entities that changed in a circle since a specific version.
+
+      If no since_version is provided, uses the persona's current cursor.
+      Returns the changed entities along with the current max version.
+
+      Use this to explore what's new in a circle before marking it as seen.
+    params:
+      - name: circle_id
+        type: string
+        required: true
+        description: The circle to get changes for
+      - name: persona_id
+        type: string
+        required: false
+        description: Optional persona to use cursor from (if since_version not provided)
+      - name: since_version
+        type: integer
+        required: false
+        description: Version to query from (defaults to persona cursor or 0)
+      - name: limit
+        type: integer
+        required: false
+        description: Maximum entities to return (default 50)
+    steps:
+      # Determine the version to query from
+      - step: switch
+        cases:
+          - when: "$since_version"
+            then:
+              - step: set
+                bindings:
+                  query_version: "$since_version"
+          - when: "$persona_id"
+            then:
+              - step: get_cursor
+                persona_id: "$persona_id"
+                circle_id: "$circle_id"
+                bind_to: cursor_version
+              - step: set
+                bindings:
+                  query_version: "$cursor_version"
+        default:
+          - step: set
+            bindings:
+              query_version: 0
+
+      - step: gather_since
+        circle_id: "$circle_id"
+        since_version: "$query_version"
+        limit: "$limit"
+        bind_to: entities
+
+      - step: return
+        value:
+          circle_id: "$circle_id"
+          since_version: "$query_version"
+          count: "{{ len($entities) }}"
+          entities: "$entities"
+
+# =============================================================================
+# REFLEX RESPONSE PRAXEIS
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/soma/add-notification
+  data:
+    oikos: soma
+    name: add-notification
+    visible: false  # Internal, invoked by reflexes
+    tier: 2
+    description: |
+      Add notification to body-schema.
+
+      Called by pragma and other notification reflexes to create
+      notification entities that appear in the body-schema.
+    params:
+      - name: type
+        type: string
+        required: true
+        description: Notification type (pragma_received, pragma_resolved, etc.)
+      - name: circle_id
+        type: string
+        required: false
+        description: Target circle for the notification
+      - name: pragma_id
+        type: string
+        required: false
+        description: Related pragma ID
+      - name: title
+        type: string
+        required: false
+        description: Notification title
+      - name: priority
+        type: string
+        required: false
+        description: Priority level
+      - name: resolution
+        type: string
+        required: false
+        description: Resolution text (for resolved pragmas)
+    steps:
+      # Create notification entity
+      - step: compose
+        typos_id: typos-def-notification
+        inputs:
+          type: "$type"
+          circle_id: "$circle_id"
+          pragma_id: "$pragma_id"
+          title: "$title"
+          priority: "$priority"
+          resolution: "$resolution"
+        bind_to: notification
+
+      - step: log
+        message: "Notification created: type=$type, title=$title"
+        level: info
+
+      - step: return
+        value:
+          notification_id: "$notification.id"
+          type: "$type"
+          title: "$title"
+
+# =============================================================================
+# INFRASTRUCTURE MANAGEMENT
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/soma/register-node
+  data:
+    oikos: soma
+    name: register-node
+    visible: true
+    tier: 2
+    description: |
+      Register a node in the infrastructure.
+
+      Creates a node entity representing a physical or virtual machine.
+      For commons nodes, also binds to the steward circle.
+    params:
+      - name: node_id
+        type: string
+        required: true
+        description: ID for the node (e.g., node/hostname)
+      - name: name
+        type: string
+        required: true
+        description: Node hostname or identifier
+      - name: kind
+        type: string
+        required: true
+        description: Node kind (personal or commons)
+      - name: platform
+        type: string
+        required: true
+        description: Operating system (nixos, linux, darwin, other)
+      - name: address
+        type: string
+        required: false
+        description: Network address
+      - name: public_endpoint
+        type: string
+        required: false
+        description: Public URL if accessible
+      - name: steward_circle_id
+        type: string
+        required: false
+        description: For commons nodes — governing circle
+    steps:
+      - step: compose
+        typos_id: typos-def-node
+        inputs:
+          id: "$node_id"
+          name: "$name"
+          kind: "$kind"
+          platform: "$platform"
+          address: "$address"
+          public_endpoint: "$public_endpoint"
+          steward_circle_id: "$steward_circle_id"
+          status: unknown
+        bind_to: node
+
+      - step: return
+        value:
+          node_id: "$node_id"
+          name: "$name"
+          kind: "$kind"
+          status: unknown
+
+- eidos: praxis
+  id: praxis/soma/sense-node
+  data:
+    oikos: soma
+    name: sense-node
+    visible: true
+    tier: 1
+    description: |
+      Sense the current state of a node.
+
+      Returns node info including hosted services and running kosmos instances.
+    params:
+      - name: node_id
+        type: string
+        required: true
+        description: The node to sense
+    steps:
+      - step: find
+        id: "$node_id"
+        bind_to: node
+
+      - step: assert
+        condition: "$node"
+        message: "Node not found: $node_id"
+
+      # Find hosted services
+      - step: trace
+        from_id: "$node_id"
+        desmos: hosts-service
+        resolve: to
+        bind_to: services
+
+      # Find kosmos instances
+      - step: trace
+        to_id: "$node_id"
+        desmos: runs-on
+        resolve: from
+        bind_to: instances
+
+      - step: return
+        value:
+          node: "$node"
+          services: "$services"
+          kosmos_instances: "$instances"
+
+- eidos: praxis
+  id: praxis/soma/register-service
+  data:
+    oikos: soma
+    name: register-service
+    visible: true
+    tier: 2
+    description: |
+      Register a service instance on a node.
+
+      Creates a service-instance entity and bonds it to the hosting node.
+    params:
+      - name: service_id
+        type: string
+        required: true
+        description: ID for the service (e.g., service-instance/livekit-main)
+      - name: name
+        type: string
+        required: true
+        description: Human-readable service name
+      - name: service_kind
+        type: string
+        required: true
+        description: Type of service (livekit, kosmos-server, transcription, etc.)
+      - name: endpoint
+        type: string
+        required: true
+        description: Connection URL
+      - name: node_id
+        type: string
+        required: true
+        description: Node hosting this service
+      - name: config
+        type: object
+        required: false
+        description: Service-specific configuration
+    steps:
+      # Verify node exists
+      - step: find
+        id: "$node_id"
+        bind_to: node
+
+      - step: assert
+        condition: "$node"
+        message: "Node not found: $node_id"
+
+      # Create service instance
+      - step: compose
+        typos_id: typos-def-service-instance
+        inputs:
+          id: "$service_id"
+          name: "$name"
+          service_kind: "$service_kind"
+          endpoint: "$endpoint"
+          config: "$config"
+          status: provisioning
+        bind_to: service
+
+      # Bond to node
+      - step: bind
+        from_id: "$node_id"
+        to_id: "$service_id"
+        desmos: hosts-service
+
+      - step: return
+        value:
+          service_id: "$service_id"
+          name: "$name"
+          node_id: "$node_id"
+          status: provisioning
+
+- eidos: praxis
+  id: praxis/soma/sense-service
+  data:
+    oikos: soma
+    name: sense-service
+    visible: true
+    tier: 1
+    description: |
+      Sense the current state of a service instance.
+
+      Returns service info including which circles it provides to.
+    params:
+      - name: service_id
+        type: string
+        required: true
+        description: The service to sense
+    steps:
+      - step: find
+        id: "$service_id"
+        bind_to: service
+
+      - step: assert
+        condition: "$service"
+        message: "Service not found: $service_id"
+
+      # Find hosting node
+      - step: trace
+        to_id: "$service_id"
+        desmos: hosts-service
+        resolve: from
+        bind_to: nodes
+
+      - step: set
+        bindings:
+          host_node: "$nodes.0"
+
+      # Find circles this service provides to
+      - step: trace
+        from_id: "$service_id"
+        desmos: provides-to
+        resolve: to
+        bind_to: circles
+
+      - step: return
+        value:
+          service: "$service"
+          host_node: "$host_node"
+          provides_to_circles: "$circles"
+
+- eidos: praxis
+  id: praxis/soma/sense-kosmos-instance
+  data:
+    oikos: soma
+    name: sense-kosmos-instance
+    visible: true
+    tier: 1
+    description: |
+      Sense the current state of a kosmos instance.
+
+      Returns instance info including which node it runs on.
+    params:
+      - name: instance_id
+        type: string
+        required: true
+        description: The kosmos instance to sense
+    steps:
+      - step: find
+        id: "$instance_id"
+        bind_to: instance
+
+      - step: assert
+        condition: "$instance"
+        message: "Kosmos instance not found: $instance_id"
+
+      # Find hosting node
+      - step: trace
+        from_id: "$instance_id"
+        desmos: runs-on
+        resolve: to
+        bind_to: nodes
+
+      - step: set
+        bindings:
+          host_node: "$nodes.0"
+
+      - step: return
+        value:
+          instance: "$instance"
+          host_node: "$host_node"

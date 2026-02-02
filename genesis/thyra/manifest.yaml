@@ -18,6 +18,13 @@ oikos_description: |
   Also provides emission to chora (filesystem) and journey navigation (hodos).
 oikos_scale: soma
 
+# Development experience metadata
+oikos_category: interface
+surfaces_provided:
+  - emission            # Provides filesystem emission (thyra/emit)
+surfaces_consumed:
+  - rendering           # Depends on opsis for visual rendering
+
 content_paths:
   - path: eide/
     content_types: [eidos]
@@ -26,7 +33,7 @@ content_paths:
   - path: praxeis/
     content_types: [praxis]
   - path: entities/
-    content_types: [render-type, renderer, panel, waypoint, journey]
+    content_types: [render-type, renderer, panel, waypoint, journey, render-spec]
 
 requires_dynamis:
   - db.arise
@@ -44,27 +51,25 @@ provides:
     - expression
     - accumulation
     - utterance
-    - layout
-    - panel
-    - style-theme
-    - render-intent
-    - workspace
-    - render-type
-    - renderer
-    - render-spec
-    - widget
+    # NOTE: layout, panel, style-theme, render-intent, workspace,
+    # render-type, renderer, render-spec, widget moved to opsis oikos
     - content-root
     - voice-pipeline-config
-    - release
-    - release-artifact
+    # NOTE: release, release-artifact moved to release oikos
     - app-config
+
+  # Oikos-centric rendering: thyra owns presentation for portal entities
+  renderable:
+    - eidos: expression
+      description: "Conversation contribution cards and threads"
+    - eidos: stream
+      description: "Media flow status cards"
 
   attainments:
     - perceive        # Stream capture and accumulation (soma)
     - express         # Create durable expressions (circle)
-    - render          # Visual emission and workspace (soma)
+    # NOTE: render attainment moved to opsis oikos
     - emit            # Filesystem emission (soma)
-    - navigate        # Journey navigation / hodos (animus)
 
   desmoi:
     - expressed-in
@@ -100,13 +105,6 @@ provides:
     - thyra/list-accumulations
     # Emission
     - thyra/emit
-    # Hodos — journey navigation
-    - hodos/get-current-waypoint
-    - hodos/advance-waypoint
-    - hodos/branch-waypoint
-    - hodos/get-panel-render-data
-    - hodos/validate-form
-    - hodos/start-onboarding
     # Release operations
     - thyra/get-current-release
     - thyra/list-releases
@@ -114,3 +112,7 @@ provides:
 stoicheia_form:
   # Stream actuality via process mode
   # emit via fs dynamis
+
+depends_on:
+  - opsis            # Visual rendering (extracted from thyra)
+  - hodos            # Journey navigation (extracted from thyra)

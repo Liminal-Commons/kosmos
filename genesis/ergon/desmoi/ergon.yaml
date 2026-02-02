@@ -1,45 +1,68 @@
 # Ergon Desmoi — Work Coordination Bond Types
+#
+# Traces to: genesis/ergon/DESIGN.md
 
-- id: signals-to
-  description: |
-    Pragma signals to a circle for attention.
+entities:
+  # signals-to — pragma signals to circle
+  - eidos: desmos
+    id: desmos/signals-to
+    data:
+      name: signals-to
+      description: |
+        Pragma signals to a circle for attention.
 
-    The target circle is where the capability exists to resolve it.
-    A pragma discovered in kosmos-circle signals to chora-circle
-    because that's where the interpreter code lives.
-  from_eidos: [pragma]
-  to_eidos: [circle]
-  cardinality: many-to-one
+        The target circle is where the capability exists to resolve it.
+        A pragma discovered in kosmos-circle signals to chora-circle
+        because that's where the interpreter code lives.
+      from_eidos: pragma
+      to_eidos: circle
+      cardinality: many-to-one
+      symmetric: false
 
-- id: evidenced-by
-  description: |
-    Pragma is evidenced by an entity — the thing that demonstrates the gap.
+  # evidenced-by — pragma evidenced by entity
+  - eidos: desmos
+    id: desmos/evidenced-by
+    data:
+      name: evidenced-by
+      description: |
+        Pragma is evidenced by an entity — the thing that demonstrates the gap.
 
-    Could be a failed theoria, an error entity, a composition that
-    didn't work, or any other entity that shows the gap exists.
-    This provides traceability from pragma back to what triggered it.
-  from_eidos: [pragma]
-  to_eidos: [any]
-  cardinality: many-to-many
+        Could be a failed theoria, an error entity, a composition that
+        didn't work, or any other entity that shows the gap exists.
+        This provides traceability from pragma back to what triggered it.
+      from_eidos: pragma
+      to_eidos: any
+      cardinality: many-to-many
+      symmetric: false
 
-- id: blocks
-  description: |
-    Pragma blocks another pragma — dependency relationship.
+  # blocks — pragma blocks pragma
+  - eidos: desmos
+    id: desmos/blocks
+    data:
+      name: blocks
+      description: |
+        Pragma blocks another pragma — dependency relationship.
 
-    If A blocks B, B cannot be resolved until A is resolved.
-    This enables dependency tracking for complex work items
-    that have prerequisites.
-  from_eidos: [pragma]
-  to_eidos: [pragma]
-  cardinality: many-to-many
+        If A blocks B, B cannot be resolved until A is resolved.
+        This enables dependency tracking for complex work items
+        that have prerequisites.
+      from_eidos: pragma
+      to_eidos: pragma
+      cardinality: many-to-many
+      symmetric: false
 
-- id: resolves
-  description: |
-    Entity resolves a pragma — the fix, commit, or change that addressed it.
+  # resolves — entity resolves pragma
+  - eidos: desmos
+    id: desmos/resolves
+    data:
+      name: resolves
+      description: |
+        Entity resolves a pragma — the fix, commit, or change that addressed it.
 
-    Provides traceability from gap to resolution. The resolving entity
-    could be a commit, a theoria documenting the fix, or any other
-    entity that represents the work done.
-  from_eidos: [any]
-  to_eidos: [pragma]
-  cardinality: many-to-one
+        Provides traceability from gap to resolution. The resolving entity
+        could be a commit, a theoria documenting the fix, or any other
+        entity that represents the work done.
+      from_eidos: any
+      to_eidos: pragma
+      cardinality: many-to-one
+      symmetric: false

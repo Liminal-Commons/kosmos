@@ -1,0 +1,44 @@
+# Nous Reflexes
+# Autonomic responses for knowledge indexing
+
+entities:
+
+  # =============================================================================
+  # KNOWLEDGE INDEXING REFLEXES
+  # =============================================================================
+
+  - eidos: reflex
+    id: reflex/nous/theoria-created
+    data:
+      name: theoria-created
+      description: |
+        Auto-index theoria for semantic search when created.
+
+        Makes crystallized understanding discoverable via nous/surface.
+      trigger:
+        event: entity_created
+        eidos: theoria
+      response:
+        praxis: nous/index-entity
+        params:
+          entity_id: "$entity.id"
+      enabled: true
+      scope: global
+
+  - eidos: reflex
+    id: reflex/nous/expression-created
+    data:
+      name: expression-created
+      description: |
+        Auto-index expressions for semantic search.
+
+        Makes conversation content searchable.
+      trigger:
+        event: entity_created
+        eidos: expression
+      response:
+        praxis: nous/index-entity
+        params:
+          entity_id: "$entity.id"
+      enabled: true
+      scope: global

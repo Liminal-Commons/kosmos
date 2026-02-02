@@ -1,0 +1,66 @@
+# Oikos Manifest: Genesis
+# γένεσις — origin, creation, coming into being. The source of truth.
+#
+# The full-circle guarantee: emit → bootstrap → emit = same hash.
+# What is emitted can be bootstrapped. What is bootstrapped can be emitted identically.
+#
+# Manifest v2.1 — oikos metadata for entity composition
+
+format_version: "2.1"
+oikos_id: genesis
+version: "0.1.0"
+
+# Oikos metadata (v2.1)
+oikos_name: Genesis
+oikos_description: |
+  The source of truth. Where kosmos meets filesystem.
+  Emission persists definitions; bootstrap restores them.
+  The full-circle property guarantees fidelity.
+oikos_scale: kosmos
+
+# Development experience metadata
+oikos_category: infrastructure
+surfaces_provided:
+  - emission            # Provides filesystem emission
+surfaces_consumed: []   # Genesis is foundational
+
+content_paths:
+  - path: eide/
+    content_types: [eidos, attainment]
+  - path: desmoi/
+    content_types: [desmos]
+  - path: praxeis/
+    content_types: [praxis]
+
+requires_dynamis:
+  - db.find
+  - db.arise
+  - db.bind
+  - db.gather
+  - db.trace
+  - fs.write           # Filesystem emission
+  - fs.read            # Bootstrap verification
+
+provides:
+  eide:
+    - content-root
+
+  attainments:
+    - emit              # Genesis emission and verification
+
+  desmoi:
+    - sources-content-from   # Entity sources content from content-root
+    - emitted-to             # Entity was emitted to path
+
+  praxeis:
+    - genesis/emit-genesis       # Full genesis emission
+    - genesis/emit-oikos         # Single oikos emission
+    - genesis/verify-full-circle # Prove round-trip fidelity
+    - genesis/register-content-root
+    - genesis/list-content-roots
+    - genesis/sense-genesis      # Body-schema contribution
+
+stoicheia_form:
+  # Emission uses fs dynamis (interpreted by host)
+
+depends_on: []  # Genesis is foundational

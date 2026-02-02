@@ -1,0 +1,202 @@
+# Nous Render Specifications
+#
+# Rendering definitions for nous eide: theoria, journey, inquiry, synthesis
+# Oikos-centric: nous owns presentation for its eide
+#
+# Discovery convention: render-spec/{eidos}-card, render-spec/{eidos}
+
+entities:
+
+# =============================================================================
+# THEORIA RENDER SPECS
+# =============================================================================
+
+- eidos: render-spec
+  id: render-spec/theoria-card
+  data:
+    name: theoria-card
+    description: "Card view for theoria — crystallized understanding"
+    target_eidos: theoria
+    fields_to_display:
+      - field: insight
+        label: Insight
+      - field: domain
+        label: Domain
+      - field: status
+        label: Status
+      - field: source
+        label: Source
+    layout_template: |
+      <article class="render-card theoria-card theoria-{status}">
+        <header class="card-header">
+          <span class="domain-badge">{domain}</span>
+          <span class="status-indicator status-{status}">{status}</span>
+        </header>
+        <div class="card-body">
+          <p class="insight">{insight}</p>
+        </div>
+        <footer class="card-footer">
+          <span class="source">Source: {source}</span>
+          <span class="entity-id">{id}</span>
+        </footer>
+      </article>
+    style_bindings:
+      theoria-provisional: "border-left: 3px solid var(--status-pending, #f59e0b)"
+      theoria-confirmed: "border-left: 3px solid var(--status-success, #10b981)"
+      theoria-superseded: "border-left: 3px solid var(--status-muted, #6b7280)"
+      status-provisional: "color: var(--status-pending, #f59e0b)"
+      status-confirmed: "color: var(--status-success, #10b981)"
+      status-superseded: "color: var(--status-muted, #6b7280)"
+    created_at: "2025-01-29T00:00:00Z"
+
+- eidos: render-spec
+  id: render-spec/theoria
+  data:
+    name: theoria-detail
+    description: "Detail view for theoria — full content"
+    target_eidos: theoria
+    fields_to_display:
+      - field: insight
+        label: Insight
+      - field: domain
+        label: Domain
+      - field: status
+        label: Status
+      - field: source
+        label: Source
+    layout_template: |
+      <article class="render-detail theoria-detail">
+        <header class="detail-header">
+          <h2 class="entity-title">Theoria</h2>
+          <div class="meta-row">
+            <span class="domain-badge">{domain}</span>
+            <span class="status-indicator status-{status}">{status}</span>
+          </div>
+        </header>
+        <section class="detail-body">
+          <div class="insight-block">
+            <label>Insight</label>
+            <p class="insight-text">{insight}</p>
+          </div>
+          <div class="meta-grid">
+            <div class="meta-item">
+              <label>Source</label>
+              <span>{source}</span>
+            </div>
+            <div class="meta-item">
+              <label>ID</label>
+              <code>{id}</code>
+            </div>
+          </div>
+        </section>
+      </article>
+    style_bindings:
+      status-provisional: "color: var(--status-pending, #f59e0b)"
+      status-confirmed: "color: var(--status-success, #10b981)"
+    created_at: "2025-01-29T00:00:00Z"
+
+# =============================================================================
+# JOURNEY RENDER SPECS
+# =============================================================================
+
+- eidos: render-spec
+  id: render-spec/journey-card
+  data:
+    name: journey-card
+    description: "Card view for journey — teleological navigation"
+    target_eidos: journey
+    fields_to_display:
+      - field: desire
+        label: Desire
+      - field: status
+        label: Status
+      - field: current_waypoint
+        label: Progress
+    layout_template: |
+      <article class="render-card journey-card journey-{status}">
+        <header class="card-header">
+          <h3 class="journey-desire">{desire}</h3>
+          <span class="status-badge status-{status}">{status}</span>
+        </header>
+        <div class="card-body">
+          <div class="progress-indicator">
+            <span class="waypoint-count">Waypoint {current_waypoint}</span>
+          </div>
+        </div>
+        <footer class="card-footer">
+          <span class="entity-id">{id}</span>
+        </footer>
+      </article>
+    style_bindings:
+      journey-potential: "border-left: 3px solid var(--status-muted, #6b7280)"
+      journey-active: "border-left: 3px solid var(--status-active, #3b82f6)"
+      journey-paused: "border-left: 3px solid var(--status-warning, #f59e0b)"
+      journey-arrived: "border-left: 3px solid var(--status-success, #10b981)"
+      journey-abandoned: "border-left: 3px solid var(--status-error, #ef4444)"
+    created_at: "2025-01-29T00:00:00Z"
+
+# =============================================================================
+# INQUIRY RENDER SPECS
+# =============================================================================
+
+- eidos: render-spec
+  id: render-spec/inquiry-card
+  data:
+    name: inquiry-card
+    description: "Card view for inquiry — open questions"
+    target_eidos: inquiry
+    fields_to_display:
+      - field: question
+        label: Question
+      - field: domain
+        label: Domain
+      - field: status
+        label: Status
+    layout_template: |
+      <article class="render-card inquiry-card inquiry-{status}">
+        <header class="card-header">
+          <span class="domain-badge">{domain}</span>
+          <span class="status-badge status-{status}">{status}</span>
+        </header>
+        <div class="card-body">
+          <p class="question">{question}</p>
+        </div>
+        <footer class="card-footer">
+          <span class="entity-id">{id}</span>
+        </footer>
+      </article>
+    style_bindings:
+      inquiry-open: "border-left: 3px solid var(--status-info, #3b82f6)"
+      inquiry-exploring: "border-left: 3px solid var(--status-active, #8b5cf6)"
+      inquiry-answered: "border-left: 3px solid var(--status-success, #10b981)"
+      inquiry-dissolved: "border-left: 3px solid var(--status-muted, #6b7280)"
+    created_at: "2025-01-29T00:00:00Z"
+
+# =============================================================================
+# LIST ITEM VARIANTS (for compact views)
+# =============================================================================
+
+- eidos: render-spec
+  id: render-spec/journey-list-item
+  data:
+    name: journey-list-item
+    description: "Compact list item for journey navigation"
+    target_eidos: journey
+    fields_to_display:
+      - field: desire
+      - field: status
+      - field: current_waypoint
+    layout_template: |
+      <div class="list-item journey-list-item journey-{status}">
+        <span class="journey-icon status-{status}"></span>
+        <span class="journey-desire">{desire}</span>
+        <span class="waypoint-badge">WP {current_waypoint}</span>
+        <span class="status-label">{status}</span>
+      </div>
+    style_bindings:
+      journey-potential: "opacity: 0.6"
+      journey-active: "border-left: 2px solid var(--status-active, #3b82f6)"
+      journey-paused: "border-left: 2px solid var(--status-warning, #f59e0b)"
+      journey-arrived: "border-left: 2px solid var(--status-success, #10b981)"
+      journey-abandoned: "border-left: 2px solid var(--status-error, #ef4444); opacity: 0.5"
+    created_at: "2025-01-29T00:00:00Z"

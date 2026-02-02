@@ -2,6 +2,8 @@
 
 δύναμις (dýnamis) — power, potency, the capacity for change
 
+> **See also:** [REACTIVE-SYSTEM.md](../REACTIVE-SYSTEM.md) — Dynamis provides Layers 2 (Reconciler) and 3 (Actuality Mode) of the complete reactive architecture.
+
 ## Ontological Purpose
 
 Dynamis addresses **the gap between intention and actuality** — the distance between what should exist and what actually does exist in the substrate.
@@ -238,6 +240,40 @@ Release succession chain.
 - **To:** release
 - **Cardinality:** one-to-one
 - **Traversal:** Find release lineage
+
+### Infrastructure Deployment Relationships
+
+These desmoi connect dynamis deployments to soma infrastructure entities (node, service-instance). This bridges intent (deployment) to actuality (running services on physical machines).
+
+#### targets-node
+
+Deployment targets a specific node for execution.
+
+- **From:** deployment
+- **To:** node
+- **Cardinality:** many-to-many
+- **Traversal:** From deployment, find target nodes; from node, find deployments targeting it
+- **Note:** Unlike `targets` (abstract substrate), targets-node points to concrete machines. Many-to-many supports replication across nodes.
+
+#### manifests-as
+
+Deployment manifested as a service-instance.
+
+- **From:** deployment
+- **To:** service-instance
+- **Cardinality:** one-to-many
+- **Traversal:** From deployment, find running instances; from instance, trace back to deployment intent
+- **Note:** Created when reconciliation actualizes the deployment. The bridge from intent to actuality.
+
+#### steward-of
+
+Circle stewards (governs) a commons node.
+
+- **From:** circle
+- **To:** node
+- **Cardinality:** one-to-many
+- **Traversal:** From circle, find stewarded nodes; from node, find steward circle
+- **Note:** Replaces embedded `node.steward_circle_id` field with a proper bond. The steward circle has authority over node configuration.
 
 ## Operations (Praxeis)
 

@@ -25,7 +25,7 @@ data:
   - cases:
     - then:
       - bindings:
-          schema: $schemas[0]
+          schema: $schemas.0
         step: set
       when: $schemas
     default:

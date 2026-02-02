@@ -108,6 +108,35 @@ Result of evaluating a single criterion (embedded in governed-envelope).
 - `reason` — Explanation of why this status was determined
 - `created_at` — When evaluated
 
+## Bonds (Desmoi)
+
+### generated-by
+
+Generation was produced by this inference call.
+
+- **From:** generation
+- **To:** governed-envelope
+- **Cardinality:** one-to-one
+- **Traversal:** Find the governance context for a generation
+
+### evaluated-against
+
+Generation was evaluated against these criteria.
+
+- **From:** governed-envelope
+- **To:** criterion
+- **Cardinality:** one-to-many
+- **Traversal:** Find what criteria governed a generation
+
+### constrained-to
+
+Generation was constrained to this schema source.
+
+- **From:** generation
+- **To:** eidos (or stoicheion)
+- **Cardinality:** many-to-one
+- **Traversal:** Find generations for an eidos
+
 ## Operations (Praxeis)
 
 ### governed-inference
@@ -188,6 +217,152 @@ Meta-level generation capability — creating kosmos definitions.
 - **Grants:** generate-step, generate-praxis, generate-typos
 - **Scope:** circle
 - **Rationale:** Generating definitions that alter kosmos behavior requires explicit authorization
+
+## Inference Context Composition
+
+The prompt is not a string — it's a composed artifact.
+
+Traditional LLM integration treats prompts as hardcoded templates with variable interpolation. Manteia introduces **homoiconic prompt composition**: the prompt itself is assembled from graph operations, making what inference sees as composable as any other artifact.
+
+### The Core Insight
+
+What goes into an inference call can be decomposed:
+
+| Component | Source | Purpose |
+|-----------|--------|---------|
+| Schema source | Eidos or typos | What structured output we want |
+| Domain theoria | Graph surface query | Relevant crystallized understanding |
+| Role/persona | Slot default or input | How to reason about this |
+| Constraints | Array of guardrails | What to avoid or enforce |
+| Input artifacts | Entity IDs | Primary subjects being worked on |
+| Human expression | Expression entity | What the human said/wants |
+| Additional context | Graph traversal | Supporting entities |
+| Context depth | Number | How deep to follow bonds |
+| Request | String | The actual instruction |
+
+Each component is a slot. The inference context is a typos. Composition assembles what inference sees.
+
+### The Base Typos
+
+`typos-def-inference-context` (defined in `spora/definitions/manteia.yaml`) provides the base pattern:
+
+```yaml
+- eidos: typos
+  id: typos-def-inference-context
+  data:
+    name: inference-context
+    description: |
+      Compose an inference call context from graph operations.
+      This enables homoiconic prompt engineering — prompts are data, not code.
+    slots:
+      # SYSTEM PROMPT COMPONENTS
+      schema_source:      # Entity ID of eidos/typos for output schema
+      domain_theoria:     # Query spec to surface relevant theoria
+      role:               # Persona for the inference
+      constraints:        # Explicit guardrails on generation
+
+      # USER PROMPT COMPONENTS
+      input_artifacts:    # Entity IDs of primary subjects
+      human_expression:   # Entity ID of the driving expression
+      additional_context: # Query spec for supporting entities
+      context_depth:      # Bond traversal depth (default 1)
+      request:            # The actual instruction
+
+      # OUTPUT CONFIGURATION
+      output_schema:      # Explicit JSON schema (or derived from schema_source)
+      evaluate:           # Whether to produce governed envelope
+      criteria:           # Evaluation criteria if evaluate=true
+```
+
+### Domain Extensions
+
+Oikoi extend the base with domain-appropriate defaults:
+
+**typos-inference-update-artifact** (voice-authoring):
+```yaml
+extends: typos-def-inference-context
+slots:
+  role:
+    default: |
+      You are an editor. Update documents based on human discussion
+      while maintaining consistency with existing style and structure.
+  constraints:
+    default:
+      - "Preserve existing section structure unless explicitly asked"
+      - "Use the same voice and terminology as the existing document"
+      - "Make minimal changes to achieve the intent"
+```
+
+**typos-inference-eidos** (oikos generation):
+```yaml
+extends: typos-def-inference-context
+slots:
+  role:
+    default: |
+      You are an ontology designer for the kosmos system.
+      Eide define what can exist — they are the forms, the types.
+  constraints:
+    default:
+      - "Field names should be snake_case"
+      - "Description should explain ontological purpose"
+      - "Consider what bonds this eidos will participate in"
+```
+
+See `spora/definitions/manteia.yaml` and `spora/definitions/oikos-generation.yaml` for the full catalog.
+
+### The Canonical Usage Pattern
+
+Praxeis that need inference follow this two-step pattern:
+
+```yaml
+# Step 1: Compose inference context
+- step: compose
+  typos_id: typos-inference-eidos
+  inputs:
+    name: "$name"
+    purpose: "$purpose"
+    domain: "$domain"
+    field_hints: "$field_hints"
+  bind_to: inference_context
+
+# Step 2: Call governed inference with composed context
+- step: call
+  praxis: manteia/governed-inference
+  params:
+    prompt: "$inference_context.request"
+    output_schema: "$inference_context.output_schema"
+    system_prompt: "$inference_context.role"
+  bind_to: result
+```
+
+The inference context is composed like any artifact. Then governed-inference receives the assembled components.
+
+### The Reasoning Surface
+
+Manteia provides the **reasoning** surface — the capability for governed inference. Other oikoi consume this surface:
+
+| Consumer | What They Do |
+|----------|--------------|
+| demiurge | Generate eidos, praxis, desmos definitions |
+| nous | Invoke for theoria synthesis |
+| voice-authoring | Update artifacts from expressions |
+| dokimasia | Generate test cases |
+
+The surface pattern (`surfaces_provided: [reasoning]` in manifest) makes this dependency explicit. Oikoi that consume reasoning extend `typos-def-inference-context` with their domain defaults.
+
+### Why This Matters
+
+1. **Prompts are inspectable** — The inference context is an entity. You can see exactly what inference saw.
+
+2. **Prompts are composable** — Theoria, artifacts, expressions all flow in through graph operations, not string concatenation.
+
+3. **Domain knowledge accumulates** — As theoria crystallizes, inference contexts automatically incorporate it via `domain_theoria` queries.
+
+4. **Patterns are reusable** — Domain extensions capture best practices. Teams compose with `typos-inference-eidos`, not raw prompts.
+
+5. **Context is bounded** — `context_depth` controls how much graph context flows in, preventing unbounded expansion.
+
+This is homoiconic prompt engineering: the prompt is composed from the same graph that inference operates on.
 
 ## Embodiment
 

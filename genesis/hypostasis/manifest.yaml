@@ -18,6 +18,11 @@ oikos_description: |
   backup, and recovery all use signed bundles.
 oikos_scale: cross-scale
 
+# Development experience metadata
+oikos_category: infrastructure
+surfaces_provided: []   # Cryptographic substrate
+surfaces_consumed: []   # Foundational identity/replication layer
+
 content_paths:
   - path: eide/
     content_types: [eidos]
@@ -25,6 +30,8 @@ content_paths:
     content_types: [desmos]
   - path: praxeis/
     content_types: [praxis]
+  - path: entities/
+    content_types: [render-spec]
 
 requires_dynamis:
   - db.arise
@@ -43,6 +50,14 @@ provides:
     - kleidoura       # Encrypted keyring for password-protected key access
     - genesis-record  # Multi-signature genesis ceremony
     - credential      # Encrypted external service credentials
+    - ssh-credential  # SSH authentication for remote node access
+
+  # Oikos-centric rendering: hypostasis owns presentation for identity entities
+  renderable:
+    - eidos: persona
+      description: "Identity cards and list items"
+    - eidos: animus
+      description: "Agent identity cards"
 
   attainments:
     - sign              # Sign content with circle-scoped keys
@@ -59,6 +74,7 @@ provides:
     - shared-with       # credential → circle (team access)
     - unlocks-attainment  # credential → attainment (capability grant)
     - enables-function  # credential → function (what it enables)
+    - authenticates-to  # ssh-credential → node (remote access)
 
   praxeis:
     # Content-addressed operations
@@ -107,3 +123,6 @@ stoicheia_form:
   verify: arche       # Ed25519 via host function
   derive: arche       # Key derivation via host function
 
+
+depends_on:
+  - credentials          # External service credentials (extracted from hypostasis)

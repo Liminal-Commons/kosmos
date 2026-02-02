@@ -19,6 +19,12 @@ oikos_description: |
   releases, deployments, substrates, and distribution channels.
 oikos_scale: cross-scale
 
+# Development experience metadata
+oikos_category: infrastructure
+surfaces_provided:
+  - computation        # Tier 3 actuality bridging (manifest/sense/unmanifest)
+surfaces_consumed: []   # Foundational actuality layer
+
 content_paths:
   - path: eide/
     content_types: [eidos]
@@ -26,6 +32,12 @@ content_paths:
     content_types: [desmos]
   - path: praxeis/
     content_types: [praxis]
+  - path: entities/
+    content_types: [render-spec, reflex, deployment]
+  - path: reconcilers/
+    content_types: [reconciler]
+  - path: typos/
+    content_types: [typos]
 
 description: |
   Existence-actuality bridging layer. Manages releases, deployments,
@@ -45,18 +57,33 @@ requires_dynamis:
 
 provides:
   eide:
-    - release
-    - release-artifact
+    # NOTE: release, release-artifact, distribution-channel moved to release oikos
     - substrate
-    - distribution-channel
     - deployment
     - actuality-record
 
+  typos:
+    - typos-def-deployment
+    - typos-def-service-instance
+    - typos-def-node
+
+  reflexes:
+    - reflex/dynamis/deployment-intent-changed
+    - reflex/dynamis/release-artifact-intent-changed
+
+  # Oikos-centric rendering: dynamis owns presentation for infrastructure entities
+  renderable:
+    - eidos: substrate
+      description: "Platform and environment cards"
+    - eidos: deployment
+      description: "Deployment state and drift display"
+    - eidos: actuality-record
+      description: "Sensing audit log"
+
   attainments:
-    - release            # Create/manage releases
+    # NOTE: release, distribute attainments moved to release oikos
     - substrate          # Define target platforms
     - channel            # Configure distribution channels
-    - distribute         # Actualize releases to channels (tier 3)
     - deploy             # Manage running deployments (tier 3)
     - reconcile          # Generic phylax reconciliation (tier 3)
 
@@ -79,6 +106,10 @@ provides:
     - triggered-journey
     - succeeds-release
     - supersedes-release
+    # Infrastructure deployment desmoi (connect to soma/node, soma/service-instance)
+    - targets-node
+    - manifests-as
+    - steward-of
 
   praxeis:
     # Release lifecycle
@@ -133,3 +164,6 @@ stoicheia_form:
   list-releases: arche
   list-substrates: arche
   list-distribution-channels: arche
+
+depends_on:
+  - release              # Artifact lifecycle (extracted from dynamis)

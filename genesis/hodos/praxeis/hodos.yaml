@@ -1,0 +1,464 @@
+# hodos.yaml
+# Navigation praxeis for homoiconic UI flows
+#
+# Hodos (ὁδός) means "way" or "path" — these praxeis navigate
+# through waypoints and panels, rendering the homoiconic UI.
+#
+# The flow:
+#   1. get-current-waypoint: What step are we on?
+#   2. get-waypoint-panel: What should we render?
+#   3. get-panel-form: What form definition (if any)?
+#   4. advance-waypoint: Move to next step
+#   5. branch-waypoint: Take a conditional fork
+
+entities:
+
+# =============================================================================
+# WAYPOINT NAVIGATION
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/hodos/get-current-waypoint
+  data:
+    oikos: hodos
+    name: get-current-waypoint
+    visible: true
+    tier: 1
+    description: |
+      Get the current waypoint for a journey.
+
+      Returns the waypoint entity at the journey's current_waypoint ordinal,
+      along with its panel and form definition.
+    params:
+      - name: journey_id
+        type: string
+        required: true
+        description: The journey to get current waypoint for
+    steps:
+      - step: find
+        id: "$journey_id"
+        bind_to: journey
+
+      - step: assert
+        condition: "$journey"
+        message: "Journey not found: $journey_id"
+
+      # Get all waypoints for this journey
+      - step: trace
+        from_id: "$journey_id"
+        desmos: "contains-waypoint"
+        resolve: "to"
+        bind_to: waypoints
+
+      # Find waypoint at current ordinal
+      - step: filter
+        items: "$waypoints"
+        condition: "$item.data.ordinal == $journey.data.current_waypoint"
+        bind_to: current_waypoints
+
+      - step: switch
+        cases:
+          - when: "$current_waypoints.length > 0"
+            then:
+              - step: set
+                bindings:
+                  current_waypoint: "$current_waypoints.0"
+        default:
+          - step: set
+            bindings:
+              current_waypoint: null
+
+      # Get panel for this waypoint if available
+      - step: switch
+        cases:
+          - when: "$current_waypoint.data.panel_id"
+            then:
+              - step: find
+                id: "$current_waypoint.data.panel_id"
+                bind_to: panel
+        default:
+          - step: set
+            bindings:
+              panel: null
+
+      # Get form definition if available
+      - step: switch
+        cases:
+          - when: "$current_waypoint.data.form_typos_id"
+            then:
+              - step: find
+                id: "$current_waypoint.data.form_typos_id"
+                bind_to: form_definition
+        default:
+          - step: set
+            bindings:
+              form_definition: null
+
+      - step: return
+        value:
+          journey_id: "$journey_id"
+          current_ordinal: "$journey.data.current_waypoint"
+          waypoint: "$current_waypoint"
+          panel: "$panel"
+          form_definition: "$form_definition"
+          journey_status: "$journey.data.status"
+
+- eidos: praxis
+  id: praxis/hodos/advance-waypoint
+  data:
+    oikos: hodos
+    name: advance-waypoint
+    visible: true
+    tier: 2
+    description: |
+      Advance to the next waypoint in a journey.
+
+      Marks current waypoint as reached and moves to next ordinal.
+      If waypoint has a 'next' field, follows that instead of ordinal+1.
+    params:
+      - name: journey_id
+        type: string
+        required: true
+        description: The journey to advance
+      - name: form_data
+        type: object
+        required: false
+        description: Form submission data (if waypoint had a form)
+    steps:
+      # Get current state
+      - step: call
+        praxis: hodos/get-current-waypoint
+        params:
+          journey_id: "$journey_id"
+        bind_to: current
+
+      - step: assert
+        condition: "$current.waypoint"
+        message: "No current waypoint for journey: $journey_id"
+
+      # Mark current waypoint as reached
+      - step: update
+        id: "$current.waypoint.id"
+        data:
+          status: "reached"
+          form_data: "$form_data"
+
+      # Determine next waypoint
+      - step: switch
+        cases:
+          # If waypoint has explicit next, use it
+          - when: "$current.waypoint.data.next"
+            then:
+              - step: find
+                id: "$current.waypoint.data.next"
+                bind_to: next_waypoint
+              - step: set
+                bindings:
+                  next_ordinal: "$next_waypoint.data.ordinal"
+        default:
+          # Otherwise increment ordinal
+          - step: set
+            bindings:
+              next_ordinal: "$current.current_ordinal + 1"
+
+      # Update journey's current_waypoint
+      - step: update
+        id: "$journey_id"
+        data:
+          current_waypoint: "$next_ordinal"
+
+      # Check if journey is complete (no more waypoints)
+      - step: trace
+        from_id: "$journey_id"
+        desmos: "contains-waypoint"
+        resolve: "to"
+        bind_to: all_waypoints
+
+      - step: filter
+        items: "$all_waypoints"
+        condition: "$item.data.ordinal == $next_ordinal"
+        bind_to: next_waypoints
+
+      - step: switch
+        cases:
+          - when: "$next_waypoints.length == 0"
+            then:
+              # No more waypoints — journey complete
+              - step: update
+                id: "$journey_id"
+                data:
+                  status: "arrived"
+              - step: set
+                bindings:
+                  journey_complete: true
+        default:
+          - step: set
+            bindings:
+              journey_complete: false
+
+      - step: return
+        value:
+          advanced: true
+          from_ordinal: "$current.current_ordinal"
+          to_ordinal: "$next_ordinal"
+          journey_complete: "$journey_complete"
+
+- eidos: praxis
+  id: praxis/hodos/branch-waypoint
+  data:
+    oikos: hodos
+    name: branch-waypoint
+    visible: true
+    tier: 2
+    description: |
+      Take a conditional branch from the current waypoint.
+
+      Used when waypoint has branches array with conditions.
+      Evaluates condition against provided action and navigates accordingly.
+    params:
+      - name: journey_id
+        type: string
+        required: true
+        description: The journey to branch
+      - name: action
+        type: string
+        required: true
+        description: The action that triggered branching (e.g., "create", "restore")
+    steps:
+      # Get current state
+      - step: call
+        praxis: hodos/get-current-waypoint
+        params:
+          journey_id: "$journey_id"
+        bind_to: current
+
+      - step: assert
+        condition: "$current.waypoint"
+        message: "No current waypoint for journey: $journey_id"
+
+      - step: assert
+        condition: "$current.waypoint.data.branches"
+        message: "Current waypoint has no branches"
+
+      # Find matching branch
+      - step: filter
+        items: "$current.waypoint.data.branches"
+        condition: "$item.condition contains $action"
+        bind_to: matching_branches
+
+      - step: assert
+        condition: "$matching_branches.length > 0"
+        message: "No branch matches action: $action"
+
+      # Get target waypoint
+      - step: find
+        id: "$matching_branches.0.target"
+        bind_to: target_waypoint
+
+      - step: assert
+        condition: "$target_waypoint"
+        message: "Branch target not found: $matching_branches.0.target"
+
+      # Mark current as reached
+      - step: update
+        id: "$current.waypoint.id"
+        data:
+          status: "reached"
+          branch_taken: "$action"
+
+      # Update journey to target ordinal
+      - step: update
+        id: "$journey_id"
+        data:
+          current_waypoint: "$target_waypoint.data.ordinal"
+
+      - step: return
+        value:
+          branched: true
+          from_ordinal: "$current.current_ordinal"
+          to_ordinal: "$target_waypoint.data.ordinal"
+          action: "$action"
+          target_waypoint: "$target_waypoint.id"
+
+# =============================================================================
+# PANEL RENDERING
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/hodos/get-panel-render-data
+  data:
+    oikos: hodos
+    name: get-panel-render-data
+    visible: true
+    tier: 1
+    description: |
+      Get all data needed to render a panel.
+
+      Assembles:
+      - Panel config (title, description, actions, etc.)
+      - Form definition with slots (if panel uses a form)
+      - Current values (if editing)
+    params:
+      - name: panel_id
+        type: string
+        required: true
+        description: The panel to render
+      - name: current_values
+        type: object
+        required: false
+        description: Current form values (for pre-filling)
+    steps:
+      - step: find
+        id: "$panel_id"
+        bind_to: panel
+
+      - step: assert
+        condition: "$panel"
+        message: "Panel not found: $panel_id"
+
+      # Check if panel uses a form
+      - step: trace
+        from_id: "$panel_id"
+        desmos: "uses-form"
+        resolve: "to"
+        bind_to: form_bonds
+
+      - step: switch
+        cases:
+          - when: "$form_bonds.length > 0"
+            then:
+              - step: find
+                id: "$form_bonds.0.id"
+                bind_to: form_definition
+        default:
+          - step: set
+            bindings:
+              form_definition: null
+
+      - step: return
+        value:
+          panel_id: "$panel_id"
+          name: "$panel.data.name"
+          render_type: "$panel.data.render_type"
+          config: "$panel.data.config"
+          form_definition: "$form_definition"
+          current_values: "$current_values"
+
+- eidos: praxis
+  id: praxis/hodos/validate-form
+  data:
+    oikos: hodos
+    name: validate-form
+    visible: true
+    tier: 0
+    description: |
+      Validate form data against a typos's slots.
+
+      Returns validation result with any errors.
+    params:
+      - name: typos_id
+        type: string
+        required: true
+        description: The typos to validate against
+      - name: data
+        type: object
+        required: true
+        description: The form data to validate
+    steps:
+      - step: find
+        id: "$typos_id"
+        bind_to: definition
+
+      - step: assert
+        condition: "$definition"
+        message: "Typos not found: $typos_id"
+
+      - step: set
+        bindings:
+          errors: []
+          valid: true
+
+      # Check required fields
+      - step: switch
+        cases:
+          - when: "$definition.data.slots"
+            then:
+              - step: for_each
+                items: "$definition.data.slots"
+                item_var: slot_entry
+                steps:
+                  # Check if slot is required and missing
+                  - step: switch
+                    cases:
+                      - when: "$slot_entry.value.required and not $data[$slot_entry.key]"
+                        then:
+                          - step: set
+                            bindings:
+                              errors: "$errors + [{ field: $slot_entry.key, message: 'Required field' }]"
+                              valid: false
+
+      - step: return
+        value:
+          valid: "$valid"
+          errors: "$errors"
+          data: "$data"
+
+# =============================================================================
+# JOURNEY INITIALIZATION
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/hodos/start-onboarding
+  data:
+    oikos: hodos
+    name: start-onboarding
+    visible: true
+    tier: 2
+    description: |
+      Initialize the onboarding journey for a new user.
+
+      If journey/onboarding doesn't exist, creates it with waypoints.
+      If it exists, returns current state.
+    params: []
+    steps:
+      # Check if onboarding journey exists
+      - step: find
+        id: "journey/onboarding"
+        bind_to: existing_journey
+
+      - step: switch
+        cases:
+          - when: "$existing_journey"
+            then:
+              # Return current state
+              - step: call
+                praxis: hodos/get-current-waypoint
+                params:
+                  journey_id: "journey/onboarding"
+                bind_to: current_state
+              - step: return
+                value:
+                  created: false
+                  journey_id: "journey/onboarding"
+                  current: "$current_state"
+        default:
+          # Create journey (entities should already exist from genesis/bootstrap)
+          # Just embark on it
+          - step: call
+            praxis: nous/embark-journey
+            params:
+              journey_id: "journey/onboarding"
+            bind_to: embark_result
+
+          - step: call
+            praxis: hodos/get-current-waypoint
+            params:
+              journey_id: "journey/onboarding"
+            bind_to: current_state
+
+          - step: return
+            value:
+              created: false
+              embarked: true
+              journey_id: "journey/onboarding"
+              current: "$current_state"
