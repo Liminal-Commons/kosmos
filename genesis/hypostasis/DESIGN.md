@@ -470,7 +470,11 @@ mnemonic (BIP-39, 24 words)
     │
     └─► master seed (BIP-39 derivation)
             │
-            ├─► prosopon key (master identity)
+            ├─► prosopon key (Ed25519 master identity)
+            │       │
+            │       └─► prosopon ID: "prosopon/" + BLAKE3(public_key_bytes)[..16] hex
+            │
+            ├─► self-oikos ID: "oikos/self-" + prosopon_hash
             │
             └─► oikos keys (HKDF per oikos_id)
                     │
@@ -478,6 +482,36 @@ mnemonic (BIP-39, 24 words)
 ```
 
 Key derivation mirrors trust derivation. The social structure and the cryptographic structure are the same structure.
+
+**Deterministic identity:** The prosopon ID is a function of cryptographic material — same mnemonic always produces the same prosopon ID and self-oikos ID. Identity is derivation, not storage. Graph entities are projections of the sovereign substrate (platform keychain), not the source of truth.
+
+## Sovereign Substrate
+
+The platform keychain (macOS Keychain, etc.) is the **primary store** of identity material and credentials — not backup, not cache. Graph entities (kleidoura, credential) are projections of what the keychain holds.
+
+The keychain:
+- Survives app deletion, database clean, reinstallation
+- Belongs to the OS user, not the application
+- Stores kleidoura (encrypted master seed) and credentials (encrypted API keys)
+
+This is the ontological commitment: the sovereign substrate is primary. The graph is derived.
+
+## Bootstrap Dwelling Discovery
+
+After constitutional bootstrap (genesis), a discovery phase scans the sovereign substrate:
+
+1. **Scan keychain** for existing kleidoura entries
+2. **If found:** derive prosopon ID from encrypted public key → derive self-oikos → compose prosopon entity → compose self-oikos entity → establish `member-of` and `stewards` bonds → present unlock screen
+3. **If empty:** present welcome screen (fresh setup)
+4. **After unlock:** scan for credentials → compose credential entities → bond to providers → trigger attainment derivation via reflexes
+
+Discovery does not create from nothing — it re-derives from what persists. This is the reconciliation pattern (sense → compare → act) applied to the sovereign substrate.
+
+### discover-dwelling (praxis)
+Scan sovereign substrate, re-derive identity, reconstitute dwelling entities.
+- **When:** After constitutional bootstrap completes
+- **Requires:** Access to platform keychain
+- **Effect:** Prosopon, self-oikos, and credential entities re-composed if sovereign material exists
 
 ## Future Extensions
 

@@ -332,9 +332,6 @@ Known divergences between prescribed state and actual state.
 
 | Gap | Severity | Description |
 |-----|----------|-------------|
-| `dissolve_entity` no visibility | MEDIUM | Deletion bypasses visibility — planned Session 5 |
-| `create_bond` no visibility | MEDIUM | Bond creation bypasses visibility — planned Session 5 |
-| MCP tool listing no oikos scope | MEDIUM | Praxeis not filtered by visibility — planned Session 5 |
 | Genesis entities no `exists-in` bonds | MEDIUM | Transitional "no exists-in = universal" rule — planned Session 6 |
 
 ### Documentation Structure Gaps
@@ -365,6 +362,10 @@ Known divergences between prescribed state and actual state.
 | REST `list_bonds` no visibility | Vis-3 | Uses `trace_bonds_visible` with OptionalSession |
 | REST `update_entity` no visibility | Vis-3 | Uses `find_entity_visible` with ValidatedSession |
 | Interpreter steps no visibility | Vis-3 | FindStep/TraverseStep/TraceStep use visibility-aware host methods via DwellingContext |
+| `dissolve_entity` no visibility | Vis-5 | `dissolve_entity_visible()` checks entity visibility, used by DissolveStep + REST |
+| `create_bond` no visibility | Vis-5 | `create_bond_visible()` checks source visibility, used by BindStep + REST |
+| `loose_bond` no visibility | Vis-5 | `loose_bond_visible()` checks source visibility, used by LooseStep + REST |
+| MCP tool listing no oikos scope | Vis-5 | `get_tools_impl()` builds DwellingContext from session, passes to gather_entities |
 
 ---
 

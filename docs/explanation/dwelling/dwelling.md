@@ -20,6 +20,8 @@ In the kosmos, dwelling is simultaneous across five dimensions. Each dimension a
 
 The prosopon grounds all dwelling in cryptographic identity. Without a prosopon, there is no verifiable origin, no attribution, no trust. The kleidoura (encrypted keyring) holds signing keys at rest; unlocking creates a session, which is a temporal bridge between identity and embodiment.
 
+Identity is derivation, not storage. The mnemonic derives the prosopon deterministically — same mnemonic, same prosopon ID, always. The platform keychain (macOS Keychain, etc.) is the **sovereign substrate**: the primary store of identity material and credentials. Graph entities are projections of what the sovereign substrate holds. After database reset or on a new node, identity re-derives from the mnemonic.
+
 **Gap addressed:** The gap between existence and authenticity. Entities exist, but who made them?
 
 **Bonds:** `secures-key-for`, `signed-by`, `chains-to`, `verifies`
@@ -135,6 +137,22 @@ Dwelling is nested. Each scale establishes ambient context for the next:
 ```
 
 Nous (understanding) operates across all scales, providing the traversal and surfacing operations that make the graph navigable.
+
+---
+
+## Three Persistence Substrates
+
+Dwelling persists across three substrates, each with its own reconciliation:
+
+| Substrate | What Persists | Reconciliation |
+|-----------|--------------|----------------|
+| **Sovereign** (platform keychain) | Identity material (kleidoura), credentials | Bootstrap discovery: sense keychain → derive entities |
+| **Local** (filesystem) | Emitted oikos state, constitutional genesis | Re-ingestion: sense content root → compose entities |
+| **Remote** (peer node / R2) | Federated oikos state | Federation: sense syndesmos → sync entities |
+
+The pattern is identical across all three: sense what exists, compare with graph, act to align. This extends the reconciliation pattern (T11) to persistence substrates.
+
+Dwelling can span multiple devices through federation (aither syndesmos) and multiple database resets through sovereign substrate persistence (keychain). The mnemonic is the ultimate recovery root — from it, everything re-derives.
 
 ---
 

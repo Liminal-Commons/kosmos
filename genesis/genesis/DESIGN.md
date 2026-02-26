@@ -202,6 +202,34 @@ Nous crystallizes theoria; genesis persists it to filesystem. Understanding beco
 
 This is the constitutional guarantee. If it fails, the kosmos is incoherent.
 
+## Two-Layer Emission
+
+The genesis pattern — emit → bootstrap → full-circle verification — applies at two scopes:
+
+### Constitutional Genesis (Layer 1)
+
+The current `genesis/` directory. Universal, same for all nodes. Contains archai, eide, desmoi, praxeis, stoicheia, render-specs, modes. Bootstrap loads this first.
+
+### Dwelling Emission (Layer 2)
+
+Each oikos can emit its dwelling state to a content root. The emission scope is determined by `exists-in` bonds — all entities that exist-in the target oikos are part of its emitted state.
+
+```
+Oikos emission scope = { entity E : E exists-in oikos O }
+```
+
+This is the same mechanism as constitutional genesis, applied at oikos scope:
+- Emission writes oikos entities to `oikos/{id}/` (or equivalent content root)
+- Bootstrap ingests oikos state after constitutional bootstrap
+- Full-circle verification applies to both layers independently
+
+Dwelling emission enables:
+- **Local recovery**: after database clean, re-ingest oikos state from filesystem
+- **Federation**: emit oikos state → transport via syndesmos → ingest at peer
+- **Backup**: oikos content root is a complete, portable snapshot
+
+The content root's substrate determines where emission goes: filesystem (local), R2 (cloud), or peer node (federation). The pattern is one; the substrate varies.
+
 ## Theoria
 
 ### T38: Genesis is the source of truth

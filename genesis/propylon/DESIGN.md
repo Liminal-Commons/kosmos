@@ -377,6 +377,25 @@ For trusted peer entry, eyes and ears prove identity better than cryptography. T
 
 The mnemonic stays with the user. If lost, you're gone. This is the cost of sovereignty — no administrator can recover your identity.
 
+## Recovery Arc
+
+Propylon connects to the broader sovereign recovery story. Two paths converge at dwelling reconstitution:
+
+### Same Node (DB clean)
+```
+mnemonic → derive prosopon → keychain scan → credential re-bind → oikos content root ingest → full dwelling
+```
+Propylon is not involved — recovery is local via sovereign substrate.
+
+### New Node (device federation)
+```
+mnemonic → derive prosopon → propylon entry (self-sync link) → authenticate via challenge-response
+  → syndesmos established (aither) → federation begins → oikos state replicates
+    → exists-in bonds created → dwelling visible → credential setup → full dwelling
+```
+
+After entry authentication succeeds, `discover-dwelling` (hypostasis) completes session setup by scanning for credentials and establishing oikos membership bonds. Propylon is the gateway; dwelling discovery is the completion.
+
 ## Future Extensions
 
 ### WebAuthn Support

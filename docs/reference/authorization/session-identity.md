@@ -39,15 +39,51 @@ Each sub-screen has a "Back" button that returns to the WelcomeScreen via `retur
 
 **Authentication is blocking.** The main app is not accessible until the user proves identity via password or mnemonic recovery. The unlock screen is NOT a banner — it is the only screen visible until authentication succeeds.
 
-### Keyring Persistence
+### Deterministic Identity Derivation
 
-The kleidoura (keyring entity) stores the encrypted master seed. It MUST survive database resets:
+The prosopon ID is derived deterministically from the mnemonic — same mnemonic always produces the same prosopon ID. Identity is derivation, not storage.
 
-- `just dev` (clean-db) preserves the kleidoura entity and credential entities
-- OR: kleidoura is stored outside the main database (e.g., OS keyring, separate file)
-- OR: if kleidoura is destroyed, the recovery flow (mnemonic entry) is presented automatically
+```
+mnemonic (BIP-39, 24 words)
+  → master seed (BIP-39 derivation)
+    → master public key (Ed25519)
+      → prosopon ID: "prosopon/" + BLAKE3(public_key_bytes)[..16] hex
+```
+
+The self-oikos derives from the prosopon: `oikos/self-{prosopon_hash}`. One member, one steward. This is the prosopon's sovereign ground.
+
+After a database reset, the same mnemonic produces the same prosopon ID and self-oikos ID. Identity is re-derived, not recovered from backup.
+
+### Keyring Persistence — The Sovereign Substrate
+
+The platform keychain (macOS Keychain, etc.) is the **primary store** of identity material and credentials. The graph entities (kleidoura, credential) are **projections** of what the keychain holds, not the other way around.
+
+The keychain survives app deletion, database clean, and reinstallation. It belongs to the OS user, not the application.
+
+What persists in the sovereign substrate:
+- **Kleidoura**: encrypted master seed (identity material)
+- **Credentials**: encrypted API keys (capability material)
+- **Session token**: current session state (ephemeral)
 
 The user's 24-word mnemonic is the ultimate recovery mechanism. As long as the user has their mnemonic, they can recreate their keyring and re-derive all keys.
+
+### Bootstrap Dwelling Discovery
+
+After constitutional bootstrap (genesis), a **discovery phase** scans the sovereign substrate:
+
+```
+Genesis bootstrap complete
+  ├─ Scan keychain for existing kleidoura entries
+  │   ├─ Found: derive prosopon ID → derive self-oikos → establish membership bonds
+  │   │         → present unlock screen (dwelling reconstitutes)
+  │   └─ Empty: present welcome screen (fresh setup)
+  │
+  └─ After unlock, scan for existing credentials
+      ├─ Found: compose credential entities → bond to providers → trigger attainment derivation
+      └─ Empty: credential manager shows empty state
+```
+
+Discovery does not create from nothing — it re-derives from what persists. This is the reconciliation pattern (sense → compare → act) applied to the sovereign substrate.
 
 ### Arise Requires Authentication
 

@@ -162,9 +162,13 @@ Four forms define who dwells and how they participate:
 
 ### Prosopon — Identity That Persists
 
-A prosopon is identity — the face one presents to the kosmos. It persists across sessions, across time. It represents who you ARE.
+A prosopon is identity — the face one presents to the kosmos. It persists across sessions, across time, across devices. It represents who you ARE.
 
-Every prosopon has a self-oikos — their sovereign ground from which participation in all other oikoi extends. Prosopa are the foundation of capability: without a prosopon, nothing can be done.
+Identity is derivation, not storage. The mnemonic derives the prosopon deterministically — same mnemonic, same prosopon, always. The prosopon ID is a function of the cryptographic material, not a random assignment. After a database reset or on a new node, the same identity re-derives from the same mnemonic.
+
+Every prosopon has a self-oikos — their sovereign ground from which participation in all other oikoi extends. The self-oikos derives from the prosopon. Prosopa are the foundation of capability: without a prosopon, nothing can be done.
+
+The platform keychain is the **sovereign substrate** — the primary store of identity material. Graph entities (kleidoura, credential) are projections of what the sovereign substrate holds. The keychain survives database resets, app reinstallation, and belongs to the OS user, not the application. After constitutional bootstrap, a discovery phase scans the sovereign substrate and re-derives dwelling from what persists.
 
 ### Parousia — Presence That Arises
 

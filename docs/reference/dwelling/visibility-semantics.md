@@ -24,7 +24,12 @@ Two bond types constitute visibility. All other bonds are navigational — trave
 
 ### `exists-in` (entity → oikos)
 
-Every composed entity bonds to the oikos where it exists. This bond is created by `compose_entity()` from the dwelling context. It is the primary visibility mechanism.
+Every composed entity bonds to the oikos where it exists. This bond is created by `compose_entity()` from the dwelling context. It is the **dwelling placement bond** — the primary mechanism for determining what is part of an oikos.
+
+The set of entities reachable via `exists-in` from an oikos is the **complete dwelling index** for that oikos. This determines three scopes:
+- **Visibility**: members see entities that exist-in their oikoi
+- **Emission**: oikos state emission traverses exists-in bonds
+- **Federation**: entities replicated to a peer receive exists-in bonds to the receiving oikos
 
 An entity that exists-in oikos A is visible to every prosopon who is member-of oikos A.
 
@@ -97,6 +102,8 @@ Visibility determines WHAT you see. Attainments determine what you can DO.
 
 `federates-with` (oikos → oikos) is an **operational** bond for sync between kosmos instances. It is NOT a visibility bond. Federation enables data replication — content synced through federation becomes local to the receiving oikos via `exists-in` bonds.
 
+Federation is continuous mutual emission: two nodes that `federate-with` each other continuously emit and ingest oikos state via syndesmos. Entities arriving via federation are composed through the standard arise contract and receive `exists-in` bonds to the receiving oikos, making them visible to local members. Visibility remains sovereign — determined by local `exists-in` + `member-of` on each node independently.
+
 ---
 
 ## Complete Operations Table
@@ -151,6 +158,7 @@ Single-hop bond query. Both endpoints must be in the visible set.
 | **update**(id, data) | Entity must be visible | Praxis attainment | Entity data modified, version incremented |
 | **dissolve**(id) | Entity must be visible | Praxis attainment | Entity and its bonds removed |
 | **create_bond**(from, to, desmos) | Source must be visible | Praxis attainment | Bond created |
+| **loose_bond**(from, to, desmos) | Source must be visible | Praxis attainment | Bond removed |
 
 #### compose
 
@@ -166,9 +174,13 @@ The `exists-in` bond makes the new entity immediately visible to all members of 
 
 **Current state**: RESOLVED. `compose_entity()` creates `exists-in` bonds.
 
-#### update / dissolve / create_bond
+#### update
 
-**Current gap**: No visibility checks on mutations. Planned for Session 5.
+**Current state**: RESOLVED. REST `update_entity` checks visibility via `find_entity_visible` before mutation. Interpreter UpdateStep uses internal find (praxis steps operate within dwelling context).
+
+#### dissolve / create_bond / loose_bond
+
+**Current state**: RESOLVED (Session 5). `dissolve_entity_visible()` checks entity visibility before deletion. `create_bond_visible()` and `loose_bond_visible()` check source entity visibility — only `from_id` must be visible, enabling cross-oikos references. Used by DissolveStep, BindStep, LooseStep (praxis execution) and REST endpoints. Internal callers use raw methods (no filtering).
 
 ---
 
@@ -204,7 +216,7 @@ The `exists-in` bond makes the new entity immediately visible to all members of 
 | **REST GET** | Same as find/gather | Session required | Entity/entities returned |
 | **REST mutation** | Same as compose/update/dissolve | Session + attainment | Graph mutated |
 
-**Current state**: MCP filters by attainment. REST GET `get_entity` uses `find_entity_visible`. REST `list_entities` uses `gather_entities` with dwelling. REST `list_bonds` uses `trace_bonds_visible`. REST `update_entity` checks visibility before mutation. MCP tools go through praxis steps which use visibility-aware methods.
+**Current state**: RESOLVED (Session 5). MCP tool listing uses visibility-filtered `gather_entities` with dwelling context from session, then filters by attainment. REST GET `get_entity` uses `find_entity_visible`. REST `list_entities` uses `gather_entities` with dwelling. REST `list_bonds` uses `trace_bonds_visible`. REST `update_entity` checks visibility before mutation. REST `delete_entity` uses `dissolve_entity_visible`. REST `create_bond` uses `create_bond_visible`. REST `delete_bond` uses `loose_bond_visible`. MCP tools go through praxis steps which use visibility-aware methods.
 
 ---
 
@@ -250,13 +262,26 @@ The `exists-in` bond makes the new entity immediately visible to all members of 
 | REST `update_entity` applies visibility | Complete |
 | Visibility tests (Session 3 — 11 new tests) | Complete |
 
+### Resolved (Session 5)
+
+| Aspect | Status |
+|--------|--------|
+| `dissolve_entity_visible` checks entity visibility | Complete |
+| `create_bond_visible` checks source visibility | Complete |
+| `loose_bond_visible` checks source visibility | Complete |
+| DissolveStep uses visibility-aware dissolve | Complete |
+| BindStep uses visibility-aware create_bond | Complete |
+| LooseStep uses visibility-aware loose_bond | Complete |
+| REST `delete_entity` applies visibility | Complete |
+| REST `create_bond` applies visibility | Complete |
+| REST `delete_bond` applies visibility | Complete |
+| MCP tool listing uses visibility-filtered gather | Complete |
+| Visibility tests (Session 5 — 10 new tests) | Complete |
+
 ### Remaining Gaps
 
 | Gap | Severity | Planned |
 |-----|----------|---------|
-| MCP tool listing no oikos scope | Medium | Session 5 |
-| `dissolve_entity` no visibility check | Medium | Session 5 |
-| `create_bond` no visibility check | Medium | Session 5 |
 | Genesis entities no exists-in bonds | Medium | Session 6 |
 | Transitional "no exists-in = universal" rule | Medium | Session 6 (removed after retroactive bonds) |
 | Embedding index global | Low | Future |
@@ -267,4 +292,4 @@ The `exists-in` bond makes the new entity immediately visible to all members of 
 
 *Traces to: KOSMOGONIA Axiom II (Authority), Pillar: Visibility = Reachability, authority-mechanism.md, attainment-authorization.md, query-system.md*
 *Created: 2026-02-21*
-*Updated: 2026-02-23 — Session 3: find/traverse/trace visibility breadth, REST endpoints, interpreter steps*
+*Updated: 2026-02-25 — Session 5: dissolve/create_bond/loose_bond mutation visibility, MCP tool listing oikos scope, 10 new tests*

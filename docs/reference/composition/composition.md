@@ -43,7 +43,7 @@ When an entity arises, the composition path guarantees:
 2. **Content-hash idempotency** — same data = same hash = no redundant write
 3. **`composed-from` bond** — provenance to the definition that produced it
 4. **`typed-by` bond** — structural link to the entity's eidos
-5. **`exists-in` bond** — dwelling placement (to oikos from dwelling context)
+5. **`exists-in` bond** — dwelling placement (to oikos from dwelling context). This bond is the **complete dwelling index**: the set of entities reachable via `exists-in` from an oikos IS that oikos's content. Emission scope, visibility scope, and federation scope all derive from this bond.
 6. **`authorized-by` bond** — chain to the authorizing phasis
 7. **`depends-on` bonds** — composition dependency DAG for cache invalidation
 8. **Change notification** — reflexes can respond

@@ -132,6 +132,22 @@ List credentials (without values).
 - **When:** Managing credentials
 - **Provides:** Credential metadata
 
+## Bootstrap Credential Discovery
+
+After identity is re-derived from the sovereign substrate (keychain), bootstrap discovers existing credentials:
+
+1. After prosopon re-derivation, scan the graph for credential entities bonded to the prosopon
+2. After keyring unlock, decrypt credential values into session memory
+3. Trigger attainment derivation via reflexes — credential-added triggers fire as if credentials were freshly added
+
+If credential entities were lost (full DB clean), but keychain entries persist:
+1. The keychain contains encrypted credential values keyed by service name
+2. Bootstrap-time discovery scans keychain for known service prefixes
+3. For each found entry, compose a credential entity with `credential-of` bond to the prosopon and `authenticates` bond to the matching provider
+4. Fire credential-added triggers → attainment derivation → model tier resolution
+
+The keychain is the primary store; credential entities are projections. Discovery re-creates the projections from what persists.
+
 ## Attainments
 
 ### attainment/manage-credentials (defined in hypostasis)

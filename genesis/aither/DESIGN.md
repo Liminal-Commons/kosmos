@@ -353,6 +353,20 @@ Phoreta sync flows through aither channels. Device federation uses sync.
 
 Theoria sync could propagate insights across the graph in real-time.
 
+## Federation as Mutual Emission
+
+Syndesmos pairs that carry `federates-with` bonds between oikoi implement continuous mutual emission — the same pattern as genesis emission, applied across nodes.
+
+The steady state:
+1. Entity composed on node A → receives `exists-in` bond to oikos A
+2. Emission propagates to node B via syndesmos (using sync-message envelope)
+3. Node B ingests → composes entity through the standard arise contract → creates `exists-in` bond to local oikos
+4. Entity becomes visible to members of that oikos on node B
+
+Entities arriving via federation carry full provenance bonds. The same composition contract applies to federated entities as to locally-arisen entities — no raw arise, even across federation boundaries.
+
+Visibility remains sovereign on each node: determined by local `exists-in` + `member-of`. Federation replicates content; visibility stays local.
+
 ## Theoria
 
 ### T58: Connection state is intent reconciling with actuality

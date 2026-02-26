@@ -60,10 +60,10 @@ All entity and bond operations apply **visibility filtering** based on the sessi
 | `GET /api/entities` | Filters results to visible set. |
 | `PUT /api/entities/{id}` | Entity must be visible. 404 if not. |
 | `POST /api/entities` | New entity receives `exists-in` bond to dwelling oikos. |
-| `DELETE /api/entities/{id}` | *Gap: no visibility check yet (Session 5).* |
+| `DELETE /api/entities/{id}` | Entity must be visible. 404 if invisible or nonexistent. |
 | `GET /api/bonds` | Both endpoints must be visible. Invisible bonds excluded. |
-| `POST /api/bonds` | *Gap: no visibility check yet (Session 5).* |
-| `DELETE /api/bonds` | *Gap: no visibility check yet (Session 5).* |
+| `POST /api/bonds` | Source entity (from_id) must be visible. 404 if not. |
+| `DELETE /api/bonds` | Source entity (from_id) must be visible. 404 if not. |
 
 Without a session token, requests bypass visibility filtering (supporting pre-auth flows). With a token, the prosopon's oikos membership determines what is returned.
 
