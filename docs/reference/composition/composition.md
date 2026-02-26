@@ -39,10 +39,10 @@ The method signature for creating entities requires this context. There is no pu
 
 When an entity arises, the composition path guarantees:
 
-1. **Dokimasia validation** — entity data checked against eidos field definitions
-2. **Content-hash idempotency** — same data = same hash = no redundant write
+1. **Schema conformance** — entity data conforms to the target eidos's field definitions. Conformance is constitutive of the typed-by bond — composition enforces it because typed-by means it.
+2. **Content-hash idempotency** — same data = same hash = no redundant write. Because conformance is enforced at composition, a valid hash represents valid content.
 3. **`composed-from` bond** — provenance to the definition that produced it
-4. **`typed-by` bond** — structural link to the entity's eidos
+4. **`typed-by` bond** — structural link to the entity's eidos, carrying the conformance obligation
 5. **`exists-in` bond** — dwelling placement (to oikos from dwelling context). This bond is the **complete dwelling index**: the set of entities reachable via `exists-in` from an oikos IS that oikos's content. Emission scope, visibility scope, and federation scope all derive from this bond.
 6. **`authorized-by` bond** — chain to the authorizing phasis
 7. **`depends-on` bonds** — composition dependency DAG for cache invalidation
@@ -832,8 +832,8 @@ There is no separate "recompose" operation. Composing an entity that already exi
 
 ### Compose Handles Both Modes of Becoming
 
-First composition is γένεσις (genesis) — the entity comes into being through the full arise contract (contextual gate, validation, provenance bonds, change notification).
-Subsequent composition of an existing entity is μεταβολή (change) — the entity persists, its content evolves via update. The distinction is determined by context within a single compose operation. Both paths enforce the same arise contract — the only difference is whether the entity already exists.
+First composition is γένεσις (genesis) — the entity comes into being through the full arise contract (contextual gate, schema conformance, provenance bonds, change notification).
+Subsequent composition of an existing entity is μεταβολή (change) — the entity persists, its content evolves via update. Both paths enforce schema conformance — the typed-by obligation holds at creation and through mutation. The distinction is determined by context within a single compose operation.
 
 See: [Actualization Pattern § Composition Reconciliation](../reactivity/actualization-pattern.md) for the reconciliation loop mechanics.
 

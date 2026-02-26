@@ -1,43 +1,52 @@
 # Validation Enforcement
 
-*Prescriptive reference — describes the target state for dokimasia enforcement.*
+*Prescriptive reference — describes the target state for schema conformance and integrity sensing.*
 
 ---
 
 ## Overview
 
-Dokimasia enforcement validates entities and bonds at creation time. Validation always runs. The enforcement mode controls only the consequence: rejection or warning.
+Schema conformance is constitutive of the `typed-by` bond. An entity whose data does not conform to the eidos it is typed-by has a bond that does not hold. Validation is not external checking — it is the typed-by bond asserting its own meaning.
 
-Two modes:
-- **strict** — reject invalid entities/bonds with structured errors
-- **warn** — allow creation, log warning, create `validation-result` entity
+Two distinct concerns:
 
-There is no `off` mode. The trajectory is `warn` (migration default) → `strict` (target default).
+- **Structural enforcement** — the composition path and mutation operations prevent non-conforming entities from arising or persisting. This is inherent to the mechanism, not a separate layer.
+- **Integrity sensing** — the dokimasia topos senses drift in existing entities (provenance chains, schema conformance, referential integrity) and produces validation-result entities through the standard composition path. This is a reconciliation concern.
 
----
-
-## Configuration
-
-Environment variable: `KOSMOS_ENFORCEMENT`
-
-| Value | Behavior |
-|-------|----------|
-| `strict` | Reject invalid entities/bonds |
-| `warn` | Allow creation, log + create validation-result |
-| *(anything else)* | Defaults to `warn` |
+The gate is the mechanism. The sense is the topos.
 
 ---
 
-## Schema Validation (Arise-Time + Update-Time)
+## Structural Enforcement
 
-When `arise_entity()` or `update_entity()` is called (outside bootstrap):
+### Composition Path (Arise-Time)
 
-1. **Resolve eidos**: Look up `eidos/{name}` entity in the store
-2. **No eidos found** → `EIDOS_NOT_FOUND` error
+When `compose_entity()` creates a `typed-by` bond, the entity's data must conform to the target eidos. The composition path enforces this:
+
+1. **Resolve eidos**: Look up `eidos/{target_eidos}` entity in the store
+2. **No eidos found** → composition fails with `EIDOS_NOT_FOUND`
 3. **No fields defined** → valid (permissive for simple eide)
-4. **Check required fields**: For each field with `required: true`, verify the field exists in entity data → `MISSING_FIELD`
-5. **Check field types**: For each field present in data that has a declared type, verify the value matches → `TYPE_MISMATCH`
+4. **Check required fields**: For each field with `required: true`, verify the field exists in composed data → `MISSING_FIELD`
+5. **Check field types**: For each field present that has a declared type, verify the value matches → `TYPE_MISMATCH`
 6. **Check enum values**: For fields with `enum` constraint, verify value is in the allowed list → `INVALID_ENUM`
+
+Non-conforming data is rejected. There is no warn mode. Composition either produces a valid entity or fails.
+
+### Update Path (Mutation-Time)
+
+`update_entity()` maintains the typed-by contract. The entity already has a typed-by bond; the update must not break it:
+
+1. Resolve the entity's eidos from its existing `eidos` field
+2. Validate the new data against the eidos field definitions
+3. Non-conforming updates are rejected
+
+### Bond Creation (Bind-Time)
+
+`create_bond()` enforces desmos constraints as part of its own semantics:
+
+1. **Desmos exists**: Look up `desmos/{name}` entity
+2. **From-eidos constraint**: If desmos declares `from_eidos` (not "any"), verify source entity's eidos matches → `WRONG_EIDOS`
+3. **To-eidos constraint**: If desmos declares `to_eidos` (not "any"), verify target entity's eidos matches → `WRONG_EIDOS`
 
 ### Type Checking Rules
 
@@ -53,110 +62,72 @@ When `arise_entity()` or `update_entity()` is called (outside bootstrap):
 | `any` | Any value |
 | `enum` | String + value in enum list |
 
-### Skipped Entities
+### Error Codes (Structural)
 
-Validation is skipped for:
-- Entities with `eidos == "validation-result"` (recursion guard)
-- Constitutional eide (`eidos`, `desmos`, `stoicheion`, `function`, `genesis`, `content-root`, `slot-pattern`, `attainment`, `signature`) — these define the grammar itself and are self-referential
-
-Bootstrap entities are validated the same as runtime entities. The germination stages are ordered so that eidos definitions exist before entities of those types are created. There is no blanket bootstrap skip — the composition path validates all entities through dokimasia.
-
----
-
-## Bond Validation (Bind-Time)
-
-When `create_bond()` is called (outside bootstrap):
-
-1. **From entity exists**: Verify `from_id` resolves to an existing entity → `ENTITY_NOT_FOUND`
-2. **To entity exists**: Verify `to_id` resolves to an existing entity → `ENTITY_NOT_FOUND`
-3. **Desmos exists**: Look up `desmos/{name}` entity → `UNRESOLVED_DESMOS` (warning-level, not critical)
-4. **From-eidos constraint**: If desmos declares `from_eidos` (not "any"), verify from entity's eidos matches → `WRONG_EIDOS`
-5. **To-eidos constraint**: If desmos declares `to_eidos` (not "any"), verify to entity's eidos matches → `WRONG_EIDOS`
-
----
-
-## Error Codes
-
-All error codes are defined as entities in `genesis/dokimasia/entities/error-catalog.yaml`.
-
-### Schema Layer
 | Code | When |
 |------|------|
 | `EIDOS_NOT_FOUND` | Entity's eidos has no definition in the store |
 | `MISSING_FIELD` | Required field absent from entity data |
 | `TYPE_MISMATCH` | Field value type doesn't match declaration |
 | `INVALID_ENUM` | Field value not in allowed enum values |
-
-### Semantic Layer
-| Code | When |
-|------|------|
-| `ENTITY_NOT_FOUND` | Bond references nonexistent entity |
-| `UNRESOLVED_DESMOS` | Bond type not defined in the store |
 | `WRONG_EIDOS` | Bond endpoint has wrong eidos for desmos constraint |
-
-### Structured Error Format
-
-```json
-{
-  "code": "MISSING_FIELD",
-  "layer": "schema",
-  "message": "Required field 'name' is missing",
-  "field": "name",
-  "context": null
-}
-```
-
----
-
-## Validation-Result Entities (Warn Mode)
-
-In `warn` mode, when validation fails, a `validation-result` entity is created:
-
-```yaml
-eidos: validation-result
-id: validation-result/{uuid}
-data:
-  generation_id: "{target_entity_id}"
-  passed: false
-  provenance_valid: true
-  schema_valid: false
-  semantic_valid: true
-  errors:
-    - code: MISSING_FIELD
-      layer: schema
-      message: "Required field 'name' is missing"
-  validated_at: "{ISO 8601 timestamp}"
-```
-
-In `strict` mode, no validation-result is created — creation is rejected with a `ValidationFailed` error.
 
 ---
 
 ## Bootstrap Behavior
 
-Bootstrap uses the same composition path as runtime. All entities are validated at creation time through dokimasia — there is no blanket validation skip during bootstrap.
+Self-grounding applies to validation (Axiom IV). The type system cannot validate itself before it exists. During bootstrap, the grammar is being constituted — constitutional eide carry reduced validation just as they carry reduced provenance.
+
+The `is_bootstrapping()` flag handles this. During bootstrap, schema conformance checks are skipped — the same mechanism that handles reduced provenance. No hardcoded list of constitutional eide is needed.
 
 The germination stages are ordered to ensure eidos definitions exist before entities of those types are created:
-- **Stage 0 (Prime)**: `eidos/eidos` — constitutional, validation skipped (self-referential)
-- **Stage 1 (Archai)**: Core eide — constitutional, validation skipped
-- **Stages 2+**: All entities validated against eidos definitions that now exist
-
-After bootstrap completes (`exit_bootstrap_mode()`), a **batch validation pass** runs to catch any cross-entity constraints that couldn't be checked during staged loading. Results are logged with `[dokimasia]` prefix.
+- **Stage 0 (Prime)**: `eidos/eidos` — self-grounding, validation not yet possible
+- **Stage 1 (Archai)**: Core eide — grammar being constituted
+- **Stages 2+**: Full schema conformance as eidos definitions now exist
 
 ---
 
-## Relationship to Other Validation Layers
+## Integrity Sensing (Dokimasia Topos)
 
-| Layer | When | What |
-|-------|------|------|
-| **Manifest validation** | Bootstrap (static) | Topos structure, dependencies |
-| **Dokimasia enforcement** | Runtime (dynamic) | Entity/bond data validity |
-| **Graph-integrity reconciler** | Periodic (reactive) | Drift detection over time |
+The dokimasia topos is an **integrity reconciler** — it senses the state of the graph and reports drift. This is the reconciler pattern (sense/compare/act) applied to graph integrity.
 
-Manifest validation catches structural misconfiguration before any praxis executes. Dokimasia enforcement catches data-level violations during execution. The graph-integrity reconciler detects drift over time.
+### Operations
+
+| Praxis | What It Senses |
+|--------|---------------|
+| `validate-provenance` | Authorization chains trace to genesis |
+| `validate-schema` | Entity data conforms to eidos fields |
+| `validate-semantic` | All entity/eidos/desmos references resolve |
+| `validate-generation` | Full multi-layer validation, produces validation-result |
+| `compose-validation-report` | Aggregate integrity status across dependency subgraph |
+
+### Daemon
+
+`daemon/sense-graph-integrity` periodically senses validation-result entities for integrity drift (60s interval).
+
+### Validation-Result Entities
+
+`validation-result` entities are products of the audit praxeis — composed through the standard composition path with proper provenance bonds and `exists-in` placement. They are NOT side effects of gate enforcement.
 
 ---
 
-## Trajectory
+## Relationship to Other Layers
 
-The default enforcement mode starts at `warn` to allow migration of existing content. The target is `strict` once all genesis content conforms. There is no trajectory back to unvalidated creation.
+| Layer | When | What | Where |
+|-------|------|------|-------|
+| **Manifest validation** | Bootstrap (static) | Topos structure, dependencies | bootstrap.rs |
+| **Schema conformance** | Arise/update/bind (structural) | Typed-by contract enforcement | composition.rs, host.rs |
+| **Integrity sensing** | Periodic/on-demand (reactive) | Drift detection, provenance walking | dokimasia topos praxeis |
+
+---
+
+## Current State
+
+**Structural enforcement**: Schema conformance is currently implemented as a separate module (`dokimasia.rs`) that wraps `arise_entity()`, `update_entity()`, and `create_bond()`. The target is to dissolve this module — moving conformance checking into the composition path and mutation operations themselves.
+
+**Integrity sensing**: The dokimasia topos defines praxeis, daemon, reflex, and mode in genesis. These are not yet embodied as executable operations.
+
+---
+
+*Traces to: Axiom I (Composition), Axiom IV (Self-Grounding), Axiom V (Adequacy), theoria/conformance-constitutive-of-typed-by, theoria/composition-gates-topos-senses, theoria/self-grounding-applies-to-validation*
+*Updated: 2026-02-25 — Rewritten to prescribe conformance-as-constitutive-of-typed-by and gate/sense separation*
