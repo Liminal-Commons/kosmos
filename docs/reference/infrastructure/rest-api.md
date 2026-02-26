@@ -52,7 +52,7 @@ Error response body:
 
 All entity and bond operations apply **visibility filtering** based on the session's dwelling context. Invisible entities are absent — the API returns 404 or omits them from lists, indistinguishable from nonexistence.
 
-**The rule**: A prosopon sees an entity if and only if that entity `exists-in` an oikos that the prosopon is `member-of`. Entities with no `exists-in` bonds (genesis/constitutional) are universally visible.
+**The rule**: A prosopon sees an entity if and only if that entity `exists-in` an oikos that the prosopon is `member-of`. Entities with no `exists-in` bonds are visible to nobody.
 
 | Endpoint | Visibility Behavior |
 |----------|-------------------|

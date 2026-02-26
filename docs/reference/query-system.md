@@ -41,7 +41,7 @@ Visibility = reachability through the bond graph:
 1. An entity is **visible** to a prosopon if:
    - The entity has an `exists-in` bond to some oikos, AND
    - The prosopon has a `member-of` bond to that same oikos
-2. Entities with **no `exists-in` bonds** are universally visible (transitional rule for constitutional/genesis entities)
+2. Entities with **no `exists-in` bonds** are visible to nobody — absent from all visible sets
 3. The check is **absence, not denial** — invisible entities return `null` or are omitted from results, never "access denied"
 
 ### Interpreter Integration

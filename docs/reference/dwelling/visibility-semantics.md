@@ -12,8 +12,6 @@ How dwelling determines what every operation can see. One rule, applied universa
 
 A prosopon can see an entity if and only if that entity `exists-in` an oikos that the prosopon is `member-of`. An entity without such a path is not hidden — it is absent. There is no occasion to deny access because there is no occasion to encounter it.
 
-**Transitional rule**: Entities with no `exists-in` bonds (genesis/constitutional entities bootstrapped before dwelling context) are universally visible. This transitional rule is removed once all genesis entities receive explicit `exists-in` bonds to `oikos/kosmos`.
-
 This rule governs every operation: queries, mutations, substrate operations, projection, emission. No exceptions.
 
 ---
@@ -44,11 +42,9 @@ For a prosopon P, the **visible set** is:
 ```
 All entities E where:
   E exists-in O, for any O where P member-of O
-UNION
-  All entities E where E has no exists-in bonds (transitional — genesis entities)
 ```
 
-This is a set union computed via SQL joins on the bonds table. Efficient, no graph traversal required.
+This is computed via SQL joins on the bonds table. Efficient, no graph traversal required. An entity with no `exists-in` bonds is visible to nobody — it is absent from all visible sets.
 
 ---
 
@@ -128,7 +124,7 @@ Direct lookup by ID. Returns the entity only if it is in the prosopon's visible 
 
 Collect all entities of an eidos within the visible set. The eidos filter and visibility filter are applied together in SQL.
 
-**Current state**: RESOLVED. `gather_entities()` checks `exists-in` bonds against oikoi the prosopon is `member-of`. Entities with no `exists-in` bonds are treated as universal (transitional).
+**Current state**: RESOLVED. `gather_entities()` checks `exists-in` bonds against oikoi the prosopon is `member-of`. Entities with no `exists-in` bonds are excluded.
 
 #### surface
 
@@ -226,7 +222,7 @@ The `exists-in` bond makes the new entity immediately visible to all members of 
 
 2. **Visibility is symmetric within an oikos.** All members see the same visible set.
 
-3. **Constitutional entities are universally visible** (transitional). Entities with no `exists-in` bonds are visible to all. Removed once genesis entities get explicit `exists-in` bonds.
+3. **No exists-in, no visibility.** An entity with no `exists-in` bonds is absent from all visible sets. Every entity that should be visible must have at least one `exists-in` bond. Genesis entities receive `exists-in oikos/kosmos` during bootstrap.
 
 4. **exists-in is immutable.** An entity exists in one oikos. It does not move. Federation replicates, it does not relocate.
 
@@ -278,12 +274,20 @@ The `exists-in` bond makes the new entity immediately visible to all members of 
 | MCP tool listing uses visibility-filtered gather | Complete |
 | Visibility tests (Session 5 — 10 new tests) | Complete |
 
+### Resolved (Session 6)
+
+| Aspect | Status |
+|--------|--------|
+| Genesis root phasis receives `exists-in oikos/kosmos` | Complete |
+| Transitional "no exists-in = universal" rule removed | Complete |
+| `visible_to()` — no more early return for empty exists-in | Complete |
+| `gather_entities()` — SQL no longer includes OR NOT EXISTS clause | Complete |
+| Existing tests updated to match strict visibility | Complete |
+
 ### Remaining Gaps
 
 | Gap | Severity | Planned |
 |-----|----------|---------|
-| Genesis entities no exists-in bonds | Medium | Session 6 |
-| Transitional "no exists-in = universal" rule | Medium | Session 6 (removed after retroactive bonds) |
 | Embedding index global | Low | Future |
 | Reconciler not oikos-scoped | Low | Future |
 | Signals not oikos-scoped | Low | Future |
@@ -292,4 +296,4 @@ The `exists-in` bond makes the new entity immediately visible to all members of 
 
 *Traces to: KOSMOGONIA Axiom II (Authority), Pillar: Visibility = Reachability, authority-mechanism.md, attainment-authorization.md, query-system.md*
 *Created: 2026-02-21*
-*Updated: 2026-02-25 — Session 5: dissolve/create_bond/loose_bond mutation visibility, MCP tool listing oikos scope, 10 new tests*
+*Updated: 2026-02-25 — Session 6: transitional rule removed, genesis root phasis gets exists-in bond, strict visibility for all entities*

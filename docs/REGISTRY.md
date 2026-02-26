@@ -330,9 +330,7 @@ Known divergences between prescribed state and actual state.
 
 ### Visibility Gaps (from visibility-semantics.md)
 
-| Gap | Severity | Description |
-|-----|----------|-------------|
-| Genesis entities no `exists-in` bonds | MEDIUM | Transitional "no exists-in = universal" rule — planned Session 6 |
+No open visibility gaps. All core visibility operations resolved (Sessions 1, 3, 5, 6).
 
 ### Documentation Structure Gaps
 
@@ -366,6 +364,8 @@ Known divergences between prescribed state and actual state.
 | `create_bond` no visibility | Vis-5 | `create_bond_visible()` checks source visibility, used by BindStep + REST |
 | `loose_bond` no visibility | Vis-5 | `loose_bond_visible()` checks source visibility, used by LooseStep + REST |
 | MCP tool listing no oikos scope | Vis-5 | `get_tools_impl()` builds DwellingContext from session, passes to gather_entities |
+| Genesis entities no `exists-in` bonds | Vis-6 | Genesis root phasis gets explicit `exists-in oikos/kosmos` in bootstrap; all other entities already bonded via compose_entity |
+| Transitional "no exists-in = universal" rule | Vis-6 | Removed from `visible_to()` and `gather_entities()` — strict visibility, no exceptions |
 
 ---
 

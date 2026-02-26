@@ -263,7 +263,7 @@ You can only perceive what you can reach through bonds. Two bond types define vi
 | `exists-in` | entity → oikos | Where an entity exists — the primary visibility mechanism |
 | `member-of` | prosopon → oikos | Formal membership — determines what the prosopon can see |
 
-A prosopon can see an entity if and only if that entity `exists-in` an oikos that the prosopon is `member-of`. Entities with no `exists-in` bonds are universally visible (transitional rule for genesis/constitutional entities).
+A prosopon can see an entity if and only if that entity `exists-in` an oikos that the prosopon is `member-of`. Entities with no `exists-in` bonds are visible to nobody — absent from all visible sets.
 
 This is structural, not policy-based:
 
