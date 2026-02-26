@@ -20,9 +20,9 @@ With hodos:
 
 The central concept is **the way** — not the destination (nous defines that), but the mechanics of getting there.
 
-## Circle Context
+## Oikos Context
 
-### Self Circle
+### Self Oikos
 
 A solitary dweller uses hodos to:
 - Navigate through onboarding journey
@@ -32,7 +32,7 @@ A solitary dweller uses hodos to:
 
 Personal navigation shapes the journey.
 
-### Peer Circle
+### Peer Oikos
 
 Collaborators use hodos to:
 - Coordinate shared journey progression
@@ -42,7 +42,7 @@ Collaborators use hodos to:
 
 Peer navigation is synchronized movement.
 
-### Commons Circle
+### Commons Oikos
 
 A commons uses hodos to:
 - Define standard onboarding for new members
@@ -119,14 +119,6 @@ Take a conditional branch from current waypoint.
 
 Evaluates branch conditions against action, navigates to matching target.
 
-### get-panel-render-data
-
-Assemble data needed to render a panel.
-
-- **When:** Rendering waypoint panel
-- **Requires:** navigate attainment
-- **Provides:** Panel config, form definition, current values
-
 ### validate-form
 
 Validate form data against typos slots.
@@ -150,8 +142,8 @@ Initialize the onboarding journey.
 Journey navigation capability — moving through waypoints.
 
 - **Grants:** All hodos praxeis
-- **Scope:** animus
-- **Rationale:** Navigation is per-animus; each has their own position
+- **Scope:** parousia
+- **Rationale:** Navigation is per-parousia; each has their own position
 
 ## Embodiment
 
@@ -204,7 +196,7 @@ Form data collected at waypoints feeds composition. Validated inputs become enti
 
 ### amplifies politeia
 
-Onboarding journeys create circles and assign attainments. Navigation is governance ceremony.
+Onboarding journeys create oikoi and assign attainments. Navigation is governance ceremony.
 
 ## Theoria
 
@@ -214,7 +206,7 @@ Knowing where you're going (nous) and moving there (hodos) are separate concerns
 
 ### T71: Navigation is personal
 
-Each animus has their own position on each journey. Scope: animus reflects this — your progress is yours. Shared journeys with synchronized positions require explicit coordination.
+Each parousia has their own position on each journey. Scope: parousia reflects this — your progress is yours. Shared journeys with synchronized positions require explicit coordination.
 
 ### T72: Form validation belongs to navigation
 

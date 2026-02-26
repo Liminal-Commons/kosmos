@@ -1,0 +1,355 @@
+# Chora-Dev Eide
+# Entity types for substrate development
+#
+# Four foundational eide:
+# - source-crate: Rust crate in workspace
+# - build-target: Compiled artifact
+# - test-run: Test execution record
+# - lint-run: Clippy/lint execution record
+
+entities:
+
+  # =============================================================================
+  # SOURCE-CRATE
+  # =============================================================================
+
+  - eidos: eidos
+    id: eidos/source-crate
+    data:
+      name: source-crate
+      description: |
+        A Rust crate in the chora workspace. Source of truth for what can be built.
+        Discovered via `cargo metadata` or registered manually.
+
+        Represents source code that can be compiled into binary artifacts.
+        Tracks workspace dependencies and source hash for staleness detection.
+      fields:
+        name:
+          type: string
+          required: true
+          description: "Crate name (e.g., 'kosmos-mcp')"
+
+        path:
+          type: string
+          required: true
+          description: "Path relative to workspace root (e.g., 'crates/kosmos-mcp')"
+
+        crate_type:
+          type: enum
+          values: [bin, lib, proc-macro]
+          required: true
+          description: "What kind of crate (binary, library, or procedural macro)"
+
+        workspace_dependencies:
+          type: array
+          required: false
+          description: "Other source-crate IDs this depends on within the workspace"
+
+        source_hash:
+          type: string
+          required: false
+          description: "BLAKE3 hash of source files (for staleness detection)"
+
+        last_scanned_at:
+          type: timestamp
+          required: false
+          description: "When the crate was last scanned for source hash"
+
+  # =============================================================================
+  # BUILD-TARGET
+  # =============================================================================
+
+  - eidos: eidos
+    id: eidos/build-target
+    data:
+      name: build-target
+      description: |
+        A compiled artifact from cargo build. Tracks the relationship between
+        source and binary, enabling staleness detection and rebuild orchestration.
+
+        Has mode (cargo-build) that bridges to chora for actual compilation.
+      fields:
+        crate_name:
+          type: string
+          required: true
+          description: "Source crate name"
+
+        profile:
+          type: enum
+          values: [dev, release, test]
+          default: dev
+          required: true
+          description: "Cargo build profile"
+
+        target_triple:
+          type: string
+          default: "host"
+          required: false
+          description: "Target architecture (e.g., 'x86_64-apple-darwin')"
+
+        artifact_path:
+          type: string
+          required: false
+          description: "Path to built artifact relative to target/ directory"
+
+        content_hash:
+          type: string
+          required: false
+          description: "BLAKE3 hash of built binary for deployment verification"
+
+        source_hash:
+          type: string
+          required: false
+          description: "Source hash at build time (for staleness comparison)"
+
+        built_at:
+          type: timestamp
+          required: false
+          description: "When the build completed"
+
+        duration_ms:
+          type: integer
+          required: false
+          description: "Build duration in milliseconds"
+
+        build_status:
+          type: enum
+          values: [pending, building, succeeded, failed, stale]
+          default: pending
+          required: true
+          description: "Current build status"
+
+        error_message:
+          type: string
+          required: false
+          description: "Compilation error if build_status is failed"
+
+        mode:
+          type: string
+          default: "cargo-build"
+          required: false
+          description: "Mode for dispatch (set by typos default)"
+
+        provider:
+          type: string
+          default: "local"
+          required: false
+          description: "Provider for mode dispatch"
+
+        desired_state:
+          type: enum
+          values: [succeeded, absent]
+          default: "succeeded"
+          required: true
+          description: "Intent — what state this build-target should be in"
+
+        actual_state:
+          type: string
+          required: false
+          description: "Sensed actual state (set by stoicheion)"
+
+      actuality:
+        mode: cargo-build
+        note: "Manifest runs cargo build; sense checks binary hash"
+
+  # =============================================================================
+  # TEST-RUN
+  # =============================================================================
+
+  - eidos: eidos
+    id: eidos/test-run
+    data:
+      name: test-run
+      description: |
+        A test execution record. Tracks test runs for CI/CD integration
+        and historical analysis. Can be reconciled to re-run tests.
+
+        Bonds to the build-target being tested via 'tests-against' desmos.
+      fields:
+        test_filter:
+          type: string
+          required: false
+          description: "Test filter pattern (empty = all tests)"
+
+        status:
+          type: enum
+          values: [pending, running, passed, failed, skipped]
+          default: pending
+          required: true
+          description: "Overall test run status"
+
+        passed_count:
+          type: integer
+          required: false
+          description: "Number of tests that passed"
+
+        failed_count:
+          type: integer
+          required: false
+          description: "Number of tests that failed"
+
+        skipped_count:
+          type: integer
+          required: false
+          description: "Number of tests that were skipped"
+
+        duration_ms:
+          type: integer
+          required: false
+          description: "Total test duration in milliseconds"
+
+        output:
+          type: string
+          required: false
+          description: "Test output (truncated if large, preserves ANSI codes)"
+
+        run_at:
+          type: timestamp
+          required: false
+          description: "When the test run completed"
+
+        source_hash:
+          type: string
+          required: false
+          description: "Source hash at test time (for caching decisions)"
+
+        mode:
+          type: string
+          default: "cargo-test"
+          required: false
+          description: "Mode for dispatch (set by typos default)"
+
+        provider:
+          type: string
+          default: "local"
+          required: false
+          description: "Provider for mode dispatch"
+
+        desired_state:
+          type: enum
+          values: [succeeded, absent]
+          default: "succeeded"
+          required: true
+          description: "Intent — what state this test-run should be in"
+
+        actual_state:
+          type: string
+          required: false
+          description: "Sensed actual state (set by stoicheion)"
+
+      actuality:
+        mode: cargo-test
+        note: "Manifest runs cargo test; sense checks pass/fail status"
+
+  # =============================================================================
+  # LINT-RUN
+  # =============================================================================
+
+  - eidos: eidos
+    id: eidos/lint-run
+    data:
+      name: lint-run
+      description: |
+        A clippy/lint execution record. Tracks code quality checks.
+
+        Bonds to the source-crate being linted via 'lints' desmos.
+      fields:
+        lint_type:
+          type: enum
+          values: [clippy, fmt-check, doc-check]
+          required: true
+          description: "Type of lint operation"
+
+        status:
+          type: enum
+          values: [pending, running, clean, warnings, errors]
+          default: pending
+          required: true
+          description: "Lint result status"
+
+        warning_count:
+          type: integer
+          required: false
+          description: "Number of warnings found"
+
+        error_count:
+          type: integer
+          required: false
+          description: "Number of errors found"
+
+        output:
+          type: string
+          required: false
+          description: "Lint output (preserves ANSI codes)"
+
+        run_at:
+          type: timestamp
+          required: false
+          description: "When the lint run completed"
+
+        duration_ms:
+          type: integer
+          required: false
+          description: "Lint duration in milliseconds"
+
+        mode:
+          type: string
+          default: "cargo-clippy"
+          required: false
+          description: "Mode for dispatch (set by typos default)"
+
+        provider:
+          type: string
+          default: "local"
+          required: false
+          description: "Provider for mode dispatch"
+
+        desired_state:
+          type: enum
+          values: [succeeded, absent]
+          default: "succeeded"
+          required: true
+          description: "Intent — what state this lint-run should be in"
+
+        actual_state:
+          type: string
+          required: false
+          description: "Sensed actual state (set by stoicheion)"
+
+      actuality:
+        mode: cargo-clippy
+
+  # =============================================================================
+  # ATTAINMENTS
+  # =============================================================================
+
+  - eidos: attainment
+    id: attainment/substrate-develop
+    data:
+      name: substrate-develop
+      description: |
+        Full capability for substrate development operations.
+        Grants ability to build, test, lint, and reconcile crates.
+      topos: chora-dev
+    bonds:
+      - { desmos: grants-praxis, to: chora-dev/scan-workspace }
+      - { desmos: grants-praxis, to: chora-dev/build }
+      - { desmos: grants-praxis, to: chora-dev/test }
+      - { desmos: grants-praxis, to: chora-dev/lint }
+      - { desmos: grants-praxis, to: chora-dev/reconcile-builds }
+      - { desmos: grants-praxis, to: chora-dev/sense-build }
+      - { desmos: grants-praxis, to: chora-dev/mark-stale }
+      - { desmos: grants-praxis, to: chora-dev/register-for-release }
+      - { desmos: grants-praxis, to: chora-dev/deploy-build }
+
+  - eidos: attainment
+    id: attainment/substrate-observe
+    data:
+      name: substrate-observe
+      description: |
+        Read-only access to build state. For CI integration, dashboards,
+        and monitoring without modification capability.
+      topos: chora-dev
+    bonds:
+      - { desmos: grants-praxis, to: chora-dev/sense-build }
+      # Implied: gather build-target, gather test-run, gather lint-run

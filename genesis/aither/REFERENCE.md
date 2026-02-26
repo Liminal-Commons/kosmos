@@ -51,22 +51,22 @@ Message queued for delivery when offline or channel unavailable.
 | `last_attempt_at` | timestamp |  |  |
 | `last_error` | string |  |  |
 | `max_attempts` | integer |  |  |
-| `message_type` | enum: phoreta, content-sync, presence-update, expression | ✓ | Type of message for routing |
+| `message_type` | enum: phoreta, content-sync, presence-update, phasis | ✓ | Type of message for routing |
 | `status` | enum: pending, sending, delivered, failed, expired | ✓ |  |
 | `target_peer` | string | ✓ | Peer ID or room ID to deliver to |
 
 ### presence-record
 
-Ephemeral presence in a room or circle.
+Ephemeral presence in a room or oikos.
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `circle_id` | string |  | Circle where present |
+| `oikos_id` | string |  | Oikos where present |
 | `connected_at` | timestamp |  |  |
 | `expire_after_ms` | integer |  | Expire presence after this many ms without heartbeat |
 | `heartbeat_interval_ms` | integer |  | Heartbeat interval in milliseconds |
 | `last_heartbeat` | timestamp | ✓ |  |
-| `persona_id` | string | ✓ | Persona whose presence this represents |
+| `prosopon_id` | string | ✓ | Prosopon whose presence this represents |
 | `room_id` | string |  | Signaling room where present |
 | `status` | enum: online, away, busy, offline | ✓ |  |
 
@@ -92,13 +92,13 @@ Envelope for P2P synchronization messages.
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `action` | enum: create, update, delete, request, response | ✓ | Action being synced |
-| `circle_id` | string | ✓ | Circle context for this sync |
+| `oikos_id` | string | ✓ | Oikos context for this sync |
 | `entities` | array |  | Multiple entities (for catch-up-response) |
 | `entity` | object |  | The entity being synced (for create/update) |
-| `sender_id` | string | ✓ | Persona ID of the sender |
+| `sender_id` | string | ✓ | Prosopon ID of the sender |
 | `since` | timestamp |  | For catch-up-request: fetch entities since this time |
 | `timestamp` | timestamp | ✓ | When the sync message was created |
-| `type` | enum: expression, entity, presence, catch-up-request, catch-up-response | ✓ | Type of sync message |
+| `type` | enum: phasis, entity, presence, catch-up-request, catch-up-response | ✓ | Type of sync message |
 
 ### syndesmos
 
@@ -107,7 +107,7 @@ A desired connection to another peer or room.
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `backoff_ms` | integer |  | Current backoff interval in milliseconds |
-| `circle_id` | string |  | Circle context for this connection |
+| `oikos_id` | string |  | Oikos context for this connection |
 | `created_at` | timestamp | ✓ |  |
 | `intent` | enum: connected, disconnected, suspended | ✓ | Desired connection state |
 | `last_connected_at` | timestamp |  |  |
@@ -155,19 +155,19 @@ Apply catch-up response entities to local kosmos.
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `entities` | array | ✓ | Entities from catch-up response |
-| `circle_id` | string | ✓ | Circle context |
+| `oikos_id` | string | ✓ | Oikos context |
 
-### apply-expression-sync
+### apply-phasis-sync
 
-Apply an incoming expression sync to local kosmos.
+Apply an incoming phasis sync to local kosmos.
 
-**Tier:** 2 | **ID:** `praxis/aither/apply-expression-sync`
+**Tier:** 2 | **ID:** `praxis/aither/apply-phasis-sync`
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `action` | string | ✓ | create, update, or delete |
-| `entity` | object | ✓ | The expression entity |
-| `circle_id` | string | ✓ | Circle context |
+| `entity` | object | ✓ | The phasis entity |
+| `oikos_id` | string | ✓ | Oikos context |
 | `sender_id` | string | ✓ | Original author |
 
 ### attempt-reconnect 🔧
@@ -188,11 +188,11 @@ Broadcast a sync message to all connected peers.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `message_type` | string | ✓ | Type: expression, entity, presence |
+| `message_type` | string | ✓ | Type: phasis, entity, presence |
 | `action` | string | ✓ | Action: create, update, delete |
 | `entity` | object |  | The entity being synced |
-| `circle_id` | string | ✓ | Circle context |
-| `sender_id` | string | ✓ | Sender's persona ID |
+| `oikos_id` | string | ✓ | Oikos context |
+| `sender_id` | string | ✓ | Sender's prosopon ID |
 
 ### close-channel 🔧
 
@@ -257,7 +257,7 @@ Ensure a connection exists to a peer/room.
 |-----------|------|----------|-------------|
 | `room_id` | string | ✓ | The signaling room to connect through |
 | `peer_id` | string |  | Remote peer identifier if known |
-| `circle_id` | string |  | Circle context for this connection |
+| `oikos_id` | string |  | Oikos context for this connection |
 
 ### expire-stale-presence 🔧
 
@@ -267,7 +267,7 @@ Clean up stale presence records.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `circle_id` | string |  | Limit to specific circle |
+| `oikos_id` | string |  | Limit to specific oikos |
 
 ### flush-queue 🔧
 
@@ -309,18 +309,18 @@ List syndesmos connections, optionally filtered by status.
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `status` | string |  | Filter by status |
-| `circle_id` | string |  | Filter by circle |
+| `oikos_id` | string |  | Filter by oikos |
 | `limit` | number |  | Maximum results (default: 50) |
 
 ### list-presence 🔧
 
-List presence records for a circle or room.
+List presence records for a oikos or room.
 
 **Tier:** 1 | **ID:** `praxis/aither/list-presence`
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `circle_id` | string |  | Filter by circle |
+| `oikos_id` | string |  | Filter by oikos |
 | `room_id` | string |  | Filter by room |
 | `status` | string |  | Filter by status (online, away, busy, offline) |
 | `exclude_offline` | boolean |  | Exclude offline users (default true) |
@@ -387,9 +387,9 @@ Request catch-up sync from peers after reconnection (C8.5).
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `circle_id` | string | ✓ | Circle to catch up |
+| `oikos_id` | string | ✓ | Oikos to catch up |
 | `since` | string |  | Fetch entities since this timestamp (default: 1 hour ago) |
-| `sender_id` | string | ✓ | Requester's persona ID |
+| `sender_id` | string | ✓ | Requester's prosopon ID |
 
 ### respond-catch-up
 
@@ -400,7 +400,7 @@ Respond to a catch-up request with entities since timestamp.
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `peer_id` | string | ✓ | Requesting peer |
-| `circle_id` | string | ✓ | Circle to gather from |
+| `oikos_id` | string | ✓ | Oikos to gather from |
 | `since` | string | ✓ | Timestamp to gather since |
 
 ### send-answer 🔧
@@ -458,14 +458,14 @@ Sense the actual state of a signaling session.
 
 ### update-presence 🔧
 
-Update or create presence record in a circle/room.
+Update or create presence record in an oikos/room.
 
 **Tier:** 2 | **ID:** `praxis/aither/update-presence`
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `persona_id` | string | ✓ | The persona whose presence to update |
-| `circle_id` | string |  | Circle to update presence in |
+| `prosopon_id` | string | ✓ | The prosopon whose presence to update |
+| `oikos_id` | string |  | Oikos to update presence in |
 | `room_id` | string |  | Room to update presence in |
 | `status` | string |  | Presence status (online, away, busy, offline) |
 
@@ -474,10 +474,10 @@ Update or create presence record in a circle/room.
 | Desmos | From → To | Description |
 |--------|-----------|-------------|
 | `connected-via` | syndesmos → data-channel | Syndesmos is connected via this data channel. |
-| `presence-of` | presence-record → persona | This presence record represents the presence of this persona. |
-| `present-in` | presence-record → circle | Persona presence in a circle or room. |
+| `presence-of` | presence-record → prosopon | This presence record represents the presence of this prosopon. |
+| `present-in-oikos` | presence-record → oikos | Prosopon presence in an oikos or room. |
 | `queued-for` | outbound-message → syndesmos | Message queued for delivery through this syndesmos. |
-| `targets-peer` | syndesmos → persona | This syndesmos is trying to connect to this remote persona. |
+| `targets-peer` | syndesmos → prosopon | This syndesmos is trying to connect to this remote prosopon. |
 
 ---
 

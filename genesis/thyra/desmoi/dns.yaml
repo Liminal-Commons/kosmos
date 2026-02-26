@@ -4,13 +4,13 @@
 # Extracted from spora.yaml stage-1-desmoi
 
 entities:
-  # manages-zone — circle manages DNS zone
+  # manages-zone — oikos manages DNS zone
   - eidos: desmos
     id: desmos/manages-zone
     data:
       name: manages-zone
-      description: "Circle manages DNS zone. Establishes governance authority."
-      from_eidos: circle
+      description: "Oikos manages DNS zone. Establishes governance authority."
+      from_eidos: oikos
       to_eidos: dns-zone
       cardinality: one-to-many
       symmetric: false

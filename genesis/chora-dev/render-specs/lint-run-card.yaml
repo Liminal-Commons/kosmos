@@ -1,0 +1,137 @@
+# Lint Run Card - Widget Layout
+# Displays clippy/lint results with warning and error counts
+#
+# Generated via demiurge thyra-awareness pattern
+
+entities:
+  - eidos: render-spec
+    id: render-spec/chora-dev/lint-run-card
+    data:
+      name: lint-run-card
+      description: "Lint result card with warnings and errors"
+      target_eidos: lint-run
+      variant: card
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+          children:
+            # Header row
+            - widget: row
+              props:
+                gap: md
+                align: center
+              children:
+                # Lint type badge
+                - widget: badge
+                  props:
+                    content: "{lint_type}"
+                    variant: info
+
+                # Status badge
+                - widget: badge
+                  props:
+                    content: "{status}"
+                    variant: "{status}"
+
+                # Crate name (if available)
+                - widget: text
+                  props:
+                    content: "{crate_name}"
+                    variant: emphasis
+                  when: "crate_name"
+
+            # Warning/error counts
+            - widget: row
+              props:
+                gap: md
+              when: "status != 'clean' && status != 'running'"
+              children:
+                - widget: row
+                  props:
+                    gap: xs
+                  children:
+                    - widget: icon
+                      props:
+                        name: alert-triangle
+                        size: sm
+                    - widget: text
+                      props:
+                        content: "{warning_count} warnings"
+                        variant: body
+
+                - widget: row
+                  props:
+                    gap: xs
+                  when: "error_count"
+                  children:
+                    - widget: icon
+                      props:
+                        name: x-circle
+                        size: sm
+                    - widget: text
+                      props:
+                        content: "{error_count} errors"
+                        variant: body
+
+            # Clean state
+            - widget: row
+              props:
+                gap: sm
+                align: center
+              when: "status == 'clean'"
+              children:
+                - widget: icon
+                  props:
+                    name: check-circle
+                    size: sm
+                - widget: text
+                  props:
+                    content: "No issues"
+                    variant: body
+
+            # Running state
+            - widget: row
+              props:
+                gap: sm
+                align: center
+              when: "status == 'running'"
+              children:
+                - widget: spinner
+                  props:
+                    size: sm
+                - widget: text
+                  props:
+                    content: "Running lints..."
+                    variant: caption
+
+            # Timing
+            - widget: text
+              props:
+                content: "{run_at}"
+                variant: caption
+
+            # Output (collapsible)
+            - widget: accordion
+              props:
+                title: "Lint Output"
+              when: "output"
+              children:
+                - widget: code
+                  props:
+                    content: "{output}"
+                    language: text
+
+            # Re-run button
+            - widget: row
+              props:
+                gap: sm
+              children:
+                - widget: button
+                  props:
+                    label: "Run Lint"
+                    variant: ghost
+                    on_click: chora-dev/lint
+                    on_click_params:
+                      lint_run_id: "{id}"

@@ -1,0 +1,79 @@
+# Topos Manifest: Logos
+# λόγος — word, reason, discourse
+#
+# The phasis surface. How entities communicate intentionally.
+# Where database changes become utterances in shared discourse.
+#
+# Manifest v2.1 — topos metadata for entity composition
+
+format_version: "2.1"
+topos_id: logos
+version: "0.1.0"
+
+# Topos metadata (v2.1)
+topos_name: Logos
+topos_description: |
+  Word, reason, discourse. The phasis surface.
+  How kosmos entities communicate intentionally.
+  Humans, oikoi, daemons, and reconcilers all speak through logos.
+topos_scale: polis
+
+# Development experience metadata
+topos_category: interface
+surfaces_provided:
+  - phasis    # The discourse surface
+surfaces_consumed: []
+
+# =============================================================================
+# CONTENT PATHS — Where this topos sources content from
+# =============================================================================
+
+content_paths:
+  - path: eide/
+    content_types: [eidos]
+  - path: desmoi/
+    content_types: [desmos]
+  - path: typos/
+    content_types: [typos]
+  - path: praxeis/
+    content_types: [praxis]
+  - path: render-specs/
+    content_types: [render-spec]
+  - path: surfaces/
+    content_types: [surface]
+
+requires_dynamis:
+  - db.arise
+  - db.find
+  - db.bind
+  - db.trace
+  - db.update
+  - db.gather
+
+provides:
+  eide:
+    - phasis
+
+  # Topos-centric rendering: logos owns presentation for phasis entities
+  renderable:
+    - eidos: phasis
+      description: "Discourse contributions — bubbles and threads"
+
+  attainments:
+    - express     # Capability to emit phaseis in an oikos
+
+  desmoi:
+    - in-reply-to
+    - phasis-in
+
+  praxeis:
+    - logos/emit-phasis
+    - logos/reply-to
+    - logos/list-phaseis
+    - logos/get-thread
+
+stoicheia_form:
+  # All operations via praxeis
+  # No special stoicheia
+
+depends_on: []

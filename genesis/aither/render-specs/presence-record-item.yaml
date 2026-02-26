@@ -1,0 +1,42 @@
+# Aither Render Specifications — presence-record item
+# Compact presence indicator
+#
+# Presence-record fields used:
+#   - prosopon_id (string): Prosopon whose presence this represents
+#   - status (enum): online | away | busy | offline
+#
+# Traces to: genesis/aither/eide/aither.yaml § presence-record
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/presence-record-item
+    data:
+      name: presence-record-item
+      description: "Compact presence indicator — status dot and prosopon identity."
+      target_eidos: presence-record
+      variant: item
+
+      layout:
+        - widget: card
+          props:
+            variant: compact
+            padding: sm
+          children:
+            - widget: row
+              props:
+                gap: sm
+                align: center
+              children:
+                # Status dot
+                - widget: status-indicator
+                  props:
+                    status: "{status}"
+
+                # Prosopon ID
+                - widget: text
+                  props:
+                    content: "{prosopon_id}"
+                    variant: body
+
+      created_at: "2026-02-09T00:00:00Z"

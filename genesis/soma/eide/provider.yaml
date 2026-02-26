@@ -1,0 +1,51 @@
+# Provider Eidos
+# An external service providing capabilities across substrate dimensions.
+#
+# Provider entities are discoverable in the graph, bonded to credentials,
+# and declare configuration. The generic inference engine reads provider
+# entities to execute operations — no hardcoded API calls.
+#
+# Traces to: PROMPT-INFERENCE-SUBSTRATE.md
+
+entities:
+
+- eidos: eidos
+  id: eidos/provider
+  data:
+    name: provider
+    description: |
+      An external service providing capabilities across substrate dimensions.
+      Discoverable in the graph, bonded to credentials, declaring capabilities
+      and configuration. The generic engine reads provider entities to execute
+      operations — no hardcoded API calls.
+    fields:
+      name:
+        type: string
+        required: true
+      description:
+        type: string
+        required: false
+      capabilities:
+        type: array
+        required: true
+        description: "What this provider offers: inference, embedding, transcription"
+      credential_config:
+        type: object
+        required: true
+        description: "How to authenticate with this provider"
+      inference_config:
+        type: object
+        required: false
+        description: "Present if capabilities includes inference"
+      embedding_config:
+        type: object
+        required: false
+        description: "Present if capabilities includes embedding"
+      models_config:
+        type: object
+        required: false
+        description: "How to discover available models"
+      transcription_config:
+        type: object
+        required: false
+        description: "Present if capabilities includes transcription"

@@ -1,0 +1,103 @@
+# Seed Nodes for Development
+# Test data for the my-nodes mode
+#
+# In production, nodes are registered dynamically via soma/register-node praxis.
+# These seed entities exist for development/testing the UI.
+
+entities:
+
+  # =============================================================================
+  # TEST NODES
+  # =============================================================================
+
+  - eidos: node
+    id: node/local-dev
+    data:
+      name: local-dev
+      kind: personal
+      platform: darwin
+      address: "localhost"
+      status: online
+      created_at: "2026-02-04T00:00:00Z"
+
+  - eidos: node
+    id: node/commons-main
+    data:
+      name: commons-main
+      kind: commons
+      platform: nixos
+      address: "commons.chora.io"
+      public_endpoint: "https://commons.chora.io"
+      status: online
+      created_at: "2026-02-04T00:00:00Z"
+
+  - eidos: node
+    id: node/backup-server
+    data:
+      name: backup-server
+      kind: commons
+      platform: linux
+      address: "backup.chora.io"
+      status: offline
+      created_at: "2026-02-04T00:00:00Z"
+
+  # =============================================================================
+  # TEST SERVICES
+  # =============================================================================
+
+  - eidos: service-instance
+    id: service-instance/local-kosmos
+    data:
+      name: local-kosmos
+      service_kind: kosmos-server
+      endpoint: "http://localhost:3030"
+      status: running
+      started_at: "2026-02-04T08:00:00Z"
+      created_at: "2026-02-04T00:00:00Z"
+
+  - eidos: service-instance
+    id: service-instance/commons-livekit
+    data:
+      name: commons-livekit
+      service_kind: livekit
+      endpoint: "wss://livekit.commons.chora.io"
+      status: running
+      started_at: "2026-02-04T00:00:00Z"
+      created_at: "2026-02-04T00:00:00Z"
+
+  - eidos: service-instance
+    id: service-instance/transcription-daemon
+    data:
+      name: transcription-daemon
+      service_kind: transcription
+      endpoint: "http://localhost:8080"
+      status: stopped
+      created_at: "2026-02-04T00:00:00Z"
+
+  # =============================================================================
+  # TEST KOSMOS INSTANCES
+  # =============================================================================
+
+  - eidos: kosmos-instance
+    id: kosmos-instance/local
+    data:
+      name: local
+      oikos_id: "oikos/victor"
+      server_url: "http://localhost:3030"
+      mcp_available: true
+      http_available: true
+      status: running
+      version: "0.10.0"
+      created_at: "2026-02-04T00:00:00Z"
+
+  - eidos: kosmos-instance
+    id: kosmos-instance/commons
+    data:
+      name: commons
+      oikos_id: "oikos/chora-commons"
+      server_url: "https://kosmos.commons.chora.io"
+      mcp_available: false
+      http_available: true
+      status: running
+      version: "0.10.0"
+      created_at: "2026-02-04T00:00:00Z"

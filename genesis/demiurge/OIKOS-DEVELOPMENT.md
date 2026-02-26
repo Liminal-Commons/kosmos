@@ -1,4 +1,4 @@
-# Oikos Development Workflow
+# Topos Development Workflow
 
 > **SUPERSEDED**: This document has been consolidated into [DESIGN.md](DESIGN.md) § The Generative Development Spiral.
 > The canonical pattern is now documented there.
@@ -9,17 +9,17 @@
 
 ---
 
-The canonical pattern for developing oikoi in kosmos.
+The canonical pattern for developing topoi in kosmos.
 
 ---
 
 ## The Compound Leverage Pattern
 
-Each oikos development compounds learning:
+Each topos development compounds learning:
 
 ```
 DESIGN.md (human intent)
-    ↓ develop-oikos-from-design
+    ↓ develop-topos-from-design
 Design Artifact (structured spec)
     ↓ generate-eidos/praxis/desmos for each
 Component Artifacts (definitions)
@@ -33,7 +33,7 @@ Theoria (accumulated understanding)
 Better Generations...
 ```
 
-**The leverage**: Every successful oikos development adds to the theoria corpus. Future generations are informed by past learnings. The more we use the pattern, the better it gets.
+**The leverage**: Every successful topos development adds to the theoria corpus. Future generations are informed by past learnings. The more we use the pattern, the better it gets.
 
 ---
 
@@ -44,32 +44,32 @@ Better Generations...
 Write a DESIGN.md that captures:
 
 ```markdown
-# {Oikos} Design
+# {Topos} Design
 
 {Greek etymology} — meaning
 
 ## Ontological Purpose
 
-{Oikos} addresses **the gap between X and Y** — what becomes possible.
+{Topos} addresses **the gap between X and Y** — what becomes possible.
 
-Without {oikos}:
+Without {topos}:
 - Problem 1
 - Problem 2
 
-With {oikos}:
+With {topos}:
 - Capability 1
 - Capability 2
 
-## Circle Context
+## Oikos Context
 
-### Self Circle
-How a solitary dweller uses this oikos.
+### Self Oikos
+How a solitary dweller uses this topos.
 
-### Peer Circle
-How collaborators use this oikos.
+### Peer Oikos
+How collaborators use this topos.
 
-### Commons Circle
-How a community uses this oikos.
+### Commons Oikos
+How a community uses this topos.
 
 ## Core Entities (Eide)
 
@@ -103,13 +103,13 @@ Crystallized understanding.
 
 ```bash
 # From purpose/capabilities (AI generates design)
-demiurge_develop-oikos name="myoikos" \
+demiurge_develop-topos name="myoikos" \
   purpose="What gap this addresses" \
   capabilities='["cap1", "cap2"]'
 
 # From DESIGN.md (human-written design)
-demiurge_develop-oikos-from-design \
-  oikos_name="myoikos" \
+demiurge_develop-topos-from-design \
+  topos_name="myoikos" \
   design_content="$(cat genesis/myoikos/DESIGN.md)"
 ```
 
@@ -117,9 +117,9 @@ demiurge_develop-oikos-from-design \
 
 The workflow generates artifacts for each component:
 
-- `artifact/oikos-{name}-design` — The parsed/generated design
+- `artifact/topos-{name}-design` — The parsed/generated design
 - `artifact/eidos-{name}` — Each eidos definition
-- `artifact/praxis-{oikos}-{name}` — Each praxis definition
+- `artifact/praxis-{topos}-{name}` — Each praxis definition
 - `artifact/desmos-{name}` — Each desmos definition
 
 Review these before actualization.
@@ -128,10 +128,10 @@ Review these before actualization.
 
 ```bash
 # Actualize all at once
-demiurge_develop-oikos ... actualize=true
+demiurge_develop-topos ... actualize=true
 
 # Or actualize individually
-demiurge_actualize-eidos artifact_id="artifact/eidos-foo" oikos_id="oikos/myoikos"
+demiurge_actualize-eidos artifact_id="artifact/eidos-foo" topos_id="topos/myoikos"
 demiurge_actualize-praxis artifact_id="artifact/praxis-myoikos-bar"
 demiurge_actualize-desmos artifact_id="artifact/desmos-baz"
 ```
@@ -160,7 +160,7 @@ This theoria will surface in future generations via the `informed-by` bond.
 | `demiurge/generate-eidos` | Generate complete eidos from purpose |
 | `demiurge/generate-praxis` | Generate complete praxis from purpose |
 | `demiurge/generate-desmos` | Generate complete desmos from purpose |
-| `demiurge/generate-oikos` | Generate oikos design from purpose |
+| `demiurge/generate-topos` | Generate topos design from purpose |
 
 ### Actualization (Tier 2 — kosmos ops)
 
@@ -174,8 +174,8 @@ This theoria will surface in future generations via the `informed-by` bond.
 
 | Praxis | Purpose |
 |--------|---------|
-| `demiurge/develop-oikos` | Full workflow from purpose |
-| `demiurge/develop-oikos-from-design` | Full workflow from DESIGN.md |
+| `demiurge/develop-topos` | Full workflow from purpose |
+| `demiurge/develop-topos-from-design` | Full workflow from DESIGN.md |
 
 ---
 
@@ -187,7 +187,7 @@ Every generation creates `informed-by` bonds:
 artifact/eidos-foo
   ├── informed-by → theoria/ontology-pattern-1
   ├── informed-by → theoria/field-design-best-practice
-  └── composed-from → artifact/oikos-myoikos-design
+  └── composed-from → artifact/topos-myoikos-design
 ```
 
 Query provenance to understand what shaped any entity:
@@ -198,7 +198,7 @@ nous_traverse root_id="eidos/foo" desmoi='["informed-by", "composed-from"]'
 
 ---
 
-## Example: Developing a New Oikos
+## Example: Developing a New Topos
 
 ### 1. Write DESIGN.md
 
@@ -250,8 +250,8 @@ Filter recipes by dietary requirements.
 ### 2. Generate and Actualize
 
 ```bash
-demiurge_develop-oikos-from-design \
-  oikos_name="recipes" \
+demiurge_develop-topos-from-design \
+  topos_name="recipes" \
   design_content="$(cat genesis/recipes/DESIGN.md)" \
   actualize=true
 ```
@@ -267,22 +267,22 @@ nous_crystallize-theoria \
 
 ---
 
-## Migration Path for Existing Oikoi
+## Migration Path for Existing Topoi
 
-Existing well-authored oikoi (hodos, opsis, voice-authoring) don't need regeneration. Their value is proven.
+Existing well-authored topoi (hodos, opsis, voice-authoring) don't need regeneration. Their value is proven.
 
 For future development:
-1. All new oikoi use the workflow
-2. Major changes to existing oikoi go through generation
+1. All new topoi use the workflow
+2. Major changes to existing topoi go through generation
 3. Theoria accumulates from all development
 
 ---
 
-## Oikos Patterns
+## Topos Patterns
 
-The workflow handles different oikos patterns found across kosmos:
+The workflow handles different topos patterns found across kosmos:
 
-### Pattern 1: Kinetics Oikos (e.g., hodos)
+### Pattern 1: Kinetics Topos (e.g., hodos)
 
 Operates on entities from dependencies, defines no eide of its own.
 
@@ -297,7 +297,7 @@ A teleological container.
 
 **Handling**: Mark eide with `(from X)` in DESIGN.md. Parser sets `source: nous`. Workflow skips generation for external eide but tracks them in result.
 
-### Pattern 2: Interface Oikos (e.g., opsis)
+### Pattern 2: Interface Topos (e.g., opsis)
 
 Defines many eide for rendering/display. May use attainments from parent.
 
@@ -312,7 +312,7 @@ Rendering capability.
 
 ### Pattern 3: Namespace Override (e.g., opsis praxeis in thyra)
 
-Praxeis defined by oikos but exposed under another namespace.
+Praxeis defined by topos but exposed under another namespace.
 
 ```markdown
 ## Operations (Praxeis)
@@ -325,9 +325,9 @@ Praxeis defined by oikos but exposed under another namespace.
 
 **Handling**: Parser sets `namespace: thyra`. Praxis generated with that namespace.
 
-### Pattern 4: Foundational Oikos (e.g., nous)
+### Pattern 4: Foundational Topos (e.g., nous)
 
-Some eide defined at genesis/spora level, not in the oikos.
+Some eide defined at genesis/spora level, not in the topos.
 
 ```markdown
 ### theoria (defined in spora)
@@ -336,7 +336,7 @@ Crystallized understanding that persists.
 
 **Handling**: Mark with `(defined in spora)`. Parser sets `source: spora`. Eidos not generated.
 
-### Pattern 5: Mode Oikos (e.g., voice-authoring)
+### Pattern 5: Mode Topos (e.g., voice-authoring)
 
 Experiential mode with session tracking, layouts, specialized workflows.
 
@@ -350,11 +350,11 @@ Experiential mode with session tracking, layouts, specialized workflows.
 
 ## Output Structure
 
-The develop-oikos praxeis return structured results:
+The develop-topos praxeis return structured results:
 
 ```yaml
-oikos_name: "myoikos"
-design_artifact: { id: "artifact/oikos-myoikos-design", ... }
+topos_name: "myoikos"
+design_artifact: { id: "artifact/topos-mytopos-design", ... }
 design: { purpose: "...", eide: [...], praxeis: [...], ... }
 artifacts:
   eide: [...]       # Generated eidos artifacts

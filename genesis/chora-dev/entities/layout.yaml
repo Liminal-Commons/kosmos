@@ -1,0 +1,39 @@
+# Chora-Dev Layout — Modes and Thyra Configuration
+#
+# Defines how the chora-dev topos presents itself in thyra.
+
+entities:
+
+  # ===========================================================================
+  # Modes
+  # ===========================================================================
+
+  - eidos: mode
+    id: mode/chora-dev-workspace
+    data:
+      name: chora-dev-workspace
+      topos: chora-dev
+      item_spec_id: render-spec/chora-dev/source-crate-card
+      source_query: "gather(eidos: source-crate, sort: name)"
+      arrangement: scroll
+      empty_message: "No crates found. Run 'Scan' to discover workspace crates."
+      chrome_spec_id: render-spec/chora-dev/workspace-chrome
+      spatial:
+        position: center
+        height: fill
+      config:
+        watch_eidos: source-crate
+
+  # ===========================================================================
+  # Bonds
+  # ===========================================================================
+
+  - eidos: bond
+    from_id: mode/chora-dev-workspace
+    desmos: uses-render-spec
+    to_id: render-spec/chora-dev/source-crate-card
+
+  - eidos: bond
+    from_id: mode/chora-dev-workspace
+    desmos: uses-render-spec
+    to_id: render-spec/chora-dev/workspace-chrome

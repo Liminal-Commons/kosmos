@@ -1,27 +1,30 @@
-# Oikos Manifest: Dokimasia
+# Topos Manifest: Dokimasia (τόπος)
 # δοκιμασία — examination, testing, scrutiny.
 #
 # Validation before realization. Nothing invalid enters the entity store.
 # Provenance, schema, semantic validation.
 #
-# Manifest v2.1 — oikos metadata for entity composition
+# Manifest v2.1 — topos metadata for entity composition
 
 format_version: "2.1"
-oikos_id: dokimasia
+topos_id: dokimasia
 version: "0.1.0"
 
-# Oikos metadata (v2.1)
-oikos_name: Dokimasia
-oikos_description: |
+# Topos metadata (v2.1)
+topos_name: Dokimasia
+topos_description: |
   Examination, testing, scrutiny. Validation before realization.
   Nothing invalid enters the entity store. Provides provenance,
   schema, and semantic validation.
-oikos_scale: cross-scale
+topos_scale: cross-scale
 
 # Development experience metadata
-oikos_category: infrastructure
+topos_category: infrastructure
 surfaces_provided: []   # Validation is an operation, not a surface
-surfaces_consumed: []   # Foundational validation layer
+surfaces_consumed:
+  - reconciliation      # Uses dynamis/reconcile for graph integrity drift
+  - reactivity          # Reflexes for validation mutation response
+  - sensing             # Daemon: sense-graph-integrity (60s interval)
 
 content_paths:
   - path: eide/
@@ -30,8 +33,20 @@ content_paths:
     content_types: [desmos]
   - path: praxeis/
     content_types: [praxis]
+  - path: typos/
+    content_types: [typos]
   - path: entities/
+    content_types: [validation-error]
+  - path: reflexes/
+    content_types: [reflex]
+  - path: daemons/
+    content_types: [daemon]
+  - path: reconcilers/
+    content_types: [reconciler]
+  - path: render-specs/
     content_types: [render-spec]
+  - path: modes/
+    content_types: [mode]
 
 requires_dynamis:
   - db.arise
@@ -45,7 +60,7 @@ provides:
     - validation-result
     - validation-error
 
-  # Oikos-centric rendering: dokimasia owns presentation for validation entities
+  # Topos-centric rendering: dokimasia owns presentation for validation entities
   renderable:
     - eidos: validation-result
       description: "Validation outcome cards"
@@ -67,9 +82,9 @@ provides:
     - dokimasia/compose-validation-report
     - dokimasia/lint-praxis
     - dokimasia/lint-all-praxeis
-    - dokimasia/validate-oikos
-    - dokimasia/validate-all-oikoi
-    - dokimasia/oikos-health-report
+    - dokimasia/validate-topos
+    - dokimasia/validate-all-topoi
+    - dokimasia/topos-health-report
 
 stoicheia_form:
   # All validation logic in praxeis

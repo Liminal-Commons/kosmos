@@ -20,9 +20,9 @@ With dokimasia:
 
 The central concept is the **validation gate** — a barrier that prevents realization of anything that cannot work. Manteia governs *who* authorizes; dokimasia verifies *what* is valid.
 
-## Circle Context
+## Oikos Context
 
-### Self Circle
+### Self Oikos
 
 A solitary dweller uses dokimasia to:
 - Verify their own generations before realization
@@ -32,7 +32,7 @@ A solitary dweller uses dokimasia to:
 
 Self-validation catches errors before they compound.
 
-### Peer Circle
+### Peer Oikos
 
 Collaborators use dokimasia to:
 - Validate shared content before accepting it
@@ -42,7 +42,7 @@ Collaborators use dokimasia to:
 
 Peer validation builds trust through verification.
 
-### Commons Circle
+### Commons Oikos
 
 A commons uses dokimasia to:
 - Gate all entity creation through validation
@@ -144,8 +144,8 @@ Generate a human-readable validation report from results.
 Validation capability — can run validation operations and verify authenticity.
 
 - **Grants:** validate-provenance, validate-schema, validate-semantic, validate-generation, compose-validation-report
-- **Scope:** circle
-- **Rationale:** Validation operates on entities visible within circle context; anyone with circle membership should be able to verify authenticity
+- **Scope:** oikos
+- **Rationale:** Validation operates on entities visible within oikos context; anyone with oikos membership should be able to verify authenticity
 
 ## Embodiment
 
@@ -212,7 +212,7 @@ Between kosmos (intent) and chora (actuality). The phylax pattern — sense, com
 
 ### Loop 2: Generation Reconciliation (Manteia/Dokimasia)
 
-Between expression (desire) and artifact (generation). Manteia governs, dokimasia validates.
+Between phasis (desire) and artifact (generation). Manteia governs, dokimasia validates.
 
 ### Loop 3: Schema Reconciliation
 
@@ -226,7 +226,7 @@ Dokimasia doesn't decide who can create — that's manteia's domain. Dokimasia v
 
 ### T65: The three loops operate at different layers
 
-Actuality reconciliation (dynamis) aligns kosmos with chora. Generation reconciliation (manteia/dokimasia) aligns expression with artifact. Schema reconciliation aligns authored content with interpreter expectations. Different gaps, different loops.
+Actuality reconciliation (dynamis) aligns kosmos with chora. Generation reconciliation (manteia/dokimasia) aligns phasis with artifact. Schema reconciliation aligns authored content with interpreter expectations. Different gaps, different loops.
 
 ### T66: Schema-as-eidos makes the kosmos self-describing
 

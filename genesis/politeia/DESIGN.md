@@ -6,76 +6,75 @@
 
 What gap in being does politeia address?
 
-**The gap of capability and governance.** Without politeia, entities exist but have no concept of "who can do what." Hypostasis provides identity (who you are), but identity alone doesn't grant capability. The kosmos would have personas without roles, circles without governance, and actions without permission.
+**The gap of capability and governance.** Without politeia, entities exist but have no concept of "who can do what." Hypostasis provides identity (who you are), but identity alone doesn't grant capability. The kosmos would have prosopa without roles, oikoi without governance, and actions without permission.
 
 Politeia provides:
-- **Circles** — governance units that organize personas and grant capabilities
-- **Attainments** — capabilities derived from circle membership
+- **Oikoi** — governance units that organize prosopa and grant capabilities
+- **Attainments** — capabilities derived from oikos membership
 - **Affordances** — how capabilities surface for action in context
-- **HUD regions** — spatial organization of action surfaces
-- **Invitations** — governed entry into circles
+- **Invitations** — governed entry into oikoi
 
 **What becomes possible:**
-- Membership grants capability (join a circle, receive its attainments)
+- Membership grants capability (join an oikos, receive its attainments)
 - Capabilities are discoverable (traverse the bond graph to see what you can do)
 - Actions surface contextually (affordances appear based on attainments and context)
-- Sovereignty remains distributed (each circle governs its own capabilities)
-- Oikos distribution flows through governance (circles distribute oikoi to members)
+- Sovereignty remains distributed (each oikos governs its own capabilities)
+- Topos distribution flows through governance (oikoi distribute topoi to members)
 
-## Circle Context
+## Oikos Context
 
-### Self Circle
+### Sole Oikos
 
 A solitary dweller uses politeia to:
-- Create their personal circle (sovereign to their animus)
+- Create their personal oikos (sovereign to their parousia)
 - Define what capabilities they grant themselves
-- Organize their HUD regions and affordances
-- Install oikoi into their self circle
+- Organize their affordances
+- Install topoi into their sole oikos
 
-The self circle is where politeia is most personal — your own governance of your own capabilities.
+The sole oikos is where politeia is most personal — your own governance of your own capabilities.
 
-### Peer Circle
+### Collective Oikos
 
 Collaborators use politeia to:
-- Create shared circles for collaboration
+- Create shared oikoi for collaboration
 - Invite each other via invitations
 - Define attainments that members receive
 - Surface shared affordances for collaborative action
-- Distribute oikoi to all members
+- Distribute topoi to all members
 
-Trust in peer circles is membership-based — joining grants attainments, leaving revokes them.
+Trust in peer oikoi is membership-based — joining grants attainments, leaving revokes them.
 
-### Commons Circle
+### Commons Oikos
 
 A community uses politeia to:
-- Establish open circles anyone can join
+- Establish open oikoi anyone can join
 - Define baseline attainments for all members
 - Provide community affordances
-- Distribute public oikoi to all members
+- Distribute public topoi to all members
 - Maintain audit trail of membership events
 
-The commons circle is where politeia scales — governance for communities.
+The commons oikos is where politeia scales — governance for communities.
 
 ## Core Entities (Eide)
 
 ### attainment
 
-A capability marker — what an animus can do.
+A capability marker — what a parousia can do.
 
 **Fields:**
 - `name` — Human-readable attainment name (e.g., 'compose', 'invite', 'govern')
 - `description` — What this attainment enables
-- `scope` — Where this applies: circle, oikos, or global
+- `scope` — Where this applies: oikos, topos, or global
 - `constraints` — Optional constraints (rate limits, quotas)
 - `created_at` — Creation timestamp
 
 **Lifecycle:**
 1. **Create** — Attainment defined via `create-attainment`
-2. **Grant** — Circle grants attainment via `grant-attainment`
-3. **Derive** — Animus receives attainment via `derive-attainments`
-4. **Revoke** — Circle revokes grant, animus loses attainment
+2. **Grant** — Oikos grants attainment via `grant-attainment`
+3. **Derive** — Parousia receives attainment via `derive-attainments`
+4. **Revoke** — Oikos revokes grant, parousia loses attainment
 
-**Key insight:** Attainments are derived from membership, not directly assigned. You receive capabilities by joining circles that grant them.
+**Key insight:** Attainments are derived from membership, not directly assigned. You receive capabilities by joining oikoi that grant them.
 
 ### affordance
 
@@ -95,33 +94,14 @@ A sensed possibility — what can be done from here.
 2. **Surface** — Appears based on attainments + context
 3. **Invoke** — User activates, praxis executes
 
-### hud-region
-
-A display region in the HUD (heads-up display).
-
-**Fields:**
-- `name` — Region name
-- `kind` — Type: toolbar, sidebar, contextual, modal, toast, ambient
-- `parent_id` — Parent region for nesting
-- `position` — Position hints
-- `visibility` — always, contextual, or on_demand
-- `required_attainment` — Attainment needed to see this region
-- `affordances` — Affordance IDs that render here
-- `created_at` — Creation timestamp
-
-**Lifecycle:**
-1. **Create** — Region defined via `create-hud-region`
-2. **Populate** — Affordances bond via `renders-in`
-3. **Render** — `render-hud` builds display tree
-
 ### invitation
 
-An invitation to join a circle.
+An invitation to join an oikos.
 
 **Fields:**
-- `circle_id` — Circle being invited to
-- `invitee_id` — Specific persona invited (optional for open invites)
-- `inviter_id` — Persona who created the invite
+- `oikos_id` — Oikos being invited to
+- `invitee_id` — Specific prosopon invited (optional for open invites)
+- `inviter_id` — Prosopon who created the invite
 - `role` — Role/attainments granted upon acceptance
 - `message` — Optional message from inviter
 - `status` — pending, accepted, declined, expired, revoked
@@ -131,7 +111,7 @@ An invitation to join a circle.
 - `created_at`, `expires_at`, `accepted_at` — Timestamps
 
 **Lifecycle:**
-1. **Create** — Invitation via `invite-to-circle`
+1. **Create** — Invitation via `invite-to-oikos`
 2. **Pending** — Awaiting response
 3. **Accept/Decline** — Via `accept-invitation` or `decline-invitation`
 4. **Expire** — If `expires_at` passes
@@ -142,9 +122,9 @@ Record of membership change — audit trail.
 
 **Fields:**
 - `event_type` — joined, left, removed, invited
-- `circle_id` — Circle where event occurred
-- `persona_id` — Persona affected
-- `persona_name` — Display name at time of event
+- `oikos_id` — Oikos where event occurred
+- `prosopon_id` — Prosopon affected
+- `prosopon_name` — Display name at time of event
 - `actor_id` — Who initiated the action
 - `actor_name` — Actor display name
 - `invitation_id` — Related invitation (for joins)
@@ -156,143 +136,151 @@ Record of membership change — audit trail.
 ### Governance Bonds
 
 #### sovereign-to
-- **From:** circle
-- **To:** animus
+- **From:** oikos
+- **To:** parousia
 - **Cardinality:** one-to-many
-- **Traversal:** Who governs this circle? Which circles does this animus govern?
+- **Traversal:** Who governs this oikos? Which oikoi does this parousia govern?
 
 #### embodies
-- **From:** animus
-- **To:** persona
+- **From:** parousia
+- **To:** prosopon
 - **Cardinality:** many-to-one
-- **Traversal:** Which persona does this animus embody? Which animi embody this persona?
+- **Traversal:** Which prosopon does this parousia embody? Which parousiai embody this prosopon?
 
 ### Capability Bonds
 
 #### grants-attainment
-- **From:** circle
+- **From:** oikos
 - **To:** attainment
 - **Cardinality:** one-to-many
-- **Traversal:** What attainments does this circle grant?
+- **Traversal:** What attainments does this oikos grant?
 
 #### has-attainment
-- **From:** animus
+- **From:** parousia
 - **To:** attainment
 - **Cardinality:** many-to-many
-- **Traversal:** What attainments does this animus have?
+- **Traversal:** What attainments does this parousia have?
 
 #### granted-by
 - **From:** attainment
-- **To:** circle
+- **To:** oikos
 - **Cardinality:** many-to-many
-- **Traversal:** Which circles grant this attainment? (Inverse provenance)
+- **Traversal:** Which oikoi grant this attainment? (Inverse provenance)
 
-### Surface Bonds
+### Affordance Bonds
 
 #### surfaces-as
-- **From:** affordance
-- **To:** hud-region
-- **Cardinality:** many-to-one
-- **Traversal:** Where does this affordance render?
+- **From:** attainment
+- **To:** affordance
+- **Cardinality:** one-to-many
+- **Traversal:** What affordances does this attainment surface?
 
 #### enabled-by
-- **From:** hud-region/affordance
+- **From:** affordance
 - **To:** attainment
 - **Cardinality:** many-to-one
-- **Traversal:** What capability enables this?
-
-#### renders-in
-- **From:** hud-region
-- **To:** hud-region
-- **Cardinality:** many-to-one
-- **Traversal:** Hierarchical region nesting
+- **Traversal:** What capability enables this affordance?
 
 ### Structure Bonds
 
 #### child-of
 - **From:** invitation/membership-event
-- **To:** circle
+- **To:** oikos
 - **Cardinality:** many-to-one
-- **Traversal:** Which circle does this belong to?
+- **Traversal:** Which oikos does this belong to?
 
 #### invited-to
 - **From:** invitation
-- **To:** circle
+- **To:** oikos
 - **Cardinality:** many-to-one
-- **Traversal:** Which circle is this invitation for?
+- **Traversal:** Which oikos is this invitation for?
 
 #### distributes
-- **From:** circle
-- **To:** oikos-prod
+- **From:** oikos
+- **To:** topos-prod
 - **Cardinality:** many-to-many
-- **Traversal:** What oikoi does this circle distribute?
+- **Traversal:** What topoi does this oikos distribute?
+
+### Federation Bonds
+
+#### federates-with
+- **From:** oikos
+- **To:** oikos
+- **Cardinality:** many-to-many
+- **Traversal:** Which oikoi are federated? Content syncs continuously through this bond.
+
+#### tracks-sync
+- **From:** sync-cursor
+- **To:** oikos
+- **Cardinality:** many-to-one
+- **Traversal:** What sync position does this cursor track?
 
 ## Operations (Praxeis)
 
-### Circle Operations
+### Oikos Operations
 
-#### create-circle
-Create a new circle with caller as sovereign.
+#### create-oikos
+Create a new oikos with caller as sovereign.
 - **When:** Establishing a new governance unit
-- **Requires:** Animus context
-- **Creates:** Circle entity + sovereign-to + member-of bonds
+- **Requires:** Parousia context
+- **Creates:** Oikos entity + sovereign-to + member-of bonds
 
-#### invite-to-circle
-Invite someone to join a circle.
-- **When:** Growing circle membership
-- **Requires:** Caller is sovereign to circle
+#### invite-to-oikos
+Invite someone to join an oikos.
+- **When:** Growing oikos membership
+- **Requires:** Caller is sovereign to oikos
 - **Gated by:** `attainment/invite`
 
 #### accept-invitation
-Accept an invitation, join circle.
+Accept an invitation, join oikos.
 - **When:** Responding to invitation
 - **Effect:** Creates member-of bond, derives attainments
 
 #### decline-invitation
 Decline an invitation.
-- **When:** Refusing circle membership
+- **When:** Refusing oikos membership
 - **Effect:** Updates invitation status
 
-#### dwell-in-circle
-Move dwelling position to a circle.
+#### dwell-in-oikos
+Move dwelling position to an oikos.
 - **When:** Changing context (exclusive)
-- **Requires:** Membership in target circle
+- **Requires:** Membership in target oikos
 
-#### leave-circle
-Leave a circle (remove membership).
-- **When:** Exiting circle
+#### leave-oikos
+Leave an oikos (remove membership).
+- **When:** Exiting oikos
 - **Effect:** Removes member-of bond, clears derived attainments
 
-#### list-circles
-List circles the animus is member of or can see.
+#### list-oikoi
+List oikoi the parousia is member of or can see.
 - **When:** Browsing governance structure
 
 ### Attainment Operations
 
 #### create-attainment
-Create a new attainment that circles can grant.
+Create a new attainment that oikoi can grant.
 - **When:** Defining new capabilities
 - **Gated by:** `attainment/govern`
 
 #### grant-attainment
-Grant an attainment from a circle.
-- **When:** Adding capabilities to circle membership
-- **Requires:** Caller is sovereign to circle
+Grant an attainment from an oikos.
+- **When:** Adding capabilities to oikos membership
+- **Requires:** Caller is sovereign to oikos
 - **Gated by:** `attainment/govern`
 
 #### revoke-attainment
-Revoke an attainment grant from a circle.
-- **When:** Removing capabilities from circle membership
-- **Requires:** Caller is sovereign to circle
+Revoke an attainment grant from an oikos.
+- **When:** Removing capabilities from oikos membership
+- **Requires:** Caller is sovereign to oikos
 - **Gated by:** `attainment/govern`
 
 #### derive-attainments
-Derive attainments for an animus based on memberships.
-- **When:** After joining circle, syncing capabilities
-- **Traversal:** animus → member-of → circle → grants-attainment → attainment
+Derive attainments for a parousia based on memberships.
+- **When:** After joining oikos, syncing capabilities
+- **Traversal:** parousia -> member-of -> oikos -> grants-attainment -> attainment
 
 #### list-attainments
-List attainments for an animus or circle.
+List attainments for a parousia or oikos.
 - **When:** Auditing capabilities
 
 ### Affordance Operations
@@ -305,48 +293,62 @@ Create an affordance that surfaces an attainment.
 #### gather-affordances
 Gather all affordances available to the caller.
 - **When:** Building action menu
-- **Traversal:** animus → has-attainment → attainment → surfaces-as → affordance
+- **Traversal:** parousia -> has-attainment -> attainment -> surfaces-as -> affordance
 
 #### render-hud
-Build the HUD render tree for the caller.
-- **When:** Rendering interface
-- **Returns:** Nested structure of regions with affordances
+Build the affordance set for the caller.
+- **When:** Rendering affordance UI
+- **Returns:** All affordances available to the current parousia
 
 #### invoke-affordance
 Invoke an affordance (execute its action praxis).
 - **When:** User activates an action
 - **Verifies:** Caller has required attainment
 
-### HUD Operations
-
-#### create-hud-region
-Create a HUD region.
-- **When:** Organizing interface layout
-- **Gated by:** `attainment/hud`
-
-#### list-hud-regions
-List HUD regions.
-- **When:** Browsing layout structure
-
 ### Distribution Operations
 
-#### create-distribution-circle
-Create a distribution circle for an oikos-prod.
-- **When:** Publishing oikos for distribution
+#### create-distribution-oikos
+Create a distribution oikos for a topos-prod.
+- **When:** Publishing topos for distribution
 - **Gated by:** `attainment/distribute`
 
-#### distribute-oikos
-Distribute an oikos-prod through an existing circle.
-- **When:** Adding oikos to circle's distribution
+#### distribute-topos
+Distribute a topos-prod through an existing oikos.
+- **When:** Adding topos to oikos's distribution
 - **Gated by:** `attainment/distribute`
 
-#### install-oikos
-Install an oikos from a distribution circle.
-- **When:** Receiving oikos from circle membership
+#### install-topos
+Install a topos from a distribution oikos.
+- **When:** Receiving topos from oikos membership
 
-#### list-distributed-oikoi
-List oikoi distributed by a circle.
-- **When:** Auditing circle's distribution
+#### list-distributed-topoi
+List topoi distributed by an oikos.
+- **When:** Auditing oikos's distribution
+
+### Federation Operations
+
+#### federate-oikoi
+Establish federation between local and remote oikoi.
+- **When:** Enabling continuous sync across kosmoi
+- **Requires:** Sovereignty over local oikos
+- **Gated by:** `attainment/federate`
+
+#### unfederate-oikoi
+Dissolve federation between oikoi.
+- **When:** Ending sync relationship
+- **Gated by:** `attainment/federate`
+
+#### list-federations
+List federation bonds for an oikos.
+- **When:** Auditing sync relationships
+
+#### resolve-conflict
+Resolve a sync conflict manually.
+- **When:** Divergent entity versions across kosmoi
+
+#### list-conflicts
+List sync conflicts, filtered by status or oikos.
+- **When:** Reviewing pending conflicts
 
 ### Administrative Operations
 
@@ -363,29 +365,34 @@ Remove a bond directly (bypass governance).
 ## Attainments
 
 ### attainment/govern
-**Capability:** Create circles, manage attainments.
-**Gates:** `create-circle`, `create-attainment`, `grant-attainment`, `revoke-attainment`
-**Scope:** circle
+**Capability:** Create oikoi, manage attainments.
+**Gates:** `create-oikos`, `create-attainment`, `grant-attainment`, `revoke-attainment`
+**Scope:** oikos
 
 ### attainment/invite
-**Capability:** Invite others to circles.
-**Gates:** `invite-to-circle`
-**Scope:** circle
+**Capability:** Invite others to oikoi.
+**Gates:** `invite-to-oikos`
+**Scope:** oikos
 
 ### attainment/distribute
-**Capability:** Distribute oikoi through circles.
-**Gates:** `create-distribution-circle`, `distribute-oikos`
-**Scope:** circle
+**Capability:** Distribute topoi through oikoi.
+**Gates:** `create-distribution-oikos`, `distribute-topos`
+**Scope:** oikos
 
 ### attainment/hud
-**Capability:** Create and manage HUD regions and affordances.
-**Gates:** `create-affordance`, `create-hud-region`
-**Scope:** circle
+**Capability:** Create and manage affordances.
+**Gates:** `create-affordance`
+**Scope:** oikos
 
 ### attainment/admin
 **Capability:** Administrative operations (bypass normal governance).
 **Gates:** `admin-bind`, `admin-loose`
 **Scope:** global
+
+### attainment/federate
+**Capability:** Establish federation between oikoi.
+**Gates:** `federate-oikoi`, `unfederate-oikoi`, `list-federations`, `resolve-conflict`
+**Scope:** oikos
 
 ## Embodiment
 
@@ -407,29 +414,28 @@ When `sense-body` runs, politeia contributes:
 ```yaml
 body-schema:
   governance:
-    dwelling_circle: "$_circle"
-    member_of_circles: [...]
-    sovereign_of_circles: [...]
+    dwelling_oikos: "$_oikos"
+    member_of_oikoi: [...]
+    sovereign_of_oikoi: [...]
   capabilities:
     attainments:
       - name: govern
-        source_circle: circle/kosmos
-        scope: circle
+        source_oikos: oikos/kosmos
+        scope: oikos
       - name: invite
-        source_circle: circle/kosmos
-        scope: circle
+        source_oikos: oikos/kosmos
+        scope: oikos
   affordances:
     available:
       - name: Compose Theoria
         praxis: nous/crystallize-theoria
-        region: hud-region/main
     contextual:
-      - name: Invite to Circle
-        praxis: politeia/invite-to-circle
-        when: "$sovereign_of_circles | length > 0"
+      - name: Invite to Oikos
+        praxis: politeia/invite-to-oikos
+        when: "$sovereign_of_oikoi | length > 0"
   pending_actions:
     - action: accept_invitation
-      reason: "Pending invitation from circle/chora-dev"
+      reason: "Pending invitation from oikos/chora-dev"
       when: "$pending_invitations | length > 0"
 ```
 
@@ -441,44 +447,44 @@ reconciler/politeia-attainments:
   sense: |
     - Check if attainments need re-derivation (membership changed)
     - Check for pending invitations
-    - Check if oikoi need sync from new circles
+    - Check if topoi need sync from new oikoi
   surface: |
     - If membership changed: re-derive attainments
     - If pending invitations: suggest review
-    - If oikoi outdated: suggest update
+    - If topoi outdated: suggest update
 ```
 
 ## Compound Leverage
 
-### Amplifies Other Oikoi
+### Amplifies Other Topoi
 
-| Oikos | How Politeia Amplifies |
+| Topos | How Politeia Amplifies |
 |-------|----------------------|
 | **hypostasis** | Credentials grant attainments (use-embedding-api from credential) |
 | **nous** | Theoria composition requires compose attainment |
-| **demiurge** | Oikos publication flows through distribution circles |
+| **demiurge** | Topos publication flows through distribution oikoi |
 | **manteia** | Generation requires use-anthropic-api attainment |
-| **thyra** | HUD rendering uses affordances and regions |
-| **propylon** | Entry links can grant circle membership |
-| **ekdosis** | Published oikoi reach users via distribution circles |
+| **thyra** | Mode rendering uses affordances for contextual actions |
+| **propylon** | Entry links can grant oikos membership |
+| **ekdosis** | Published topoi reach users via distribution oikoi |
 
-### Cross-Oikos Patterns
+### Cross-Topos Patterns
 
-1. **Membership → Attainment → Praxis**
-   Join circle → receive attainments → praxeis become available.
-   Example: Join circle/chora-dev → get compose attainment → nous/crystallize-theoria works.
+1. **Membership -> Attainment -> Praxis**
+   Join oikos -> receive attainments -> praxeis become available.
+   Example: Join oikos/chora-dev -> get compose attainment -> nous/crystallize-theoria works.
 
-2. **Credential → Attainment → Service**
-   Unlock credential → session gains attainment → service available.
-   Example: Unlock OpenAI credential → use-embedding-api attainment → nous/index works.
+2. **Credential -> Attainment -> Service**
+   Unlock credential -> session gains attainment -> service available.
+   Example: Unlock OpenAI credential -> use-embedding-api attainment -> nous/index works.
 
-3. **Attainment → Affordance → HUD**
-   Have attainment → affordance surfaces → appears in HUD.
-   Example: Have compose → affordance/compose-theoria → renders in hud-region/main.
+3. **Attainment -> Affordance -> Action**
+   Have attainment -> affordance surfaces -> action available.
+   Example: Have compose -> affordance/compose-theoria -> invoke praxis.
 
-4. **Circle → Distribution → Installation**
-   Circle distributes oikos → member joins → oikos installed.
-   Example: circle/commons distributes nous → user joins → nous available.
+4. **Oikos -> Distribution -> Installation**
+   Oikos distributes topos -> member joins -> topos installed.
+   Example: oikos/commons distributes nous -> user joins -> nous available.
 
 ## Theoria
 
@@ -486,21 +492,21 @@ New theoria crystallized during this redesign:
 
 ### T24: Governance flows through the bond graph
 
-Capability in kosmos is not assigned directly but flows structurally. You have an attainment because you're bonded to a circle that grants it. Remove the bond, capability vanishes. This is T1 (visibility = reachability) applied to governance.
+Capability in kosmos is not assigned directly but flows structurally. You have an attainment because you're bonded to an oikos that grants it. Remove the bond, capability vanishes. This is T1 (visibility = reachability) applied to governance.
 
 ### T25: Attainments are derived, not assigned
 
-You don't "give someone an attainment" — you invite them to a circle that grants it. This preserves sovereignty: circles control their attainments, and membership is the mechanism for receiving them. Derivation traverses the graph rather than storing direct assignments.
+You don't "give someone an attainment" — you invite them to an oikos that grants it. This preserves sovereignty: oikoi control their attainments, and membership is the mechanism for receiving them. Derivation traverses the graph rather than storing direct assignments.
 
 ### T26: Affordances surface capabilities contextually
 
-Affordances aren't "menus you design" — they emerge from the intersection of what you can do (attainments) and what's relevant (context). The HUD is entity-driven: traverse attainment → surfaces-as → affordance → renders-in → region.
+Affordances aren't "menus you design" — they emerge from the intersection of what you can do (attainments) and what's relevant (context). The affordance graph is entity-driven: traverse attainment -> surfaces-as -> affordance. Spatial placement is handled by modes.
 
 ## Two Pillars of Governance
 
 1. **Membership = Capability** — What you can do flows from where you belong.
 
-2. **Sovereignty = Distribution** — Each circle governs its own attainments; no central authority.
+2. **Sovereignty = Distribution** — Each oikos governs its own attainments; no central authority.
 
 Both are structural, not policy. Both emerge from the bond graph.
 
@@ -508,8 +514,8 @@ Both are structural, not policy. Both emerge from the bond graph.
 
 - **Delegation** — Grant attainments with time limits or revocation conditions
 - **Role templates** — Pre-defined attainment bundles for common roles
-- **Attainment inheritance** — Circles inherit attainments from parent circles
-- **Capability negotiation** — Request attainments from circles you're not member of
+- **Attainment inheritance** — Oikoi inherit attainments from parent oikoi
+- **Capability negotiation** — Request attainments from oikoi you're not member of
 - **Governance voting** — Multi-signature attainment changes
 
 ---

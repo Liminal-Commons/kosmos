@@ -1,0 +1,20 @@
+# Aither Sensing Daemons
+# Periodic actuality sensing for syndesmos connection reconciliation
+#
+# Traces to: docs/reference/daemon-runner.md
+# Authorized by: phasis/genesis-root
+
+entities:
+
+  - eidos: daemon
+    id: daemon/sense-syndesmos
+    data:
+      name: sense-syndesmos
+      description: |
+        Periodically sense syndesmos connection actuality.
+        Checks all syndesmos entities for connection status drift.
+      praxis: aither/sense-syndesmos-states
+      interval: 30
+      enabled: true
+      scope: global
+      backoff_max: 300

@@ -1,0 +1,47 @@
+# Manteia Example Criteria
+# Evaluation criteria for governed-envelope pattern
+#
+# These criteria are used by manteia/_evaluate-generation to assess
+# the quality of generated content before realization.
+#
+# Traces to: genesis/manteia/DESIGN.md § Governed Envelope
+
+entities:
+
+  - eidos: criterion
+    id: criterion/factual-accuracy
+    data:
+      name: factual-accuracy
+      description: "Generated content must be factually consistent with provided context"
+      weight: critical
+      check_prompt: "Does the generated content contain any factual errors relative to the provided context?"
+
+  - eidos: criterion
+    id: criterion/schema-compliance
+    data:
+      name: schema-compliance
+      description: "Generated content must conform to the target schema"
+      weight: critical
+
+  - eidos: criterion
+    id: criterion/kosmos-vocabulary
+    data:
+      name: kosmos-vocabulary
+      description: "Generated content must use V11 vocabulary (prosopon, parousia, oikos, topos, phasis)"
+      weight: desired
+      check_prompt: "Does the content use the correct Greek vocabulary? Check for legacy terms: persona, animus, circle, expression."
+
+  - eidos: criterion
+    id: criterion/gds-compliance
+    data:
+      name: gds-compliance
+      description: "Generated templates must use only simple {{ variable }} substitution, no computation"
+      weight: critical
+      check_prompt: "Does the template contain any computational patterns like {{#each}}, {{#if}}, ternaries, or block conditionals?"
+
+  - eidos: criterion
+    id: criterion/conciseness
+    data:
+      name: conciseness
+      description: "Generated content should be concise and focused"
+      weight: advisory

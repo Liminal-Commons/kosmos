@@ -1,193 +1,50 @@
 # Thyra Eide
-# Portal/interface eide — streams, expressions, accumulation, signaling
+# Portal/interface eide — accumulation, signaling
+#
+# NOTE: phasis eidos moved to logos topos (THYRA-OIKOS Phase 3)
 #
 # Traces to: genesis/thyra/DESIGN.md
-# Authorized by: expression/genesis-root
+# Authorized by: phasis/genesis-root
 
 entities:
-  # stream — bounded media flow
-  - eidos: eidos
-    id: eidos/stream
-    data:
-      name: stream
-      description: "Bounded media flow — voice, video, text, or document. Streams follow the reconciler pattern."
-      fields:
-        kind:
-          type: enum
-          values: [voice, video, text, document]
-          required: true
-          description: "The modality of the stream"
-        direction:
-          type: enum
-          values: [inward, outward]
-          required: true
-          description: "Flow direction — inward is perception, outward is emission"
-        intent:
-          type: enum
-          values: [active, paused, closed]
-          required: true
-          default: active
-          description: "Desired state"
-        status:
-          type: enum
-          values: [pending, manifesting, active, paused, closing, closed, failed]
-          required: false
-          default: pending
-          description: "Current lifecycle state"
-        source:
-          type: string
-          required: false
-          description: "Source identifier (device ID, file path, channel ID)"
-        sink:
-          type: string
-          required: false
-          description: "Destination identifier for outward streams"
-        config:
-          type: object
-          required: false
-          description: "Stream-specific configuration"
-        manifest_handle:
-          type: string
-          required: false
-          description: "Substrate handle for manifested stream (e.g., PID)"
-        created_at:
-          type: timestamp
-          required: false
-        manifested_at:
-          type: timestamp
-          required: false
-        closed_at:
-          type: timestamp
-          required: false
-        last_error:
-          type: string
-          required: false
-      actuality:
-        mode: process  # Will be media when implemented
 
-  # expression — intentional contribution (commitment boundary)
-  - eidos: eidos
-    id: eidos/expression
-    data:
-      name: expression
-      description: "Intentional contribution — the commitment boundary. When ephemeral becomes durable."
-      fields:
-        content:
-          type: string
-          required: true
-          description: "The content being expressed"
-        content_type:
-          type: string
-          required: false
-          default: text/plain
-          description: "MIME type of the content"
-        expressed_by:
-          type: string
-          required: true
-          description: "Persona ID of who expressed this"
-        circle_id:
-          type: string
-          required: true
-          description: "Circle ID where this was expressed"
-        expressed_at:
-          type: timestamp
-          required: true
-        source_kind:
-          type: enum
-          values: [stream, compose, direct]
-          required: false
-          description: "How this expression originated"
-        source_stream_id:
-          type: string
-          required: false
-          description: "Terminal stream ID if source_kind is stream"
-        source_artifact_id:
-          type: string
-          required: false
-          description: "Artifact ID if originated from composition"
-        mode:
-          type: enum
-          values: [declaration, inquiry, suggestion, invitation, request, proposal]
-          required: false
-          description: "Expression mode — how the expression should be received"
-        in_reply_to:
-          type: string
-          required: false
-          description: "Expression ID this replies to, if any"
-        metadata:
-          type: object
-          required: false
+  # NOTE: phasis eidos moved to logos topos (THYRA-OIKOS Phase 3)
+  # See genesis/logos/eide/logos.yaml
 
-  # accumulation — buffer state for stream content
+  # accumulation — composition buffer for content preparation
   - eidos: eidos
     id: eidos/accumulation
     data:
       name: accumulation
-      description: "Buffer state for stream content awaiting commitment. Tracks raw transcripts, clarified content, and visual state."
+      description: "Composition buffer — text being prepared for commitment. Modality-agnostic: receives text from voice, keyboard, paste, or any source."
       fields:
-        stream_id:
-          type: string
-          required: true
-          description: "The terminal stream this accumulation belongs to"
-
-        # Raw transcript chain (from STT)
-        raw_content:
-          type: string
-          required: false
-          description: "Concatenated raw transcripts — verbatim STT output"
-        raw_fragments:
-          type: array
-          required: false
-          description: "Individual raw transcript fragments [{text, utterance_id, timestamp}]"
-
-        # Clarified content (after LLM)
         content:
           type: string
           required: true
-          description: "Clarified content — after disfluency removal, ready for edit/commit"
-
-        # Clarification pipeline state
-        clarification_status:
-          type: enum
-          values: [pending, clarifying, clarified, manual, failed]
-          required: true
-          default: pending
-          description: "State of clarification: pending (raw only), clarifying (LLM in flight), clarified (LLM done), manual (user edited), failed"
-        clarification_generation_id:
-          type: string
-          required: false
-          description: "Manteia generation ID for audit trail and redo"
-
-        # Visual state for voice bar rendering
-        capture_state:
-          type: enum
-          values: [inactive, listening, processing]
-          required: true
-          default: inactive
-          description: "Voice capture state for UI feedback"
-
-        # Lifecycle
+          description: "Current composed text — ready for edit/commit"
         status:
           type: enum
           values: [active, committed, abandoned, cleared]
           required: true
           default: active
+        stance:
+          type: enum
+          values: [declaration, inquiry, suggestion, invitation, request, proposal]
+          required: false
+          description: "Phasis stance — blank until clarification proposes or user selects"
         started_at:
           type: timestamp
           required: true
-        last_fragment_at:
-          type: timestamp
-          required: false
-        clarified_at:
+        last_modified_at:
           type: timestamp
           required: false
         committed_at:
           type: timestamp
           required: false
-        expression_id:
+        phasis_id:
           type: string
           required: false
-          description: "Expression ID if committed"
+          description: "Phasis ID if committed"
 
   # utterance — VAD-bounded speech segment
   - eidos: eidos
@@ -196,10 +53,6 @@ entities:
       name: utterance
       description: "VAD-bounded speech segment — atomic unit of voice perception."
       fields:
-        stream_id:
-          type: string
-          required: true
-          description: "The audio stream this utterance came from"
         started_at:
           type: timestamp
           required: true
@@ -224,99 +77,13 @@ entities:
         contributed_to:
           type: string
           required: false
-          description: "Expression ID this utterance contributed to"
+          description: "Phasis ID this utterance contributed to"
 
   # ─────────────────────────────────────────────────────────────
-  # NOTE: Rendering eide moved to genesis/opsis/eide/opsis.yaml
-  # (layout, panel, style-theme, render-intent, workspace,
-  #  render-type, renderer, render-spec, widget)
+  # NOTE: Rendering typos are in genesis/thyra/typos/thyra.yaml
+  # (render-intent, widget, render-spec, authoring-session, etc.)
+  # Opsis topos dissolved — rendering is now thyra responsibility.
   # ─────────────────────────────────────────────────────────────
-
-  # ─────────────────────────────────────────────────────────────
-  # VOICE PIPELINE EIDE — Configuration and state
-  # ─────────────────────────────────────────────────────────────
-
-  # voice-pipeline-config — homoiconic configuration for voice capture
-  - eidos: eidos
-    id: eidos/voice-pipeline-config
-    data:
-      name: voice-pipeline-config
-      description: "Configuration for the voice capture and clarification pipeline. Homoiconic — the config is an entity."
-      fields:
-        name:
-          type: string
-          required: true
-          description: "Config identifier (e.g., 'default', 'high-quality')"
-
-        # Audio capture settings
-        audio_input_device:
-          type: string
-          required: false
-          default: "default"
-          description: "Audio input device ID or 'default'"
-        vad_enabled:
-          type: boolean
-          required: true
-          default: true
-          description: "Enable Voice Activity Detection"
-        vad_silence_duration_ms:
-          type: number
-          required: true
-          default: 2000
-          description: "Silence duration (ms) that ends an utterance"
-        input_mode:
-          type: enum
-          values: [push-to-talk, toggle, always-on]
-          required: true
-          default: toggle
-          description: "How voice capture is activated"
-
-        # Transcription settings
-        transcription_provider:
-          type: enum
-          values: [deepgram, whisper-local, whisper-cloud, assembly-ai]
-          required: true
-          default: deepgram
-          description: "Speech-to-text provider"
-        transcription_language:
-          type: string
-          required: true
-          default: "en"
-        transcription_model:
-          type: string
-          required: false
-          description: "Provider-specific model (e.g., 'nova-2')"
-        transcription_streaming:
-          type: boolean
-          required: true
-          default: true
-          description: "Stream transcripts as they arrive"
-
-        # Clarification settings
-        clarification_enabled:
-          type: boolean
-          required: true
-          default: true
-          description: "Enable LLM clarification of transcripts"
-        clarification_model:
-          type: string
-          required: false
-          default: "claude-3-haiku"
-          description: "Fast model for clarification"
-        clarification_system_prompt:
-          type: string
-          required: false
-          description: "System prompt for clarifier (overrides default)"
-
-        # Activation
-        active:
-          type: boolean
-          required: true
-          default: false
-          description: "Whether this config is currently active"
-        created_at:
-          type: timestamp
-          required: true
 
   # NOTE: Distribution eide (release, release-artifact) are in genesis/release/eide/release.yaml
   # (These duplicates were in thyra but release oikos extracted from dynamis)
@@ -390,56 +157,36 @@ entities:
     data:
       name: perceive
       description: |
-        Perception capability — capturing streams and managing accumulation.
-        Enables opening media streams, sensing their state, and managing
-        the accumulation buffer before commitment. Requires substrate access
-        for media capture.
-      oikos: thyra
+        Perception capability — managing accumulation buffer.
+        Enables managing the accumulation buffer before commitment.
+      topos: thyra
       scope: soma
-      grants:
-        - praxis/thyra/open-stream
-        - praxis/thyra/close-stream
-        - praxis/thyra/sense-stream
-        - praxis/thyra/reconcile-stream
-        - praxis/thyra/list-streams
-        - praxis/thyra/pause-stream
-        - praxis/thyra/resume-stream
-        - praxis/thyra/begin-accumulation
-        - praxis/thyra/append-fragment
-        - praxis/thyra/commit-accumulation
-        - praxis/thyra/abandon-accumulation
-        - praxis/thyra/clear-accumulation
-        - praxis/thyra/get-accumulation
-        - praxis/thyra/list-accumulations
+    bonds:
+      - { desmos: grants-praxis, to: praxis/thyra/begin-accumulation }
+      - { desmos: grants-praxis, to: praxis/thyra/commit-phasis }
+      - { desmos: grants-praxis, to: praxis/thyra/abandon-accumulation }
+      - { desmos: grants-praxis, to: praxis/thyra/clear-accumulation }
+      - { desmos: grants-praxis, to: praxis/thyra/update-accumulation-content }
+      - { desmos: grants-praxis, to: praxis/thyra/get-accumulation }
+      - { desmos: grants-praxis, to: praxis/thyra/list-accumulations }
+      - { desmos: grants-praxis, to: praxis/thyra/clarify-accumulation }
+
+  # NOTE: attainment/express moved to logos topos (THYRA-OIKOS Phase 3)
+  # See genesis/logos/eide/logos.yaml
+
+  # NOTE: attainment/render typos are in genesis/thyra/typos/thyra.yaml
 
   - eidos: attainment
-    id: attainment/express
+    id: attainment/actuate
     data:
-      name: express
+      name: actuate
       description: |
-        Expression capability — creating durable contributions.
-        The commitment boundary — ephemeral becomes durable.
-        Expressions belong to circles and require membership.
-      oikos: thyra
-      scope: circle
-      grants:
-        - praxis/thyra/express
-        - praxis/thyra/reply-to
-        - praxis/thyra/list-expressions
-        - praxis/thyra/get-thread
-
-  # NOTE: attainment/render moved to genesis/opsis/eide/opsis.yaml
-
-  - eidos: attainment
-    id: attainment/emit
-    data:
-      name: emit
-      description: |
-        Filesystem emission capability — writing to chora.
+        Filesystem actuation capability — writing to chora.
         Brings existence into actuality via filesystem write.
         Substrate-local (soma scope) for filesystem access.
-      oikos: thyra
+        (Renamed from emit to disambiguate from genesis/attainment/emit: full-circle emission)
+      topos: thyra
       scope: soma
-      grants:
-        - praxis/thyra/emit
+    bonds:
+      - { desmos: grants-praxis, to: praxis/thyra/emit }
 

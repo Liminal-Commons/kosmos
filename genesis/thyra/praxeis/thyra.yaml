@@ -1,8 +1,10 @@
 # thyra.yaml
 # Thyra praxeis exposed as MCP tools
 #
-# Thyra is the boundary membrane — perception and emission flow.
-# These praxeis enable expression creation and conversation threading.
+# Thyra is the boundary membrane — emission, accumulation, mode switching.
+#
+# NOTE: Phasis praxeis moved to logos topos (THYRA-OIKOS Phase 3)
+# See genesis/logos/praxeis/logos.yaml
 
 entities:
 
@@ -12,8 +14,11 @@ entities:
 
 - eidos: praxis
   id: praxis/thyra/emit
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/actuate
   data:
-    oikos: thyra
+    topos: thyra
     name: emit
     visible: true
     tier: 3
@@ -58,790 +63,13 @@ entities:
         value: "$result"
 
 # =============================================================================
-# EXPRESSION OPERATIONS
+# NOTE: PHASIS OPERATIONS moved to logos topos (THYRA-OIKOS Phase 3)
+# See genesis/logos/praxeis/logos.yaml for:
+#   - logos/emit-phasis (was thyra/express)
+#   - logos/list-phaseis
+#   - logos/reply-to
+#   - logos/get-thread
 # =============================================================================
-
-- eidos: praxis
-  id: praxis/thyra/express
-  data:
-    oikos: thyra
-    name: express
-    visible: true
-    description: |
-      Create an expression — the commitment boundary.
-
-      This is the moment when ephemeral becomes durable.
-      All contributions to the circle become expressions.
-    params:
-      - name: content
-        type: string
-        required: true
-        description: The content being expressed
-      - name: mode
-        type: string
-        required: false
-        description: "Expression mode: declaration, inquiry, suggestion, request, proposal (default: declaration)"
-      - name: in_reply_to
-        type: string
-        required: false
-        description: Expression ID this replies to
-      - name: source_kind
-        type: string
-        required: false
-        description: "How this originated: stream, compose, direct (default: direct)"
-      - name: content_type
-        type: string
-        required: false
-        description: "MIME type (default: text/plain)"
-    steps:
-      # Assert we have dwelling context
-      - step: assert
-        condition: "$_persona"
-        message: "Cannot express without a persona"
-
-      - step: assert
-        condition: "$_circle"
-        message: "Cannot express without dwelling in a circle"
-
-      # Set defaults
-      - step: set
-        bindings:
-          expr_mode: "$mode"
-          expr_source: "$source_kind"
-          expr_content_type: "$content_type"
-
-      - step: switch
-        cases:
-          - when: "$expr_mode"
-            then: []
-        default:
-          - step: set
-            bindings:
-              expr_mode: "declaration"
-
-      - step: switch
-        cases:
-          - when: "$expr_source"
-            then: []
-        default:
-          - step: set
-            bindings:
-              expr_source: "direct"
-
-      - step: switch
-        cases:
-          - when: "$expr_content_type"
-            then: []
-        default:
-          - step: set
-            bindings:
-              expr_content_type: "text/plain"
-
-      # Generate expression ID
-      - step: set
-        bindings:
-          expression_id: "expression/{{ now() }}"
-          expressed_at: "now()"
-
-      # Create the expression (CE4: compose instead of arise)
-      - step: compose
-        typos_id: "typos-def-expression"
-        inputs:
-          id: "$expression_id"
-          content: "$content"
-          content_type: "$expr_content_type"
-          expressed_by: "$_persona.id"
-          circle_id: "$_circle.id"
-          expressed_at: "$expressed_at"
-          source_kind: "$expr_source"
-          mode: "$expr_mode"
-          in_reply_to: "$in_reply_to"
-        bind_to: expression_entity
-
-      # Bond expression to circle
-      - step: bind
-        from_id: "$expression_id"
-        to_id: "$_circle.id"
-        desmos: "expressed-in"
-
-      # Bond to reply target if specified
-      - step: switch
-        cases:
-          - when: "$in_reply_to"
-            then:
-              - step: bind
-                from_id: "$expression_id"
-                to_id: "$in_reply_to"
-                desmos: "in-reply-to"
-
-      - step: return
-        value:
-          expression_id: "$expression_id"
-          expressed_by: "$_persona.id"
-          circle_id: "$_circle.id"
-          mode: "$expr_mode"
-
-- eidos: praxis
-  id: praxis/thyra/list-expressions
-  data:
-    oikos: thyra
-    name: list-expressions
-    visible: true
-    description: |
-      List expressions in a circle.
-
-      Can filter by expressed_by persona or mode.
-    params:
-      - name: circle_id
-        type: string
-        required: false
-        description: Circle to list from (defaults to current circle)
-      - name: expressed_by
-        type: string
-        required: false
-        description: Filter by persona ID
-      - name: mode
-        type: string
-        required: false
-        description: Filter by expression mode
-      - name: limit
-        type: number
-        required: false
-        description: "Maximum expressions to return (default: 50)"
-    steps:
-      # Use provided circle or current
-      - step: set
-        bindings:
-          target_circle: "$circle_id"
-          max_results: "$limit"
-
-      - step: switch
-        cases:
-          - when: "$target_circle"
-            then: []
-        default:
-          - step: set
-            bindings:
-              target_circle: "$_circle.id"
-
-      - step: switch
-        cases:
-          - when: "$max_results"
-            then: []
-        default:
-          - step: set
-            bindings:
-              max_results: 50
-
-      # Gather expressions bonded to circle
-      - step: trace
-        to_id: "$target_circle"
-        desmos: "expressed-in"
-        resolve: "from"
-        bind_to: expressions
-
-      # Filter by expressed_by if specified
-      - step: switch
-        cases:
-          - when: "$expressed_by"
-            then:
-              - step: filter
-                items: "$expressions"
-                condition: "$item.data.expressed_by == '$expressed_by'"
-                bind_to: expressions
-
-      # Filter by mode if specified
-      - step: switch
-        cases:
-          - when: "$mode"
-            then:
-              - step: filter
-                items: "$expressions"
-                condition: "$item.data.mode == '$mode'"
-                bind_to: expressions
-
-      # Sort by expressed_at descending
-      - step: sort
-        items: "$expressions"
-        by: "data.expressed_at"
-        order: "desc"
-        bind_to: expressions
-
-      # Limit results
-      - step: limit
-        items: "$expressions"
-        count: "$max_results"
-        bind_to: expressions
-
-      - step: return
-        value:
-          expressions: "$expressions"
-          circle_id: "$target_circle"
-          count: "${{ len(expressions) }}"
-
-- eidos: praxis
-  id: praxis/thyra/reply-to
-  data:
-    oikos: thyra
-    name: reply-to
-    visible: true
-    description: |
-      Reply to an expression.
-
-      Convenience wrapper around express that sets in_reply_to
-      and validates the target exists.
-    params:
-      - name: expression_id
-        type: string
-        required: true
-        description: The expression to reply to
-      - name: content
-        type: string
-        required: true
-        description: The reply content
-      - name: mode
-        type: string
-        required: false
-        description: "Expression mode (default: declaration)"
-    steps:
-      # Find the target expression
-      - step: find
-        id: "$expression_id"
-        bind_to: target
-
-      - step: assert
-        condition: "$target"
-        message: "Expression not found: $expression_id"
-
-      # Call express with in_reply_to set
-      - step: call
-        praxis: "thyra/express"
-        params:
-          content: "$content"
-          mode: "$mode"
-          in_reply_to: "$expression_id"
-          source_kind: "direct"
-        bind_to: reply_result
-
-      - step: return
-        value:
-          expression_id: "$reply_result.expression_id"
-          in_reply_to: "$expression_id"
-          expressed_by: "$reply_result.expressed_by"
-          mode: "$reply_result.mode"
-
-- eidos: praxis
-  id: praxis/thyra/get-thread
-  data:
-    oikos: thyra
-    name: get-thread
-    visible: true
-    description: |
-      Get a conversation thread from an expression.
-
-      Follows in-reply-to bonds to build the thread.
-    params:
-      - name: expression_id
-        type: string
-        required: true
-        description: The expression to get thread for
-      - name: direction
-        type: string
-        required: false
-        description: "Direction: ancestors (default), descendants, or both"
-    steps:
-      - step: find
-        id: "$expression_id"
-        bind_to: root_expression
-
-      - step: assert
-        condition: "$root_expression"
-        message: "Expression not found: $expression_id"
-
-      # Set default direction
-      - step: set
-        bindings:
-          thread_direction: "$direction"
-
-      - step: switch
-        cases:
-          - when: "$thread_direction"
-            then: []
-        default:
-          - step: set
-            bindings:
-              thread_direction: "ancestors"
-
-      # Build thread based on direction
-      - step: set
-        bindings:
-          ancestors: []
-          descendants: []
-
-      # Get ancestors (what this replies to)
-      - step: switch
-        cases:
-          - when: "$thread_direction == 'ancestors' || $thread_direction == 'both'"
-            then:
-              - step: trace
-                from_id: "$expression_id"
-                desmos: "in-reply-to"
-                resolve: "to"
-                recursive: true
-                bind_to: ancestors
-
-      # Get descendants (what replies to this)
-      - step: switch
-        cases:
-          - when: "$thread_direction == 'descendants' || $thread_direction == 'both'"
-            then:
-              - step: trace
-                to_id: "$expression_id"
-                desmos: "in-reply-to"
-                resolve: "from"
-                recursive: true
-                bind_to: descendants
-
-      - step: return
-        value:
-          expression_id: "$expression_id"
-          expression: "$root_expression"
-          ancestors: "$ancestors"
-          descendants: "$descendants"
-          direction: "$thread_direction"
-
-# =============================================================================
-# STREAM OPERATIONS (Reconciler Pattern)
-# =============================================================================
-
-- eidos: praxis
-  id: praxis/thyra/open-stream
-  data:
-    oikos: thyra
-    name: open-stream
-    visible: true
-    tier: 3
-    description: |
-      Open an inward or outward stream.
-
-      Creates a stream entity with intent=active and reconciles
-      to manifest it in the substrate. Returns immediately with
-      stream entity. Use sense-stream to check actual state.
-    params:
-      - name: kind
-        type: string
-        required: true
-        description: "Stream kind: voice, video, text, document"
-      - name: direction
-        type: string
-        required: true
-        description: "Flow direction: inward (perception), outward (emission)"
-      - name: source
-        type: string
-        required: false
-        description: Source identifier (device ID, file path)
-      - name: sink
-        type: string
-        required: false
-        description: Sink identifier for outward streams
-      - name: config
-        type: object
-        required: false
-        description: Stream-specific configuration
-    steps:
-      # Generate stream ID
-      - step: set
-        bindings:
-          stream_id: "stream/{{ kind }}-{{ direction }}-{{ now() }}"
-          created_at: "now()"
-
-      # Create the stream entity with intent=active (CE4: compose instead of arise)
-      - step: compose
-        typos_id: "typos-def-stream"
-        inputs:
-          id: "$stream_id"
-          kind: "$kind"
-          direction: "$direction"
-          intent: "active"
-          status: "pending"
-          source: "$source"
-          sink: "$sink"
-          config: "$config"
-          created_at: "$created_at"
-        bind_to: stream
-
-      # Bond to circle if dwelling
-      - step: switch
-        cases:
-          - when: "$_circle"
-            then:
-              - step: bind
-                from_id: "$stream_id"
-                to_id: "$_circle.id"
-                desmos: "belongs-to"
-
-      # Reconcile to manifest
-      - step: call
-        praxis: "thyra/reconcile-stream"
-        params:
-          stream_id: "$stream_id"
-        bind_to: reconcile_result
-
-      - step: return
-        value:
-          stream_id: "$stream_id"
-          kind: "$kind"
-          direction: "$direction"
-          action: "$reconcile_result.action"
-
-- eidos: praxis
-  id: praxis/thyra/close-stream
-  data:
-    oikos: thyra
-    name: close-stream
-    visible: true
-    tier: 3
-    description: |
-      Close a stream — set intent to closed and reconcile.
-
-      The clean way to stop a stream. Sets intent, then reconciles
-      to actually stop the substrate process.
-    params:
-      - name: stream_id
-        type: string
-        required: true
-        description: The stream to close
-    steps:
-      - step: find
-        id: "$stream_id"
-        bind_to: stream
-
-      - step: assert
-        condition: "$stream"
-        message: "Stream not found: $stream_id"
-
-      # Set intent to closed
-      - step: update
-        id: "$stream_id"
-        data:
-          intent: "closed"
-
-      # Reconcile to unmanifest
-      - step: call
-        praxis: "thyra/reconcile-stream"
-        params:
-          stream_id: "$stream_id"
-        bind_to: reconcile_result
-
-      - step: return
-        value:
-          stream_id: "$stream_id"
-          closed: true
-          action: "$reconcile_result.action"
-
-- eidos: praxis
-  id: praxis/thyra/sense-stream
-  data:
-    oikos: thyra
-    name: sense-stream
-    visible: true
-    tier: 1
-    description: |
-      Sense the actual state of a stream.
-
-      Queries the substrate to determine what's actually happening
-      with the manifested stream. Does NOT update the entity.
-    params:
-      - name: stream_id
-        type: string
-        required: true
-        description: The stream to sense
-    steps:
-      - step: find
-        id: "$stream_id"
-        bind_to: stream
-
-      - step: assert
-        condition: "$stream"
-        message: "Stream not found: $stream_id"
-
-      # Sense actuality via process status
-      - step: sense_actuality
-        entity_id: "$stream_id"
-        bind_to: actual
-
-      - step: return
-        value:
-          stream_id: "$stream_id"
-          kind: "$stream.data.kind"
-          direction: "$stream.data.direction"
-          intent: "$stream.data.intent"
-          status: "$stream.data.status"
-          actual_running: "$actual.running"
-          manifest_handle: "$stream.data.manifest_handle"
-
-- eidos: praxis
-  id: praxis/thyra/reconcile-stream
-  data:
-    oikos: thyra
-    name: reconcile-stream
-    visible: true
-    tier: 3
-    description: |
-      Reconcile stream intent with actuality.
-
-      The core reconciler praxis:
-      - If intent=active and not manifested → manifest (spawn capture)
-      - If intent=closed and manifested → unmanifest (kill process)
-      - Otherwise → no action needed
-    params:
-      - name: stream_id
-        type: string
-        required: true
-        description: The stream to reconcile
-    steps:
-      - step: find
-        id: "$stream_id"
-        bind_to: stream
-
-      - step: assert
-        condition: "$stream"
-        message: "Stream not found: $stream_id"
-
-      # Sense actual state
-      - step: sense_actuality
-        entity_id: "$stream_id"
-        bind_to: actual
-
-      # Determine intent vs actuality
-      - step: set
-        bindings:
-          intent: "$stream.data.intent"
-          is_running: "$actual.running"
-          action_taken: "none"
-
-      # Case: intent=active but not running → manifest
-      - step: switch
-        cases:
-          - when: '$intent == "active" and not $is_running'
-            then:
-              - step: manifest
-                entity_id: "$stream_id"
-                bind_to: manifest_result
-              - step: update
-                id: "$stream_id"
-                data:
-                  status: "active"
-                  manifest_handle: "$manifest_result.pid"
-                  manifested_at: "{{ now() }}"
-              - step: set
-                bindings:
-                  action_taken: "manifested"
-
-          # Case: intent=closed but still running → unmanifest
-          - when: '$intent == "closed" and $is_running'
-            then:
-              - step: unmanifest
-                entity_id: "$stream_id"
-                bind_to: unmanifest_result
-              - step: update
-                id: "$stream_id"
-                data:
-                  status: "closed"
-                  manifest_handle: null
-                  closed_at: "{{ now() }}"
-              - step: set
-                bindings:
-                  action_taken: "unmanifested"
-
-          # Case: intent=paused → future support
-          - when: '$intent == "paused"'
-            then:
-              - step: update
-                id: "$stream_id"
-                data:
-                  status: "paused"
-              - step: set
-                bindings:
-                  action_taken: "paused"
-
-        default:
-          # Already aligned
-          - step: set
-            bindings:
-              action_taken: "aligned"
-
-      - step: return
-        value:
-          stream_id: "$stream_id"
-          intent: "$intent"
-          actual_running: "$is_running"
-          action: "$action_taken"
-          aligned: '$action_taken == "aligned" or $action_taken == "none"'
-
-- eidos: praxis
-  id: praxis/thyra/list-streams
-  data:
-    oikos: thyra
-    name: list-streams
-    visible: true
-    tier: 1
-    description: |
-      List streams, optionally filtered by kind, direction, or status.
-    params:
-      - name: kind
-        type: string
-        required: false
-        description: Filter by stream kind (voice, video, text, document)
-      - name: direction
-        type: string
-        required: false
-        description: Filter by direction (inward, outward)
-      - name: status
-        type: string
-        required: false
-        description: Filter by status
-      - name: limit
-        type: number
-        required: false
-        description: "Maximum results (default: 50)"
-    steps:
-      - step: set
-        bindings:
-          max_results: "$limit"
-
-      - step: switch
-        cases:
-          - when: "$max_results"
-            then: []
-        default:
-          - step: set
-            bindings:
-              max_results: 50
-
-      # Gather all streams
-      - step: gather
-        eidos: stream
-        bind_to: streams
-
-      # Filter by kind if specified
-      - step: switch
-        cases:
-          - when: "$kind"
-            then:
-              - step: filter
-                items: "$streams"
-                condition: "$item.data.kind == $kind"
-                bind_to: streams
-
-      # Filter by direction if specified
-      - step: switch
-        cases:
-          - when: "$direction"
-            then:
-              - step: filter
-                items: "$streams"
-                condition: "$item.data.direction == $direction"
-                bind_to: streams
-
-      # Filter by status if specified
-      - step: switch
-        cases:
-          - when: "$status"
-            then:
-              - step: filter
-                items: "$streams"
-                condition: "$item.data.status == $status"
-                bind_to: streams
-
-      # Limit results
-      - step: limit
-        items: "$streams"
-        count: "$max_results"
-        bind_to: streams
-
-      - step: return
-        value:
-          streams: "$streams"
-          count: "$streams | length"
-
-- eidos: praxis
-  id: praxis/thyra/pause-stream
-  data:
-    oikos: thyra
-    name: pause-stream
-    visible: true
-    tier: 2
-    description: |
-      Pause a stream — set intent to paused.
-
-      Note: Full pause support requires media actuality mode.
-      For now, this just marks the intent.
-    params:
-      - name: stream_id
-        type: string
-        required: true
-        description: The stream to pause
-    steps:
-      - step: find
-        id: "$stream_id"
-        bind_to: stream
-
-      - step: assert
-        condition: "$stream"
-        message: "Stream not found: $stream_id"
-
-      - step: update
-        id: "$stream_id"
-        data:
-          intent: "paused"
-          status: "paused"
-
-      - step: return
-        value:
-          stream_id: "$stream_id"
-          paused: true
-
-- eidos: praxis
-  id: praxis/thyra/resume-stream
-  data:
-    oikos: thyra
-    name: resume-stream
-    visible: true
-    tier: 3
-    description: |
-      Resume a paused stream — set intent back to active and reconcile.
-    params:
-      - name: stream_id
-        type: string
-        required: true
-        description: The stream to resume
-    steps:
-      - step: find
-        id: "$stream_id"
-        bind_to: stream
-
-      - step: assert
-        condition: "$stream"
-        message: "Stream not found: $stream_id"
-
-      - step: update
-        id: "$stream_id"
-        data:
-          intent: "active"
-
-      # Reconcile to ensure running
-      - step: call
-        praxis: "thyra/reconcile-stream"
-        params:
-          stream_id: "$stream_id"
-        bind_to: reconcile_result
-
-      - step: return
-        value:
-          stream_id: "$stream_id"
-          resumed: true
-          action: "$reconcile_result.action"
 
 # =============================================================================
 # ACCUMULATION OPERATIONS (Buffer Management)
@@ -849,35 +77,25 @@ entities:
 
 - eidos: praxis
   id: praxis/thyra/begin-accumulation
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/perceive
   data:
-    oikos: thyra
+    topos: thyra
     name: begin-accumulation
     visible: true
     tier: 2
     description: |
-      Begin accumulating content from a stream.
+      Begin accumulating content.
 
-      Creates an accumulation entity that acts as a buffer for
-      content awaiting commitment. The clarifier writes to this.
+      Creates an accumulation entity that acts as a composition buffer
+      for content awaiting commitment. Modality-agnostic.
     params:
-      - name: stream_id
-        type: string
-        required: true
-        description: The terminal stream this accumulation belongs to
       - name: initial_content
         type: string
         required: false
         description: Optional initial content
     steps:
-      # Verify stream exists
-      - step: find
-        id: "$stream_id"
-        bind_to: stream
-
-      - step: assert
-        condition: "$stream"
-        message: "Stream not found: $stream_id"
-
       # Generate accumulation ID
       - step: set
         bindings:
@@ -899,9 +117,7 @@ entities:
         typos_id: "typos-def-accumulation"
         inputs:
           id: "$accumulation_id"
-          stream_id: "$stream_id"
           content: "$content"
-          fragments: []
           status: "active"
           started_at: "$started_at"
         bind_to: accumulation
@@ -909,111 +125,36 @@ entities:
       - step: return
         value:
           accumulation_id: "$accumulation_id"
-          stream_id: "$stream_id"
           status: "active"
 
 - eidos: praxis
-  id: praxis/thyra/append-fragment
+  id: praxis/thyra/commit-phasis
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/perceive
   data:
-    oikos: thyra
-    name: append-fragment
-    visible: true
-    tier: 2
-    description: |
-      Append a fragment to an active accumulation.
-
-      Fragments are individual pieces (transcription segments, etc.)
-      that build up the accumulation content.
-    params:
-      - name: accumulation_id
-        type: string
-        required: true
-        description: The accumulation to append to
-      - name: fragment
-        type: string
-        required: true
-        description: The fragment content to append
-      - name: separator
-        type: string
-        required: false
-        description: "Separator between fragments (default: space)"
-    steps:
-      - step: find
-        id: "$accumulation_id"
-        bind_to: accumulation
-
-      - step: assert
-        condition: "$accumulation"
-        message: "Accumulation not found: $accumulation_id"
-
-      - step: assert
-        condition: '$accumulation.data.status == "active"'
-        message: "Accumulation is not active: $accumulation_id"
-
-      # Set default separator
-      - step: set
-        bindings:
-          sep: "$separator"
-
-      - step: switch
-        cases:
-          - when: "$sep"
-            then: []
-        default:
-          - step: set
-            bindings:
-              sep: " "
-
-      # Build new content
-      - step: set
-        bindings:
-          current_content: "$accumulation.data.content"
-          new_content: "$current_content$sep$fragment"
-          fragment_at: "now()"
-
-      # Handle empty initial content
-      - step: switch
-        cases:
-          - when: '$current_content == ""'
-            then:
-              - step: set
-                bindings:
-                  new_content: "$fragment"
-
-      # Update accumulation
-      - step: update
-        id: "$accumulation_id"
-        data:
-          content: "$new_content"
-          last_fragment_at: "$fragment_at"
-
-      - step: return
-        value:
-          accumulation_id: "$accumulation_id"
-          content: "$new_content"
-          fragment_added: "$fragment"
-
-- eidos: praxis
-  id: praxis/thyra/commit-accumulation
-  data:
-    oikos: thyra
-    name: commit-accumulation
+    topos: thyra
+    name: commit-phasis
     visible: true
     tier: 3
     description: |
-      Commit an accumulation — create expression from buffer.
+      Commit a phasis — cross the commitment boundary.
 
-      This is the commitment boundary. The accumulated content
-      becomes a durable expression entity.
+      Takes the accumulated content and commits it as a phasis entity.
+      The accumulation resets after commit (singleton pattern).
     params:
       - name: accumulation_id
         type: string
         required: true
         description: The accumulation to commit
-      - name: mode
+      - name: content
         type: string
         required: false
-        description: "Expression mode (default: declaration)"
+        description: "Content to commit (from UI overlay). If provided, syncs to entity before committing."
+      - name: stance
+        type: string
+        required: false
+        description: "Phasis stance — blank until clarification or user selection"
     steps:
       - step: find
         id: "$accumulation_id"
@@ -1027,44 +168,77 @@ entities:
         condition: '$accumulation.data.status == "active"'
         message: "Accumulation is not active: $accumulation_id"
 
+      # If content was passed from the UI, sync it to the entity first
+      - step: switch
+        cases:
+          - when: "$content"
+            then:
+              - step: update
+                id: "$accumulation_id"
+                data:
+                  content: "$content"
+              - step: find
+                id: "$accumulation_id"
+                bind_to: accumulation
+
       - step: assert
         condition: '$accumulation.data.content != ""'
-        message: "Cannot commit empty accumulation"
+        message: "Cannot commit empty phasis — accumulation is empty"
 
-      # Create expression via thyra/express
+      # Determine source_kind
+      - step: set
+        bindings:
+          commit_source_kind: "direct"
+
+      # Create phasis via logos/emit-phasis
       - step: call
-        praxis: "thyra/express"
+        praxis: "logos/emit-phasis"
         params:
           content: "$accumulation.data.content"
-          mode: "$mode"
-          source_kind: "stream"
+          stance: "$stance"
+          source_kind: "$commit_source_kind"
         bind_to: express_result
 
-      # Update accumulation status
+      # Reset accumulation for reuse (singleton pattern)
+      # Re-compose with empty content (clears both content and _composition_inputs.inputs.content)
+      - step: compose
+        entity_id: "$accumulation_id"
+        inputs:
+          content: ""
+
       - step: update
         id: "$accumulation_id"
         data:
-          status: "committed"
-          committed_at: "{{ now() }}"
-          expression_id: "$express_result.expression_id"
+          status: "active"
 
-      # Bond expression to source stream
-      - step: bind
-        from_id: "$express_result.expression_id"
-        to_id: "$accumulation.data.stream_id"
-        desmos: "derives-from"
+      # Clear transcriber transcript (reset for next utterance cycle)
+      - step: trace
+        from_id: "$accumulation_id"
+        desmos: fed-by-transcriber
+        resolve: to
+        bind_to: transcriber_entities
+
+      - step: switch
+        cases:
+          - when: "$transcriber_entities.0"
+            then:
+              - step: update
+                id: "$transcriber_entities.0.id"
+                data:
+                  transcript: ""
 
       - step: return
         value:
-          expression_id: "$express_result.expression_id"
+          phasis_id: "$express_result.phasis_id"
           accumulation_id: "$accumulation_id"
-          content: "$accumulation.data.content"
-          mode: "$express_result.mode"
 
 - eidos: praxis
   id: praxis/thyra/abandon-accumulation
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/perceive
   data:
-    oikos: thyra
+    topos: thyra
     name: abandon-accumulation
     visible: true
     tier: 2
@@ -1105,8 +279,11 @@ entities:
 
 - eidos: praxis
   id: praxis/thyra/clear-accumulation
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/perceive
   data:
-    oikos: thyra
+    topos: thyra
     name: clear-accumulation
     visible: true
     tier: 2
@@ -1140,8 +317,6 @@ entities:
         id: "$accumulation_id"
         data:
           content: ""
-          fragments: []
-          last_fragment_at: null
 
       - step: return
         value:
@@ -1151,8 +326,11 @@ entities:
 
 - eidos: praxis
   id: praxis/thyra/get-accumulation
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/perceive
   data:
-    oikos: thyra
+    topos: thyra
     name: get-accumulation
     visible: true
     tier: 1
@@ -1177,12 +355,14 @@ entities:
           accumulation: "$accumulation"
           content: "$accumulation.data.content"
           status: "$accumulation.data.status"
-          stream_id: "$accumulation.data.stream_id"
 
 - eidos: praxis
   id: praxis/thyra/list-accumulations
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/perceive
   data:
-    oikos: thyra
+    topos: thyra
     name: list-accumulations
     visible: true
     tier: 1
@@ -1193,10 +373,6 @@ entities:
         type: string
         required: false
         description: "Filter by status (active, committed, abandoned, cleared)"
-      - name: stream_id
-        type: string
-        required: false
-        description: Filter by source stream
       - name: limit
         type: number
         required: false
@@ -1229,16 +405,6 @@ entities:
                 condition: "$item.data.status == $status"
                 bind_to: accumulations
 
-      # Filter by stream_id if specified
-      - step: switch
-        cases:
-          - when: "$stream_id"
-            then:
-              - step: filter
-                items: "$accumulations"
-                condition: "$item.data.stream_id == $stream_id"
-                bind_to: accumulations
-
       - step: limit
         items: "$accumulations"
         count: "$max_results"
@@ -1248,3 +414,613 @@ entities:
         value:
           accumulations: "$accumulations"
           count: "$accumulations | length"
+
+- eidos: praxis
+  id: praxis/thyra/update-accumulation-content
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/perceive
+  data:
+    topos: thyra
+    name: update-accumulation-content
+    visible: true
+    tier: 2
+    description: |
+      Update accumulation content manually.
+
+      Called when user edits the content textarea directly.
+    params:
+      - name: accumulation_id
+        type: string
+        required: true
+        description: The accumulation to update
+      - name: content
+        type: string
+        required: true
+        description: The new content value
+    steps:
+      - step: find
+        id: "$accumulation_id"
+        bind_to: accumulation
+
+      - step: assert
+        condition: "$accumulation"
+        message: "Accumulation not found: $accumulation_id"
+
+      - step: assert
+        condition: '$accumulation.data.status == "active"'
+        message: "Accumulation is not active: $accumulation_id"
+
+      - step: update
+        id: "$accumulation_id"
+        data:
+          content: "$content"
+          last_modified_at: "{{ now() }}"
+
+      - step: return
+        value:
+          accumulation_id: "$accumulation_id"
+          content: "$content"
+          updated: true
+
+- eidos: praxis
+  id: praxis/thyra/update-accumulation-stance
+  data:
+    topos: thyra
+    name: update-accumulation-stance
+    visible: true
+    tier: 2
+    description: |
+      Update accumulation phasis stance.
+
+      Called when user changes the stance selector.
+      Sets the stance field on the accumulation entity (entity-as-source-of-truth).
+    params:
+      - name: accumulation_id
+        type: string
+        required: true
+        description: The accumulation to update
+      - name: stance
+        type: enum
+        values: [declaration, inquiry, suggestion, request, proposal]
+        required: true
+        description: The phasis stance
+    steps:
+      - step: find
+        id: "$accumulation_id"
+        bind_to: accumulation
+
+      - step: assert
+        condition: "$accumulation"
+        message: "Accumulation not found: $accumulation_id"
+
+      - step: assert
+        condition: '$accumulation.data.status == "active"'
+        message: "Accumulation is not active: $accumulation_id"
+
+      - step: update
+        id: "$accumulation_id"
+        data:
+          stance: "$stance"
+
+      - step: return
+        value:
+          accumulation_id: "$accumulation_id"
+          stance: "$stance"
+          updated: true
+
+# =============================================================================
+# MODE SWITCHING
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/thyra/switch-mode
+  data:
+    topos: thyra
+    name: switch-mode
+    visible: true
+    tier: 2
+    description: |
+      Replace one mode with another in a thyra-config's active_modes.
+
+      The layout engine reactively re-renders when the thyra-config entity updates.
+    params:
+      - name: config_id
+        type: string
+        required: true
+        description: The thyra-config entity to update
+      - name: from_mode_id
+        type: string
+        required: true
+        description: The mode to remove
+      - name: to_mode_id
+        type: string
+        required: true
+        description: The mode to add in its place
+    steps:
+      - step: find
+        id: "$config_id"
+        bind_to: config
+
+      - step: assert
+        condition: "$config"
+        message: "Thyra config not found: $config_id"
+
+      # Verify to_mode exists
+      - step: find
+        id: "$to_mode_id"
+        bind_to: to_mode
+
+      - step: assert
+        condition: "$to_mode"
+        message: "Target mode not found: $to_mode_id"
+
+      # Get current active_modes, remove the old mode, add the new one
+      - step: filter
+        items: "$config.data.active_modes"
+        condition: "$item != $from_mode_id"
+        bind_to: filtered_modes
+
+      # Build new modes via array concatenation (append step lacks bind_to)
+      - step: set
+        bindings:
+          new_modes: "$filtered_modes + [$to_mode_id]"
+
+      # Update with filtered list + new mode appended
+      - step: update
+        id: "$config_id"
+        data:
+          active_modes: "$new_modes"
+
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Switched mode from $from_mode_id to $to_mode_id"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: thyra-config
+            source_id: "$config_id"
+
+      - step: return
+        value:
+          config_id: "$config_id"
+          from_mode_id: "$from_mode_id"
+          to_mode_id: "$to_mode_id"
+          active_modes: "$new_modes"
+
+- eidos: praxis
+  id: praxis/thyra/switch-config
+  data:
+    topos: thyra
+    name: switch-config
+    visible: true
+    tier: 2
+    description: |
+      Switch the active thyra-config, changing which modes are rendered.
+
+      The layout engine watches the active config entity reactively.
+      Updating the preference triggers re-render with the new config's modes.
+    params:
+      - name: config_id
+        type: string
+        required: true
+        description: "ID of the thyra-config to activate (e.g., thyra-config/workspace, thyra-config/hud)"
+    steps:
+      - step: find
+        id: "$config_id"
+        bind_to: target_config
+
+      - step: assert
+        condition: "$target_config"
+        message: "Thyra config not found: $config_id"
+
+      # Update the well-known preference entity that the layout engine watches
+      - step: find
+        id: "preference/thyra-active-config"
+        bind_to: pref
+
+      - step: switch
+        cases:
+          - when: "$pref"
+            then:
+              - step: update
+                id: "preference/thyra-active-config"
+                data:
+                  value: "$config_id"
+        default:
+          - step: compose
+            typos_id: typos-def-preference
+            id: "preference/thyra-active-config"
+            inputs:
+              name: thyra-active-config
+              value: "$config_id"
+
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Switched to thyra config $config_id"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: thyra-config
+            source_id: "$config_id"
+
+      - step: return
+        value:
+          config_id: "$config_id"
+          active_modes: "$target_config.data.active_modes"
+
+# =============================================================================
+# COMPOSITION FROM PHASIS
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/thyra/compose-artifact
+  data:
+    topos: thyra
+    name: compose-artifact
+    visible: true
+    tier: 3
+    description: |
+      Compose an artifact from a user-provided prompt.
+
+      The user's typed text becomes the input to governed inference
+      via a typos definition. The composed content is emitted as
+      a phasis. The accumulation resets after composing.
+    params:
+      - name: accumulation_id
+        type: string
+        required: true
+        description: The accumulation entity (for reset after composing)
+      - name: prompt
+        type: string
+        required: true
+        description: The user's text — becomes the generation prompt
+    steps:
+      - step: assert
+        condition: "$prompt"
+        message: "Prompt is required"
+
+      # Compose via typos — LLM generates content from the prompt
+      - step: compose
+        typos_id: "typos/compose-from-prompt"
+        inputs:
+          prompt: "$prompt"
+        bind_to: composed
+
+      # Extract the generated content
+      - step: set
+        bindings:
+          composed_content: "$composed.generation.content"
+
+      - step: assert
+        condition: "$composed_content"
+        message: "Composition produced no content"
+
+      # Emit as phasis — appears in the feed
+      - step: call
+        praxis: "logos/emit-phasis"
+        params:
+          content: "$composed_content"
+          stance: "declaration"
+          source_kind: "composed"
+        bind_to: express_result
+
+      # Reset accumulation for reuse
+      - step: update
+        id: "$accumulation_id"
+        data:
+          content: ""
+
+      - step: return
+        value:
+          phasis_id: "$express_result.phasis_id"
+          accumulation_id: "$accumulation_id"
+          composed_content: "$composed_content"
+
+# =============================================================================
+# LITERAL FILL — Three Sources, One Pattern
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/thyra/flush-transcript
+  data:
+    topos: thyra
+    name: flush-transcript
+    visible: false
+    tier: 2
+    description: |
+      Flush transcriber transcript to accumulation literal input.
+
+      Reads the transcriber's transcript buffer, appends it to the
+      accumulation's _composition_inputs.inputs.content, re-composes,
+      and clears the buffer. Called by the flush-transcript reflex.
+    steps:
+      # 1. Find the accumulation entity
+      - step: find
+        id: "accumulation/default"
+        bind_to: accumulation
+
+      - step: assert
+        condition: "$accumulation"
+        message: "accumulation/default not found"
+
+      # 2. Trace fed-by-transcriber bond to get transcriber
+      - step: trace
+        from_id: "accumulation/default"
+        desmos: fed-by-transcriber
+        resolve: to
+        bind_to: transcriber_entities
+
+      - step: assert
+        condition: "$transcriber_entities.0"
+        message: "No transcriber bonded via fed-by-transcriber"
+
+      - step: set
+        bindings:
+          transcriber: "$transcriber_entities.0"
+
+      # 3. Read transcript
+      - step: set
+        bindings:
+          transcript: "$transcriber.data.transcript"
+
+      # 4. Only flush if transcript is non-empty
+      - step: switch
+        cases:
+          - when: '$transcript != ""'
+            then:
+              # 5. Get existing content from composition inputs
+              - step: set
+                bindings:
+                  existing_content: "$accumulation.data._composition_inputs.inputs.content"
+
+              # 6. Build new content (append with space if existing is non-empty)
+              - step: set
+                bindings:
+                  new_content: "$transcript"
+
+              - step: switch
+                cases:
+                  - when: '$existing_content != ""'
+                    then:
+                      - step: set
+                        bindings:
+                          new_content: '$existing_content + " " + $transcript'
+
+              # 7. Re-compose with merged inputs
+              - step: compose
+                entity_id: "accumulation/default"
+                inputs:
+                  content: "$new_content"
+
+              # 8. Clear transcriber transcript
+              - step: update
+                id: "$transcriber.id"
+                data:
+                  transcript: ""
+
+      - step: return
+        value:
+          flushed: true
+
+- eidos: praxis
+  id: praxis/thyra/sync-compose-content
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/perceive
+  data:
+    topos: thyra
+    name: sync-compose-content
+    visible: false
+    tier: 2
+    description: |
+      Sync textarea content to accumulation literal composition input.
+
+      Called before mode switches and other operations that need
+      the DOM content reflected in the entity state.
+    params:
+      - name: content
+        type: string
+        required: true
+        description: "Current textarea content (from $form.content)"
+    steps:
+      - step: compose
+        entity_id: "accumulation/default"
+        inputs:
+          content: "$content"
+
+      - step: return
+        value:
+          synced: true
+
+- eidos: praxis
+  id: praxis/thyra/switch-compose-mode
+  data:
+    topos: thyra
+    name: switch-compose-mode
+    visible: false
+    tier: 2
+    description: |
+      Switch compose bar mode based on transcriber desired state.
+
+      When transcriber.desired_state transitions to "active", switch from
+      compose-full to compose-transcribing. When it transitions to "closed",
+      switch back. Finds active thyra-config(s) and updates each.
+    params:
+      - name: transcriber_desired_state
+        type: string
+        required: true
+        description: "The transcriber's new desired_state (active or closed)"
+    steps:
+      # Determine from/to modes based on desired_state
+      - step: switch
+        cases:
+          - when: '$transcriber_desired_state == "active"'
+            then:
+              - step: set
+                bindings:
+                  from_mode: "mode/compose-full"
+                  to_mode: "mode/compose-transcribing"
+          - when: '$transcriber_desired_state == "closed"'
+            then:
+              - step: set
+                bindings:
+                  from_mode: "mode/compose-transcribing"
+                  to_mode: "mode/compose-full"
+        default:
+          - step: return
+            value:
+              switched: false
+              reason: "Unknown desired_state"
+
+      # Find all thyra-config entities and update each
+      - step: gather
+        eidos: thyra-config
+        bind_to: configs
+
+      - step: for_each
+        items: "$configs"
+        as: config
+        do:
+          # Check if this config has the from_mode
+          - step: filter
+            items: "$config.data.active_modes"
+            condition: "$item == $from_mode"
+            bind_to: matching_modes
+
+          - step: switch
+            cases:
+              - when: "$matching_modes.0"
+                then:
+                  # from_mode is present — filter it out and add to_mode
+                  - step: filter
+                    items: "$config.data.active_modes"
+                    condition: "$item != $from_mode"
+                    bind_to: filtered_modes
+
+                  # Build new modes via array concatenation
+                  - step: set
+                    bindings:
+                      new_modes: "$filtered_modes + [$to_mode]"
+
+                  - step: update
+                    id: "$config.id"
+                    data:
+                      active_modes: "$new_modes"
+
+      - step: return
+        value:
+          switched: true
+          from_mode: "$from_mode"
+          to_mode: "$to_mode"
+
+# =============================================================================
+# CLARIFICATION
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/thyra/clarify-accumulation
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/perceive
+  data:
+    topos: thyra
+    name: clarify-accumulation
+    visible: true
+    tier: 3
+    description: |
+      Clarify accumulation content via governed inference.
+
+      Reads from _composition_inputs.inputs.content (literal input),
+      passes to manteia, writes clarified version back via re-compose.
+      Creates a clarified-by bond for audit trail.
+    params:
+      - name: accumulation_id
+        type: string
+        required: true
+        description: The accumulation to clarify
+      - name: content
+        type: string
+        required: false
+        description: "Current textarea content (from $form.content). Synced to entity before reading."
+    steps:
+      - step: find
+        id: "$accumulation_id"
+        bind_to: accumulation
+
+      - step: assert
+        condition: "$accumulation"
+        message: "Accumulation not found: $accumulation_id"
+
+      # If content was passed from the UI, sync it to the entity first
+      - step: switch
+        cases:
+          - when: "$content"
+            then:
+              - step: compose
+                entity_id: "$accumulation_id"
+                inputs:
+                  content: "$content"
+              - step: find
+                id: "$accumulation_id"
+                bind_to: accumulation
+
+      # Read content from literal input
+      - step: set
+        bindings:
+          current_content: "$accumulation.data._composition_inputs.inputs.content"
+
+      - step: assert
+        condition: "$current_content"
+        message: "Content is empty — nothing to clarify"
+
+      # Compose via typos — schema-enforced clarification (T9)
+      - step: compose
+        typos_id: "typos/clarify-phasis"
+        inputs:
+          raw_content: "$current_content"
+        bind_to: composed
+
+      - step: set
+        bindings:
+          clarified_content: "$composed.clarification.content"
+          detected_stance: "$composed.clarification.stance"
+
+      - step: assert
+        condition: "$clarified_content"
+        message: "Clarification produced no content"
+
+      # Write clarified content back via re-compose (updates literal input + content)
+      - step: compose
+        entity_id: "$accumulation_id"
+        inputs:
+          content: "$clarified_content"
+
+      # Update stance separately (not part of composition)
+      - step: update
+        id: "$accumulation_id"
+        data:
+          stance: "$detected_stance"
+
+      # Create clarified-by bond for audit trail
+      - step: switch
+        cases:
+          - when: "$composed.id"
+            then:
+              - step: bind
+                from_id: "$accumulation_id"
+                to_id: "$composed.id"
+                desmos: "clarified-by"
+
+      - step: return
+        value:
+          accumulation_id: "$accumulation_id"
+          original_content: "$current_content"
+          clarified_content: "$clarified_content"
+          detected_stance: "$detected_stance"
+
+

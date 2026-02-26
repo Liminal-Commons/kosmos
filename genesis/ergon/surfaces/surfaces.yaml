@@ -1,0 +1,21 @@
+# Ergon Surface Contracts
+
+entities:
+
+  - eidos: surface
+    id: surface/coordination
+    data:
+      surface_id: coordination
+      description: |
+        Task coordination and pragma management.
+
+        Consumers of this surface can create, list, accept, and resolve
+        pragmata — actionable work items that coordinate activity
+        between prosopa in an oikos.
+      praxeis:
+        - praxis/ergon/create-pragma
+        - praxis/ergon/list-pragma
+        - praxis/ergon/accept-pragma
+        - praxis/ergon/resolve-pragma
+        - praxis/ergon/sense-pragma
+      version: "1.0"

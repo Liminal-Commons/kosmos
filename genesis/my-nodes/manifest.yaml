@@ -1,0 +1,45 @@
+# Mode Topos: My Nodes
+# Infrastructure awareness — viewing nodes, services, and connections
+#
+# Uses artifact-based rendering via typos composition.
+# The typos queries entities and composes HTML with caching.
+
+format_version: "2.1"
+topos_id: mode/my-nodes
+version: "0.1.0"
+
+# Topos metadata
+topos_name: My Nodes
+topos_description: |
+  Infrastructure awareness mode for dwelling.
+  Shows kosmos nodes, services, and connection status.
+  Rendered as a composed artifact with automatic cache invalidation.
+topos_scale: mode
+topos_category: mode
+
+# What eide this mode displays
+surfaces_consumed:
+  - node               # From soma
+  - service-instance   # From soma
+  - kosmos-instance    # From soma
+
+# Dependencies on other oikoi
+depends_on:
+  - soma       # Provides node, service-instance, kosmos-instance eide
+  - demiurge   # Provides composition + caching infrastructure
+  - thyra      # Provides artifact widget
+
+content_paths:
+  - path: typos/
+    content_types: [typos]
+  - path: entities/
+    content_types: [mode]
+  - path: render-specs/
+    content_types: [render-spec]
+
+provides:
+  typos:
+    - my-nodes-view
+
+  layouts:
+    - my-nodes

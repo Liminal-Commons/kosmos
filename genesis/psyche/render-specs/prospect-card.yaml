@@ -1,0 +1,110 @@
+# Prospect Card Render-Spec
+# Anticipated possibility card
+#
+# Prospect fields:
+#   - description (string): What is foreseen
+#   - likelihood (number): How likely (0-1)
+#   - valence (enum): positive | negative | neutral
+#   - horizon (string): When this might occur
+#   - noted_at (datetime): When this prospect was recognized
+#
+# Traces to: genesis/demiurge/THYRA-EVOLUTION.md
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/prospect-card
+    data:
+      name: prospect-card
+      description: |
+        Anticipated possibility card showing what the experiencing
+        self foresees as potential futures.
+      target_eidos: prospect
+      variant: card
+
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+          children:
+            - widget: stack
+              props:
+                gap: sm
+              children:
+                # Header with valence-specific display
+                - widget: row
+                  props:
+                    justify: between
+                    align: center
+                  children:
+                    - widget: row
+                      props:
+                        gap: sm
+                        align: center
+                      children:
+                        # Valence-specific icons
+                        - widget: icon
+                          when: "valence == 'positive'"
+                          props:
+                            name: arrow-up
+                            size: md
+                            color: success
+                        - widget: icon
+                          when: "valence == 'negative'"
+                          props:
+                            name: arrow-down
+                            size: md
+                            color: error
+                        - widget: icon
+                          when: "valence == 'neutral'"
+                          props:
+                            name: circle
+                            size: md
+
+                        - widget: text
+                          props:
+                            content: "Prospect"
+                            variant: emphasis
+
+                    # Valence badge
+                    - widget: badge
+                      when: "valence == 'positive'"
+                      props:
+                        content: "Positive"
+                        variant: success
+                    - widget: badge
+                      when: "valence == 'negative'"
+                      props:
+                        content: "Risk"
+                        variant: error
+                    - widget: badge
+                      when: "valence == 'neutral'"
+                      props:
+                        content: "Neutral"
+                        variant: default
+
+                # Description
+                - widget: text
+                  props:
+                    content: "{description}"
+                    variant: body
+
+                # Likelihood and horizon
+                - widget: row
+                  props:
+                    justify: between
+                    align: center
+                  children:
+                    - widget: progress
+                      props:
+                        value: "{likelihood}"
+                        variant: bar
+
+                    - widget: badge
+                      when: "horizon"
+                      props:
+                        content: "{horizon}"
+                        variant: info
+
+      created_at: "2026-02-03T00:00:00Z"

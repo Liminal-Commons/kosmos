@@ -21,9 +21,9 @@ With manteia:
 
 The oracle speaks in structured forms. The schema constrains the prophecy.
 
-## Circle Context
+## Oikos Context
 
-### Self Circle
+### Self Oikos
 
 A solitary dweller uses manteia to:
 - Generate entity data constrained to eidos schemas (notes, theoria, insights)
@@ -33,7 +33,7 @@ A solitary dweller uses manteia to:
 
 Inference is the primary creative act when structure is required.
 
-### Peer Circle
+### Peer Oikos
 
 Collaborators use manteia to:
 - Generate shared artifacts with consistent structure
@@ -43,9 +43,9 @@ Collaborators use manteia to:
 
 Governed envelopes provide quality assurance for shared artifacts.
 
-### Commons Circle
+### Commons Oikos
 
-A commons circle uses manteia to:
+A commons oikos uses manteia to:
 - Define evaluation criteria for generation quality gates
 - Generate canonical typoi for distribution
 - Maintain generation quality standards
@@ -207,7 +207,7 @@ List all available step types with descriptions.
 Core governed inference capability — schema-constrained generation.
 
 - **Grants:** governed-inference, generate-entity, get-stoicheion-schema, list-stoicheia
-- **Scope:** circle
+- **Scope:** oikos
 - **Rationale:** Basic inference with schema constraints is the fundamental manteia capability
 
 ### attainment/generate-meta
@@ -215,7 +215,7 @@ Core governed inference capability — schema-constrained generation.
 Meta-level generation capability — creating kosmos definitions.
 
 - **Grants:** generate-step, generate-praxis, generate-typos
-- **Scope:** circle
+- **Scope:** oikos
 - **Rationale:** Generating definitions that alter kosmos behavior requires explicit authorization
 
 ## Inference Context Composition
@@ -232,10 +232,10 @@ What goes into an inference call can be decomposed:
 |-----------|--------|---------|
 | Schema source | Eidos or typos | What structured output we want |
 | Domain theoria | Graph surface query | Relevant crystallized understanding |
-| Role/persona | Slot default or input | How to reason about this |
+| Role/prosopon | Slot default or input | How to reason about this |
 | Constraints | Array of guardrails | What to avoid or enforce |
 | Input artifacts | Entity IDs | Primary subjects being worked on |
-| Human expression | Expression entity | What the human said/wants |
+| Human phasis | Phasis entity | What the human said/wants |
 | Additional context | Graph traversal | Supporting entities |
 | Context depth | Number | How deep to follow bonds |
 | Request | String | The actual instruction |
@@ -244,7 +244,7 @@ Each component is a slot. The inference context is a typos. Composition assemble
 
 ### The Base Typos
 
-`typos-def-inference-context` (defined in `spora/definitions/manteia.yaml`) provides the base pattern:
+`typos-def-inference-context` (defined in `manteia/typos/manteia.yaml`) provides the base pattern:
 
 ```yaml
 - eidos: typos
@@ -258,12 +258,12 @@ Each component is a slot. The inference context is a typos. Composition assemble
       # SYSTEM PROMPT COMPONENTS
       schema_source:      # Entity ID of eidos/typos for output schema
       domain_theoria:     # Query spec to surface relevant theoria
-      role:               # Persona for the inference
+      role:               # Prosopon for the inference
       constraints:        # Explicit guardrails on generation
 
       # USER PROMPT COMPONENTS
       input_artifacts:    # Entity IDs of primary subjects
-      human_expression:   # Entity ID of the driving expression
+      human_phasis:       # Entity ID of the driving phasis
       additional_context: # Query spec for supporting entities
       context_depth:      # Bond traversal depth (default 1)
       request:            # The actual instruction
@@ -276,7 +276,7 @@ Each component is a slot. The inference context is a typos. Composition assemble
 
 ### Domain Extensions
 
-Oikoi extend the base with domain-appropriate defaults:
+Topoi extend the base with domain-appropriate defaults:
 
 **typos-inference-update-artifact** (voice-authoring):
 ```yaml
@@ -293,7 +293,7 @@ slots:
       - "Make minimal changes to achieve the intent"
 ```
 
-**typos-inference-eidos** (oikos generation):
+**typos-inference-eidos** (topos generation):
 ```yaml
 extends: typos-def-inference-context
 slots:
@@ -308,7 +308,7 @@ slots:
       - "Consider what bonds this eidos will participate in"
 ```
 
-See `spora/definitions/manteia.yaml` and `spora/definitions/oikos-generation.yaml` for the full catalog.
+See `manteia/typos/manteia.yaml` and `demiurge/typos/oikos-generation.yaml` for the full catalog.
 
 ### The Canonical Usage Pattern
 
@@ -339,22 +339,22 @@ The inference context is composed like any artifact. Then governed-inference rec
 
 ### The Reasoning Surface
 
-Manteia provides the **reasoning** surface — the capability for governed inference. Other oikoi consume this surface:
+Manteia provides the **reasoning** surface — the capability for governed inference. Other topoi consume this surface:
 
 | Consumer | What They Do |
 |----------|--------------|
 | demiurge | Generate eidos, praxis, desmos definitions |
 | nous | Invoke for theoria synthesis |
-| voice-authoring | Update artifacts from expressions |
+| voice-authoring | Update artifacts from phaseis |
 | dokimasia | Generate test cases |
 
-The surface pattern (`surfaces_provided: [reasoning]` in manifest) makes this dependency explicit. Oikoi that consume reasoning extend `typos-def-inference-context` with their domain defaults.
+The surface pattern (`surfaces_provided: [reasoning]` in manifest) makes this dependency explicit. Topoi that consume reasoning extend `typos-def-inference-context` with their domain defaults.
 
 ### Why This Matters
 
 1. **Prompts are inspectable** — The inference context is an entity. You can see exactly what inference saw.
 
-2. **Prompts are composable** — Theoria, artifacts, expressions all flow in through graph operations, not string concatenation.
+2. **Prompts are composable** — Theoria, artifacts, phaseis all flow in through graph operations, not string concatenation.
 
 3. **Domain knowledge accumulates** — As theoria crystallizes, inference contexts automatically incorporate it via `domain_theoria` queries.
 

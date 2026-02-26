@@ -16,13 +16,13 @@ With credentials:
 - **Encrypted storage**: AES-256-GCM at rest
 - **Attainment integration**: Unlocked key → granted capability
 - **Session lifecycle**: Unlock → use → lock
-- **Scope control**: Persona or circle level access
+- **Scope control**: Prosopon or oikos level access
 
 The central concept is **the capability bridge** — external credentials become internal attainments.
 
-## Circle Context
+## Oikos Context
 
-### Self Circle
+### Self Oikos
 
 A solitary dweller uses credentials to:
 - Store personal API keys securely
@@ -32,17 +32,17 @@ A solitary dweller uses credentials to:
 
 Personal credentials are private capability.
 
-### Peer Circle
+### Peer Oikos
 
 Collaborators use credentials to:
-- Share circle-scoped credentials
+- Share oikos-scoped credentials
 - Coordinate API key rotation
 - Audit credential usage
 - Manage team service accounts
 
 Peer credentials are shared resources.
 
-### Commons Circle
+### Commons Oikos
 
 A commons uses credentials to:
 - Define credential policies
@@ -64,7 +64,7 @@ An encrypted external service credential with attainment integration.
 - `encrypted_value` — AES-256-GCM encrypted value (base64)
 - `salt` — per-credential salt for key derivation
 - `label` — human-readable label (e.g., 'My OpenAI Key')
-- `scope` — who can use (persona, circle)
+- `scope` — who can use (prosopon, oikos)
 - `grants_attainment` — attainment granted when unlocked
 - `status` — active, revoked, expired
 - `last_used_at` — tracking
@@ -79,15 +79,23 @@ An encrypted external service credential with attainment integration.
 
 ## Bonds (Desmoi)
 
-Credentials uses bonds defined elsewhere:
-
 ### owned-by (from politeia)
 
-Credential owned by persona or circle.
+Credential owned by prosopon or oikos.
 
 - **From:** credential
-- **To:** persona or circle
+- **To:** prosopon or oikos
 - **Semantics:** This credential belongs to this owner
+
+### authenticates (from soma)
+
+Credential authenticates a provider.
+
+- **From:** credential
+- **To:** provider
+- **Semantics:** This credential grants access to this provider's API
+- **Traversal:** Which provider does this credential authenticate? What credentials can access this provider?
+- **Note:** The `authenticates` desmos connects the credentials topos to the inference substrate. When a credential entity's `service` field matches a provider entity's `credential_config.service`, this bond makes the relationship graph-traversable.
 
 ## Operations (Praxeis)
 
@@ -131,18 +139,19 @@ List credentials (without values).
 Capability to add and remove external service credentials.
 
 - **Grants:** add-credential, remove-credential
-- **Scope:** persona
+- **Scope:** prosopon
 - **Rationale:** Credentials are personal; only the owner manages them
 
 ### Dynamic attainments (granted by credentials)
 
-When a credential is unlocked, it grants its `grants_attainment` value:
+When a credential is unlocked, it grants its `grants_attainment` value. These attainments are defined by provider entities in soma — each provider's `credential_config.grants_attainment` field declares what capability the credential unlocks:
 
-- `use-embedding-api` — granted by OpenAI/Anthropic credentials
+- `use-anthropic-api` — granted by Anthropic credentials (provider/anthropic)
+- `use-openai-api` — granted by OpenAI credentials (provider/openai)
 - `use-storage-api` — granted by Cloudflare R2 credentials
 - `use-dns-api` — granted by DNS provider credentials
 
-These are checked by praxeis requiring external services.
+These are checked by praxeis requiring external services. The attainment name comes from the provider entity, not from credential code — adding a new provider automatically defines its attainment.
 
 ## Embodiment
 
@@ -153,8 +162,8 @@ These are checked by praxeis requiring external services.
 | Defined | 1 eidos, 1 attainment via hypostasis |
 | Loaded | Bootstrap loads definition |
 | Projected | Praxeis visible as MCP tools |
-| Embodied | Partial — encryption implemented |
-| Surfaced | Future — credential manager UI |
+| Embodied | Encryption implemented, credential-manager widget discovers providers from graph |
+| Surfaced | Credential-manager widget in settings panel |
 | Afforded | Future — one-click unlock |
 
 ### Body-Schema Contribution
@@ -166,9 +175,10 @@ credentials:
   stored_count: 5
   unlocked_count: 3
   granted_attainments:
-    - use-embedding-api
+    - use-anthropic-api
+    - use-openai-api
     - use-storage-api
-  services: ["openai", "cloudflare"]
+  services: ["anthropic", "openai", "cloudflare"]
 ```
 
 This reveals session capability state.
@@ -179,9 +189,9 @@ This reveals session capability state.
 
 Hypostasis provides kleidoura (encrypted keyring); credentials extends this pattern to external services. Same encryption, different purpose.
 
-### amplifies manteia
+### amplifies soma/inference
 
-Manteia needs LLM access. Credentials grants `use-embedding-api` which manteia checks before calling inference. No credential → no inference.
+Soma's provider entities define what services exist. Credentials grants provider-specific attainments (e.g., `use-anthropic-api`) which inference steps check before calling APIs. No credential → no inference. The credential-manager widget discovers providers from the graph via `gatherEntities("provider")`.
 
 ### amplifies dynamis
 
@@ -203,7 +213,11 @@ Credentials live encrypted in kosmos. Decrypted values exist only in chora sessi
 
 ### T81: Attainment unifies capability sources
 
-Whether capability comes from circle membership (politeia) or credential unlock (credentials), praxeis check attainments uniformly. The source differs; the check is the same.
+Whether capability comes from oikos membership (politeia) or credential unlock (credentials), praxeis check attainments uniformly. The source differs; the check is the same.
+
+### T82: Provider entities make credential config graph-driven
+
+Credential service presets (what to call the service, how to label it, what attainment to grant) are not hardcoded in the UI — they come from provider entities in the graph. The credential-manager widget discovers providers via `gatherEntities("provider")` and reads `credential_config` from each. Adding a provider to genesis automatically updates the credential UI.
 
 ---
 

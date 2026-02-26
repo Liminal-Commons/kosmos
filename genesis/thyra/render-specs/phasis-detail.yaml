@@ -1,0 +1,82 @@
+# Thyra Render Specifications — phasis detail
+#
+# Detail view for phasis — full content with context.
+# Shows author with stance, timestamp with oikos, content block,
+# reply-to reference, and entity id.
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/phasis
+    data:
+      name: phasis-detail
+      description: "Detail view for phasis — full content with context"
+      target_eidos: phasis
+      variant: detail
+
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+          children:
+            - widget: stack
+              props:
+                gap: sm
+              children:
+                # Author row: name + stance badge
+                - widget: row
+                  props:
+                    gap: sm
+                    align: center
+                  children:
+                    - widget: text
+                      props:
+                        content: "{authored_by}"
+                        variant: emphasis
+                    - widget: badge
+                      props:
+                        content: "{stance}"
+                        variant: "{stance}"
+                      when: "stance"
+
+                # Meta row: timestamp + oikos
+                - widget: row
+                  props:
+                    gap: sm
+                    align: center
+                  children:
+                    - widget: text
+                      props:
+                        content: "{expressed_at}"
+                        variant: caption
+                    - widget: text
+                      props:
+                        content: "in {oikos_id}"
+                        variant: caption
+
+                # Divider
+                - widget: divider
+
+                # Content block
+                - widget: text
+                  props:
+                    content: "{content}"
+                    variant: body
+
+                # Reply-to reference
+                - widget: text
+                  props:
+                    content: "Reply to: {in_reply_to}"
+                    variant: caption
+                  when: "in_reply_to"
+
+                # Divider before footer
+                - widget: divider
+
+                # Entity ID
+                - widget: code
+                  props:
+                    content: "{id}"
+
+      created_at: "2026-02-09T00:00:00Z"

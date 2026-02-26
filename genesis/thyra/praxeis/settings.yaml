@@ -1,0 +1,126 @@
+# Settings Praxeis
+# Toggle and close operations for the settings panel.
+#
+# toggle-settings: flip open field, populate audio devices when opening.
+# close-settings: set open to false.
+#
+# Traces to: PROMPT-SETTINGS-PANEL-ONTOLOGY.md
+
+entities:
+
+# =============================================================================
+# TOGGLE SETTINGS
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/thyra/toggle-settings
+  data:
+    topos: thyra
+    name: toggle-settings
+    visible: true
+    tier: 2
+    description: |
+      Toggle settings panel open/closed.
+
+      When opening: invokes soma/list-audio-devices and stores the result
+      on audio-source/default.available_devices so the select widget can
+      bind to it. When closing: simply sets open to false.
+    params: []
+    steps:
+      # Find settings entity
+      - step: find
+        id: "settings-panel/default"
+        bind_to: settings
+
+      - step: assert
+        condition: "$settings"
+        message: "settings-panel/default not found"
+
+      # Read current state
+      - step: set
+        bindings:
+          current_open: "$settings.data.open"
+
+      # Toggle
+      - step: switch
+        cases:
+          - when: "$current_open"
+            then:
+              # Close
+              - step: update
+                id: "settings-panel/default"
+                data:
+                  open: false
+          - when: "not $current_open"
+            then:
+              # Open — populate audio devices first
+              - step: try
+                do:
+                  - step: call
+                    praxis: "soma/list-audio-devices"
+                    bind_to: audio_result
+
+                  # Transform device list to {value, label} format for select widget
+                  - step: set
+                    bindings:
+                      default_option:
+                        - value: default
+                          label: System Default
+
+                  - step: map
+                    items: "$audio_result.devices"
+                    item_var: dev
+                    transform:
+                      value: "$dev.id"
+                      label: "$dev.name"
+                    bind_to: device_options
+
+                  - step: set
+                    bindings:
+                      all_options: "$default_option + $device_options"
+
+                  - step: update
+                    id: "audio-source/default"
+                    data:
+                      available_devices: "$all_options"
+                catch:
+                  - step: log
+                    message: "Failed to load audio devices: $_error"
+
+              # Now open settings
+              - step: update
+                id: "settings-panel/default"
+                data:
+                  open: true
+
+      - step: return
+        value:
+          toggled: true
+
+# =============================================================================
+# CLOSE SETTINGS
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/thyra/close-settings
+  data:
+    topos: thyra
+    name: close-settings
+    visible: true
+    tier: 2
+    description: |
+      Close the settings panel. Sets open to false.
+    params:
+      - name: entity_id
+        type: string
+        required: false
+        description: "Settings panel entity ID (unused, for render-spec param compatibility)"
+    steps:
+      - step: update
+        id: "settings-panel/default"
+        data:
+          open: false
+
+      - step: return
+        value:
+          closed: true

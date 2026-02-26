@@ -1,0 +1,46 @@
+# Dokimasia Reflexes — Drift Detection
+# Autonomic responses for graph integrity validation drift
+#
+# Traces to: docs/reference/daemon-runner.md
+# Authorized by: phasis/genesis-root
+
+entities:
+
+  # =============================================================================
+  # DRIFT-DETECTION TRIGGERS
+  # =============================================================================
+
+  - eidos: trigger
+    id: trigger/dokimasia/validation-drift
+    data:
+      name: validation-drift
+      condition: '$entity.data.expected_outcome != $entity.data.outcome'
+      enabled: true
+    bonds:
+      - desmos: matches-event
+        to: entity-mutation/updated
+      - desmos: filters-eidos
+        to: eidos/validation-result
+
+  # =============================================================================
+  # DRIFT-DETECTION REFLEXES
+  # =============================================================================
+
+  - eidos: reflex
+    id: reflex/dokimasia/validation-drift
+    data:
+      name: validation-drift
+      description: |
+        When a validation result's actual outcome diverges from expected
+        outcome (sensed by daemon), invoke re-validation. Catches cases
+        where content drifts (schema changes, provenance breaks).
+      enabled: true
+      scope: global
+      response_params:
+        reconciler_id: "reconciler/graph-integrity"
+        entity_id: "$entity.id"
+    bonds:
+      - desmos: triggered-by
+        to: trigger/dokimasia/validation-drift
+      - desmos: responds-with
+        to: praxis/dynamis/reconcile

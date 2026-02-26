@@ -1,0 +1,138 @@
+# dynamis.yaml
+# Entity definitions for dynamis (existence-actuality bridging)
+#
+# These definitions enable composition of dynamis entities with:
+# - Provenance via composed-from bonds
+# - Automatic bonds for relationships
+# - Default values for common fields
+#
+# Traces to: genesis/dynamis/DESIGN.md
+# Phase 2 of pillar alignment (cache-driven)
+
+entities:
+
+# =============================================================================
+# RELEASE LIFECYCLE
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-release
+  data:
+    name: release
+    description: |
+      Create a new release in draft state.
+
+      A release represents a versioned build artifact. It exists in kosmos
+      as intention. Distribution actualizes it in chora.
+    target_eidos: release
+    defaults:
+      status: draft
+    bonds:
+      - desmos: belongs-to
+        from_self: true
+        to_literal: topos/dynamis
+
+- eidos: typos
+  id: typos-def-release-artifact
+  data:
+    name: release-artifact
+    description: |
+      Register a build artifact with a release.
+
+      Creates a release-artifact entity. The artifact is not yet uploaded —
+      that happens during distribution when it manifests to actuality.
+    target_eidos: release-artifact
+    defaults:
+      uploaded: false
+      mode: object-storage
+      provider: r2
+    bonds:
+      - desmos: belongs-to
+        from_self: true
+        to_literal: topos/dynamis
+
+# =============================================================================
+# SUBSTRATE MANAGEMENT
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-substrate
+  data:
+    name: substrate
+    description: |
+      Create a substrate (target platform/environment).
+
+      Substrates are conceptual categories — they don't have direct actuality.
+      Releases target substrates. Deployments deploy to substrates.
+    target_eidos: substrate
+    defaults:
+      active: true
+    bonds:
+      - desmos: belongs-to
+        from_self: true
+        to_literal: topos/dynamis
+
+# =============================================================================
+# DISTRIBUTION CHANNEL
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-distribution-channel
+  data:
+    name: distribution-channel
+    description: |
+      Create a distribution channel for releases.
+
+      Channels are how releases reach users — R2, GitHub Releases, etc.
+    target_eidos: distribution-channel
+    defaults:
+      status: active
+    bonds:
+      - desmos: belongs-to
+        from_self: true
+        to_literal: topos/dynamis
+
+# =============================================================================
+# ACTUALITY RECORD
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-actuality-record
+  data:
+    name: actuality-record
+    description: |
+      Create an actuality record (sensed state snapshot).
+
+      When sense() is called, the result is recorded as an actuality-record.
+      Provides audit trail and enables drift detection over time.
+    target_eidos: actuality-record
+    bonds:
+      - desmos: belongs-to
+        from_self: true
+        to_literal: topos/dynamis
+
+# =============================================================================
+# TOPOS PACKAGING
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-topos-dev
+  data:
+    name: topos-dev
+    description: "Compose a topos-dev entity (development package)"
+    target_eidos: topos-dev
+
+- eidos: typos
+  id: typos-def-topos-prod
+  data:
+    name: topos-prod
+    description: "Compose a topos-prod entity (production package)"
+    target_eidos: topos-prod
+
+- eidos: typos
+  id: typos-def-publish-attestation
+  data:
+    name: publish-attestation
+    description: "Compose a publish-attestation entity"
+    target_eidos: publish-attestation
+

@@ -1,0 +1,96 @@
+# Membership Event Item Render-Spec
+# Audit log entry for membership changes
+#
+# Uses widget vocabulary from thyra/eide/widget.yaml
+# Compact display for event timeline/log
+#
+# Membership-event fields:
+#   - event_type (enum: joined, left, removed, invited)
+#   - prosopon_name (string): Display name at time of event
+#   - actor_name (string): Who initiated the action
+#   - occurred_at (timestamp): When it happened
+#   - reason (string): Optional reason for leave/remove
+#
+# Traces to: genesis/demiurge/THYRA-AWARENESS.md
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/membership-event-item
+    data:
+      name: membership-event-item
+      description: |
+        Compact list item for membership event log.
+        Shows who, what, when for oikos membership changes.
+      target_eidos: membership-event
+      variant: list-item
+
+      layout:
+        - widget: row
+          props:
+            gap: sm
+            align: center
+          children:
+            # Event type icon
+            - widget: icon
+              when: "event_type == 'joined'"
+              props:
+                name: user-plus
+                size: sm
+            - widget: icon
+              when: "event_type == 'left'"
+              props:
+                name: user-minus
+                size: sm
+            - widget: icon
+              when: "event_type == 'removed'"
+              props:
+                name: user-x
+                size: sm
+            - widget: icon
+              when: "event_type == 'invited'"
+              props:
+                name: mail
+                size: sm
+
+            # Event description
+            - widget: stack
+              props:
+                gap: xs
+              children:
+                - widget: row
+                  props:
+                    gap: xs
+                  children:
+                    - widget: text
+                      props:
+                        content: "{prosopon_name}"
+                        variant: emphasis
+                    - widget: badge
+                      when: "event_type == 'joined'"
+                      props:
+                        content: "joined"
+                        variant: success
+                    - widget: badge
+                      when: "event_type == 'left'"
+                      props:
+                        content: "left"
+                        variant: default
+                    - widget: badge
+                      when: "event_type == 'removed'"
+                      props:
+                        content: "removed"
+                        variant: error
+                    - widget: badge
+                      when: "event_type == 'invited'"
+                      props:
+                        content: "invited"
+                        variant: info
+
+                # Timestamp
+                - widget: text
+                  props:
+                    content: "{occurred_at}"
+                    variant: caption
+
+      created_at: "2026-02-03T00:00:00Z"

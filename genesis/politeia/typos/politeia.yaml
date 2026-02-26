@@ -1,0 +1,95 @@
+# Politeia Typos — Governance
+#
+# Core typos for the politeia (governance) domain.
+# Principles, patterns, oikoi, prosopa, attainments, affordances.
+
+entities:
+
+# =============================================================================
+# GOVERNANCE (POLITEIA)
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-principle
+  data:
+    name: principle
+    description: |
+      Adopt a principle from theoria.
+
+      Principles are commitments that shape action.
+    target_eidos: principle
+    defaults:
+      status: provisional
+    bonds:
+      - desmos: belongs-to
+        from_self: true
+        to_literal: topos/polis
+
+- eidos: typos
+  id: typos-def-pattern
+  data:
+    name: pattern
+    description: |
+      Enact a principle as a pattern.
+
+      Patterns are how principles live in practice.
+    target_eidos: pattern
+    defaults:
+      status: provisional
+    bonds:
+      - desmos: belongs-to
+        from_self: true
+        to_literal: topos/polis
+
+- eidos: typos
+  id: typos-def-oikos
+  data:
+    name: oikos
+    description: |
+      Create a new oikos (social dwelling).
+    target_eidos: oikos
+    defaults:
+      kind: peer
+
+- eidos: typos
+  id: typos-def-prosopon
+  data:
+    name: prosopon
+    description: |
+      Create a new prosopon (identity).
+    target_eidos: prosopon
+
+- eidos: typos
+  id: typos-def-invitation
+  data:
+    name: invitation
+    description: "Compose an invitation entity"
+    target_eidos: invitation
+
+- eidos: typos
+  id: typos-def-attainment
+  data:
+    name: attainment
+    description: "Compose an attainment entity (member's role/status in oikos)"
+    target_eidos: attainment
+
+- eidos: typos
+  id: typos-def-affordance
+  data:
+    name: affordance
+    description: "Compose an affordance entity (permitted action)"
+    target_eidos: affordance
+
+- eidos: typos
+  id: typos-def-membership-event
+  data:
+    name: membership-event
+    description: "Compose a membership-event entity (audit trail)"
+    target_eidos: membership-event
+
+- eidos: typos
+  id: typos-def-sync-cursor
+  data:
+    name: sync-cursor
+    description: "Compose a sync-cursor entity for federation synchronization tracking"
+    target_eidos: sync-cursor

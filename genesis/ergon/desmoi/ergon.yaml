@@ -3,19 +3,19 @@
 # Traces to: genesis/ergon/DESIGN.md
 
 entities:
-  # signals-to — pragma signals to circle
+  # signals-to — pragma signals to oikos
   - eidos: desmos
     id: desmos/signals-to
     data:
       name: signals-to
       description: |
-        Pragma signals to a circle for attention.
+        Pragma signals to an oikos for attention.
 
-        The target circle is where the capability exists to resolve it.
-        A pragma discovered in kosmos-circle signals to chora-circle
+        The target oikos is where the capability exists to resolve it.
+        A pragma discovered in kosmos oikos signals to chora oikos
         because that's where the interpreter code lives.
       from_eidos: pragma
-      to_eidos: circle
+      to_eidos: oikos
       cardinality: many-to-one
       symmetric: false
 

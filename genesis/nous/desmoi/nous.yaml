@@ -5,24 +5,24 @@
 # NOTE: depends-on is shared with demiurge (artifact dependencies). See demiurge/desmoi/.
 
 entities:
-  # crystallized-in — theoria crystallized in a circle
+  # crystallized-in — theoria crystallized in an oikos
   - eidos: desmos
     id: desmos/crystallized-in
     data:
       name: crystallized-in
-      description: "Theoria crystallized in a circle"
+      description: "Theoria crystallized in an oikos"
       from_eidos: theoria
-      to_eidos: circle
+      to_eidos: oikos
       cardinality: many-to-one
       symmetric: false
 
-  # inquires — persona opened an inquiry
+  # inquires — prosopon opened an inquiry
   - eidos: desmos
     id: desmos/inquires
     data:
       name: inquires
-      description: "Persona opened an inquiry"
-      from_eidos: persona
+      description: "Prosopon opened an inquiry"
+      from_eidos: prosopon
       to_eidos: inquiry
       cardinality: one-to-many
       symmetric: false
@@ -176,4 +176,51 @@ entities:
       from_eidos: journey
       to_eidos: intention
       cardinality: many-to-one
+      symmetric: false
+
+  # =========================================================================
+  # Knowledge Ladder Bonds
+  # =========================================================================
+
+  # grounds — axiom/principle grounds principle/pattern
+  - eidos: desmos
+    id: desmos/grounds
+    data:
+      name: grounds
+      description: |
+        Higher knowledge grounds lower knowledge. Axioms ground principles,
+        principles ground patterns. The grounding relation shows where
+        normative force derives from.
+      from_eidos: any  # axiom or principle
+      to_eidos: any    # principle or pattern
+      cardinality: one-to-many
+      symmetric: false
+
+  # rises-to — knowledge rises up the ladder
+  - eidos: desmos
+    id: desmos/rises-to
+    data:
+      name: rises-to
+      description: |
+        Knowledge rises up the ladder. Theoria may rise to pattern when
+        they reveal recurring structure. Patterns may rise to principle
+        when they become normative. Principles rarely rise to axiom.
+      from_eidos: any  # theoria, pattern, or principle
+      to_eidos: any    # pattern, principle, or axiom
+      cardinality: many-to-one
+      symmetric: false
+
+  # exemplifies — theoria exemplifies a pattern
+  - eidos: desmos
+    id: desmos/exemplifies
+    data:
+      name: exemplifies
+      description: |
+        Theoria exemplifies a pattern. When crystallizing understanding,
+        if it matches an established pattern, bond them with exemplifies.
+        Traversal reveals all instances of a pattern.
+        (Renamed from instantiates to disambiguate from soma/instantiates: parousia→prosopon)
+      from_eidos: theoria
+      to_eidos: pattern
+      cardinality: many-to-many
       symmetric: false

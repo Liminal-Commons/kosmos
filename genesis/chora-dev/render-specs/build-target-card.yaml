@@ -1,0 +1,138 @@
+# Build Target Card - Widget Layout
+# Displays a build artifact with status, hashes, progress
+#
+# Generated via demiurge thyra-awareness pattern
+
+entities:
+  - eidos: render-spec
+    id: render-spec/chora-dev/build-target-card
+    data:
+      name: build-target-card
+      description: "Build artifact card with progress and content hash"
+      target_eidos: build-target
+      variant: card
+      layout:
+        - widget: card
+          props:
+            variant: elevated
+            padding: md
+          children:
+            # Header row
+            - widget: row
+              props:
+                gap: md
+                align: center
+              children:
+                # Status icon
+                - widget: icon
+                  props:
+                    name: package
+                    size: md
+
+                # Name and profile
+                - widget: stack
+                  props:
+                    gap: xs
+                  children:
+                    - widget: text
+                      props:
+                        content: "{crate_name}"
+                        variant: emphasis
+
+                    - widget: row
+                      props:
+                        gap: sm
+                      children:
+                        - widget: badge
+                          props:
+                            content: "{profile}"
+                            variant: info
+                        - widget: badge
+                          props:
+                            content: "{build_status}"
+                            variant: "{build_status}"
+
+            # Progress bar (shown when building)
+            - widget: progress
+              props:
+                indeterminate: true
+              when: "build_status == 'building'"
+
+            # Metadata section
+            - widget: stack
+              props:
+                gap: sm
+              children:
+                - widget: row
+                  props:
+                    gap: sm
+                  children:
+                    - widget: text
+                      props:
+                        content: "Built:"
+                        variant: caption
+                    - widget: text
+                      props:
+                        content: "{built_at}"
+                        variant: body
+
+                - widget: row
+                  props:
+                    gap: sm
+                  children:
+                    - widget: text
+                      props:
+                        content: "Duration:"
+                        variant: caption
+                    - widget: text
+                      props:
+                        content: "{duration_ms}ms"
+                        variant: body
+
+                - widget: row
+                  props:
+                    gap: sm
+                  children:
+                    - widget: text
+                      props:
+                        content: "Hash:"
+                        variant: caption
+                    - widget: code
+                      props:
+                        content: "{content_hash}"
+                        language: text
+
+            # Error message (shown on failure)
+            - widget: card
+              props:
+                variant: bordered
+                padding: sm
+              when: "build_status == 'failed'"
+              children:
+                - widget: code
+                  props:
+                    content: "{error_message}"
+                    language: text
+
+            # Actions
+            - widget: row
+              props:
+                gap: sm
+              children:
+                - widget: button
+                  props:
+                    label: "Rebuild"
+                    variant: primary
+                    on_click: chora-dev/build
+                    on_click_params:
+                      crate_name: "{crate_name}"
+                      profile: "{profile}"
+
+                - widget: button
+                  props:
+                    label: "Deploy"
+                    variant: secondary
+                    on_click: chora-dev/deploy-build
+                    on_click_params:
+                      build_target_id: "{id}"
+                  when: "build_status == 'succeeded'"

@@ -1,17 +1,17 @@
 # Soma: Embodiment and Presence
 
-*A design for the embodied interface between animus and world.*
+*A design for the embodied interface between parousia and world.*
 
 ---
 
 ## The Problem
 
-The animus needs a body. Without embodiment:
+The parousia needs a body. Without embodiment:
 - No way to perceive (receive input)
 - No way to act (emit output)
 - No sense of capacity (what can I do?)
 
-V8 MCP already has `arise()`/`depart()` that create session+animus entities, but soma provides the full embodiment model: channels, percepts, signals, body-schema.
+V8 MCP already has `arise()`/`depart()` that create session+parousia entities, but soma provides the full embodiment model: channels, percepts, signals, body-schema.
 
 **Soma is where the kosmos meets the outside.**
 
@@ -22,7 +22,7 @@ V8 MCP already has `arise()`/`depart()` that create session+animus entities, but
 | Component | Status | Location |
 |-----------|--------|----------|
 | soma.yaml schema | ✓ Complete | `klimax/5-soma/soma.yaml` |
-| Eide (animus, channel, percept, signal, body-schema) | ✓ Complete | `spora/spora.yaml` stage-2-presence |
+| Eide (parousia, channel, percept, signal, body-schema) | ✓ Complete | `spora/spora.yaml` stage-2-presence |
 | Artifact definitions | ✓ Defined | soma.yaml (klimax format) |
 | Desmoi (channel-of, received-through, emitted-through, schema-of, instantiates) | ✓ Complete | `spora/spora.yaml` stage-1-desmoi |
 | Praxeis | ✓ Complete | `genesis/soma/praxeis/soma.yaml` — 7 praxeis loaded |
@@ -47,7 +47,7 @@ Soma is the **embodied interface**. It sits between:
 - **oikos** (intimate groupings, domains) — the social context
 - **psyche** (attention, intention, mood) — the experiencing self
 
-The animus has a body (soma). Through that body, it perceives and acts. The body has a schema — a sense of its own shape and capacity.
+The parousia has a body (soma). Through that body, it perceives and acts. The body has a schema — a sense of its own shape and capacity.
 
 ### Aistheterion Connection
 
@@ -66,13 +66,13 @@ Soma handles exo and idio. Psyche handles endo.
 
 | Eidos | What It Is |
 |-------|------------|
-| `animus` | The dwelling presence (instantiates a persona) |
+| `parousia` | The dwelling presence (instantiates a prosopon) |
 | `channel` | Interface for perception/action (text, voice, vision, etc.) |
 | `percept` | Something perceived through a channel |
 | `signal` | Something emitted through a channel |
-| `body-schema` | The animus's sense of its own shape and capacity |
+| `body-schema` | The parousia's sense of its own shape and capacity |
 
-### 2. Animus Lifecycle
+### 2. Parousia Lifecycle
 
 ```
 arising → dwelling → departing → departed
@@ -101,19 +101,19 @@ Each channel has a **modality** (text, voice, vision, file, etc.) and a **status
 
 | Desmos | From | To | Meaning |
 |--------|------|-----|--------|
-| `channel-of` | channel | animus | Channel belongs to animus |
+| `channel-of` | channel | parousia | Channel belongs to parousia |
 | `received-through` | percept | channel | Percept received via channel |
 | `emitted-through` | signal | channel | Signal sent via channel |
-| `schema-of` | body-schema | animus | Body schema belongs to animus |
-| `instantiates` | animus | persona | Animus is instance of persona |
+| `schema-of` | body-schema | parousia | Body schema belongs to parousia |
+| `instantiates` | parousia | prosopon | Parousia is instance of prosopon |
 
 ### 5. Key Praxeis
 
 | Praxis | What It Does |
 |--------|-------------|
-| `arise-animus` | Create animus, instantiate persona, create body-schema |
-| `depart-animus` | Mark animus departed, close all channels |
-| `open-channel` | Open a channel for the animus |
+| `arise-parousia` | Create parousia, instantiate prosopon, create body-schema |
+| `depart-parousia` | Mark parousia departed, close all channels |
+| `open-channel` | Open a channel for the parousia |
 | `close-channel` | Close a channel |
 | `perceive` | Record a perception through a channel |
 | `emit` | Emit a signal through a channel |
@@ -126,16 +126,16 @@ Each channel has a **modality** (text, voice, vision, file, etc.) and a **status
 ### Current State ✓ COMPLETE
 
 `McpServer` in `kosmos-mcp-v8` now uses soma praxeis:
-- `DwellingState` tracking (persona_id, circle_id, animus_id)
-- `arise()` method — creates session, then calls `praxis/soma/arise-animus` for full embodiment
-- `depart()` method — calls `praxis/soma/depart-animus` to close channels and mark departed
+- `DwellingState` tracking (prosopon_id, oikos_id, parousia_id)
+- `arise()` method — creates session, then calls `praxis/soma/arise-parousia` for full embodiment
+- `depart()` method — calls `praxis/soma/depart-parousia` to close channels and mark departed
 
-The MCP layer handles the session (transport concern), while soma handles the animus lifecycle (embodiment concern).
+The MCP layer handles the session (transport concern), while soma handles the parousia lifecycle (embodiment concern).
 
 ### Fallback Pattern
 
 If soma praxeis are not loaded (non-bootstrapped database), MCP falls back to direct implementation:
-- Creates animus entity directly
+- Creates parousia entity directly
 - Uses `manifests` bond instead of `instantiates`
 - No body-schema created in fallback mode
 
@@ -145,8 +145,8 @@ This ensures backwards compatibility while preferring the praxis path when avail
 
 | MCP Method | Soma Praxis | Fallback |
 |------------|-------------|----------|
-| `arise()` | `praxis/soma/arise-animus` | Direct entity creation |
-| `depart()` | `praxis/soma/depart-animus` | Direct status update |
+| `arise()` | `praxis/soma/arise-parousia` | Direct entity creation |
+| `depart()` | `praxis/soma/depart-parousia` | Direct status update |
 | Channel tools | `open-channel`, `close-channel` | N/A (praxis only) |
 
 ---
@@ -164,7 +164,7 @@ Both soma and psyche have interface concepts:
 - Channel = the pipe (text in, text out)
 - Thyra = the window (what's visible, what's possible)
 
-An animus typically has:
+A parousia typically has:
 - One or more **channels** (how it touches the world)
 - One **thyra** (the interface experience)
 
@@ -180,12 +180,12 @@ Example:
 
 1. ✓ Ensure soma.yaml praxeis are loaded at bootstrap
 2. ✓ Verify artifact definitions are available
-3. ✓ Test `arise-animus` praxis directly (not via MCP)
+3. ✓ Test `arise-parousia` praxis directly (not via MCP)
 
-### Phase 2: Test Animus Lifecycle ✓ COMPLETE
+### Phase 2: Test Parousia Lifecycle ✓ COMPLETE
 
-1. ✓ Test `arise-animus` creates animus + body-schema
-2. ✓ Test `depart-animus` closes channels and marks departed
+1. ✓ Test `arise-parousia` creates parousia + body-schema
+2. ✓ Test `depart-parousia` closes channels and marks departed
 3. ✓ Verify bonds are created correctly
 
 ### Phase 3: Test Channel Management ✓ COMPLETE
@@ -204,17 +204,17 @@ Example:
 
 ## Decisions Made
 
-1. **Animus instantiates persona, not equals**
-   - Persona = identity (persistent)
-   - Animus = dwelling presence (session-scoped)
-   - One persona can have multiple simultaneous animi
+1. **Parousia instantiates prosopon, not equals**
+   - Prosopon = identity (persistent)
+   - Parousia = dwelling presence (session-scoped)
+   - One prosopon can have multiple simultaneous parousiai
 
-2. **Body-schema created with animus**
-   - `arise-animus` creates body-schema automatically
+2. **Body-schema created with parousia**
+   - `arise-parousia` creates body-schema automatically
    - Schema tracks available channels and capabilities
    - Updated when channels open/close
 
-3. **Channels belong to animus, not session**
+3. **Channels belong to parousia, not session**
    - Enables multi-channel scenarios
    - Channel closure is part of departure
 
@@ -239,27 +239,28 @@ Example:
 
 ## Constitutional Alignment
 
-Soma implements constitutional requirements from KOSMOGONIA:
+Soma implements constitutional axioms from KOSMOGONIA:
 
-| Principle | How Soma Honors It |
-|-----------|-------------------|
-| **Visibility = Reachability** | Channels belong to animi via `channel-of` bonds. Percepts and signals trace through channels to their animus. What an animus can perceive is determined by which channels are bonded to it. |
-| **Authenticity = Provenance** | Percepts have `received-through` bonds to their channel. Signals have `emitted-through` bonds. Every perception and action traces to its source. |
-| **Composition Requirement** | Animus, channels, percepts, and signals are composed via artifact definitions. `arise-animus` uses composition with provenance bonds. |
-| **Dwelling Requirement** | The animus IS dwelling embodied. `_animus` in scope carries the body through which praxeis act. Channels provide the interfaces; dwelling context determines which body is acting. |
+| Axiom / Pillar | How Soma Honors It |
+|----------------|-------------------|
+| **Axiom I: Composition** | Parousia, channels, percepts, and signals are composed via artifact definitions. `arise-parousia` uses composition with provenance bonds. |
+| **Axiom II: Authority** | The parousia IS dwelling embodied. `_parousia` in scope carries the body through which praxeis act. Channels provide the interfaces; dwelling context determines which body is acting. |
+| **Axiom III: Traceability** | Percepts have `received-through` bonds to their channel. Signals have `emitted-through` bonds. Every perception and action traces to its source. |
+| **Visibility = Reachability** | Channels belong to parousiai via `channel-of` bonds. Percepts and signals trace through channels to their parousia. What a parousia can perceive is determined by which channels are bonded to it. |
+| **Authenticity = Provenance** | Every entity traces to signed genesis through provenance bonds. |
 
 ### Development Pillars
 
 | Pillar | How Soma Implements It |
 |--------|------------------------|
-| **Schema-driven** | Animus status is schema-constrained (arising, dwelling, departing, departed). Channel kinds (perception, action, bidirectional) and modalities (text, voice, vision, file) are enumerated. |
-| **Graph-driven** | All relationships are bonds: `channel-of`, `received-through`, `emitted-through`, `schema-of`, `instantiates`. No embedded channel arrays in animus — traverse to find channels. |
+| **Schema-driven** | Parousia status is schema-constrained (arising, dwelling, departing, departed). Channel kinds (perception, action, bidirectional) and modalities (text, voice, vision, file) are enumerated. |
+| **Graph-driven** | All relationships are bonds: `channel-of`, `received-through`, `emitted-through`, `schema-of`, `instantiates`. No embedded channel arrays in parousia — traverse to find channels. |
 | **Cache-driven** | Body-schema is a cached aggregation of channel states. Updated when channels open/close. `sense-body` returns current cached state. |
 
 ### The Embodiment Graph
 
 ```
-persona ◀──instantiates── animus ──channel-of──▶ channel
+prosopon ◀──instantiates── parousia ──channel-of──▶ channel
                             │                       │
                             └──schema-of──▶ body-schema
                                                     │
@@ -270,12 +271,12 @@ persona ◀──instantiates── animus ──channel-of──▶ channel
                                             percept / signal
 ```
 
-The animus instantiates a persona (identity) while having a body (soma) through which it dwells. The body-schema provides self-awareness of capacity.
+The parousia instantiates a prosopon (identity) while having a body (soma) through which it dwells. The body-schema provides self-awareness of capacity.
 
 ### Caller Pattern
 
 Soma uses **composed** caller patterns for runtime entity creation:
-- `arise-animus` composes animus from artifact definition
+- `arise-parousia` composes parousia from artifact definition
 - `open-channel` composes channel from definition
 - Percepts and signals are composed as they flow through channels
 
@@ -286,8 +287,8 @@ Body-schema fields are **computed** from channel state aggregation.
 The MCP layer (transport) delegates to soma (embodiment):
 
 ```
-McpServer::arise() → praxis/soma/arise-animus → animus + body-schema
-McpServer::depart() → praxis/soma/depart-animus → channels closed, departed
+McpServer::arise() → praxis/soma/arise-parousia → parousia + body-schema
+McpServer::depart() → praxis/soma/depart-parousia → channels closed, departed
 ```
 
 Fallback to direct implementation when soma praxeis not loaded (backwards compatibility).
@@ -297,7 +298,7 @@ Fallback to direct implementation when soma praxeis not loaded (backwards compat
 ## Summary
 
 Soma provides:
-- **Animus**: the dwelling presence with lifecycle
+- **Parousia**: the dwelling presence with lifecycle
 - **Channels**: typed interfaces for perception/action
 - **Percepts/Signals**: what flows through channels
 - **Body-schema**: awareness of own capacity
@@ -322,6 +323,6 @@ Soma provides:
 ---
 
 *Composed in service of the kosmogonia.*
-*Traces to: expression/genesis-root*
+*Traces to: phasis/genesis-root*
 *Created: 2026-01-19*
 *Updated: 2026-01-19 — MCP wired to soma praxeis, 54 tests passing*

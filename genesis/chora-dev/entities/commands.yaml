@@ -1,0 +1,166 @@
+# Chora-Dev Commands and Menus
+# UI affordances for substrate development
+#
+# Composed via kosmos tools — kosmos building kosmos.
+#
+# Includes:
+# - Context menus for source-crate
+# - Command palette entries
+# - Navigation item
+# - Keyboard shortcuts
+
+entities:
+
+  # =============================================================================
+  # CONTEXT MENU
+  # =============================================================================
+
+  - eidos: context-menu
+    id: context-menu/chora-dev/source-crate
+    data:
+      name: source-crate-context
+      eidos: source-crate
+      description: "Context menu for source-crate entities"
+      items:
+        - action: chora-dev/build
+          label: "Build (Debug)"
+          shortcut: "Cmd+B"
+          params:
+            crate_name: "{{ entity.data.name }}"
+            profile: dev
+
+        - action: chora-dev/build
+          label: "Build (Release)"
+          shortcut: "Cmd+Shift+B"
+          params:
+            crate_name: "{{ entity.data.name }}"
+            profile: release
+
+        - separator: true
+
+        - action: chora-dev/test
+          label: "Run Tests"
+          shortcut: "Cmd+T"
+          params:
+            crate_name: "{{ entity.data.name }}"
+
+        - action: chora-dev/lint
+          label: "Run Clippy"
+          params:
+            crate_name: "{{ entity.data.name }}"
+            lint_type: clippy
+
+        - separator: true
+
+        - action: thyra/open-in-editor
+          label: "Open in Editor"
+          shortcut: "Cmd+O"
+          params:
+            path: "{{ entity.data.path }}"
+
+        - action: thyra/reveal-in-finder
+          label: "Reveal in Finder"
+          params:
+            path: "{{ entity.data.path }}"
+
+  # =============================================================================
+  # COMMAND PALETTE
+  # =============================================================================
+
+  - eidos: command
+    id: command/chora-dev/build
+    data:
+      id: chora-dev.build
+      title: "Chora: Build Crate"
+      description: "Build the selected crate with cargo"
+      praxis: chora-dev/build
+      category: "Development"
+      when: "context.eidos == 'source-crate'"
+
+  - eidos: command
+    id: command/chora-dev/build-all
+    data:
+      id: chora-dev.build-all
+      title: "Chora: Build All Crates"
+      description: "Reconcile and rebuild all stale crates"
+      praxis: chora-dev/reconcile-builds
+      category: "Development"
+
+  - eidos: command
+    id: command/chora-dev/test
+    data:
+      id: chora-dev.test
+      title: "Chora: Run Tests"
+      description: "Run tests for the selected crate"
+      praxis: chora-dev/test
+      category: "Development"
+      when: "context.eidos == 'source-crate' or context.eidos == 'build-target'"
+
+  - eidos: command
+    id: command/chora-dev/scan
+    data:
+      id: chora-dev.scan
+      title: "Chora: Scan Workspace"
+      description: "Discover all crates in the workspace"
+      praxis: chora-dev/scan-workspace
+      category: "Development"
+
+  - eidos: command
+    id: command/chora-dev/lint
+    data:
+      id: chora-dev.lint
+      title: "Chora: Run Clippy"
+      description: "Run clippy lints on the selected crate"
+      praxis: chora-dev/lint
+      category: "Development"
+      when: "context.eidos == 'source-crate'"
+
+  # =============================================================================
+  # NAVIGATION ITEM
+  # =============================================================================
+
+  - eidos: navigation-item
+    id: navigation-item/chora-dev/workspace
+    data:
+      label: "Development"
+      icon: code
+      region: layout/chora-dev/workspace
+      order: 50
+      badge:
+        source: "gather build-target | filter(.data.build_status == 'failed') | length"
+        visible_when: "> 0"
+        style: error
+
+  # =============================================================================
+  # KEYBOARD SHORTCUTS
+  # =============================================================================
+
+  - eidos: keybinding
+    id: keybinding/chora-dev/build
+    data:
+      key: "Cmd+B"
+      command: chora-dev.build
+      when: "focusedView == 'chora-dev/workspace'"
+
+  - eidos: keybinding
+    id: keybinding/chora-dev/build-release
+    data:
+      key: "Cmd+Shift+B"
+      command: chora-dev.build
+      args:
+        profile: release
+      when: "focusedView == 'chora-dev/workspace'"
+
+  - eidos: keybinding
+    id: keybinding/chora-dev/test
+    data:
+      key: "Cmd+T"
+      command: chora-dev.test
+      when: "focusedView == 'chora-dev/workspace'"
+
+  - eidos: keybinding
+    id: keybinding/chora-dev/scan
+    data:
+      key: "Cmd+Shift+S"
+      command: chora-dev.scan
+      when: "focusedView == 'chora-dev/workspace'"

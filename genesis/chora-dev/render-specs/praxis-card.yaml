@@ -1,0 +1,65 @@
+# Praxis Card — Browse executable step sequences
+# Displays a praxis with its topos, tier, and visibility
+
+entities:
+  - eidos: render-spec
+    id: render-spec/chora-dev/praxis-card
+    data:
+      name: praxis-card
+      description: "Praxis card showing topos, tier, step count, and visibility"
+      target_eidos: praxis
+      variant: card
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+            on_click: ui/set-selection
+            on_click_params:
+              selection_type: selected-praxis
+              entity_id: "{id}"
+          children:
+            # Header row: name + badges
+            - widget: row
+              props:
+                gap: sm
+                align: center
+                justify: between
+              children:
+                - widget: text
+                  props:
+                    content: "{name}"
+                    variant: emphasis
+
+                - widget: row
+                  props:
+                    gap: xs
+                  children:
+                    - widget: badge
+                      props:
+                        content: "{topos}"
+                        variant: info
+
+                    - widget: badge
+                      when: "visible"
+                      props:
+                        content: "visible"
+                        variant: success
+
+            # Description
+            - widget: text
+              when: "description"
+              props:
+                content: "{description}"
+                variant: caption
+
+            # Metadata row
+            - widget: row
+              props:
+                gap: sm
+                align: center
+              children:
+                - widget: badge
+                  props:
+                    content: "tier {tier}"
+                    variant: default

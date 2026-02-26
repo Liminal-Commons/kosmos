@@ -1,0 +1,126 @@
+# Voice Lifecycle Eide
+# Audio source + transcriber — entities with desired_state/actual_state
+# lifecycle for reconciliation. Standard field names match all other
+# substrate entities and the generic dynamis/reconcile praxis.
+#
+# Traces to: PROMPT-VOICE-DECOMPOSITION.md, PROMPT-WHISPER-RS.md
+
+entities:
+
+  # audio-source — audio capture lifecycle entity
+  - eidos: eidos
+    id: eidos/audio-source
+    data:
+      name: audio-source
+      description: |
+        An audio input source under capture. Has desired_state/actual_state
+        lifecycle for reconciliation. Created when voice composing begins
+        or WebRTC call starts. Reconciler keeps actual capture aligned
+        with desired state.
+        Conceptually: a perception channel (soma) with dynamis lifecycle.
+      fields:
+        device_id:
+          type: string
+          required: true
+          default: "default"
+          description: "Audio device identifier"
+        sample_rate:
+          type: integer
+          required: false
+          default: 16000
+        channels:
+          type: integer
+          required: false
+          default: 1
+        desired_state:
+          type: enum
+          values: [active, closed]
+          required: true
+          default: closed
+        actual_state:
+          type: enum
+          values: [pending, active, failed, closed]
+          required: true
+          default: pending
+        available_devices:
+          type: array
+          required: false
+          default: []
+          description: "Available audio devices as [{value, label}] for UI select binding. Populated by thyra/toggle-settings."
+        mode:
+          type: string
+          required: true
+          default: "audio-capture"
+        provider:
+          type: string
+          required: true
+          default: "local"
+
+  # transcriber — transcription lifecycle entity
+  - eidos: eidos
+    id: eidos/transcriber
+    data:
+      name: transcriber
+      description: |
+        A transcription process bridging audio to text. Has desired_state/
+        actual_state lifecycle for reconciliation. Created when voice composing
+        begins or live captions start. Reconciler keeps model loaded while
+        desired_state is active. Produces utterance entities from
+        VAD-bounded speech.
+      fields:
+        whisper_model:
+          type: string
+          required: true
+          default: "base.en"
+          description: "Whisper model name — hardcoded to base.en"
+        language:
+          type: string
+          required: true
+          default: "en"
+        whisper_threads:
+          type: integer
+          required: false
+          default: 4
+          description: "Number of inference threads"
+        vad_onset_prob:
+          type: number
+          required: false
+          default: 0.5
+          description: "Speech probability threshold to start recording (0.0-1.0). Lower = more sensitive."
+        vad_offset_prob:
+          type: number
+          required: false
+          default: 0.35
+          description: "Speech probability threshold to end recording (0.0-1.0). Lower = waits longer before cutting."
+        vad_min_segment_secs:
+          type: number
+          required: false
+          default: 0.5
+          description: "Minimum speech segment duration in seconds. Shorter segments are discarded."
+        transcript:
+          type: string
+          required: false
+          default: ""
+          description: "Accumulated transcript text from whisper inference. Appended by sense daemon, cleared on session stop or phasis commit."
+        segment_status:
+          type: string
+          default: "idle"
+          description: "Current segment lifecycle: idle | detecting | transcribing"
+        desired_state:
+          type: enum
+          values: [active, closed]
+          required: true
+          default: closed
+        actual_state:
+          type: enum
+          values: [pending, active, failed, closed]
+          required: true
+          default: pending
+        mode:
+          type: string
+          required: true
+          default: "transcription"
+        provider:
+          type: string
+          required: true
+          default: "whisper-local"

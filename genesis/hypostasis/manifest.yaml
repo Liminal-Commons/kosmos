@@ -1,25 +1,25 @@
-# Oikos Manifest: Hypostasis
+# Topos Manifest: Hypostasis
 # ὑπόστασις — underlying reality, substrate replication.
 #
 # The kosmos that can replicate itself. Phoreta are the universal
 # format: federation, backup, and recovery all use signed bundles.
 #
-# Manifest v2.1 — oikos metadata for entity composition
+# Manifest v2.1 — topos metadata for entity composition
 
 format_version: "2.1"
-oikos_id: hypostasis
+topos_id: hypostasis
 version: "0.1.0"
 
-# Oikos metadata (v2.1)
-oikos_name: Hypostasis
-oikos_description: |
+# Topos metadata (v2.1)
+topos_name: Hypostasis
+topos_description: |
   Underlying reality, substrate replication. The kosmos that can
   replicate itself. Phoreta are the universal format: federation,
   backup, and recovery all use signed bundles.
-oikos_scale: cross-scale
+topos_scale: cross-scale
 
 # Development experience metadata
-oikos_category: infrastructure
+topos_category: infrastructure
 surfaces_provided: []   # Cryptographic substrate
 surfaces_consumed: []   # Foundational identity/replication layer
 
@@ -30,8 +30,12 @@ content_paths:
     content_types: [desmos]
   - path: praxeis/
     content_types: [praxis]
-  - path: entities/
+  - path: typos/
+    content_types: [typos]
+  - path: render-specs/
     content_types: [render-spec]
+  - path: modes/
+    content_types: [mode]
 
 requires_dynamis:
   - db.arise
@@ -52,15 +56,15 @@ provides:
     - credential      # Encrypted external service credentials
     - ssh-credential  # SSH authentication for remote node access
 
-  # Oikos-centric rendering: hypostasis owns presentation for identity entities
+  # Topos-centric rendering: hypostasis owns presentation for identity entities
   renderable:
-    - eidos: persona
+    - eidos: prosopon
       description: "Identity cards and list items"
-    - eidos: animus
-      description: "Agent identity cards"
+    - eidos: parousia
+      description: "Presence identity cards"
 
   attainments:
-    - sign              # Sign content with circle-scoped keys
+    - sign              # Sign content with oikos-scoped keys
     - export            # Export phoreta bundles and snapshots
     - manage-keyring    # Create and manage encrypted keyring
     - manage-credentials # Add and remove credentials
@@ -69,12 +73,13 @@ provides:
   desmoi:
     - composed-from
     - signed-by
-    - secures-key-for   # kleidoura → persona
-    - credential-of     # credential → persona (ownership)
-    - shared-with       # credential → circle (team access)
+    - secures-key-for   # kleidoura → prosopon
+    - credential-of     # credential → prosopon (ownership)
+    - shared-with       # credential → oikos (team access)
     - unlocks-attainment  # credential → attainment (capability grant)
     - enables-function  # credential → function (what it enables)
     - authenticates-to  # ssh-credential → node (remote access)
+
 
   praxeis:
     # Content-addressed operations
@@ -89,7 +94,7 @@ provides:
     - hypostasis/sync-delta
     # Key operations
     - hypostasis/generate-mnemonic
-    - hypostasis/derive-circle-key
+    - hypostasis/derive-oikos-key
     - hypostasis/sign-content
     - hypostasis/verify-signature
     # Encrypted keyring operations
@@ -100,9 +105,9 @@ provides:
     - hypostasis/change-keyring-password
     - hypostasis/sign-with-session
     - hypostasis/derive-key-from-session
-    # Persona operations
-    - hypostasis/export-persona
-    - hypostasis/import-persona
+    # Prosopon operations
+    - hypostasis/export-prosopon
+    - hypostasis/import-prosopon
     - hypostasis/sync-devices
     # Genesis ceremony
     - hypostasis/begin-genesis-ceremony

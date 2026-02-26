@@ -1,0 +1,115 @@
+# Test Run Card - Widget Layout
+# Displays test execution results with pass/fail counts
+#
+# Generated via demiurge thyra-awareness pattern
+
+entities:
+  - eidos: render-spec
+    id: render-spec/chora-dev/test-run-card
+    data:
+      name: test-run-card
+      description: "Test execution card with results and expandable output"
+      target_eidos: test-run
+      variant: card
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+          children:
+            # Header with status
+            - widget: row
+              props:
+                gap: md
+                align: center
+              children:
+                # Status indicator
+                - widget: badge
+                  props:
+                    content: "{status}"
+                    variant: "{status}"
+
+                # Test counts
+                - widget: stack
+                  props:
+                    gap: xs
+                  children:
+                    - widget: row
+                      props:
+                        gap: sm
+                      children:
+                        - widget: text
+                          props:
+                            content: "{passed_count}"
+                            variant: emphasis
+                        - widget: text
+                          props:
+                            content: "passed"
+                            variant: caption
+
+                    - widget: row
+                      props:
+                        gap: sm
+                      when: "failed_count"
+                      children:
+                        - widget: text
+                          props:
+                            content: "{failed_count}"
+                            variant: emphasis
+                        - widget: text
+                          props:
+                            content: "failed"
+                            variant: caption
+
+                # Timing info
+                - widget: stack
+                  props:
+                    gap: xs
+                  children:
+                    - widget: text
+                      props:
+                        content: "{run_at}"
+                        variant: caption
+                    - widget: text
+                      props:
+                        content: "{duration_ms}ms"
+                        variant: caption
+
+            # Spinner when running
+            - widget: row
+              props:
+                gap: sm
+                align: center
+              when: "status == 'running'"
+              children:
+                - widget: spinner
+                  props:
+                    size: sm
+                - widget: text
+                  props:
+                    content: "Running tests..."
+                    variant: caption
+
+            # Output section (collapsible)
+            - widget: accordion
+              props:
+                title: "Test Output"
+              when: "output"
+              children:
+                - widget: code
+                  props:
+                    content: "{output}"
+                    language: text
+
+            # Re-run button
+            - widget: row
+              props:
+                gap: sm
+              children:
+                - widget: button
+                  props:
+                    label: "Run Again"
+                    variant: ghost
+                    on_click: chora-dev/test
+                    on_click_params:
+                      test_run_id: "{id}"

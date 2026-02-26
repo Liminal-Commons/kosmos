@@ -2,23 +2,14 @@
 # Bonds for existence-actuality relationships
 #
 # Traces to: genesis/dynamis/DESIGN.md
-# Authorized by: expression/genesis-root
+# Authorized by: phasis/genesis-root
 
 entities:
-  # =========================================================================
-  # Release Structure
-  # =========================================================================
+  # NOTE: contains-artifact and distributed-via moved to genesis/release/desmoi/release.yaml
 
-  # release → release-artifact
-  - eidos: desmos
-    id: desmos/contains-artifact
-    data:
-      name: contains-artifact
-      description: "Release contains this artifact (binary, checksum, etc.)"
-      from_eidos: release
-      to_eidos: release-artifact
-      cardinality: one-to-many
-      inverse: artifact-of
+  # =========================================================================
+  # Release–Substrate Bridge
+  # =========================================================================
 
   # release → substrate
   - eidos: desmos
@@ -28,16 +19,6 @@ entities:
       description: "Release targets this substrate (platform)"
       from_eidos: release
       to_eidos: substrate
-      cardinality: many-to-many
-
-  # release → distribution-channel
-  - eidos: desmos
-    id: desmos/distributed-via
-    data:
-      name: distributed-via
-      description: "Release is distributed through this channel"
-      from_eidos: release
-      to_eidos: distribution-channel
       cardinality: many-to-many
 
   # =========================================================================
@@ -182,19 +163,19 @@ entities:
         One-to-many allows: one deployment manifests multiple instances
         (for HA/replication). Query via trace to find what a deployment became.
 
-  # circle → node
+  # oikos → node
   - eidos: desmos
     id: desmos/steward-of
     data:
       name: steward-of
       description: |
-        Circle stewards (governs) this commons node.
-        Replaces the embedded node.steward_circle_id field with a proper bond.
-        The steward circle has authority over node configuration and service allocation.
-      from_eidos: circle
+        Oikos stewards (governs) this commons node.
+        Replaces the embedded node.steward_oikos_id field with a proper bond.
+        The steward oikos has authority over node configuration and service allocation.
+      from_eidos: oikos
       to_eidos: node
       cardinality: one-to-many
       symmetric: false
       note: |
-        A commons node has exactly one steward circle.
-        Query: from node, trace steward-of (reverse) to find governing circle.
+        A commons node has exactly one steward oikos.
+        Query: from node, trace steward-of (reverse) to find governing oikos.

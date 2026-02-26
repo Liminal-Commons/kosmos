@@ -1,0 +1,58 @@
+# Kosmos Commons Oikos
+# ====================
+#
+# The primary distribution oikos for the kosmos.
+# Join to receive all standard topoi.
+#
+# This file documents the distributes bonds that will be created at runtime
+# when topos-prod entities are published. The actual oikos entity is defined
+# in spora.yaml (oikos/kosmos with kind: commons).
+
+# Oikos Definition (for reference - actual entity in spora.yaml)
+# - eidos: oikos
+#   id: oikos/kosmos
+#   data:
+#     name: Kosmos
+#     kind: commons
+#     description: The root commons oikos — distributes topoi to all dwellers
+
+# Distributes Bonds
+# -----------------
+# The kosmos-commons oikos distributes the following topoi to its members.
+# These bonds will be created when topos-prod entities are published:
+#
+# Non-substrate topoi (distributed via oikos):
+#   - topos-prod/nous-*       # Mind — theoria, journeys, synthesis
+#   - topos-prod/soma-*       # Body — channels, embodiment
+#   - topos-prod/thyra-*      # Portal — streams, phasis, UI
+#   - topos-prod/agora-*      # Spatial presence
+#   - topos-prod/demiurge-*   # Composition
+#   - topos-prod/manteia-*    # Inference
+#   - topos-prod/psyche-*     # Attention, intention
+#   - topos-prod/aither-*     # WebRTC
+#   - topos-prod/dynamis-*    # Releases
+#   - topos-prod/dokimasia-*  # Validation
+#   - topos-prod/ergon-*      # Work coordination
+#
+# Substrate topoi (built into Thyra, NOT distributed):
+#   - arche          # Grammar (eidos, desmos, stoicheion)
+#   - propylon       # Entry via links
+#   - hypostasis     # Keys, signatures, mnemonic, sync
+#   - politeia       # Oikoi, membership, attainments
+
+# Granted Attainments
+# -------------------
+# Members of kosmos-commons receive these attainments:
+#   - attainment/compose   # Ability to compose entities
+#   - attainment/express   # Ability to express in streams
+#   - attainment/invoke    # Ability to invoke praxeis
+#
+# These attainments are already defined in spora.yaml and granted by oikos/kosmos.
+
+# Example: Creating a distributes bond (runtime operation)
+# - bond:
+#     from: oikos/kosmos
+#     to: topos-prod/nous-1.0.0
+#     desmos: distributes
+#
+# This is done via the politeia/distribute-topos praxis when publishing a topos-prod.

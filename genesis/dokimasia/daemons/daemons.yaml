@@ -1,0 +1,20 @@
+# Dokimasia Sensing Daemons
+# Periodic actuality sensing for graph integrity validation
+#
+# Traces to: docs/reference/daemon-runner.md
+# Authorized by: phasis/genesis-root
+
+entities:
+
+  - eidos: daemon
+    id: daemon/sense-graph-integrity
+    data:
+      name: sense-graph-integrity
+      description: |
+        Periodically sense graph validation results.
+        Checks all validation-result entities for integrity drift.
+      praxis: dokimasia/sense-validation-results
+      interval: 60
+      enabled: true
+      scope: global
+      backoff_max: 300

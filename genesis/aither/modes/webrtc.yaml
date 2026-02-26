@@ -1,0 +1,45 @@
+# Aither WebRTC Mode — Network substrate via LiveKit
+#
+# Peer connection lifecycle: manifest generates token and sets connection
+# intent, sense checks token validity and connection state, unmanifest
+# clears connection state. Signal handles SDP/ICE exchange and stays
+# hand-wired in host.signal() — it's protocol exchange, not lifecycle.
+#
+# Traces to: PROMPT-SUBSTRATE-WEBRTC.md
+
+entities:
+
+  - eidos: mode
+    id: mode/webrtc-livekit
+    data:
+      name: webrtc
+      topos: aither
+      substrate: network
+      provider: livekit
+      description: |
+        P2P network transport via LiveKit WebRTC.
+        Manages peer connections, data channels, and signaling.
+      operations:
+        manifest:
+          stoicheion: lk-join-room
+          description: Generate access token and establish connection intent.
+          params:
+            room_id:
+              type: string
+            identity:
+              type: string
+            name:
+              type: string
+              required: false
+        sense:
+          stoicheion: lk-sense-connection
+          description: Check connection state and token validity.
+          params:
+            manifest_handle:
+              type: string
+        unmanifest:
+          stoicheion: lk-leave-room
+          description: Close connection and invalidate state.
+          params:
+            manifest_handle:
+              type: string

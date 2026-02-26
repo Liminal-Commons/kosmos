@@ -1,0 +1,27 @@
+# Thyra Overlay Modes
+# Modes that render outside the spatial grid, as modal overlays.
+# Position "overlay" causes the layout engine to render without a region wrapper.
+#
+# Traces to: PROMPT-SETTINGS-PANEL-ONTOLOGY.md
+
+entities:
+
+  - eidos: mode
+    id: mode/settings-overlay
+    data:
+      name: settings-overlay
+      topos: thyra
+      description: |
+        Settings panel rendered as a modal overlay. Uses the modal widget
+        which Portals to body. Not part of the spatial grid — renders after
+        all standard regions.
+      render_spec_id: render-spec/settings-overlay
+      spatial:
+        position: overlay
+      source_entity_id: settings-panel/default
+      created_at: "2026-02-19T00:00:00Z"
+
+bonds:
+  - from_id: mode/settings-overlay
+    to_id: render-spec/settings-overlay
+    desmos: uses-render-spec

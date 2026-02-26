@@ -1,8 +1,8 @@
 # politeia.yaml
 # Politeia praxeis for governance and capability operations
 #
-# Politeia is how circles govern and grant capabilities.
-# These praxeis enable circle management, attainment derivation,
+# Politeia is how oikoi govern and grant capabilities.
+# These praxeis enable oikos management, attainment derivation,
 # and affordance surfacing.
 #
 # Relationships are desmoi, not array fields (Visibility = Reachability).
@@ -10,111 +10,113 @@
 entities:
 
 # =============================================================================
-# CIRCLE OPERATIONS (Phase 19.2)
+# OIKOS OPERATIONS (Phase 19.2)
 # =============================================================================
 
 - eidos: praxis
-  id: praxis/politeia/create-circle
+  id: praxis/politeia/create-oikos
   data:
-    oikos: politeia
-    name: create-circle
+    topos: politeia
+    name: create-oikos
     visible: true
     tier: 2
     description: |
-      Create a new circle with the caller's animus as sovereign.
+      Create a new oikos with the caller's parousia as sovereign.
 
-      Creates the circle entity and bonds sovereign-to from circle to caller's animus.
-      Also creates member-of bond from animus to circle.
+      Creates the oikos entity and bonds sovereign-to from oikos to caller's parousia.
+      Also creates member-of bond from parousia to oikos.
     params:
-      - name: circle_id
+      - name: oikos_id
         type: string
         required: true
-        description: ID for the new circle (e.g., circle/my-circle)
+        description: ID for the new oikos (e.g., oikos/my-oikos)
       - name: name
         type: string
         required: true
-        description: Human-readable circle name
+        description: Human-readable oikos name
       - name: description
         type: string
         required: false
-        description: Circle description
+        description: Oikos description
       - name: kind
         type: string
         required: false
-        description: "Circle kind: self, peer, commons (default: peer)"
+        description: "Oikos kind: sole, peer, commons (default: peer)"
     steps:
       # Default kind to peer
       - step: set
         bindings:
-          circle_kind: "$kind"
+          oikos_kind: "$kind"
 
       - step: switch
         cases:
-          - when: "$circle_kind"
+          - when: "$oikos_kind"
             then: []
         default:
           - step: set
             bindings:
-              circle_kind: "peer"
+              oikos_kind: "peer"
 
-      # Assert we have animus context
+      # Assert we have parousia context
       - step: assert
-        condition: "$_animus"
-        message: "No dwelling context — cannot create circle without animus"
+        condition: "$_parousia"
+        message: "No dwelling context — cannot create oikos without parousia"
 
-      # Create the circle (CE4: compose instead of arise)
+      # Create the oikos (CE4: compose instead of arise)
       - step: compose
-        typos_id: "typos-def-circle"
+        typos_id: "typos-def-oikos"
         inputs:
-          id: "$circle_id"
+          id: "$oikos_id"
           name: "$name"
           description: "$description"
-          kind: "$circle_kind"
-        bind_to: circle_entity
+          kind: "$oikos_kind"
+        bind_to: oikos_entity
 
-      # Bond: circle sovereign-to animus
+      # Bond: oikos sovereign-to parousia
       - step: bind
-        from_id: "$circle_id"
-        to_id: "$_animus"
+        from_id: "$oikos_id"
+        to_id: "$_parousia"
         desmos: "sovereign-to"
 
-      # Bond: animus member-of circle
+      # Bond: parousia member-of oikos
       - step: bind
-        from_id: "$_animus"
-        to_id: "$circle_id"
+        from_id: "$_parousia"
+        to_id: "$oikos_id"
         desmos: "member-of"
 
       - step: return
         value:
-          circle_id: "$circle_id"
-          circle: "$circle_entity"
-          sovereign_animus: "$_animus"
+          oikos_id: "$oikos_id"
+          oikos: "$oikos_entity"
+          sovereign_parousia: "$_parousia"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/govern }
 
 - eidos: praxis
-  id: praxis/politeia/invite-to-circle
+  id: praxis/politeia/invite-to-oikos
   data:
-    oikos: politeia
-    name: invite-to-circle
+    topos: politeia
+    name: invite-to-oikos
     visible: true
     tier: 2
     description: |
-      Invite someone to join a circle.
+      Invite someone to join an oikos.
 
-      Creates an invitation entity. Can target a specific persona or be an open invite.
-      Caller must be sovereign to the circle.
+      Creates an invitation entity. Can target a specific prosopon or be an open invite.
+      Caller must have sovereignty attainment (checked by authorization gate).
     params:
       - name: invitation_id
         type: string
         required: true
         description: ID for the invitation
-      - name: circle_id
+      - name: oikos_id
         type: string
         required: true
-        description: Circle to invite to
+        description: Oikos to invite to
       - name: invitee_id
         type: string
         required: false
-        description: Specific persona ID to invite (omit for open invite)
+        description: Specific prosopon ID to invite (omit for open invite)
       - name: message
         type: string
         required: false
@@ -130,33 +132,17 @@ entities:
     steps:
       # Assert dwelling context
       - step: assert
-        condition: "$_animus"
+        condition: "$_parousia"
         message: "No dwelling context"
 
-      # Find circle
+      # Find oikos
       - step: find
-        id: "$circle_id"
-        bind_to: circle
+        id: "$oikos_id"
+        bind_to: oikos
 
       - step: assert
-        condition: "$circle"
-        message: "Circle not found: $circle_id"
-
-      # Verify caller is sovereign (trace sovereign-to from circle)
-      - step: trace
-        from_id: "$circle_id"
-        desmos: "sovereign-to"
-        direction: "outbound"
-        bind_to: sovereigns
-
-      - step: filter
-        items: "$sovereigns"
-        condition: "$item.id == $_animus"
-        bind_to: is_sovereign
-
-      - step: assert
-        condition: "$is_sovereign | length > 0"
-        message: "Not sovereign to this circle"
+        condition: "$oikos"
+        message: "Oikos not found: $oikos_id"
 
       # Generate token for open invites
       - step: set
@@ -178,9 +164,9 @@ entities:
         typos_id: "typos-def-invitation"
         inputs:
           id: "$invitation_id"
-          circle_id: "$circle_id"
+          oikos_id: "$oikos_id"
           invitee_id: "$invitee_id"
-          inviter_id: "$_persona"
+          inviter_id: "$_prosopon"
           message: "$message"
           status: "pending"
           token: "$invite_token"
@@ -189,13 +175,13 @@ entities:
           created_at: "{{ now() }}"
         bind_to: invitation_entity
 
-      # Bond: invitation child-of circle
+      # Bond: invitation child-of oikos
       - step: bind
         from_id: "$invitation_id"
-        to_id: "$circle_id"
+        to_id: "$oikos_id"
         desmos: "child-of"
 
-      # Bond: invitation invited-to persona (if specific invite)
+      # Bond: invitation invited-to prosopon (if specific invite)
       - step: switch
         cases:
           - when: "$invitee_id"
@@ -210,19 +196,22 @@ entities:
           invitation_id: "$invitation_id"
           invitation: "$invitation_entity"
           token: "$invite_token"
-          circle_id: "$circle_id"
+          oikos_id: "$oikos_id"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/invite }
+    - { desmos: requires-attainment, to: attainment/sovereign }
 
 - eidos: praxis
   id: praxis/politeia/accept-invitation
   data:
-    oikos: politeia
+    topos: politeia
     name: accept-invitation
     visible: true
     tier: 2
     description: |
-      Accept an invitation to join a circle.
+      Accept an invitation to join an oikos.
 
-      Creates member-of bond and derives attainments from the circle.
+      Creates member-of bond and derives attainments from the oikos.
     params:
       - name: invitation_id
         type: string
@@ -230,7 +219,7 @@ entities:
         description: Invitation to accept
     steps:
       - step: assert
-        condition: "$_animus"
+        condition: "$_parousia"
         message: "No dwelling context"
 
       # Find invitation
@@ -246,13 +235,13 @@ entities:
         condition: '$invitation.data.status == "pending"'
         message: "Invitation is not pending"
 
-      # Check if specific invite for this persona
+      # Check if specific invite for this prosopon
       - step: switch
         cases:
           - when: "$invitation.data.invitee_id"
             then:
               - step: assert
-                condition: "$invitation.data.invitee_id == $_persona"
+                condition: "$invitation.data.invitee_id == $_prosopon"
                 message: "Invitation not for you"
 
       # Check max uses for open invites
@@ -264,15 +253,15 @@ entities:
                 condition: "$invitation.data.uses < $invitation.data.max_uses"
                 message: "Invitation has reached max uses"
 
-      # Get circle ID
+      # Get oikos ID
       - step: set
         bindings:
-          target_circle: "$invitation.data.circle_id"
+          target_oikos: "$invitation.data.oikos_id"
 
       # Create member-of bond
       - step: bind
-        from_id: "$_animus"
-        to_id: "$target_circle"
+        from_id: "$_parousia"
+        to_id: "$target_oikos"
         desmos: "member-of"
         bind_to: membership_bond
 
@@ -284,16 +273,16 @@ entities:
           uses: "$invitation.data.uses + 1"
           accepted_at: "{{ now() }}"
 
-      # Get persona for event name (use $_persona which is the persona ID)
+      # Get prosopon for event name (use $_prosopon which is the prosopon ID)
       - step: find
-        id: "$_persona"
-        bind_to: persona_entity
+        id: "$_prosopon"
+        bind_to: prosopon_entity
 
       - step: set
         bindings:
-          joining_persona_name: "$persona_entity.data.name"
+          joining_prosopon_name: "$prosopon_entity.data.name"
 
-      # Get inviter persona for actor name
+      # Get inviter prosopon for actor name
       - step: find
         id: "$invitation.data.inviter_id"
         bind_to: inviter_entity
@@ -307,41 +296,52 @@ entities:
         praxis: "politeia/create-membership-event"
         params:
           event_type: "joined"
-          circle_id: "$target_circle"
-          persona_id: "$_persona"
-          persona_name: "$joining_persona_name"
+          oikos_id: "$target_oikos"
+          prosopon_id: "$_prosopon"
+          prosopon_name: "$joining_prosopon_name"
           actor_id: "$invitation.data.inviter_id"
           actor_name: "$inviter_name"
           invitation_id: "$invitation_id"
         bind_to: join_event
 
-      # Derive attainments from the circle
+      # Derive attainments from the oikos
       - step: call
         praxis: "politeia/derive-attainments"
         params:
-          animus_id: "$_animus"
-          circle_id: "$target_circle"
+          parousia_id: "$_parousia"
+          oikos_id: "$target_oikos"
         bind_to: derived
 
-      # Sync oikoi distributed by this circle (non-blocking)
+      # Sync topoi distributed by this oikos (non-blocking)
       # If sync fails, join still succeeds - user can sync manually later
       - step: call
-        praxis: "politeia/sync-circle-oikoi"
+        praxis: "politeia/sync-oikos-topoi"
         params:
-          circle_id: "$target_circle"
+          oikos_id: "$target_oikos"
         bind_to: sync_result
+
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Joined oikos: $target_oikos"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: invitation
+            source_id: "$invitation_id"
 
       - step: return
         value:
           accepted: true
-          circle_id: "$target_circle"
+          oikos_id: "$target_oikos"
           attainments_derived: "$derived.attainments"
-          oikoi_synced: "$sync_result.oikoi_synced"
+          topoi_synced: "$sync_result.topoi_synced"
 
 - eidos: praxis
   id: praxis/politeia/decline-invitation
   data:
-    oikos: politeia
+    topos: politeia
     name: decline-invitation
     visible: true
     tier: 1
@@ -376,55 +376,55 @@ entities:
           invitation_id: "$invitation_id"
 
 - eidos: praxis
-  id: praxis/politeia/dwell-in-circle
+  id: praxis/politeia/dwell-in-oikos
   data:
-    oikos: politeia
-    name: dwell-in-circle
+    topos: politeia
+    name: dwell-in-oikos
     visible: true
     tier: 2
     description: |
-      Move dwelling position to a circle.
+      Move dwelling position to an oikos.
 
-      Animus can only dwell in one circle at a time (exclusive).
+      Parousia can only dwell in one oikos at a time (exclusive).
       Removes previous dwells-in bond, creates new one.
     params:
-      - name: circle_id
+      - name: oikos_id
         type: string
         required: true
-        description: Circle to dwell in
+        description: Oikos to dwell in
     steps:
       - step: assert
-        condition: "$_animus"
+        condition: "$_parousia"
         message: "No dwelling context"
 
-      # Find circle
+      # Find oikos
       - step: find
-        id: "$circle_id"
-        bind_to: circle
+        id: "$oikos_id"
+        bind_to: oikos
 
       - step: assert
-        condition: "$circle"
-        message: "Circle not found: $circle_id"
+        condition: "$oikos"
+        message: "Oikos not found: $oikos_id"
 
       # Check membership
       - step: trace
-        from_id: "$_animus"
+        from_id: "$_parousia"
         desmos: "member-of"
         direction: "outbound"
         bind_to: memberships
 
       - step: filter
         items: "$memberships"
-        condition: "$item.id == $circle_id"
+        condition: "$item.id == $oikos_id"
         bind_to: is_member
 
       - step: assert
         condition: "$is_member | length > 0"
-        message: "Not a member of this circle"
+        message: "Not a member of this oikos"
 
       # Remove existing dwells-in bond
       - step: trace
-        from_id: "$_animus"
+        from_id: "$_parousia"
         desmos: "dwells-in"
         direction: "outbound"
         bind_to: current_dwelling
@@ -435,98 +435,98 @@ entities:
             then:
               - step: set
                 bindings:
-                  previous_circle: "$current_dwelling.0.id"
+                  previous_oikos: "$current_dwelling.0.id"
               - step: loose
-                from_id: "$_animus"
+                from_id: "$_parousia"
                 to_id: "$current_dwelling.0.id"
                 desmos: "dwells-in"
 
       # Create new dwells-in bond
       - step: bind
-        from_id: "$_animus"
-        to_id: "$circle_id"
+        from_id: "$_parousia"
+        to_id: "$oikos_id"
         desmos: "dwells-in"
 
-      # Update animus
+      # Update parousia
       - step: update
-        id: "$_animus"
+        id: "$_parousia"
         data:
-          circle_id: "$circle_id"
+          oikos_id: "$oikos_id"
           last_active_at: "{{ now() }}"
 
       - step: return
         value:
-          dwelling_in: "$circle_id"
-          previous_circle: "$previous_circle"
+          dwelling_in: "$oikos_id"
+          previous_oikos: "$previous_oikos"
 
 - eidos: praxis
-  id: praxis/politeia/leave-circle
+  id: praxis/politeia/leave-oikos
   data:
-    oikos: politeia
-    name: leave-circle
+    topos: politeia
+    name: leave-oikos
     visible: true
     tier: 2
     description: |
-      Leave a circle (remove membership).
+      Leave an oikos (remove membership).
 
       Removes member-of bond and any has-attainment bonds for attainments
-      granted by this circle.
+      granted by this oikos.
     params:
-      - name: circle_id
+      - name: oikos_id
         type: string
         required: true
-        description: Circle to leave
+        description: Oikos to leave
     steps:
       - step: assert
-        condition: "$_animus"
+        condition: "$_parousia"
         message: "No dwelling context"
 
       # Check membership exists
       - step: trace
-        from_id: "$_animus"
+        from_id: "$_parousia"
         desmos: "member-of"
         direction: "outbound"
         bind_to: memberships
 
       - step: filter
         items: "$memberships"
-        condition: "$item.id == $circle_id"
+        condition: "$item.id == $oikos_id"
         bind_to: is_member
 
       - step: assert
         condition: "$is_member | length > 0"
-        message: "Not a member of this circle"
+        message: "Not a member of this oikos"
 
-      # Get persona for event name
+      # Get prosopon for event name
       - step: find
-        id: "$_persona"
-        bind_to: leaving_persona
+        id: "$_prosopon"
+        bind_to: leaving_prosopon
 
       - step: set
         bindings:
-          leaving_persona_name: "$leaving_persona.data.name"
+          leaving_prosopon_name: "$leaving_prosopon.data.name"
 
       # Create membership event for audit trail (before removing bond)
       - step: call
         praxis: "politeia/create-membership-event"
         params:
           event_type: "left"
-          circle_id: "$circle_id"
-          persona_id: "$_persona"
-          persona_name: "$leaving_persona_name"
-          actor_id: "$_persona"
-          actor_name: "$leaving_persona_name"
+          oikos_id: "$oikos_id"
+          prosopon_id: "$_prosopon"
+          prosopon_name: "$leaving_prosopon_name"
+          actor_id: "$_prosopon"
+          actor_name: "$leaving_prosopon_name"
         bind_to: leave_event
 
       # Remove member-of bond
       - step: loose
-        from_id: "$_animus"
-        to_id: "$circle_id"
+        from_id: "$_parousia"
+        to_id: "$oikos_id"
         desmos: "member-of"
 
       # If currently dwelling there, remove dwells-in
       - step: trace
-        from_id: "$_animus"
+        from_id: "$_parousia"
         desmos: "dwells-in"
         direction: "outbound"
         bind_to: dwelling
@@ -537,35 +537,35 @@ entities:
             then:
               - step: switch
                 cases:
-                  - when: "$dwelling.0.id == $circle_id"
+                  - when: "$dwelling.0.id == $oikos_id"
                     then:
                       - step: loose
-                        from_id: "$_animus"
-                        to_id: "$circle_id"
+                        from_id: "$_parousia"
+                        to_id: "$oikos_id"
                         desmos: "dwells-in"
 
-      # Get attainments granted by this circle
+      # Get attainments granted by this oikos
       - step: trace
-        from_id: "$circle_id"
+        from_id: "$oikos_id"
         desmos: "grants-attainment"
         direction: "outbound"
-        bind_to: circle_attainments
+        bind_to: oikos_attainments
 
       # Remove has-attainment bonds for these attainments
       - step: for_each
-        items: "$circle_attainments"
+        items: "$oikos_attainments"
         item_var: attainment
         steps:
           - step: loose
-            from_id: "$_animus"
+            from_id: "$_parousia"
             to_id: "$attainment.id"
             desmos: "has-attainment"
 
       - step: return
         value:
           left: true
-          circle_id: "$circle_id"
-          attainments_removed: "$circle_attainments | length"
+          oikos_id: "$oikos_id"
+          attainments_removed: "$oikos_attainments | length"
 
 # =============================================================================
 # MEMBERSHIP EVENT OPERATIONS (Audit Trail)
@@ -574,7 +574,7 @@ entities:
 - eidos: praxis
   id: praxis/politeia/create-membership-event
   data:
-    oikos: politeia
+    topos: politeia
     name: create-membership-event
     visible: true
     tier: 2
@@ -588,15 +588,15 @@ entities:
         type: string
         required: true
         description: "Event type: joined, left, removed, invited"
-      - name: circle_id
+      - name: oikos_id
         type: string
         required: true
-        description: Circle where the event occurred
-      - name: persona_id
+        description: Oikos where the event occurred
+      - name: prosopon_id
         type: string
         required: true
-        description: Persona affected by the event
-      - name: persona_name
+        description: Prosopon affected by the event
+      - name: prosopon_name
         type: string
         required: false
         description: Display name at time of event
@@ -628,9 +628,9 @@ entities:
         inputs:
           id: "$event_id"
           event_type: "$event_type"
-          circle_id: "$circle_id"
-          persona_id: "$persona_id"
-          persona_name: "$persona_name"
+          oikos_id: "$oikos_id"
+          prosopon_id: "$prosopon_id"
+          prosopon_name: "$prosopon_name"
           actor_id: "$actor_id"
           actor_name: "$actor_name"
           invitation_id: "$invitation_id"
@@ -638,10 +638,10 @@ entities:
           occurred_at: "{{ now() }}"
         bind_to: event_entity
 
-      # Bond: event child-of circle (for traversal and visibility)
+      # Bond: event child-of oikos (for traversal and visibility)
       - step: bind
         from_id: "$event_id"
-        to_id: "$circle_id"
+        to_id: "$oikos_id"
         desmos: "child-of"
 
       - step: return
@@ -652,19 +652,19 @@ entities:
 - eidos: praxis
   id: praxis/politeia/list-membership-events
   data:
-    oikos: politeia
+    topos: politeia
     name: list-membership-events
     visible: true
     tier: 1
     description: |
-      List membership events for a circle.
+      List membership events for an oikos.
 
       Returns audit trail of join/leave/remove events.
     params:
-      - name: circle_id
+      - name: oikos_id
         type: string
         required: true
-        description: Circle to query events for
+        description: Oikos to query events for
       - name: event_type
         type: string
         required: false
@@ -675,16 +675,16 @@ entities:
         description: Maximum results (default 50)
     steps:
       - step: find
-        id: "$circle_id"
-        bind_to: circle
+        id: "$oikos_id"
+        bind_to: oikos
 
       - step: assert
-        condition: "$circle"
-        message: "Circle not found: $circle_id"
+        condition: "$oikos"
+        message: "Oikos not found: $oikos_id"
 
-      # Gather membership events bonded to this circle
+      # Gather membership events bonded to this oikos
       - step: trace
-        to_id: "$circle_id"
+        to_id: "$oikos_id"
         desmos: "child-of"
         direction: "inbound"
         bind_to: children
@@ -725,24 +725,24 @@ entities:
 
       - step: return
         value:
-          circle_id: "$circle_id"
+          oikos_id: "$oikos_id"
           events: "$events"
           count: "$events | length"
 
 - eidos: praxis
-  id: praxis/politeia/list-circles
+  id: praxis/politeia/list-oikoi
   data:
-    oikos: politeia
-    name: list-circles
+    topos: politeia
+    name: list-oikoi
     visible: true
     tier: 1
     description: |
-      List circles the animus is member of or can see.
+      List oikoi the parousia is member of or can see.
     params:
       - name: membership_only
         type: boolean
         required: false
-        description: Only show circles with membership (default false)
+        description: Only show oikoi with membership (default false)
       - name: max_results
         type: number
         required: false
@@ -767,25 +767,25 @@ entities:
           - when: "$membership_only"
             then:
               - step: trace
-                from_id: "$_animus"
+                from_id: "$_parousia"
                 desmos: "member-of"
                 direction: "outbound"
-                bind_to: circles
+                bind_to: oikoi
         default:
-          # All visible circles
+          # All visible oikoi
           - step: gather
-            eidos: "circle"
-            bind_to: circles
+            eidos: "oikos"
+            bind_to: oikoi
 
       - step: limit
-        items: "$circles"
+        items: "$oikoi"
         count: "$limit"
-        bind_to: circles
+        bind_to: oikoi
 
       - step: return
         value:
-          circles: "$circles"
-          count: "$circles | length"
+          oikoi: "$oikoi"
+          count: "$oikoi | length"
 
 # =============================================================================
 # ATTAINMENT OPERATIONS (Phase 19.3)
@@ -794,12 +794,12 @@ entities:
 - eidos: praxis
   id: praxis/politeia/create-attainment
   data:
-    oikos: politeia
+    topos: politeia
     name: create-attainment
     visible: true
     tier: 2
     description: |
-      Create a new attainment that circles can grant.
+      Create a new attainment that oikoi can grant.
     params:
       - name: attainment_id
         type: string
@@ -816,7 +816,7 @@ entities:
       - name: scope
         type: string
         required: false
-        description: "Scope: circle, oikos, global (default: circle)"
+        description: "Scope: oikos, topos, global (default: oikos)"
       - name: constraints
         type: object
         required: false
@@ -833,7 +833,7 @@ entities:
         default:
           - step: set
             bindings:
-              attainment_scope: "circle"
+              attainment_scope: "oikos"
 
       # CE4: compose instead of arise
       - step: compose
@@ -851,47 +851,33 @@ entities:
         value:
           attainment_id: "$attainment_id"
           attainment: "$attainment_entity"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/govern }
 
 - eidos: praxis
   id: praxis/politeia/grant-attainment
   data:
-    oikos: politeia
+    topos: politeia
     name: grant-attainment
     visible: true
     tier: 2
     description: |
-      Grant an attainment from a circle.
+      Grant an attainment from an oikos.
 
-      Caller must be sovereign to the circle.
+      Caller must have sovereignty attainment (checked by authorization gate).
     params:
-      - name: circle_id
+      - name: oikos_id
         type: string
         required: true
-        description: Circle granting the attainment
+        description: Oikos granting the attainment
       - name: attainment_id
         type: string
         required: true
         description: Attainment to grant
     steps:
       - step: assert
-        condition: "$_animus"
+        condition: "$_parousia"
         message: "No dwelling context"
-
-      # Verify caller is sovereign
-      - step: trace
-        from_id: "$circle_id"
-        desmos: "sovereign-to"
-        direction: "outbound"
-        bind_to: sovereigns
-
-      - step: filter
-        items: "$sovereigns"
-        condition: "$item.id == $_animus"
-        bind_to: is_sovereign
-
-      - step: assert
-        condition: "$is_sovereign | length > 0"
-        message: "Not sovereign to this circle"
 
       # Verify attainment exists
       - step: find
@@ -904,7 +890,7 @@ entities:
 
       # Create grants-attainment bond
       - step: bind
-        from_id: "$circle_id"
+        from_id: "$oikos_id"
         to_id: "$attainment_id"
         desmos: "grants-attainment"
         bind_to: grant_bond
@@ -912,131 +898,132 @@ entities:
       # Create granted-by bond (inverse)
       - step: bind
         from_id: "$attainment_id"
-        to_id: "$circle_id"
+        to_id: "$oikos_id"
         desmos: "granted-by"
+
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Attainment granted: $attainment.data.name from $oikos_id"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: attainment
+            source_id: "$attainment_id"
 
       - step: return
         value:
           granted: true
-          circle_id: "$circle_id"
+          oikos_id: "$oikos_id"
           attainment_id: "$attainment_id"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/govern }
+    - { desmos: requires-attainment, to: attainment/sovereign }
 
 - eidos: praxis
   id: praxis/politeia/revoke-attainment
   data:
-    oikos: politeia
+    topos: politeia
     name: revoke-attainment
     visible: true
     tier: 2
     description: |
-      Revoke an attainment grant from a circle.
+      Revoke an attainment grant from an oikos.
 
-      Caller must be sovereign to the circle.
+      Caller must have sovereignty attainment (checked by authorization gate).
     params:
-      - name: circle_id
+      - name: oikos_id
         type: string
         required: true
-        description: Circle revoking the attainment
+        description: Oikos revoking the attainment
       - name: attainment_id
         type: string
         required: true
         description: Attainment to revoke
     steps:
       - step: assert
-        condition: "$_animus"
+        condition: "$_parousia"
         message: "No dwelling context"
-
-      # Verify caller is sovereign
-      - step: trace
-        from_id: "$circle_id"
-        desmos: "sovereign-to"
-        direction: "outbound"
-        bind_to: sovereigns
-
-      - step: filter
-        items: "$sovereigns"
-        condition: "$item.id == $_animus"
-        bind_to: is_sovereign
-
-      - step: assert
-        condition: "$is_sovereign | length > 0"
-        message: "Not sovereign to this circle"
 
       # Remove grants-attainment bond
       - step: loose
-        from_id: "$circle_id"
+        from_id: "$oikos_id"
         to_id: "$attainment_id"
         desmos: "grants-attainment"
 
       # Remove granted-by bond (inverse)
       - step: loose
         from_id: "$attainment_id"
-        to_id: "$circle_id"
+        to_id: "$oikos_id"
         desmos: "granted-by"
 
       - step: return
         value:
           revoked: true
-          circle_id: "$circle_id"
+          oikos_id: "$oikos_id"
           attainment_id: "$attainment_id"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/govern }
+    - { desmos: requires-attainment, to: attainment/sovereign }
 
 - eidos: praxis
   id: praxis/politeia/derive-attainments
   data:
-    oikos: politeia
+    topos: politeia
     name: derive-attainments
     visible: true
     tier: 2
     description: |
-      Derive attainments for an animus based on circle memberships.
+      Derive attainments for a parousia based on oikos memberships.
 
-      Traverses: animus -> member-of -> circle -> grants-attainment -> attainment
+      Traverses: parousia -> member-of -> oikos -> grants-attainment -> attainment
       Creates has-attainment bonds for each derived attainment.
     params:
-      - name: animus_id
+      - name: parousia_id
         type: string
         required: false
-        description: Animus to derive for (defaults to caller)
-      - name: circle_id
+        description: Parousia to derive for (defaults to caller)
+      - name: oikos_id
         type: string
         required: false
-        description: Specific circle to derive from (optional)
+        description: Specific oikos to derive from (optional)
     steps:
       - step: set
         bindings:
-          target_animus: "$animus_id"
+          target_parousia: "$parousia_id"
 
       - step: switch
         cases:
-          - when: "$target_animus"
+          - when: "$target_parousia"
             then: []
         default:
           - step: set
             bindings:
-              target_animus: "$_animus"
+              target_parousia: "$_parousia"
 
       - step: assert
-        condition: "$target_animus"
-        message: "No animus specified"
+        condition: "$target_parousia"
+        message: "No parousia specified"
 
       # Get memberships
       - step: trace
-        from_id: "$target_animus"
+        from_id: "$target_parousia"
         desmos: "member-of"
         direction: "outbound"
         bind_to: memberships
 
-      # Filter to specific circle if provided
+      # Filter to specific oikos if provided
       - step: switch
         cases:
-          - when: "$circle_id"
+          - when: "$oikos_id"
             then:
               - step: filter
                 items: "$memberships"
-                condition: "$item.id == $circle_id"
+                condition: "$item.id == $oikos_id"
                 bind_to: memberships
 
-      # Collect attainments from all circles
+      # Collect attainments from all oikoi
       - step: set
         bindings:
           all_attainments: []
@@ -1044,56 +1031,56 @@ entities:
 
       - step: for_each
         items: "$memberships"
-        item_var: circle
+        item_var: oikos
         steps:
-          # Get attainments granted by this circle
+          # Get attainments granted by this oikos
           - step: trace
-            from_id: "$circle.id"
+            from_id: "$oikos.id"
             desmos: "grants-attainment"
             direction: "outbound"
-            bind_to: circle_attainments
+            bind_to: oikos_attainments
 
           # Create has-attainment bonds
           - step: for_each
-            items: "$circle_attainments"
+            items: "$oikos_attainments"
             item_var: attainment
             steps:
               - step: bind
-                from_id: "$target_animus"
+                from_id: "$target_parousia"
                 to_id: "$attainment.id"
                 desmos: "has-attainment"
 
-      # Gather all attainments the animus now has
+      # Gather all attainments the parousia now has
       - step: trace
-        from_id: "$target_animus"
+        from_id: "$target_parousia"
         desmos: "has-attainment"
         direction: "outbound"
         bind_to: final_attainments
 
       - step: return
         value:
-          animus_id: "$target_animus"
+          parousia_id: "$target_parousia"
           attainments: "$final_attainments"
           count: "$final_attainments | length"
 
 - eidos: praxis
   id: praxis/politeia/list-attainments
   data:
-    oikos: politeia
+    topos: politeia
     name: list-attainments
     visible: true
     tier: 1
     description: |
-      List attainments for an animus or circle.
+      List attainments for a parousia or oikos.
     params:
-      - name: animus_id
+      - name: parousia_id
         type: string
         required: false
-        description: List attainments for this animus
-      - name: circle_id
+        description: List attainments for this parousia
+      - name: oikos_id
         type: string
         required: false
-        description: List attainments granted by this circle
+        description: List attainments granted by this oikos
       - name: max_results
         type: number
         required: false
@@ -1114,20 +1101,20 @@ entities:
 
       - step: switch
         cases:
-          # List for animus
-          - when: "$animus_id"
+          # List for parousia
+          - when: "$parousia_id"
             then:
               - step: trace
-                from_id: "$animus_id"
+                from_id: "$parousia_id"
                 desmos: "has-attainment"
                 direction: "outbound"
                 bind_to: attainments
 
-          # List for circle
-          - when: "$circle_id"
+          # List for oikos
+          - when: "$oikos_id"
             then:
               - step: trace
-                from_id: "$circle_id"
+                from_id: "$oikos_id"
                 desmos: "grants-attainment"
                 direction: "outbound"
                 bind_to: attainments
@@ -1135,7 +1122,7 @@ entities:
         # Default: caller's attainments
         default:
           - step: trace
-            from_id: "$_animus"
+            from_id: "$_parousia"
             desmos: "has-attainment"
             direction: "outbound"
             bind_to: attainments
@@ -1157,7 +1144,7 @@ entities:
 - eidos: praxis
   id: praxis/politeia/create-affordance
   data:
-    oikos: politeia
+    topos: politeia
     name: create-affordance
     visible: true
     tier: 2
@@ -1184,14 +1171,6 @@ entities:
         type: string
         required: true
         description: Attainment that enables this
-      - name: region_id
-        type: string
-        required: false
-        description: HUD region to render in
-      - name: required_attainments
-        type: array
-        required: false
-        description: Additional attainments required
       - name: context_filter
         type: object
         required: false
@@ -1231,7 +1210,6 @@ entities:
           name: "$name"
           description: "$description"
           praxis_id: "$praxis_id"
-          required_attainments: "$required_attainments"
           context_filter: "$context_filter"
           priority: "$affordance_priority"
           created_at: "{{ now() }}"
@@ -1249,32 +1227,24 @@ entities:
         to_id: "$attainment_id"
         desmos: "enabled-by"
 
-      # Bond: affordance renders-in region (if specified)
-      - step: switch
-        cases:
-          - when: "$region_id"
-            then:
-              - step: bind
-                from_id: "$affordance_id"
-                to_id: "$region_id"
-                desmos: "renders-in"
-
       - step: return
         value:
           affordance_id: "$affordance_id"
           affordance: "$affordance_entity"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/hud }
 
 - eidos: praxis
   id: praxis/politeia/gather-affordances
   data:
-    oikos: politeia
+    topos: politeia
     name: gather-affordances
     visible: true
     tier: 1
     description: |
       Gather all affordances available to the caller.
 
-      Traverses: animus -> has-attainment -> attainment -> surfaces-as -> affordance
+      Traverses: parousia -> has-attainment -> attainment -> surfaces-as -> affordance
     params:
       - name: context_entity_id
         type: string
@@ -1286,7 +1256,7 @@ entities:
         description: Maximum results
     steps:
       - step: assert
-        condition: "$_animus"
+        condition: "$_parousia"
         message: "No dwelling context"
 
       - step: set
@@ -1304,7 +1274,7 @@ entities:
 
       # Get attainments
       - step: trace
-        from_id: "$_animus"
+        from_id: "$_parousia"
         desmos: "has-attainment"
         direction: "outbound"
         bind_to: attainments
@@ -1348,49 +1318,36 @@ entities:
 - eidos: praxis
   id: praxis/politeia/render-hud
   data:
-    oikos: politeia
+    topos: politeia
     name: render-hud
     visible: true
     tier: 1
     description: |
-      Build the HUD render tree for the caller.
+      Build the affordance set for the caller.
 
-      Returns a nested structure of regions with their affordances.
+      Returns all affordances available to the current parousia.
+      Spatial placement is handled by modes, not by this praxis.
     params: []
     steps:
       - step: assert
-        condition: "$_animus"
+        condition: "$_parousia"
         message: "No dwelling context"
 
-      # Get all HUD regions
-      - step: gather
-        eidos: "hud-region"
-        bind_to: all_regions
-
-      # Get all affordances for this animus
+      # Get all affordances for this parousia
       - step: call
         praxis: "politeia/gather-affordances"
         params: {}
         bind_to: affordance_result
 
-      - step: set
-        bindings:
-          affordances: "$affordance_result.affordances"
-
-      # Build region tree with affordances
-      # Note: In a full impl, we'd nest regions via child-of
-      # For now, return flat list with affordances grouped
-
       - step: return
         value:
-          regions: "$all_regions"
-          affordances: "$affordances"
-          animus_id: "$_animus"
+          affordances: "$affordance_result.affordances"
+          parousia_id: "$_parousia"
 
 - eidos: praxis
   id: praxis/politeia/invoke-affordance
   data:
-    oikos: politeia
+    topos: politeia
     name: invoke-affordance
     visible: true
     tier: 3
@@ -1409,7 +1366,7 @@ entities:
         description: Parameters for the action praxis
     steps:
       - step: assert
-        condition: "$_animus"
+        condition: "$_parousia"
         message: "No dwelling context"
 
       # Find affordance
@@ -1434,7 +1391,7 @@ entities:
 
       # Verify caller has the attainment
       - step: trace
-        from_id: "$_animus"
+        from_id: "$_parousia"
         desmos: "has-attainment"
         direction: "outbound"
         bind_to: my_attainments
@@ -1470,187 +1427,37 @@ entities:
           result: "$result"
 
 # =============================================================================
-# HUD REGION OPERATIONS (Phase 19.4)
+# TOPOS DISTRIBUTION (Phase 30.5)
 # =============================================================================
 
 - eidos: praxis
-  id: praxis/politeia/create-hud-region
+  id: praxis/politeia/create-distribution-oikos
   data:
-    oikos: politeia
-    name: create-hud-region
+    topos: politeia
+    name: create-distribution-oikos
     visible: true
     tier: 2
     description: |
-      Create a HUD region.
+      Create a distribution oikos for a topos-prod.
+
+      Distribution oikoi are how topoi reach users:
+      - commons: Public oikos, anyone can join
+      - premium: Intimate oikos, invitation required
+
+      Creates oikos and grants topos-use attainment.
     params:
-      - name: region_id
+      - name: topos_prod_id
         type: string
         required: true
-        description: ID for the region
+        description: The topos-prod to distribute
+      - name: oikos_id
+        type: string
+        required: true
+        description: ID for the distribution oikos
       - name: name
         type: string
         required: true
-        description: Region name
-      - name: kind
-        type: string
-        required: true
-        description: "Region kind: toolbar, sidebar, contextual, modal, toast, ambient"
-      - name: position
-        type: object
-        required: false
-        description: Position hints
-      - name: visibility
-        type: string
-        required: false
-        description: "Visibility: always, contextual, on_demand (default: contextual)"
-      - name: parent_region_id
-        type: string
-        required: false
-        description: Parent region for nesting
-      - name: required_attainment
-        type: string
-        required: false
-        description: Attainment needed to see this region
-    steps:
-      - step: set
-        bindings:
-          region_visibility: "$visibility"
-
-      - step: switch
-        cases:
-          - when: "$region_visibility"
-            then: []
-        default:
-          - step: set
-            bindings:
-              region_visibility: "contextual"
-
-      # Create region (CE4: compose instead of arise)
-      - step: compose
-        typos_id: "typos-def-hud-region"
-        inputs:
-          id: "$region_id"
-          name: "$name"
-          kind: "$kind"
-          parent_id: "$parent_region_id"
-          position: "$position"
-          visibility: "$region_visibility"
-          required_attainment: "$required_attainment"
-          created_at: "{{ now() }}"
-        bind_to: region_entity
-
-      # Bond: region renders-in parent (if specified)
-      - step: switch
-        cases:
-          - when: "$parent_region_id"
-            then:
-              - step: bind
-                from_id: "$region_id"
-                to_id: "$parent_region_id"
-                desmos: "renders-in"
-
-      # Bond: region enabled-by attainment (if specified)
-      - step: switch
-        cases:
-          - when: "$required_attainment"
-            then:
-              - step: bind
-                from_id: "$region_id"
-                to_id: "$required_attainment"
-                desmos: "enabled-by"
-
-      - step: return
-        value:
-          region_id: "$region_id"
-          region: "$region_entity"
-
-- eidos: praxis
-  id: praxis/politeia/list-hud-regions
-  data:
-    oikos: politeia
-    name: list-hud-regions
-    visible: true
-    tier: 1
-    description: |
-      List HUD regions.
-    params:
-      - name: kind
-        type: string
-        required: false
-        description: Filter by region kind
-      - name: max_results
-        type: number
-        required: false
-        description: Maximum results
-    steps:
-      - step: gather
-        eidos: "hud-region"
-        bind_to: regions
-
-      - step: switch
-        cases:
-          - when: "$kind"
-            then:
-              - step: filter
-                items: "$regions"
-                condition: "$item.data.kind == $kind"
-                bind_to: regions
-
-      - step: set
-        bindings:
-          limit: "$max_results"
-
-      - step: switch
-        cases:
-          - when: "$limit"
-            then: []
-        default:
-          - step: set
-            bindings:
-              limit: 50
-
-      - step: limit
-        items: "$regions"
-        count: "$limit"
-        bind_to: regions
-
-      - step: return
-        value:
-          regions: "$regions"
-          count: "$regions | length"
-
-# =============================================================================
-# OIKOS DISTRIBUTION (Phase 30.5)
-# =============================================================================
-
-- eidos: praxis
-  id: praxis/politeia/create-distribution-circle
-  data:
-    oikos: politeia
-    name: create-distribution-circle
-    visible: true
-    tier: 2
-    description: |
-      Create a distribution circle for an oikos-prod.
-
-      Distribution circles are how oikoi reach users:
-      - commons: Public circle, anyone can join
-      - premium: Intimate circle, invitation required
-
-      Creates circle and grants oikos-use attainment.
-    params:
-      - name: oikos_prod_id
-        type: string
-        required: true
-        description: The oikos-prod to distribute
-      - name: circle_id
-        type: string
-        required: true
-        description: ID for the distribution circle
-      - name: name
-        type: string
-        required: true
-        description: Human-readable circle name
+        description: Human-readable oikos name
       - name: distribution_kind
         type: string
         required: true
@@ -1658,27 +1465,27 @@ entities:
       - name: description
         type: string
         required: false
-        description: Circle description
+        description: Oikos description
     steps:
-      # Verify oikos-prod exists
+      # Verify topos-prod exists
       - step: find
-        id: "$oikos_prod_id"
-        bind_to: oikos_prod
+        id: "$topos_prod_id"
+        bind_to: topos_prod
 
       - step: assert
-        condition: "$oikos_prod"
-        message: "oikos-prod not found: $oikos_prod_id"
+        condition: "$topos_prod"
+        message: "topos-prod not found: $topos_prod_id"
 
       - step: assert
-        condition: "$oikos_prod.eidos == 'oikos-prod'"
-        message: "Entity is not an oikos-prod: $oikos_prod_id"
+        condition: "$topos_prod.eidos == 'topos-prod'"
+        message: "Entity is not a topos-prod: $topos_prod_id"
 
-      # Map distribution kind to circle kind
-      # commons distribution → commons circle (open)
-      # premium distribution → peer circle (invitation only)
+      # Map distribution kind to oikos kind
+      # commons distribution -> commons oikos (open)
+      # premium distribution -> peer oikos (invitation only)
       - step: set
         bindings:
-          circle_kind: "peer"
+          oikos_kind: "peer"
 
       - step: switch
         cases:
@@ -1686,102 +1493,104 @@ entities:
             then:
               - step: set
                 bindings:
-                  circle_kind: "commons"
+                  oikos_kind: "commons"
 
-      # Create the distribution circle
+      # Create the distribution oikos
       - step: call
-        praxis: "politeia/create-circle"
+        praxis: "politeia/create-oikos"
         params:
-          circle_id: "$circle_id"
+          oikos_id: "$oikos_id"
           name: "$name"
           description: "$description"
-          kind: "$circle_kind"
-        bind_to: circle_result
+          kind: "$oikos_kind"
+        bind_to: oikos_result
 
-      # Create use attainment for this oikos
+      # Create use attainment for this topos
       - step: set
         bindings:
-          attainment_id: "attainment/use-$oikos_prod.data.oikos_id"
+          attainment_id: "attainment/use-$topos_prod.data.topos_id"
 
       # CE4: compose instead of arise
       - step: compose
         typos_id: "typos-def-attainment"
         inputs:
           id: "$attainment_id"
-          name: "use-$oikos_prod.data.oikos_id"
-          description: "Ability to use $oikos_prod.data.oikos_id oikos capabilities"
-          scope: "circle"
+          name: "use-$topos_prod.data.topos_id"
+          description: "Ability to use $topos_prod.data.topos_id topos capabilities"
+          scope: "oikos"
           created_at: "{{ now() }}"
         bind_to: attainment_entity
 
-      # Grant attainment from circle
+      # Grant attainment from oikos
       - step: bind
-        from_id: "$circle_id"
+        from_id: "$oikos_id"
         to_id: "$attainment_id"
         desmos: "grants-attainment"
 
-      # Bond circle distributes oikos
+      # Bond oikos distributes topos
       - step: bind
-        from_id: "$circle_id"
-        to_id: "$oikos_prod_id"
+        from_id: "$oikos_id"
+        to_id: "$topos_prod_id"
         desmos: "distributes"
 
       - step: return
         value:
-          circle_id: "$circle_id"
+          oikos_id: "$oikos_id"
           distribution_kind: "$distribution_kind"
           attainment_id: "$attainment_id"
-          oikos_prod_id: "$oikos_prod_id"
+          topos_prod_id: "$topos_prod_id"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/distribute }
 
 - eidos: praxis
-  id: praxis/politeia/distribute-oikos
+  id: praxis/politeia/distribute-topos
   data:
-    oikos: politeia
-    name: distribute-oikos
+    topos: politeia
+    name: distribute-topos
     visible: true
     tier: 2
     description: |
-      Distribute an oikos-prod through an existing circle.
+      Distribute a topos-prod through an existing oikos.
 
-      Adds distribution bond and grants oikos-use attainment.
-      Use this when adding an oikos to an existing circle.
-      Use create-distribution-circle for dedicated distribution circles.
+      Adds distribution bond and grants topos-use attainment.
+      Use this when adding a topos to an existing oikos.
+      Use create-distribution-oikos for dedicated distribution oikoi.
     params:
-      - name: oikos_prod_id
+      - name: topos_prod_id
         type: string
         required: true
-        description: The oikos-prod to distribute
-      - name: circle_id
+        description: The topos-prod to distribute
+      - name: oikos_id
         type: string
         required: true
-        description: The circle to distribute through
+        description: The oikos to distribute through
     steps:
-      # Verify oikos-prod exists
+      # Verify topos-prod exists
       - step: find
-        id: "$oikos_prod_id"
-        bind_to: oikos_prod
+        id: "$topos_prod_id"
+        bind_to: topos_prod
 
       - step: assert
-        condition: "$oikos_prod"
-        message: "oikos-prod not found: $oikos_prod_id"
+        condition: "$topos_prod"
+        message: "topos-prod not found: $topos_prod_id"
 
       - step: assert
-        condition: "$oikos_prod.eidos == 'oikos-prod'"
-        message: "Entity is not an oikos-prod: $oikos_prod_id"
+        condition: "$topos_prod.eidos == 'topos-prod'"
+        message: "Entity is not a topos-prod: $topos_prod_id"
 
-      # Verify circle exists
+      # Verify oikos exists
       - step: find
-        id: "$circle_id"
-        bind_to: circle
+        id: "$oikos_id"
+        bind_to: oikos
 
       - step: assert
-        condition: "$circle"
-        message: "Circle not found: $circle_id"
+        condition: "$oikos"
+        message: "Oikos not found: $oikos_id"
 
-      # Create use attainment for this oikos (if not exists)
+      # Create use attainment for this topos (if not exists)
       - step: set
         bindings:
-          attainment_id: "attainment/use-$oikos_prod.data.oikos_id"
+          attainment_id: "attainment/use-$topos_prod.data.topos_id"
 
       - step: find
         id: "$attainment_id"
@@ -1796,207 +1605,209 @@ entities:
                 typos_id: "typos-def-attainment"
                 inputs:
                   id: "$attainment_id"
-                  name: "use-$oikos_prod.data.oikos_id"
-                  description: "Ability to use $oikos_prod.data.oikos_id oikos capabilities"
-                  scope: "circle"
+                  name: "use-$topos_prod.data.topos_id"
+                  description: "Ability to use $topos_prod.data.topos_id topos capabilities"
+                  scope: "oikos"
                   created_at: "{{ now() }}"
 
-      # Grant attainment from circle
+      # Grant attainment from oikos
       - step: bind
-        from_id: "$circle_id"
+        from_id: "$oikos_id"
         to_id: "$attainment_id"
         desmos: "grants-attainment"
 
-      # Bond circle distributes oikos
+      # Bond oikos distributes topos
       - step: bind
-        from_id: "$circle_id"
-        to_id: "$oikos_prod_id"
+        from_id: "$oikos_id"
+        to_id: "$topos_prod_id"
         desmos: "distributes"
 
       - step: return
         value:
           distributed: true
-          circle_id: "$circle_id"
-          oikos_prod_id: "$oikos_prod_id"
+          oikos_id: "$oikos_id"
+          topos_prod_id: "$topos_prod_id"
           attainment_id: "$attainment_id"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/distribute }
 
 - eidos: praxis
-  id: praxis/politeia/list-distributed-oikoi
+  id: praxis/politeia/list-distributed-topoi
   data:
-    oikos: politeia
-    name: list-distributed-oikoi
+    topos: politeia
+    name: list-distributed-topoi
     visible: true
     tier: 1
     description: |
-      List oikoi distributed by a circle.
+      List topoi distributed by an oikos.
 
-      Follows distributes bonds from circle to oikos-prod entities.
+      Follows distributes bonds from oikos to topos-prod entities.
     params:
-      - name: circle_id
+      - name: oikos_id
         type: string
         required: true
-        description: The circle to query
+        description: The oikos to query
     steps:
       - step: find
-        id: "$circle_id"
-        bind_to: circle
+        id: "$oikos_id"
+        bind_to: oikos
 
       - step: assert
-        condition: "$circle"
-        message: "Circle not found: $circle_id"
+        condition: "$oikos"
+        message: "Oikos not found: $oikos_id"
 
-      # Trace distributes bonds from circle
+      # Trace distributes bonds from oikos
       - step: trace
-        from_id: "$circle_id"
+        from_id: "$oikos_id"
         desmos: "distributes"
         resolve: to
         bind_to: distributed
 
       - step: return
         value:
-          circle_id: "$circle_id"
-          oikoi: "$distributed"
+          oikos_id: "$oikos_id"
+          topoi: "$distributed"
           count: "$distributed | length"
 
 - eidos: praxis
-  id: praxis/politeia/list-oikos-distributors
+  id: praxis/politeia/list-topos-distributors
   data:
-    oikos: politeia
-    name: list-oikos-distributors
+    topos: politeia
+    name: list-topos-distributors
     visible: true
     tier: 1
     description: |
-      List circles that distribute an oikos.
+      List oikoi that distribute a topos.
 
-      Follows distributes bonds to find all distribution circles.
+      Follows distributes bonds to find all distribution oikoi.
     params:
-      - name: oikos_prod_id
+      - name: topos_prod_id
         type: string
         required: true
-        description: The oikos-prod to query
+        description: The topos-prod to query
     steps:
       - step: find
-        id: "$oikos_prod_id"
-        bind_to: oikos_prod
+        id: "$topos_prod_id"
+        bind_to: topos_prod
 
       - step: assert
-        condition: "$oikos_prod"
-        message: "oikos-prod not found: $oikos_prod_id"
+        condition: "$topos_prod"
+        message: "topos-prod not found: $topos_prod_id"
 
-      # Trace distributes bonds to oikos
+      # Trace distributes bonds to topos
       - step: trace
-        to_id: "$oikos_prod_id"
+        to_id: "$topos_prod_id"
         desmos: "distributes"
         resolve: from
         bind_to: distributors
 
       - step: return
         value:
-          oikos_prod_id: "$oikos_prod_id"
+          topos_prod_id: "$topos_prod_id"
           distributors: "$distributors"
           count: "$distributors | length"
 
 - eidos: praxis
-  id: praxis/politeia/install-oikos
+  id: praxis/politeia/install-topos
   data:
-    oikos: politeia
-    name: install-oikos
+    topos: politeia
+    name: install-topos
     visible: true
     tier: 2
     description: |
-      Install an oikos from a distribution circle.
+      Install a topos from a distribution oikos.
 
-      Verifies the dwelling circle has access to the oikos through
-      a distribution circle (has use-{oikos_id} attainment), then
-      creates a uses-oikos bond to track the installation.
+      Verifies the dwelling oikos has access to the topos through
+      a distribution oikos (has use-{topos_id} attainment), then
+      creates a uses-topos bond to track the installation.
 
       NOTE: Currently tracks installation intent. Dynamic content
       loading (loading new eide/praxeis at runtime) is a future
-      capability. Genesis oikoi are loaded at bootstrap.
+      capability. Genesis topoi are loaded at bootstrap.
     params:
-      - name: oikos_prod_id
+      - name: topos_prod_id
         type: string
         required: true
-        description: The oikos-prod to install
-      - name: circle_id
+        description: The topos-prod to install
+      - name: oikos_id
         type: string
         required: false
-        description: The circle to install for (defaults to dwelling circle)
+        description: The oikos to install for (defaults to dwelling oikos)
     steps:
-      # Determine target circle
+      # Determine target oikos
       - step: set
         bindings:
-          target_circle_id: "$circle_id"
+          target_oikos_id: "$oikos_id"
 
       - step: switch
         cases:
-          - when: "not $target_circle_id"
+          - when: "not $target_oikos_id"
             then:
               - step: assert
-                condition: "$_circle"
-                message: "No circle specified and no dwelling circle context"
+                condition: "$_oikos"
+                message: "No oikos specified and no dwelling oikos context"
               - step: set
                 bindings:
-                  target_circle_id: "$_circle.id"
+                  target_oikos_id: "$_oikos.id"
 
-      # Verify target circle exists
+      # Verify target oikos exists
       - step: find
-        id: "$target_circle_id"
-        bind_to: target_circle
+        id: "$target_oikos_id"
+        bind_to: target_oikos
 
       - step: assert
-        condition: "$target_circle"
-        message: "Circle not found: $target_circle_id"
+        condition: "$target_oikos"
+        message: "Oikos not found: $target_oikos_id"
 
-      # Verify oikos-prod exists
+      # Verify topos-prod exists
       - step: find
-        id: "$oikos_prod_id"
-        bind_to: oikos_prod
+        id: "$topos_prod_id"
+        bind_to: topos_prod
 
       - step: assert
-        condition: "$oikos_prod"
-        message: "oikos-prod not found: $oikos_prod_id"
+        condition: "$topos_prod"
+        message: "topos-prod not found: $topos_prod_id"
 
       - step: assert
-        condition: "$oikos_prod.eidos == 'oikos-prod'"
-        message: "Entity is not an oikos-prod: $oikos_prod_id"
+        condition: "$topos_prod.eidos == 'topos-prod'"
+        message: "Entity is not a topos-prod: $topos_prod_id"
 
-      # Verify circle has access (use-{oikos_id} attainment)
+      # Verify oikos has access (use-{topos_id} attainment)
       - step: set
         bindings:
-          required_attainment_id: "attainment/use-$oikos_prod.data.oikos_id"
+          required_attainment_id: "attainment/use-$topos_prod.data.topos_id"
 
-      # Trace attainments granted by any circle the target is member of
-      # For now, check if the attainment exists and is granted by a circle
-      # that distributes this oikos
+      # Trace attainments granted by any oikos the target is member of
+      # For now, check if the attainment exists and is granted by an oikos
+      # that distributes this topos
       - step: trace
-        to_id: "$oikos_prod_id"
+        to_id: "$topos_prod_id"
         desmos: "distributes"
         resolve: from
-        bind_to: distribution_circles
+        bind_to: distribution_oikoi
 
       - step: assert
-        condition: "$distribution_circles | length > 0"
-        message: "No distribution circle found for oikos: $oikos_prod_id"
+        condition: "$distribution_oikoi | length > 0"
+        message: "No distribution oikos found for topos: $topos_prod_id"
 
       # Check if already installed
       - step: trace
-        from_id: "$target_circle_id"
-        desmos: "uses-oikos"
+        from_id: "$target_oikos_id"
+        desmos: "uses-topos"
         resolve: to
-        bind_to: installed_oikoi
+        bind_to: installed_topoi
 
       - step: set
         bindings:
           already_installed: false
 
       - step: for_each
-        items: "$installed_oikoi"
+        items: "$installed_topoi"
         item_var: installed
         steps:
           - step: switch
             cases:
-              - when: "$installed.id == '$oikos_prod_id'"
+              - when: "$installed.id == '$topos_prod_id'"
                 then:
                   - step: set
                     bindings:
@@ -2010,142 +1821,142 @@ entities:
                 value:
                   installed: false
                   already_installed: true
-                  message: "Oikos already installed"
-                  oikos_prod_id: "$oikos_prod_id"
-                  circle_id: "$target_circle_id"
+                  message: "Topos already installed"
+                  topos_prod_id: "$topos_prod_id"
+                  oikos_id: "$target_oikos_id"
 
-      # Create uses-oikos bond
+      # Create uses-topos bond
       - step: bind
-        from_id: "$target_circle_id"
-        to_id: "$oikos_prod_id"
-        desmos: "uses-oikos"
+        from_id: "$target_oikos_id"
+        to_id: "$topos_prod_id"
+        desmos: "uses-topos"
 
       - step: return
         value:
           installed: true
-          oikos_prod_id: "$oikos_prod_id"
-          circle_id: "$target_circle_id"
-          oikos_name: "$oikos_prod.data.oikos_id"
+          topos_prod_id: "$topos_prod_id"
+          oikos_id: "$target_oikos_id"
+          topos_name: "$topos_prod.data.topos_id"
 
 - eidos: praxis
-  id: praxis/politeia/uninstall-oikos
+  id: praxis/politeia/uninstall-topos
   data:
-    oikos: politeia
-    name: uninstall-oikos
+    topos: politeia
+    name: uninstall-topos
     visible: true
     tier: 2
     description: |
-      Uninstall an oikos from a circle.
+      Uninstall a topos from an oikos.
 
-      Removes the uses-oikos bond. Does not remove the oikos content
-      from the kosmos (content persists for other circles that may use it).
+      Removes the uses-topos bond. Does not remove the topos content
+      from the kosmos (content persists for other oikoi that may use it).
     params:
-      - name: oikos_prod_id
+      - name: topos_prod_id
         type: string
         required: true
-        description: The oikos-prod to uninstall
-      - name: circle_id
+        description: The topos-prod to uninstall
+      - name: oikos_id
         type: string
         required: false
-        description: The circle to uninstall from (defaults to dwelling circle)
+        description: The oikos to uninstall from (defaults to dwelling oikos)
     steps:
-      # Determine target circle
+      # Determine target oikos
       - step: set
         bindings:
-          target_circle_id: "$circle_id"
+          target_oikos_id: "$oikos_id"
 
       - step: switch
         cases:
-          - when: "not $target_circle_id"
+          - when: "not $target_oikos_id"
             then:
               - step: assert
-                condition: "$_circle"
-                message: "No circle specified and no dwelling circle context"
+                condition: "$_oikos"
+                message: "No oikos specified and no dwelling oikos context"
               - step: set
                 bindings:
-                  target_circle_id: "$_circle.id"
+                  target_oikos_id: "$_oikos.id"
 
       # Verify entities exist
       - step: find
-        id: "$target_circle_id"
-        bind_to: target_circle
+        id: "$target_oikos_id"
+        bind_to: target_oikos
 
       - step: assert
-        condition: "$target_circle"
-        message: "Circle not found: $target_circle_id"
+        condition: "$target_oikos"
+        message: "Oikos not found: $target_oikos_id"
 
       - step: find
-        id: "$oikos_prod_id"
-        bind_to: oikos_prod
+        id: "$topos_prod_id"
+        bind_to: topos_prod
 
       - step: assert
-        condition: "$oikos_prod"
-        message: "oikos-prod not found: $oikos_prod_id"
+        condition: "$topos_prod"
+        message: "topos-prod not found: $topos_prod_id"
 
-      # Remove uses-oikos bond
+      # Remove uses-topos bond
       - step: loose
-        from_id: "$target_circle_id"
-        to_id: "$oikos_prod_id"
-        desmos: "uses-oikos"
+        from_id: "$target_oikos_id"
+        to_id: "$topos_prod_id"
+        desmos: "uses-topos"
 
       - step: return
         value:
           uninstalled: true
-          oikos_prod_id: "$oikos_prod_id"
-          circle_id: "$target_circle_id"
+          topos_prod_id: "$topos_prod_id"
+          oikos_id: "$target_oikos_id"
 
 - eidos: praxis
-  id: praxis/politeia/list-installed-oikoi
+  id: praxis/politeia/list-installed-topoi
   data:
-    oikos: politeia
-    name: list-installed-oikoi
+    topos: politeia
+    name: list-installed-topoi
     visible: true
     tier: 1
     description: |
-      List oikoi installed for a circle.
+      List topoi installed for an oikos.
 
-      Follows uses-oikos bonds from the circle.
+      Follows uses-topos bonds from the oikos.
     params:
-      - name: circle_id
+      - name: oikos_id
         type: string
         required: false
-        description: The circle to query (defaults to dwelling circle)
+        description: The oikos to query (defaults to dwelling oikos)
     steps:
-      # Determine target circle
+      # Determine target oikos
       - step: set
         bindings:
-          target_circle_id: "$circle_id"
+          target_oikos_id: "$oikos_id"
 
       - step: switch
         cases:
-          - when: "not $target_circle_id"
+          - when: "not $target_oikos_id"
             then:
               - step: assert
-                condition: "$_circle"
-                message: "No circle specified and no dwelling circle context"
+                condition: "$_oikos"
+                message: "No oikos specified and no dwelling oikos context"
               - step: set
                 bindings:
-                  target_circle_id: "$_circle.id"
+                  target_oikos_id: "$_oikos.id"
 
       - step: find
-        id: "$target_circle_id"
-        bind_to: target_circle
+        id: "$target_oikos_id"
+        bind_to: target_oikos
 
       - step: assert
-        condition: "$target_circle"
-        message: "Circle not found: $target_circle_id"
+        condition: "$target_oikos"
+        message: "Oikos not found: $target_oikos_id"
 
-      # Trace uses-oikos bonds
+      # Trace uses-topos bonds
       - step: trace
-        from_id: "$target_circle_id"
-        desmos: "uses-oikos"
+        from_id: "$target_oikos_id"
+        desmos: "uses-topos"
         resolve: to
         bind_to: installed
 
       - step: return
         value:
-          circle_id: "$target_circle_id"
-          oikoi: "$installed"
+          oikos_id: "$target_oikos_id"
+          topoi: "$installed"
           count: "$installed | length"
 
 # =============================================================================
@@ -2155,7 +1966,7 @@ entities:
 - eidos: praxis
   id: praxis/politeia/admin-bind
   data:
-    oikos: politeia
+    topos: politeia
     name: admin-bind
     visible: true
     tier: 3
@@ -2212,11 +2023,13 @@ entities:
           to_id: "$to_id"
           desmos: "$desmos"
           bond: "$bond"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/admin }
 
 - eidos: praxis
   id: praxis/politeia/admin-loose
   data:
-    oikos: politeia
+    topos: politeia
     name: admin-loose
     visible: true
     tier: 3
@@ -2249,84 +2062,86 @@ entities:
           from_id: "$from_id"
           to_id: "$to_id"
           desmos: "$desmos"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/admin }
 
 # =============================================================================
-# OIKOS DISTRIBUTION
+# TOPOS DISTRIBUTION
 # =============================================================================
 
 - eidos: praxis
-  id: praxis/politeia/sync-circle-oikoi
+  id: praxis/politeia/sync-oikos-topoi
   data:
-    oikos: politeia
-    name: sync-circle-oikoi
+    topos: politeia
+    name: sync-oikos-topoi
     visible: false
     tier: 2
     description: |
-      Sync oikoi distributed by a circle to the local installation.
-      Called when joining a circle or when dwelling and circle has updates.
+      Sync topoi distributed by an oikos to the local installation.
+      Called when joining an oikos or when dwelling and oikos has updates.
     params:
-      - name: circle_id
+      - name: oikos_id
         type: string
         required: true
-        description: Circle to sync oikoi from
+        description: Oikos to sync topoi from
     steps:
-      # Trace oikoi distributed by this circle
+      # Trace topoi distributed by this oikos
       - step: trace
-        from_id: "$circle_id"
+        from_id: "$oikos_id"
         desmos: "distributes"
         direction: "outbound"
-        bind_to: distributed_oikoi
+        bind_to: distributed_topoi
 
-      # For each oikos-prod, check if installed and install if not
+      # For each topos-prod, check if installed and install if not
       - step: for_each
-        items: "$distributed_oikoi"
-        as: oikos_prod
-        do:
+        items: "$distributed_topoi"
+        item_var: topos_prod
+        steps:
           - step: call
-            praxis: politeia/install-oikos-if-needed
+            praxis: politeia/install-topos-if-needed
             params:
-              oikos_prod_id: "$oikos_prod.id"
+              topos_prod_id: "$topos_prod.id"
 
       - step: return
         value:
-          circle_id: "$circle_id"
-          oikoi_synced: "{{ $distributed_oikoi | length }}"
+          oikos_id: "$oikos_id"
+          topoi_synced: "{{ $distributed_topoi | length }}"
 
 - eidos: praxis
-  id: praxis/politeia/install-oikos-if-needed
+  id: praxis/politeia/install-topos-if-needed
   data:
-    oikos: politeia
-    name: install-oikos-if-needed
+    topos: politeia
+    name: install-topos-if-needed
     visible: false
     tier: 2
     description: |
-      Install an oikos-prod if not already installed locally.
+      Install a topos-prod if not already installed locally.
       Checks local installations, fetches if missing.
     params:
-      - name: oikos_prod_id
+      - name: topos_prod_id
         type: string
         required: true
-        description: The oikos-prod to install
+        description: The topos-prod to install
     steps:
-      # Find the oikos-prod
+      # Find the topos-prod
       - step: find
-        id: "$oikos_prod_id"
-        bind_to: oikos_prod
+        id: "$topos_prod_id"
+        bind_to: topos_prod
 
       - step: assert
-        condition: "$oikos_prod"
-        message: "Oikos-prod not found: $oikos_prod_id"
+        condition: "$topos_prod"
+        message: "Topos-prod not found: $topos_prod_id"
 
-      # Check if already installed (trace uses-oikos from dwelling circle)
+      # Check if already installed (trace uses-topos from dwelling oikos)
       - step: trace
-        from_id: "$_circle"
-        desmos: "uses-oikos"
+        from_id: "$_oikos"
+        desmos: "uses-topos"
         direction: "outbound"
-        bind_to: installed_oikoi
+        bind_to: installed_topoi
 
       - step: filter
-        items: "$installed_oikoi"
-        condition: "$item.id == $oikos_prod_id"
+        items: "$installed_topoi"
+        condition: "$item.id == $topos_prod_id"
         bind_to: already_installed
 
       # If not installed, install it
@@ -2335,54 +2150,54 @@ entities:
           - when: "{{ $already_installed | length }} == 0"
             then:
               - step: call
-                praxis: politeia/install-oikos
+                praxis: politeia/install-topos
                 params:
-                  oikos_id: "$oikos_prod_id"
+                  topos_prod_id: "$topos_prod_id"
                 bind_to: install_result
               - step: return
                 value:
                   installed: true
-                  oikos_prod_id: "$oikos_prod_id"
+                  topos_prod_id: "$topos_prod_id"
 
       - step: return
         value:
           installed: false
-          oikos_prod_id: "$oikos_prod_id"
+          topos_prod_id: "$topos_prod_id"
           reason: "already installed"
 
 - eidos: praxis
-  id: praxis/politeia/update-oikos-if-newer
+  id: praxis/politeia/update-topos-if-newer
   data:
-    oikos: politeia
-    name: update-oikos-if-newer
+    topos: politeia
+    name: update-topos-if-newer
     visible: false
     tier: 2
     description: |
-      Update an installed oikos if a newer version is available.
+      Update an installed topos if a newer version is available.
       Compares versions and updates if the distributed version is newer.
     params:
-      - name: oikos_prod_id
+      - name: topos_prod_id
         type: string
         required: true
-        description: The oikos-prod to potentially update
-      - name: installed_oikoi
+        description: The topos-prod to potentially update
+      - name: installed_topoi
         type: array
         required: true
-        description: Array of currently installed oikos entities
+        description: Array of currently installed topos entities
     steps:
-      # Find the distributed oikos-prod
+      # Find the distributed topos-prod
       - step: find
-        id: "$oikos_prod_id"
-        bind_to: oikos_prod
+        id: "$topos_prod_id"
+        bind_to: topos_prod
 
       - step: assert
-        condition: "$oikos_prod"
-        message: "Oikos-prod not found: $oikos_prod_id"
+        condition: "$topos_prod"
+        message: "Topos-prod not found: $topos_prod_id"
 
-      # Find matching installed oikos by oikos_id (not by exact id since version differs)
+      # Find matching installed topos by topos_id (not by exact id since version differs)
       - step: filter
-        items: "$installed_oikoi"
-        condition: "$item.data.oikos_id == $oikos_prod.data.oikos_id"
+        items: "$installed_topoi"
+        condition: "$item.data.topos_id == $topos_prod.data.topos_id"
         bind_to: matching_installed
 
       # If not installed at all, install it
@@ -2391,21 +2206,21 @@ entities:
           - when: "{{ $matching_installed | length }} == 0"
             then:
               - step: call
-                praxis: politeia/install-oikos
+                praxis: politeia/install-topos
                 params:
-                  oikos_id: "$oikos_prod_id"
+                  topos_prod_id: "$topos_prod_id"
                 bind_to: install_result
               - step: return
                 value:
                   updated: true
-                  oikos_prod_id: "$oikos_prod_id"
+                  topos_prod_id: "$topos_prod_id"
                   reason: "not previously installed"
 
       # Get the installed version
       - step: set
         bindings:
           installed_version: "$matching_installed.0.data.version"
-          distributed_version: "$oikos_prod.data.version"
+          distributed_version: "$topos_prod.data.version"
 
       # Compare versions (simple string compare for now - semver compare would be better)
       # A proper implementation would use semver comparison
@@ -2415,71 +2230,71 @@ entities:
             then:
               # Re-install with newer version
               - step: call
-                praxis: politeia/install-oikos
+                praxis: politeia/install-topos
                 params:
-                  oikos_id: "$oikos_prod_id"
+                  topos_prod_id: "$topos_prod_id"
                 bind_to: update_result
               - step: return
                 value:
                   updated: true
-                  oikos_prod_id: "$oikos_prod_id"
+                  topos_prod_id: "$topos_prod_id"
                   from_version: "$installed_version"
                   to_version: "$distributed_version"
 
       - step: return
         value:
           updated: false
-          oikos_prod_id: "$oikos_prod_id"
+          topos_prod_id: "$topos_prod_id"
           reason: "already at distributed version"
 
 - eidos: praxis
-  id: praxis/politeia/reconcile-circle-oikoi
+  id: praxis/politeia/reconcile-oikos-topoi
   data:
-    oikos: politeia
-    name: reconcile-circle-oikoi
+    topos: politeia
+    name: reconcile-oikos-topoi
     visible: false
     tier: 2
     description: |
-      Reconcile oikoi versions when dwelling in a circle.
+      Reconcile topos versions when dwelling in an oikos.
       Called on dwell-in to check for updates.
 
       Lazy update strategy: updates are applied when dwelling,
-      not immediately when the circle changes its distribution.
+      not immediately when the oikos changes its distribution.
     params:
-      - name: circle_id
+      - name: oikos_id
         type: string
         required: true
-        description: Circle to reconcile oikoi for
+        description: Oikos to reconcile topoi for
     steps:
-      # Get circle's current distributed oikoi
+      # Get oikos's current distributed topoi
       - step: trace
-        from_id: "$circle_id"
+        from_id: "$oikos_id"
         desmos: "distributes"
         direction: "outbound"
-        bind_to: distributed_oikoi
+        bind_to: distributed_topoi
 
-      # Get locally installed oikoi (from dwelling circle)
+      # Get locally installed topoi (from dwelling oikos)
       - step: trace
-        from_id: "$_circle"
-        desmos: "uses-oikos"
+        from_id: "$_oikos"
+        desmos: "uses-topos"
         direction: "outbound"
-        bind_to: installed_oikoi
+        bind_to: installed_topoi
 
       # Track updates
       - step: set
         bindings:
           updates_applied: []
 
-      # Compare and update each distributed oikos
+      # Compare and update each distributed topos
       - step: for_each
-        items: "$distributed_oikoi"
-        as: oikos_prod
-        do:
+        items: "$distributed_topoi"
+        item_var: topos_prod
+        steps:
           - step: call
-            praxis: politeia/update-oikos-if-newer
+            praxis: politeia/update-topos-if-newer
             params:
-              oikos_prod_id: "$oikos_prod.id"
-              installed_oikoi: "$installed_oikoi"
+              topos_prod_id: "$topos_prod.id"
+              installed_topoi: "$installed_topoi"
             bind_to: update_result
           # Note: Ideally we'd append to updates_applied here, but
           # aggregate operations in for_each loops may need interpreter support
@@ -2487,44 +2302,44 @@ entities:
       - step: return
         value:
           reconciled: true
-          circle_id: "$circle_id"
-          distributed_count: "{{ $distributed_oikoi | length }}"
+          oikos_id: "$oikos_id"
+          distributed_count: "{{ $distributed_topoi | length }}"
 
 # =============================================================================
 # FEDERATION OPERATIONS
 # =============================================================================
-# Federation enables continuous sync between circles across kosmoi.
+# Federation enables continuous sync between oikoi across kosmoi.
 # The federates-with bond IS the federation — no separate link entity.
 # Content flows through the bond graph (Visibility = Reachability).
 
 - eidos: praxis
-  id: praxis/politeia/federate-circles
+  id: praxis/politeia/federate-oikoi
   data:
-    oikos: politeia
-    name: federate-circles
+    topos: politeia
+    name: federate-oikoi
     visible: true
     tier: 3
     description: |
-      Establish federation between local and remote circles.
+      Establish federation between local and remote oikoi.
       Creates mutual federates-with bonds and initializes sync infrastructure.
 
-      Both circles must bond for sync to flow (mutual consent).
-      Content in bonded circles syncs continuously.
+      Both oikoi must bond for sync to flow (mutual consent).
+      Content in bonded oikoi syncs continuously.
 
-      Requires: federate attainment and sovereignty over local circle.
+      Requires: federate attainment and sovereignty attainment (checked by authorization gate).
     params:
-      - name: local_circle_id
+      - name: local_oikos_id
         type: string
         required: true
-        description: Local circle to federate
-      - name: remote_circle_id
+        description: Local oikos to federate
+      - name: remote_oikos_id
         type: string
         required: true
-        description: Remote circle to federate with
+        description: Remote oikos to federate with
       - name: remote_pubkey
         type: string
         required: true
-        description: Public key of remote circle's kosmos
+        description: Public key of remote oikos's kosmos
       - name: sync_direction
         type: string
         required: false
@@ -2534,22 +2349,6 @@ entities:
         required: false
         description: "Which eide to sync (empty = all reachable)"
     steps:
-      # Verify caller has federate attainment
-      - step: assert
-        condition: "$_attainments contains 'federate'"
-        message: "Federate attainment required"
-
-      # Verify caller is sovereign to local circle
-      - step: trace
-        from_id: "$local_circle_id"
-        desmos: "sovereign-to"
-        direction: "outbound"
-        bind_to: sovereigns
-
-      - step: assert
-        condition: "$sovereigns | selectattr('id', 'eq', $_animus) | length > 0"
-        message: "Must be sovereign to local circle"
-
       # Set default sync direction
       - step: set
         bindings:
@@ -2566,14 +2365,14 @@ entities:
       - step: call
         praxis: aither/create-data-channel
         params:
-          name: "federation-$local_circle_id-$remote_circle_id"
+          name: "federation-$local_oikos_id-$remote_oikos_id"
           remote_pubkey: "$remote_pubkey"
         bind_to: channel_result
 
       # Create federates-with bond from local to remote
       - step: bind
-        from_id: "$local_circle_id"
-        to_id: "$remote_circle_id"
+        from_id: "$local_oikos_id"
+        to_id: "$remote_oikos_id"
         desmos: "federates-with"
         properties:
           sync_direction: "$direction"
@@ -2584,92 +2383,91 @@ entities:
       # Create sync-cursor to track sync position
       - step: set
         bindings:
-          cursor_id: "sync-cursor/$local_circle_id-$remote_circle_id"
+          cursor_id: "sync-cursor/$local_oikos_id-$remote_oikos_id"
 
-      - step: arise
-        eidos: sync-cursor
-        id: "$cursor_id"
-        data:
+      # CE4: compose instead of arise
+      - step: compose
+        typos_id: "typos-def-sync-cursor"
+        inputs:
+          id: "$cursor_id"
           federation_bond_id: "$bond_result.bond_id"
-          local_circle_id: "$local_circle_id"
-          remote_circle_id: "$remote_circle_id"
+          local_oikos_id: "$local_oikos_id"
+          remote_oikos_id: "$remote_oikos_id"
           local_version: 0
           remote_version: 0
           status: "active"
-          created_at: "$_now"
+          created_at: "{{ now() }}"
         bind_to: cursor
 
-      # Bond cursor to local circle
+      # Bond cursor to local oikos
       - step: bind
         from_id: "$cursor_id"
-        to_id: "$local_circle_id"
+        to_id: "$local_oikos_id"
         desmos: "tracks-sync"
 
       - step: return
         value:
           federated: true
-          local_circle_id: "$local_circle_id"
-          remote_circle_id: "$remote_circle_id"
+          local_oikos_id: "$local_oikos_id"
+          remote_oikos_id: "$remote_oikos_id"
           bond_id: "$bond_result.bond_id"
           channel_id: "$channel_result.channel_id"
           cursor_id: "$cursor_id"
           sync_direction: "$direction"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/federate }
+    - { desmos: requires-attainment, to: attainment/sovereign }
 
 - eidos: praxis
-  id: praxis/politeia/unfederate-circles
+  id: praxis/politeia/unfederate-oikoi
   data:
-    oikos: politeia
-    name: unfederate-circles
+    topos: politeia
+    name: unfederate-oikoi
     visible: true
     tier: 3
     description: |
-      Dissolve federation between circles.
+      Dissolve federation between oikoi.
       Removes federates-with bond and closes data-channel.
       Sync-cursor is marked inactive but preserved for audit.
     params:
-      - name: local_circle_id
+      - name: local_oikos_id
         type: string
         required: true
-        description: Local circle
-      - name: remote_circle_id
+        description: Local oikos
+      - name: remote_oikos_id
         type: string
         required: true
-        description: Remote circle to unfederate from
+        description: Remote oikos to unfederate from
     steps:
-      # Verify caller has federate attainment
-      - step: assert
-        condition: "$_attainments contains 'federate'"
-        message: "Federate attainment required"
-
       # Find the federates-with bond
       - step: trace
-        from_id: "$local_circle_id"
+        from_id: "$local_oikos_id"
         desmos: "federates-with"
         direction: "outbound"
         bind_to: federations
 
       - step: filter
         items: "$federations"
-        condition: "$item.id == $remote_circle_id"
+        condition: "$item.id == $remote_oikos_id"
         bind_to: matching
 
       - step: assert
         condition: "$matching | length > 0"
-        message: "Federation not found between these circles"
+        message: "Federation not found between these oikoi"
 
       # Get the bond to find channel_id
       # (Simplified - may need bond query by endpoints)
 
       # Remove federates-with bond
       - step: loose
-        from_id: "$local_circle_id"
-        to_id: "$remote_circle_id"
+        from_id: "$local_oikos_id"
+        to_id: "$remote_oikos_id"
         desmos: "federates-with"
 
       # Mark sync-cursor as paused
       - step: set
         bindings:
-          cursor_id: "sync-cursor/$local_circle_id-$remote_circle_id"
+          cursor_id: "sync-cursor/$local_oikos_id-$remote_oikos_id"
 
       - step: find
         id: "$cursor_id"
@@ -2679,7 +2477,7 @@ entities:
         cases:
           - when: "$cursor != null"
             then:
-              - step: mutate
+              - step: update
                 id: "$cursor_id"
                 data:
                   status: "paused"
@@ -2687,50 +2485,54 @@ entities:
       - step: return
         value:
           unfederated: true
-          local_circle_id: "$local_circle_id"
-          remote_circle_id: "$remote_circle_id"
+          local_oikos_id: "$local_oikos_id"
+          remote_oikos_id: "$remote_oikos_id"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/federate }
 
 - eidos: praxis
   id: praxis/politeia/list-federations
   data:
-    oikos: politeia
+    topos: politeia
     name: list-federations
     visible: true
     tier: 2
     description: |
-      List all federation bonds for a circle.
+      List all federation bonds for an oikos.
       Returns both outbound (we federate with) and inbound (they federate with us).
     params:
-      - name: circle_id
+      - name: oikos_id
         type: string
         required: true
-        description: Circle to list federations for
+        description: Oikos to list federations for
     steps:
       # Get outbound federations
       - step: trace
-        from_id: "$circle_id"
+        from_id: "$oikos_id"
         desmos: "federates-with"
         direction: "outbound"
         bind_to: outbound
 
       # Get inbound federations
       - step: trace
-        from_id: "$circle_id"
+        from_id: "$oikos_id"
         desmos: "federates-with"
         direction: "inbound"
         bind_to: inbound
 
       - step: return
         value:
-          circle_id: "$circle_id"
+          oikos_id: "$oikos_id"
           outbound: "$outbound"
           inbound: "$inbound"
           total: "{{ ($outbound | length) + ($inbound | length) }}"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/federate }
 
 - eidos: praxis
   id: praxis/politeia/resolve-conflict
   data:
-    oikos: politeia
+    topos: politeia
     name: resolve-conflict
     visible: true
     tier: 2
@@ -2797,19 +2599,19 @@ entities:
                   final_data: "$merged_data"
 
       # Apply resolution to the entity
-      - step: mutate
+      - step: update
         id: "$conflict.data.entity_id"
         data: "$final_data"
 
       # Mark conflict as resolved
-      - step: mutate
+      - step: update
         id: "$conflict_id"
         data:
           status: "resolved"
           resolution: "$resolution"
           merged_data: "$merged_data"
-          resolved_by: "$_persona"
-          resolved_at: "$_now"
+          resolved_by: "$_prosopon"
+          resolved_at: "{{ now() }}"
 
       - step: return
         value:
@@ -2817,21 +2619,23 @@ entities:
           conflict_id: "$conflict_id"
           entity_id: "$conflict.data.entity_id"
           resolution: "$resolution"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/federate }
 
 - eidos: praxis
   id: praxis/politeia/list-conflicts
   data:
-    oikos: politeia
+    topos: politeia
     name: list-conflicts
     visible: true
     tier: 2
     description: |
-      List sync conflicts, optionally filtered by status or circle.
+      List sync conflicts, optionally filtered by status or oikos.
     params:
-      - name: circle_id
+      - name: oikos_id
         type: string
         required: false
-        description: Filter by circle (optional)
+        description: Filter by oikos (optional)
       - name: status
         type: string
         required: false
@@ -2860,17 +2664,17 @@ entities:
         condition: "$item.data.status == $filter_status"
         bind_to: status_filtered
 
-      # Filter by circle if specified
+      # Filter by oikos if specified
       - step: switch
         cases:
-          - when: "$circle_id != null"
+          - when: "$oikos_id != null"
             then:
-              # Would need to trace through federation_bond_id to get circle
+              # Would need to trace through federation_bond_id to get oikos
               # For now, return all matching status
               - step: set
                 bindings:
                   conflicts: "$status_filtered"
-          - when: "$circle_id == null"
+          - when: "$oikos_id == null"
             then:
               - step: set
                 bindings:

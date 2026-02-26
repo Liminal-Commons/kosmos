@@ -20,27 +20,27 @@ With genesis:
 
 The central property is the **full-circle guarantee**: what is emitted can be bootstrapped, and what is bootstrapped can be emitted with identical hash. This is the constitutional anchor.
 
-## Circle Context
+## Oikos Context
 
-### Self Circle
+### Self Oikos
 
 A solitary dweller uses genesis to:
-- Emit their oikoi to their local genesis directory
+- Emit their topoi to their local genesis directory
 - Verify their kosmos bootstraps correctly
 - Maintain the source of truth on their machine
 
 Self-emission enables local persistence.
 
-### Peer Circle
+### Peer Oikos
 
 Collaborators use genesis to:
 - Share genesis directories via git
 - Verify that shared definitions load correctly
-- Coordinate which oikoi are in the shared genesis
+- Coordinate which topoi are in the shared genesis
 
 Peer emission enables collaborative development.
 
-### Commons Circle
+### Commons Oikos
 
 A commons uses genesis to:
 - Maintain the canonical genesis repository
@@ -58,7 +58,7 @@ A location where kosmos content lives.
 **Fields:**
 - `path` — Filesystem path relative to genesis
 - `content_types` — What kinds of entities live here
-- `oikos_id` — Which oikos this content belongs to
+- `topos_id` — Which topos this content belongs to
 
 **Purpose:** Bootstrap traces sources-content-from bonds to discover all content locations. Adding a content root = creating an entity + bond.
 
@@ -68,7 +68,7 @@ A location where kosmos content lives.
 
 Entity sources content from a content-root.
 
-- **From:** any (typically oikos)
+- **From:** any (typically topos)
 - **To:** content-root
 - **Cardinality:** many-to-many
 - **Traversal:** Bootstrap traces these to discover all content locations
@@ -77,7 +77,7 @@ Entity sources content from a content-root.
 
 Entity was emitted to a filesystem path.
 
-- **From:** oikos, eidos, praxis, desmos
+- **From:** topos, eidos, praxis, desmos
 - **To:** artifact (containing path)
 - **Cardinality:** many-to-one
 - **Traversal:** Find where definitions were written
@@ -92,13 +92,13 @@ Full genesis emission — write all oikoi to filesystem.
 - **Requires:** emit attainment
 - **Provides:** Complete genesis/ directory
 
-### emit-oikos
+### emit-topos
 
-Single oikos emission — write one oikos to filesystem.
+Single topos emission — write one topos to filesystem.
 
-- **When:** After validating oikos development
+- **When:** After validating topos development
 - **Requires:** emit attainment
-- **Provides:** genesis/{oikos}/ directory
+- **Provides:** genesis/{topos}/ directory
 
 ### verify-full-circle
 
@@ -130,8 +130,8 @@ List all registered content locations.
 
 Genesis emission capability — write to filesystem and verify.
 
-- **Grants:** emit-genesis, emit-oikos, verify-full-circle, register-content-root
-- **Scope:** circle
+- **Grants:** emit-genesis, emit-topos, verify-full-circle, register-content-root
+- **Scope:** oikos
 - **Rationale:** Emission modifies the source of truth; requires trust
 
 ## Embodiment
@@ -164,7 +164,7 @@ genesis:
 
 A genesis reconciler would surface:
 
-- **Pending emissions** — "oikos/recipes has changes not yet emitted"
+- **Pending emissions** — "topos/recipes has changes not yet emitted"
 - **Full-circle drift** — "Bootstrap produces different hash than last emission"
 - **Orphaned content** — "Content exists in filesystem but not tracked by bonds"
 
@@ -176,7 +176,7 @@ Demiurge develops definitions; genesis persists them. The develop → validate �
 
 ### amplifies ekdosis
 
-Ekdosis publishes to other circles; genesis persists locally. Both are about making content durable.
+Ekdosis publishes to other oikoi; genesis persists locally. Both are about making content durable.
 
 ### amplifies nous
 

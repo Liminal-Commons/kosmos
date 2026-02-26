@@ -1,0 +1,107 @@
+# Ekdosis Render Specifications — release-channel card
+# Card view for publication channels
+#
+# Uses widget vocabulary from thyra/eide/widget.yaml
+# Replaces the HTML template format in ekdosis/entities/rendering.yaml
+#
+# Release-channel fields (from ekdosis/eide/ekdosis.yaml):
+#   - name (string, required): Channel name
+#   - description (string, optional): Human-readable description
+#   - auto_update (boolean, required): Whether consumers auto-update
+#   - requires_attestation (boolean, required): Whether attestation is required
+#
+# Traces to: genesis/ekdosis/DESIGN.md
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/release-channel-card
+    data:
+      name: release-channel-card
+      description: |
+        Card view for release-channel — publication channel configuration.
+        Shows channel name, description, and auto-update / attestation flags.
+      target_eidos: release-channel
+      variant: card
+
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+          children:
+            - widget: stack
+              props:
+                gap: sm
+              children:
+                # Header row: icon + channel name
+                - widget: row
+                  props:
+                    gap: sm
+                    align: center
+                  children:
+                    - widget: icon
+                      props:
+                        name: megaphone
+
+                    - widget: text
+                      props:
+                        content: "{name}"
+                        variant: emphasis
+
+                # Description (when present)
+                - widget: text
+                  when: "description"
+                  props:
+                    content: "{description}"
+                    variant: body
+
+                # Flags row
+                - widget: row
+                  props:
+                    gap: md
+                    align: center
+                  children:
+                    # Auto-update status
+                    - widget: row
+                      props:
+                        gap: xs
+                        align: center
+                      children:
+                        - widget: text
+                          props:
+                            content: "Auto-update:"
+                            variant: label
+                        - widget: badge
+                          when: "auto_update == true"
+                          props:
+                            content: "Enabled"
+                            variant: success
+                        - widget: badge
+                          when: "auto_update == false"
+                          props:
+                            content: "Disabled"
+                            variant: default
+
+                    # Attestation requirement
+                    - widget: row
+                      props:
+                        gap: xs
+                        align: center
+                      children:
+                        - widget: text
+                          props:
+                            content: "Attestation:"
+                            variant: label
+                        - widget: badge
+                          when: "requires_attestation == true"
+                          props:
+                            content: "Required"
+                            variant: success
+                        - widget: badge
+                          when: "requires_attestation == false"
+                          props:
+                            content: "Not required"
+                            variant: default
+
+      created_at: "2025-02-09T00:00:00Z"

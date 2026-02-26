@@ -22,9 +22,9 @@ Nous provides:
 - Goals become navigable paths with waypoints
 - Knowledge is discoverable by meaning
 
-## Circle Context
+## Oikos Context
 
-### Self Circle
+### Sole Oikos
 
 A solitary dweller uses nous to:
 - Crystallize insights from their work into theoria
@@ -33,12 +33,12 @@ A solitary dweller uses nous to:
 - Surface relevant knowledge by semantic proximity
 - Navigate complex tasks through iterative reasoning
 
-The self circle is where nous is most personal — your understanding, your questions, your journeys.
+The sole oikos is where nous is most personal — your understanding, your questions, your journeys.
 
-### Peer Circle
+### Collective Oikos
 
 Collaborators use nous to:
-- Share crystallized theoria across the circle
+- Share crystallized theoria across the oikos
 - Collaboratively answer inquiries with diverse perspectives
 - Embark on shared journeys toward collective goals
 - Synthesize individual insights into group understanding
@@ -46,7 +46,7 @@ Collaborators use nous to:
 
 Understanding becomes shared — one person's insight becomes everyone's theoria.
 
-### Commons Circle
+### Commons Oikos
 
 A community uses nous to:
 - Build canonical knowledge bases (community theoria)
@@ -55,7 +55,7 @@ A community uses nous to:
 - Synthesize theoria from across contributors
 - Enable semantic discovery of collective knowledge
 
-The commons circle is where nous becomes institutional memory — knowledge that outlives any individual contributor.
+The commons oikos is where nous becomes institutional memory — knowledge that outlives any individual contributor.
 
 ## Core Entities (Eide)
 
@@ -132,19 +132,94 @@ A bringing-together of multiple theoria.
 
 **Nature:** Synthesis creates new theoria from existing theoria, with explicit provenance to its sources.
 
+## The Knowledge Ladder
+
+Knowledge in kosmos forms a ladder of increasing stability and scope:
+
+```
+axiom (foundational truth — rarely changes, guides everything)
+   ↑ rises to / ↓ grounds
+principle (normative guidance — what should be done)
+   ↑ rises to / ↓ guides
+pattern (recurring structure — "when X, do Y")
+   ↑ rises to / ↓ exemplifies
+theoria (crystallized insight — from experience)
+```
+
+The ladder is bidirectional:
+- **Rising:** Theoria that prove universally applicable may rise to pattern, then principle, rarely to axiom
+- **Grounding:** Axioms ground principles, which guide patterns, which inform theoria creation
+
+### axiom
+
+Foundational truth — the bedrock upon which other knowledge stands.
+
+**Fields:**
+- `name` — short name (e.g., "Actuation = Emission")
+- `statement` — the foundational truth as a clear, complete statement
+- `rationale` — why this is foundational (not derived, but ground)
+- `domain` — what domain this axiom grounds (constitution, development, methodology)
+- `status` — provisional, established (changes require ceremony)
+
+**Lifecycle:**
+1. **Crystallize from theoria** — theoria proves so fundamental it rises
+2. **Establish** — community confirms axiom status
+3. **Supersede** — rarely, new axiom replaces (constitutional change)
+
+**Nature:** Axioms are what agents surface when facing decisions. "Options indicate missing theoria" but when an axiom applies, there is one right way.
+
+### principle
+
+Normative guidance — what should be done.
+
+**Fields:**
+- `name` — short name
+- `guidance` — the normative statement
+- `rationale` — why this is the right approach
+- `domain` — area of application
+- `status` — provisional, established
+- `grounded_in` — axiom IDs this principle realizes
+
+**Lifecycle:**
+1. **Crystallize from pattern** — pattern becomes prescriptive
+2. **Establish** — confirmed through repeated application
+3. **Supersede** — better principle emerges
+
+**Nature:** Principles are normative — they say what SHOULD be done, not just what IS.
+
+### pattern
+
+Recurring structure — "when you see X, do Y".
+
+**Fields:**
+- `name` — short name (e.g., "Phylax Pattern")
+- `description` — what this pattern is
+- `structure` — the essential form (often a sequence)
+- `when` — recognition trigger
+- `example` — concrete instance
+- `status` — provisional, established
+- `grounded_in` — principle or axiom IDs this pattern realizes
+
+**Lifecycle:**
+1. **Crystallize from theoria** — multiple theoria reveal same shape
+2. **Establish** — pattern proves reliable
+3. **Supersede** — better pattern emerges
+
+**Nature:** Patterns are enacted — they describe structure that works. Theoria instantiate patterns.
+
 ## Bonds (Desmoi)
 
 ### crystallized-in
 - **From:** theoria
-- **To:** circle
+- **To:** oikos
 - **Cardinality:** many-to-one
 - **Traversal:** Where was this theoria crystallized?
 
 ### inquires
-- **From:** persona
+- **From:** prosopon
 - **To:** inquiry
 - **Cardinality:** one-to-many
-- **Traversal:** Who asked this? What has this persona asked?
+- **Traversal:** Who asked this? What has this prosopon asked?
 
 ### answers
 - **From:** theoria
@@ -175,6 +250,26 @@ A bringing-together of multiple theoria.
 - **To:** theoria
 - **Cardinality:** many-to-many
 - **Traversal:** What evidence supports this understanding?
+
+### Knowledge Ladder Bonds
+
+### grounds
+- **From:** axiom, principle
+- **To:** principle, pattern
+- **Cardinality:** one-to-many
+- **Traversal:** What does this axiom/principle ground? What grounds this pattern/principle?
+
+### rises-to
+- **From:** theoria, pattern, principle
+- **To:** pattern, principle, axiom
+- **Cardinality:** many-to-one
+- **Traversal:** What did this knowledge rise from? What rose from this?
+
+### exemplifies
+- **From:** theoria
+- **To:** pattern
+- **Cardinality:** many-to-many
+- **Traversal:** What pattern does this theoria exemplify? What theoria exemplify this pattern?
 
 ### contains-waypoint
 - **From:** journey
@@ -256,6 +351,40 @@ End a journey (successfully or not).
 #### list-journeys / get-journey-waypoints
 Query journey state.
 
+### Knowledge Ladder Operations
+
+#### crystallize-axiom
+Create a foundational truth from elevated principle/theoria.
+- **When:** Understanding proves so fundamental it becomes ground truth
+- **Effect:** Axiom created, indexed for surfacing during decisions
+- **Gated by:** `attainment/constitute` (rare capability)
+
+#### crystallize-principle
+Create normative guidance from elevated pattern/theoria.
+- **When:** Pattern becomes prescriptive ("you should do this")
+- **Effect:** Principle created, bonded to grounding axiom
+- **Gated by:** `attainment/crystallize`
+
+#### crystallize-pattern
+Create recurring structure from multiple related theoria.
+- **When:** Same shape appears across different theoria
+- **Effect:** Pattern created, existing theoria bonded as instantiating it
+- **Gated by:** `attainment/crystallize`
+
+#### elevate-to-pattern / elevate-to-principle / elevate-to-axiom
+Move knowledge up the ladder.
+- **When:** Knowledge proves more fundamental than initially thought
+- **Effect:** New entity created at higher level, `rises-to` bond created
+- **Gated by:** `attainment/crystallize` (or `constitute` for axiom)
+
+#### surface-guidance
+Surface axioms, principles, patterns relevant to a decision.
+- **When:** Agent faces a choice and wants "one right way"
+- **Returns:** Ordered list of applicable guidance from the ladder
+
+#### list-axioms / list-principles / list-patterns
+Query knowledge ladder entities by domain or status.
+
 ### Discovery Operations
 
 #### surface
@@ -292,24 +421,29 @@ Invoke any praxis by ID.
 ## Attainments
 
 ### attainment/crystallize
-**Capability:** Create and manage theoria — the lifecycle of understanding.
-**Gates:** `crystallize-theoria`, `confirm-theoria`, `supersede-theoria`
-**Scope:** circle
+**Capability:** Create and manage theoria, patterns, and principles — the lifecycle of understanding.
+**Gates:** `crystallize-theoria`, `confirm-theoria`, `supersede-theoria`, `crystallize-pattern`, `crystallize-principle`, `elevate-to-pattern`, `elevate-to-principle`
+**Scope:** oikos
+
+### attainment/constitute
+**Capability:** Create and manage axioms — foundational truths. Rare capability, typically only in kosmos-dev oikoi.
+**Gates:** `crystallize-axiom`, `elevate-to-axiom`
+**Scope:** oikos (restricted to constitutional oikoi)
 
 ### attainment/inquire
 **Capability:** Open inquiries and create syntheses — questioning and combining.
 **Gates:** `open-inquiry`, `answer-inquiry`, `synthesize`
-**Scope:** circle
+**Scope:** oikos
 
 ### attainment/journey
 **Capability:** Create and manage journeys — teleological navigation.
 **Gates:** `begin-journey`, `embark-journey`, `add-waypoint`, `reach-waypoint`, `complete-journey`, `abandon-journey`
-**Scope:** circle
+**Scope:** oikos
 
 ### attainment/invoke
 **Capability:** Activate nous via invocation — LLM integration.
 **Gates:** `invoke`, `navigate`, `call-praxis`
-**Scope:** circle
+**Scope:** oikos
 
 ## Embodiment
 
@@ -338,10 +472,10 @@ body-schema:
   capabilities:
     - name: crystallize
       available: "$has_attainment(crystallize)"
-      oikos: nous
+      topos: nous
     - name: surface
       available: "$has_credential(use-embedding-api)"
-      oikos: nous
+      topos: nous
   pending_actions:
     - action: answer_inquiry
       reason: "3 inquiries open in current domain"
@@ -357,7 +491,7 @@ body-schema:
 reconciler/nous-understanding:
   trigger: on-dwell
   sense: |
-    - Check for open inquiries in dwelling circle
+    - Check for open inquiries in dwelling oikos
     - Check for active journeys needing progress
     - Check for provisional theoria awaiting confirmation
     - Check for related theoria to surface
@@ -369,9 +503,9 @@ reconciler/nous-understanding:
 
 ## Compound Leverage
 
-### Amplifies Other Oikoi
+### Amplifies Other Topoi
 
-| Oikos | How Nous Amplifies |
+| Topos | How Nous Amplifies |
 |-------|-------------------|
 | **soma** | Perception feeds understanding. Body-schema includes understanding state. |
 | **psyche** | Intentions connect to journeys. Mood influences what surfaces. |
@@ -379,7 +513,7 @@ reconciler/nous-understanding:
 | **manteia** | Generation guided by theoria context. Yields crystallize into understanding. |
 | **demiurge** | Composition informed by relevant theoria. Design decisions become theoria. |
 
-### Cross-Oikos Patterns
+### Cross-Topos Patterns
 
 1. **Perceive → Crystallize → Surface**
    Experience becomes understanding becomes discoverable knowledge.

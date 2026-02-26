@@ -34,9 +34,9 @@ Add an encrypted credential for an external service.
 | `label` | string | ✓ | Human-readable label (e.g., 'My OpenAI Key') |
 | `grants_attainment` | string | ✓ | Attainment name granted when unlocked (e.g., 'use-embedding-api') |
 | `credential_type` | string |  | Type of credential (api-key, oauth-token, bearer-token) |
-| `scope` | string |  | Scope of access (persona or circle) |
-| `persona_id` | string | ✓ | Persona who owns this credential |
-| `circle_id` | string |  | Circle to share with (if scope is circle) |
+| `scope` | string |  | Scope of access (prosopon or oikos) |
+| `prosopon_id` | string | ✓ | Prosopon who owns this credential |
+| `oikos_id` | string |  | Oikos to share with (if scope is oikos) |
 
 ### add-genesis-signature 🔧
 
@@ -48,7 +48,7 @@ Add a signature to a genesis record.
 |-----------|------|----------|-------------|
 | `genesis_id` | string | ✓ | Genesis record to sign |
 | `mnemonic` | string | ✓ | Signer's mnemonic |
-| `circle_id` | string | ✓ | Circle context for key derivation |
+| `oikos_id` | string | ✓ | Oikos context for key derivation |
 | `attestation` | string | ✓ | Signer's attestation statement |
 
 ### begin-genesis-ceremony 🔧
@@ -84,7 +84,7 @@ Check if the keyring is currently unlocked.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `persona_id` | string |  | Check keyring for specific persona |
+| `prosopon_id` | string |  | Check keyring for specific prosopon |
 
 ### check-session-attainment 🔧
 
@@ -108,60 +108,60 @@ Compute BLAKE3 hash of entity content.
 
 ### create-keyring 🔧
 
-Create an encrypted keyring for a persona.
+Create an encrypted keyring for a prosopon.
 
 **Tier:** 3 | **ID:** `praxis/hypostasis/create-keyring`
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `persona_id` | string | ✓ | Persona this keyring secures keys for |
+| `prosopon_id` | string | ✓ | Prosopon this keyring secures keys for |
 | `mnemonic` | string | ✓ | BIP-39 24-word mnemonic phrase |
 | `password` | string | ✓ | Password to encrypt the keyring |
 | `password_hint` | string |  | Optional hint to help remember password |
 
 ### create-snapshot 🔧
 
-Create a full state snapshot of a circle.
+Create a full state snapshot of an oikos.
 
 **Tier:** 3 | **ID:** `praxis/hypostasis/create-snapshot`
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `circle_id` | string |  | Circle to snapshot (defaults to current dwelling circle) |
+| `oikos_id` | string |  | Oikos to snapshot (defaults to current dwelling oikos) |
 | `include_embeddings` | boolean |  | Include embedding vectors (default false, they're large) |
 
-### derive-circle-key 🔧
+### derive-oikos-key 🔧
 
-Derive a circle-scoped Ed25519 keypair.
+Derive an oikos-scoped Ed25519 keypair.
 
-**Tier:** 2 | **ID:** `praxis/hypostasis/derive-circle-key`
+**Tier:** 2 | **ID:** `praxis/hypostasis/derive-oikos-key`
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `mnemonic` | string | ✓ | BIP-39 mnemonic phrase (24 words) |
-| `circle_id` | string | ✓ | Circle to derive key for |
+| `oikos_id` | string | ✓ | Oikos to derive key for |
 
 ### derive-key-from-session 🔧
 
-Derive a circle-scoped public key from the unlocked session.
+Derive an oikos-scoped public key from the unlocked session.
 
 **Tier:** 1 | **ID:** `praxis/hypostasis/derive-key-from-session`
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `circle_id` | string | ✓ | Circle to derive key for |
+| `oikos_id` | string | ✓ | Oikos to derive key for |
 
-### export-persona 🔧
+### export-prosopon 🔧
 
-Export a persona for federation to another device.
+Export a prosopon for federation to another device.
 
-**Tier:** 3 | **ID:** `praxis/hypostasis/export-persona`
+**Tier:** 3 | **ID:** `praxis/hypostasis/export-prosopon`
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `persona_id` | string | ✓ | Persona to export |
+| `prosopon_id` | string | ✓ | Prosopon to export |
 | `mnemonic` | string | ✓ | Mnemonic to sign the export |
-| `circle_id` | string | ✓ | Circle context for signing key |
+| `oikos_id` | string | ✓ | Oikos context for signing key |
 | `include_sessions` | boolean |  | Include session/conversation history (default false) |
 
 ### export-phoreta 🔧
@@ -215,17 +215,17 @@ Get the current status of a genesis signing ceremony.
 |-----------|------|----------|-------------|
 | `genesis_id` | string | ✓ | Genesis record to check |
 
-### import-persona 🔧
+### import-prosopon 🔧
 
-Import a persona from another device.
+Import a prosopon from another device.
 
-**Tier:** 3 | **ID:** `praxis/hypostasis/import-persona`
+**Tier:** 3 | **ID:** `praxis/hypostasis/import-prosopon`
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `export_bundle` | object | ✓ | The persona export bundle |
+| `export_bundle` | object | ✓ | The prosopon export bundle |
 | `mnemonic` | string | ✓ | Mnemonic (should match original) |
-| `circle_id` | string | ✓ | Circle context for key verification |
+| `oikos_id` | string | ✓ | Oikos context for key verification |
 | `merge_strategy` | string |  | How to handle conflicts (default newer_wins) |
 
 ### import-phoreta 🔧
@@ -242,13 +242,13 @@ Verify and import a phoreta bundle.
 
 ### list-credentials 🔧
 
-List credentials for a persona.
+List credentials for a prosopon.
 
 **Tier:** 1 | **ID:** `praxis/hypostasis/list-credentials`
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `persona_id` | string | ✓ | Persona to list credentials for |
+| `prosopon_id` | string | ✓ | Prosopon to list credentials for |
 
 ### lock-keyring 🔧
 
@@ -281,14 +281,14 @@ Restore state from a snapshot.
 
 ### sign-content 🔧
 
-Sign content with circle-scoped key.
+Sign content with oikos-scoped key.
 
 **Tier:** 2 | **ID:** `praxis/hypostasis/sign-content`
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `mnemonic` | string | ✓ | BIP-39 mnemonic phrase |
-| `circle_id` | string | ✓ | Circle whose key to use for signing |
+| `oikos_id` | string | ✓ | Oikos whose key to use for signing |
 | `content` | string | ✓ | Content to sign |
 
 ### sign-with-session 🔧
@@ -299,7 +299,7 @@ Sign content using the unlocked session key.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `circle_id` | string | ✓ | Circle context for key derivation |
+| `oikos_id` | string | ✓ | Oikos context for key derivation |
 | `content` | string | ✓ | Content to sign |
 
 ### sync-delta 🔧
@@ -315,14 +315,14 @@ Export changes since a given version/timestamp.
 
 ### sync-devices 🔧
 
-Sync state between two devices with same persona.
+Sync state between two devices with same prosopon.
 
 **Tier:** 3 | **ID:** `praxis/hypostasis/sync-devices`
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `mnemonic` | string | ✓ | Shared mnemonic for signing/verification |
-| `circle_id` | string | ✓ | Circle context |
+| `oikos_id` | string | ✓ | Oikos context |
 | `local_version` | number | ✓ | Local sync version (last sync point) |
 | `remote_delta` | object |  | Delta from remote device (if receiving) |
 
@@ -334,7 +334,7 @@ Unlock credentials for the session, granting their attainments.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `persona_id` | string | ✓ | Persona whose credentials to unlock |
+| `prosopon_id` | string | ✓ | Prosopon whose credentials to unlock |
 
 ### unlock-keyring 🔧
 
@@ -366,7 +366,7 @@ Verify genesis record signatures.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `genesis_id` | string |  | Genesis record to verify (defaults to expression/genesis-root) |
+| `genesis_id` | string |  | Genesis record to verify (defaults to phasis/genesis-root) |
 
 ### verify-signature 🔧
 
@@ -385,7 +385,7 @@ Verify a signature against content and public key.
 | Desmos | From → To | Description |
 |--------|-----------|-------------|
 | `composed-from` | * → * | Entity was composed from this artifact-definition |
-| `signed-by` | any → persona | Entity signed by persona keypair — cryptographic attribution |
+| `signed-by` | any → prosopon | Entity signed by prosopon keypair — cryptographic attribution |
 
 ---
 

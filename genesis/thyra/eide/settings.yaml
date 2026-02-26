@@ -1,0 +1,27 @@
+# Settings Panel Eidos
+# UI state entity for the settings overlay.
+# Tracks open/close state as graph data, not local signals.
+#
+# Traces to: PROMPT-SETTINGS-PANEL-ONTOLOGY.md
+
+entities:
+
+  - eidos: eidos
+    id: eidos/settings-panel
+    data:
+      name: settings-panel
+      description: |
+        Settings panel UI state. Tracks whether the settings overlay
+        is open and which tab is active. Exists in the graph so the
+        mode system can read it — not hardcoded in App.tsx.
+      fields:
+        open:
+          type: boolean
+          required: true
+          default: false
+          description: "Whether the settings modal is visible"
+        active_tab:
+          type: string
+          required: false
+          default: "audio"
+          description: "Currently active settings tab"

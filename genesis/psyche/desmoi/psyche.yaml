@@ -1,5 +1,5 @@
 # Psyche Desmoi
-# Inner life bonds — connecting animus to attention, intention, mood, thyra, prospect, kairos
+# Inner life bonds — connecting parousia to attention, intention, mood, perceptual-field, prospect, kairos
 #
 # These bonds trace the inner life of the experiencing self:
 # - attends: where awareness is directed
@@ -11,68 +11,68 @@
 # - opportune-for: which intentions a kairos serves
 
 entities:
-  # attends — animus attends to something
+  # attends — parousia attends to something
   - eidos: desmos
     id: desmos/attends
     data:
       name: attends
-      description: "Animus attends to something. The direction of awareness."
-      from_eidos: animus
+      description: "Parousia attends to something. The direction of awareness."
+      from_eidos: parousia
       to_eidos: any
       cardinality: many-to-many
       symmetric: false
 
-  # intends — animus holds an intention
+  # intends — parousia holds an intention
   - eidos: desmos
     id: desmos/intends
     data:
       name: intends
-      description: "Animus holds an intention. The directedness of will."
-      from_eidos: animus
+      description: "Parousia holds an intention. The directedness of will."
+      from_eidos: parousia
       to_eidos: intention
       cardinality: one-to-many
       symmetric: false
 
-  # mood-of — mood of animus
+  # mood-of — mood of parousia
   - eidos: desmos
     id: desmos/mood-of
     data:
       name: mood-of
-      description: "Mood of animus. How the world shows up for this being."
+      description: "Mood of parousia. How the world shows up for this being."
       from_eidos: mood
-      to_eidos: animus
+      to_eidos: parousia
       cardinality: many-to-one
       symmetric: false
 
-  # portal-of — thyra is portal of animus
+  # portal-of — perceptual-field is portal awareness of parousia
   - eidos: desmos
     id: desmos/portal-of
     data:
       name: portal-of
-      description: "Thyra is portal of animus. Interface through which experience flows."
-      from_eidos: thyra
-      to_eidos: animus
+      description: "Perceptual field is portal awareness of parousia. Interface through which experience flows."
+      from_eidos: perceptual-field
+      to_eidos: parousia
       cardinality: many-to-one
       symmetric: false
 
-  # foresees — animus foresees a prospect
+  # foresees — parousia foresees a prospect
   - eidos: desmos
     id: desmos/foresees
     data:
       name: foresees
-      description: "Animus foresees a prospect. Anticipation of possibility."
-      from_eidos: animus
+      description: "Parousia foresees a prospect. Anticipation of possibility."
+      from_eidos: parousia
       to_eidos: prospect
       cardinality: one-to-many
       symmetric: false
 
-  # recognizes — animus recognizes a kairos
+  # recognizes — parousia recognizes a kairos
   - eidos: desmos
     id: desmos/recognizes
     data:
       name: recognizes
-      description: "Animus recognizes a kairos. Perception of opportune moment."
-      from_eidos: animus
+      description: "Parousia recognizes a kairos. Perception of opportune moment."
+      from_eidos: parousia
       to_eidos: kairos
       cardinality: one-to-many
       symmetric: false

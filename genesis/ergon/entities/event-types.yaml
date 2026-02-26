@@ -1,0 +1,51 @@
+# Mutation Event Type Instances
+# Seed entities representing the six possible mutation events
+
+entities:
+
+  # =========================================================================
+  # ENTITY MUTATION EVENTS
+  # =========================================================================
+
+  - eidos: entity-mutation
+    id: entity-mutation/created
+    data:
+      operation: created
+
+  - eidos: entity-mutation
+    id: entity-mutation/updated
+    data:
+      operation: updated
+
+  - eidos: entity-mutation
+    id: entity-mutation/deleted
+    data:
+      operation: deleted
+
+  # =========================================================================
+  # BOND MUTATION EVENTS
+  # =========================================================================
+
+  - eidos: bond-mutation
+    id: bond-mutation/created
+    data:
+      operation: created
+
+  - eidos: bond-mutation
+    id: bond-mutation/updated
+    data:
+      operation: updated
+
+  - eidos: bond-mutation
+    id: bond-mutation/deleted
+    data:
+      operation: deleted
+
+  # =========================================================================
+  # FILE MUTATION EVENTS
+  # =========================================================================
+
+  - eidos: file-mutation
+    id: file-mutation/changed
+    data:
+      operation: changed

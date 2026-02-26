@@ -1,0 +1,66 @@
+# Trigger Eidos
+# Pattern matching entities for graph mutations
+
+entities:
+
+  # =========================================================================
+  # trigger — pattern that matches graph mutations
+  # =========================================================================
+
+  - eidos: eidos
+    id: eidos/trigger
+    data:
+      name: trigger
+      description: |
+        A pattern that matches graph mutations.
+
+        Triggers are separate entities that bond to:
+        - Event types via "matches-event" (required)
+        - Specific eidos via "filters-eidos" (optional)
+        - Specific desmos via "filters-desmos" (optional)
+        - Bond source type via "filters-from-eidos" (optional)
+        - Bond target type(s) via "filters-to-eidos" (optional, multiple = OR)
+
+        This separation enables:
+        - Reusable trigger patterns across reflexes
+        - Graph traversal for matching
+        - Queryable trigger configuration
+
+        Context variables available in condition expressions:
+        - $entity — the mutated entity (for entity events)
+        - $previous — entity state before mutation (for updates)
+        - $bond — the bond (for bond events)
+        - $from — source entity (for bond events)
+        - $to — target entity (for bond events)
+
+        Example trigger for pragma resolution:
+          trigger/pragma-resolved --[matches-event]--> entity-mutation/updated
+          trigger/pragma-resolved --[filters-eidos]--> eidos/pragma
+          condition: '$entity.data.status == "resolved"'
+      constitutional: false
+      fields:
+        name:
+          type: string
+          required: true
+          description: Short identifier for this trigger pattern
+
+        condition:
+          type: string
+          required: false
+          description: |
+            Expression evaluated against mutation context.
+            Returns truthy to fire, falsy to skip.
+            Example: '$entity.data.status == "resolved"'
+
+        pattern:
+          type: string
+          required: false
+          description: |
+            Glob pattern for file-mutation triggers.
+            Matches against the file path that changed.
+            Example: 'crates/**/src/**/*.rs'
+
+        enabled:
+          type: boolean
+          default: true
+          description: Whether this trigger is active

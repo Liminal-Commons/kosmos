@@ -1,0 +1,176 @@
+# Chora-Dev Generic Stoicheia
+# 4 generic primitives for tool integration
+#
+# Design principle: Commands become data in the graph, not code in Rust.
+# New tools (npm, go, make) require only new YAML templates, not new Rust.
+#
+# All stoicheia in this file are Tier 3 (substrate operations).
+
+entities:
+
+  # =============================================================================
+  # SHELL-EXECUTE
+  # =============================================================================
+
+  - eidos: stoicheion
+    id: stoicheion/shell-execute
+    data:
+      name: shell-execute
+      tier: 3
+      description: |
+        Execute any shell command. The foundation for all tool integrations.
+
+        This is the single primitive that bridges kosmos intent to substrate
+        actuality for command execution. All tool-specific behavior is defined
+        in command templates (graph entities), not here.
+      topos: chora-dev
+      params:
+        - name: command
+          type: string
+          required: true
+          description: "Executable name (e.g., 'cargo', 'npm', 'go')"
+        - name: args
+          type: array
+          required: true
+          description: "Command arguments as array of strings"
+        - name: working_dir
+          type: string
+          required: false
+          description: "Working directory (defaults to workspace root)"
+        - name: env
+          type: object
+          required: false
+          description: "Environment variables to set"
+        - name: timeout_ms
+          type: integer
+          required: false
+          description: "Timeout in milliseconds (default: 300000 = 5 min)"
+      returns:
+        stdout:
+          type: string
+          description: "Standard output"
+        stderr:
+          type: string
+          description: "Standard error"
+        exit_code:
+          type: integer
+          description: "Process exit code"
+        duration_ms:
+          type: integer
+          description: "Execution duration in milliseconds"
+        success:
+          type: boolean
+          description: "Whether exit code was 0"
+
+  # =============================================================================
+  # HASH-PATH
+  # =============================================================================
+
+  - eidos: stoicheion
+    id: stoicheion/hash-path
+    data:
+      name: hash-path
+      tier: 3
+      description: |
+        Compute BLAKE3 hash of files matching a glob pattern.
+        Used for staleness detection and content verification.
+
+        Includes:
+        - All matching files' contents
+        - Optionally: file paths (for rename detection)
+      topos: chora-dev
+      params:
+        - name: path
+          type: string
+          required: true
+          description: "Base directory to hash"
+        - name: pattern
+          type: string
+          required: false
+          description: "Glob pattern (default: '**/*')"
+        - name: include_names
+          type: boolean
+          required: false
+          description: "Include filenames in hash (default: true)"
+      returns:
+        hash:
+          type: string
+          description: "Hex-encoded BLAKE3 hash"
+        file_count:
+          type: integer
+          description: "Number of files hashed"
+
+  # =============================================================================
+  # PARSE-OUTPUT
+  # =============================================================================
+
+  - eidos: stoicheion
+    id: stoicheion/parse-output
+    data:
+      name: parse-output
+      tier: 3
+      description: |
+        Parse command output using format-specific handlers or regex.
+
+        Built-in formats:
+        - json: Parse as JSON
+        - lines: Split into lines
+        - regex: Extract using regex pattern
+        - cargo-test: Parse cargo test summary
+        - cargo-clippy: Parse clippy JSON output
+        - cargo-metadata: Parse cargo metadata JSON
+
+        Extensible via regex format for new tools.
+      topos: chora-dev
+      params:
+        - name: content
+          type: string
+          required: true
+          description: "Content to parse"
+        - name: format
+          type: string
+          required: true
+          description: "Format: json, lines, regex, cargo-test, cargo-clippy, cargo-metadata"
+        - name: schema
+          type: object
+          required: false
+          description: "Extraction rules for regex format (requires 'pattern' field)"
+      returns:
+        parsed:
+          type: object
+          description: "Format-specific parsed result"
+
+  # =============================================================================
+  # FILE-EXISTS
+  # =============================================================================
+
+  - eidos: stoicheion
+    id: stoicheion/file-exists
+    data:
+      name: file-exists
+      tier: 3
+      description: |
+        Check if a file or directory exists.
+        Simple but essential for sense operations.
+      topos: chora-dev
+      params:
+        - name: path
+          type: string
+          required: true
+          description: "Path to check"
+      returns:
+        exists:
+          type: boolean
+          description: "Whether path exists"
+        is_file:
+          type: boolean
+          description: "Whether path is a file"
+        is_dir:
+          type: boolean
+          description: "Whether path is a directory"
+        size:
+          type: integer
+          description: "File size in bytes (if file)"
+        modified_at:
+          type: integer
+          description: "Unix timestamp of last modification"

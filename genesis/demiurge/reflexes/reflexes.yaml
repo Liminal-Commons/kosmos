@@ -1,0 +1,105 @@
+# Demiurge Reflexes — Homoiconic Form
+# Autonomic responses for topos development workflows
+#
+# Reflexes connect to triggers and praxeis via bonds:
+#   reflex --[triggered-by]--> trigger --[matches-event]--> mutation-event
+#   reflex --[responds-with]--> praxis (bond data carries params)
+
+entities:
+
+  # =============================================================================
+  # TRIGGERS
+  # =============================================================================
+
+  - eidos: trigger
+    id: trigger/demiurge/artifact-added
+    data:
+      name: artifact-added
+      condition: '$from.data.status == "composing"'
+      enabled: true
+    bonds:
+      - { desmos: matches-event, to: bond-mutation/created }
+      - { desmos: filters-desmos, to: desmos/contains }
+      - { desmos: filters-from-eidos, to: eidos/topos }
+      - { desmos: filters-to-eidos, to: eidos/eidos }
+      - { desmos: filters-to-eidos, to: eidos/praxis }
+      - { desmos: filters-to-eidos, to: eidos/desmos }
+
+  - eidos: trigger
+    id: trigger/demiurge/praxis-added
+    data:
+      name: praxis-added
+      condition: '$from.data.status == "composing"'
+      enabled: true
+    bonds:
+      - { desmos: matches-event, to: bond-mutation/created }
+      - { desmos: filters-desmos, to: desmos/contains }
+      - { desmos: filters-from-eidos, to: eidos/topos }
+      - { desmos: filters-to-eidos, to: eidos/praxis }
+
+  - eidos: trigger
+    id: trigger/demiurge/praxis-changed
+    data:
+      name: praxis-changed
+      condition: '$entity.data.steps != $previous.data.steps'
+      enabled: true
+    bonds:
+      - { desmos: matches-event, to: entity-mutation/updated }
+      - { desmos: filters-eidos, to: eidos/praxis }
+
+  # =============================================================================
+  # REFLEXES
+  # =============================================================================
+
+  - eidos: reflex
+    id: reflex/demiurge/artifact-added
+    data:
+      name: artifact-added
+      description: |
+        Update topos manifest when artifact is added.
+
+        Fires when a contains bond is created from a composing topos
+        to any artifact (eidos, praxis, desmos).
+      enabled: true
+      scope: global
+      response_params:
+        topos_id: "$from.id"
+        artifact_id: "$to.id"
+    bonds:
+      - { desmos: triggered-by, to: trigger/demiurge/artifact-added }
+      - { desmos: responds-with, to: praxis/demiurge/update-manifest }
+
+  - eidos: reflex
+    id: reflex/demiurge/praxis-added
+    data:
+      name: praxis-added
+      description: |
+        Auto-register praxis as MCP tool when added to developing topos.
+
+        This obsoletes explicit project-topos invocation. Praxeis become
+        available as MCP tools immediately upon composition.
+      enabled: true
+      scope: global
+      response_params:
+        topos_id: "$from.id"
+        praxis_id: "$to.id"
+    bonds:
+      - { desmos: triggered-by, to: trigger/demiurge/praxis-added }
+      - { desmos: responds-with, to: praxis/demiurge/register-praxis-tool }
+
+  - eidos: reflex
+    id: reflex/demiurge/praxis-changed
+    data:
+      name: praxis-changed
+      description: |
+        Re-validate praxis when its steps change.
+
+        Catches authoring errors early by validating step definitions
+        against stoicheion schemas immediately after edit.
+      enabled: true
+      scope: global
+      response_params:
+        praxis_id: "$entity.id"
+    bonds:
+      - { desmos: triggered-by, to: trigger/demiurge/praxis-changed }
+      - { desmos: responds-with, to: praxis/demiurge/validate-praxis }

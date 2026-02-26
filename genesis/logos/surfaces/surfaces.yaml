@@ -1,0 +1,20 @@
+# Logos Surface Contracts
+
+entities:
+
+  - eidos: surface
+    id: surface/phasis
+    data:
+      surface_id: phasis
+      description: |
+        Expression threading and phasis management.
+
+        Consumers of this surface can emit phaseis (expressions),
+        list conversation threads, reply to existing phaseis, and
+        retrieve threaded conversation structures.
+      praxeis:
+        - praxis/logos/emit-phasis
+        - praxis/logos/list-phaseis
+        - praxis/logos/reply-to
+        - praxis/logos/get-thread
+      version: "1.0"

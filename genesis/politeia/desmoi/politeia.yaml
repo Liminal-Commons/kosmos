@@ -4,135 +4,124 @@
 # Extracted from spora.yaml stage-1-desmoi
 
 entities:
-  # sovereign-to — circle is sovereign to animus
+  # sovereign-to — oikos is sovereign to parousia
   - eidos: desmos
     id: desmos/sovereign-to
     data:
       name: sovereign-to
-      description: "Circle is sovereign to animus — governs what it can do."
-      from_eidos: circle
-      to_eidos: animus
+      description: "Oikos is sovereign to parousia — governs what it can do."
+      from_eidos: oikos
+      to_eidos: parousia
       cardinality: one-to-many
       symmetric: false
 
-  # embodies — animus embodies persona
+  # embodies — parousia embodies prosopon
   - eidos: desmos
     id: desmos/embodies
     data:
       name: embodies
-      description: "Animus embodies persona — the dwelling presence of an identity."
-      from_eidos: animus
-      to_eidos: persona
+      description: "Parousia embodies prosopon — the dwelling presence of an identity."
+      from_eidos: parousia
+      to_eidos: prosopon
       cardinality: many-to-one
       symmetric: false
 
-  # grants-attainment — circle grants attainment
+  # grants-attainment — oikos grants attainment
   - eidos: desmos
     id: desmos/grants-attainment
     data:
       name: grants-attainment
-      description: "Circle grants attainment to its members."
-      from_eidos: circle
+      description: "Oikos grants attainment to its members."
+      from_eidos: oikos
       to_eidos: attainment
       cardinality: one-to-many
       symmetric: false
 
-  # has-attainment — animus has attainment
+  # has-attainment — parousia has attainment
   - eidos: desmos
     id: desmos/has-attainment
     data:
       name: has-attainment
-      description: "Animus has attainment — capability derived from membership."
-      from_eidos: animus
+      description: "Parousia has attainment — capability derived from membership."
+      from_eidos: parousia
       to_eidos: attainment
       cardinality: many-to-many
       symmetric: false
 
-  # granted-by — attainment granted by circle
+  # granted-by — attainment granted by oikos
   - eidos: desmos
     id: desmos/granted-by
     data:
       name: granted-by
-      description: "Attainment granted by circle — inverse tracking for provenance."
+      description: "Attainment granted by oikos — inverse tracking for provenance."
       from_eidos: attainment
-      to_eidos: circle
+      to_eidos: oikos
       cardinality: many-to-many
       symmetric: false
 
-  # surfaces-as — affordance surfaces as HUD region
+  # surfaces-as — attainment surfaces as affordance
   - eidos: desmos
     id: desmos/surfaces-as
     data:
       name: surfaces-as
-      description: "Affordance surfaces as HUD region — how possibilities become visible."
-      from_eidos: affordance
-      to_eidos: hud-region
-      cardinality: many-to-one
+      description: "Attainment surfaces as affordance — how capabilities become actionable."
+      from_eidos: attainment
+      to_eidos: affordance
+      cardinality: one-to-many
       symmetric: false
 
-  # enabled-by — HUD region enabled by attainment
+  # enabled-by — affordance enabled by attainment
   - eidos: desmos
     id: desmos/enabled-by
     data:
       name: enabled-by
-      description: "HUD region enabled by attainment — what capability makes it visible."
-      from_eidos: hud-region
+      description: "Affordance enabled by attainment — what capability makes it available."
+      from_eidos: affordance
       to_eidos: attainment
       cardinality: many-to-one
       symmetric: false
 
-  # renders-in — HUD region renders in parent region
-  - eidos: desmos
-    id: desmos/renders-in
-    data:
-      name: renders-in
-      description: "HUD region renders in parent region — hierarchical composition."
-      from_eidos: hud-region
-      to_eidos: hud-region
-      cardinality: many-to-one
-      symmetric: false
-
-  # child-of — invitation is child of circle
+  # child-of — invitation is child of oikos
   - eidos: desmos
     id: desmos/child-of
     data:
       name: child-of
-      description: "Invitation is child of circle — where the invite originates."
+      description: "Invitation is child of oikos — where the invite originates."
       from_eidos: invitation
-      to_eidos: circle
+      to_eidos: oikos
       cardinality: many-to-one
       symmetric: false
 
-  # invited-to — invitation invites persona to circle
+  # invited-to — invitation invites prosopon to oikos
   - eidos: desmos
     id: desmos/invited-to
     data:
       name: invited-to
-      description: "Invitation invites persona to circle."
+      description: "Invitation invites prosopon to oikos."
       from_eidos: invitation
-      to_eidos: circle
+      to_eidos: oikos
       cardinality: many-to-one
       symmetric: false
 
-  # distributes — circle distributes an oikos-prod to its members
+  # distributes — oikos distributes a topos-prod to its members
   - eidos: desmos
     id: desmos/distributes
     data:
       name: distributes
       description: |
-        Circle distributes an oikos-prod to its members.
-        When a user joins a circle, they receive all oikoi the circle distributes.
-        Only commons circles can have this bond.
+        Oikos distributes a topos-prod to its members.
+        When a user joins an oikos, they receive all topoi the oikos distributes.
+        Only commons oikoi can have this bond.
 
         Version semantics:
-        - The oikos-prod entity contains a semver-compatible version field
-        - When a circle updates its distributes bond to a newer oikos-prod, members
+        - The topos-prod entity contains a semver-compatible version field
+        - When an oikos updates its distributes bond to a newer topos-prod, members
           receive the update on their next dwell (lazy update)
         - Version comparison uses string equality; semver ordering is the publisher's
-          responsibility when naming oikos-prod entities
-        - oikos-prod IDs should include version: e.g., oikos-prod/nous-1.2.0
-      from_eidos: circle
-      to_eidos: oikos-prod
+          responsibility when naming topos-prod entities
+        - topos-prod IDs should include version: e.g., topos-prod/nous-1.2.0
+      from_eidos: oikos
+      to_eidos: topos-prod
       cardinality: many-to-many
       symmetric: false
 
@@ -140,15 +129,15 @@ entities:
   # FEDERATION BONDS
   # =============================================================================
 
-  # federates-with — circle-to-circle federation bond
+  # federates-with — oikos-to-oikos federation bond
   - eidos: desmos
     id: desmos/federates-with
     data:
       name: federates-with
       description: |
-        Establishes federation between circles across kosmoi.
-        Content in bonded circles syncs continuously.
-        Both circles must bond (mutual consent required for sync).
+        Establishes federation between oikoi across kosmoi.
+        Content in bonded oikoi syncs continuously.
+        Both oikoi must bond (mutual consent required for sync).
 
         The bond IS the federation. No separate link entity needed.
         Content flows through the bond graph — visibility = reachability.
@@ -157,8 +146,8 @@ entities:
         - sync_direction: push, pull, or bidirectional
         - eidos_filter: which eide to sync (empty = all)
         - channel_id: underlying data-channel for transport
-      from_eidos: circle
-      to_eidos: circle
+      from_eidos: oikos
+      to_eidos: oikos
       cardinality: many-to-many
       symmetric: false
       properties:
@@ -187,7 +176,7 @@ entities:
       name: tracks-sync
       description: "Sync cursor tracks position for a federation bond."
       from_eidos: sync-cursor
-      to_eidos: circle
+      to_eidos: oikos
       cardinality: many-to-one
       symmetric: false
 

@@ -1,0 +1,24 @@
+# Genesis Surface Contracts
+
+entities:
+
+  - eidos: surface
+    id: surface/emission
+    data:
+      surface_id: emission
+      description: |
+        Content emission to chora: writing composed entities to the
+        filesystem, managing content roots, and verifying full-circle
+        integrity.
+
+        Consumers of this surface can emit genesis content, register
+        content roots, and verify that emitted content round-trips
+        through bootstrap faithfully.
+      praxeis:
+        - praxis/genesis/emit-genesis
+        - praxis/genesis/emit-topos
+        - praxis/genesis/verify-full-circle
+        - praxis/genesis/register-content-root
+        - praxis/genesis/list-content-roots
+        - praxis/thyra/emit
+      version: "1.0"

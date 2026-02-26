@@ -1,0 +1,85 @@
+# Ergon Reflexes — Homoiconic Form
+# Autonomic responses for work coordination
+#
+# Bonds are inline on their parent entities:
+#   trigger.bonds: matches-event, filters-eidos/filters-desmos
+#   reflex.bonds: triggered-by
+#   reflex.data.response_params: params from responds-with bond
+
+entities:
+
+  # =============================================================================
+  # TRIGGERS
+  # =============================================================================
+
+  - eidos: trigger
+    id: trigger/pragma-signaled
+    data:
+      name: pragma-signaled
+      enabled: true
+      # No condition — matches all bond_created on signals-to from pragma to oikos
+    bonds:
+      - desmos: matches-event
+        to: bond-mutation/created
+      - desmos: filters-desmos
+        to: desmos/signals-to
+
+  - eidos: trigger
+    id: trigger/pragma-resolved
+    data:
+      name: pragma-resolved
+      condition: '$entity.data.status == "resolved" && $previous.data.status != "resolved"'
+      enabled: true
+    bonds:
+      - desmos: matches-event
+        to: entity-mutation/updated
+      - desmos: filters-eidos
+        to: eidos/pragma
+
+  # =============================================================================
+  # REFLEXES
+  # =============================================================================
+
+  - eidos: reflex
+    id: reflex/ergon/pragma-signaled
+    data:
+      name: pragma-signaled
+      description: |
+        Add notification when pragma signals to an oikos.
+
+        Creates soma notification entity for oikos members to see.
+        This is how cross-oikos work items get attention.
+      enabled: true
+      scope: global
+      response_params:
+        type: pragma_received
+        oikos_id: "$to.id"
+        pragma_id: "$from.id"
+        title: "$from.data.title"
+        priority: "$from.data.priority"
+    bonds:
+      - desmos: triggered-by
+        to: trigger/pragma-signaled
+      - desmos: responds-with
+        to: praxis/soma/add-notification
+
+  - eidos: reflex
+    id: reflex/ergon/pragma-resolved
+    data:
+      name: pragma-resolved
+      description: |
+        Notify when pragma is resolved.
+
+        Signals back to the originating context that work is complete.
+      enabled: true
+      scope: global
+      response_params:
+        type: pragma_resolved
+        pragma_id: "$entity.id"
+        title: "$entity.data.title"
+        resolution: "$entity.data.resolution"
+    bonds:
+      - desmos: triggered-by
+        to: trigger/pragma-resolved
+      - desmos: responds-with
+        to: praxis/soma/add-notification

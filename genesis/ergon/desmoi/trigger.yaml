@@ -1,0 +1,121 @@
+# Trigger Desmoi
+# Bonds connecting triggers to event types and filters
+
+entities:
+
+  # =========================================================================
+  # matches-event — what mutation type this trigger responds to
+  # =========================================================================
+
+  - eidos: desmos
+    id: desmos/matches-event
+    data:
+      name: matches-event
+      description: |
+        What kind of mutation this trigger matches.
+        A trigger bonds to exactly one event type instance.
+
+        Example:
+          trigger/pragma-signaled --[matches-event]--> bond-mutation/created
+
+        The event type determines what context variables are available
+        for the trigger condition and response parameters.
+      from_eidos: trigger
+      to_eidos: [entity-mutation, bond-mutation, file-mutation]
+      cardinality: many-to-one
+      symmetric: false
+
+  # =========================================================================
+  # filters-eidos — optional entity type filter
+  # =========================================================================
+
+  - eidos: desmos
+    id: desmos/filters-eidos
+    data:
+      name: filters-eidos
+      description: |
+        Optional filter to specific entity type.
+        If present, trigger only matches mutations involving this eidos.
+
+        Example:
+          trigger/deployment-intent --[filters-eidos]--> eidos/deployment
+
+        For entity events: filters by mutated entity's eidos.
+        For bond events: use filters-desmos instead (or both).
+      from_eidos: trigger
+      to_eidos: eidos
+      cardinality: many-to-one
+      symmetric: false
+
+  # =========================================================================
+  # filters-desmos — optional bond type filter
+  # =========================================================================
+
+  - eidos: desmos
+    id: desmos/filters-desmos
+    data:
+      name: filters-desmos
+      description: |
+        Optional filter to specific bond type.
+        If present, trigger only matches mutations involving this desmos.
+
+        Example:
+          trigger/pragma-signaled --[filters-desmos]--> desmos/signals-to
+
+        Only meaningful for bond events (bond_created, bond_updated, bond_deleted).
+      from_eidos: trigger
+      to_eidos: desmos
+      cardinality: many-to-one
+      symmetric: false
+
+  # =========================================================================
+  # filters-from-eidos — optional bond source entity type filter
+  # =========================================================================
+
+  - eidos: desmos
+    id: desmos/filters-from-eidos
+    data:
+      name: filters-from-eidos
+      description: |
+        Optional filter on bond source entity type.
+        If present, trigger only matches bond mutations where the source
+        entity has this eidos.
+
+        Example:
+          trigger/artifact-added --[filters-from-eidos]--> eidos/topos
+
+        Only meaningful for bond events.
+      from_eidos: trigger
+      to_eidos: eidos
+      cardinality: many-to-one
+      symmetric: false
+
+  # =========================================================================
+  # filters-to-eidos — optional bond target entity type filter
+  # =========================================================================
+
+  - eidos: desmos
+    id: desmos/filters-to-eidos
+    data:
+      name: filters-to-eidos
+      description: |
+        Optional filter on bond target entity type(s).
+        If present, trigger only matches bond mutations where the target
+        entity has one of the specified eide.
+
+        Multiple bonds create an OR filter — the target entity must match
+        any one of the bonded eide.
+
+        Example (single):
+          trigger/praxis-added --[filters-to-eidos]--> eidos/praxis
+
+        Example (multiple = OR):
+          trigger/artifact-added --[filters-to-eidos]--> eidos/eidos
+          trigger/artifact-added --[filters-to-eidos]--> eidos/praxis
+          trigger/artifact-added --[filters-to-eidos]--> eidos/desmos
+
+        Only meaningful for bond events.
+      from_eidos: trigger
+      to_eidos: eidos
+      cardinality: many-to-many
+      symmetric: false

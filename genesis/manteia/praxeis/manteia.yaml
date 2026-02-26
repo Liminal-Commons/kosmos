@@ -63,6 +63,7 @@ entities:
       steps:
         # Step 1: Generate schema-constrained content
         - step: infer
+          internal: true
           prompt: "$prompt"
           system_prompt: "$system_prompt"
           stoicheion: "$stoicheion_id"
@@ -101,6 +102,8 @@ entities:
             # No evaluation - return content directly (backward compatible)
             - step: return
               value: "$content"
+    bonds:
+      - { desmos: requires-attainment, to: attainment/manteia }
 
   # ===========================================================================
   # generate-entity: Generate entity data constrained to eidos schema
@@ -145,6 +148,8 @@ entities:
           bind_to: result
         - step: return
           value: "$result"
+    bonds:
+      - { desmos: requires-attainment, to: attainment/manteia }
 
   # ===========================================================================
   # generate-step: Generate a single valid praxis step
@@ -201,6 +206,8 @@ entities:
               "$stoicheion": "$step_fields"
         - step: return
           value: "$result"
+    bonds:
+      - { desmos: requires-attainment, to: attainment/generate-meta }
 
   # ===========================================================================
   # generate-praxis: Generate a complete praxis
@@ -288,6 +295,8 @@ entities:
           bind_to: praxis
         - step: return
           value: "$praxis"
+    bonds:
+      - { desmos: requires-attainment, to: attainment/generate-meta }
 
   # ===========================================================================
   # generate-typos: Generate a valid typos (V9)
@@ -365,7 +374,7 @@ entities:
               For bonds, specify:
               - desmos: The bond type (e.g., 'belongs-to', 'authored-by')
               - from_self/to_self: Whether the composed entity is the source/target
-              - from_context/to_context: Context bindings (e.g., '_circle', '_persona')
+              - from_context/to_context: Context bindings (e.g., '_oikos', '_prosopon')
               - from_literal/to_literal: Fixed entity IDs
               - optional: Whether the bond is optional
         - step: infer
@@ -393,6 +402,8 @@ entities:
               data: "$typos_data"
         - step: return
           value: "$result"
+    bonds:
+      - { desmos: requires-attainment, to: attainment/generate-meta }
 
   # ===========================================================================
   # get-stoicheion-schema: Get JSON schema for a stoicheion
@@ -435,6 +446,8 @@ entities:
               properties: "$fields"
         - step: return
           value: "$schema"
+    bonds:
+      - { desmos: requires-attainment, to: attainment/manteia }
 
   # ===========================================================================
   # list-stoicheia: List all available step types
@@ -457,26 +470,28 @@ entities:
           limit: 100
           bind_to: all_eide
         - step: filter
-          in: "$all_eide"
-          where: "item.id.startsWith('eidos/stoicheion/')"
+          items: "$all_eide"
+          condition: "item.id.startsWith('eidos/stoicheion/')"
           bind_to: stoicheia
         - step: switch
           cases:
             - when: "$tier != null"
               then:
                 - step: filter
-                  in: "$stoicheia"
-                  where: "item.data.tier == $tier"
+                  items: "$stoicheia"
+                  condition: "item.data.tier == $tier"
                   bind_to: stoicheia
         - step: map
-          in: "$stoicheia"
-          to:
+          items: "$stoicheia"
+          transform:
             name: "$item.data.name"
             description: "$item.data.description"
             tier: "$item.data.tier"
           bind_to: result
         - step: return
           value: "$result"
+    bonds:
+      - { desmos: requires-attainment, to: attainment/manteia }
 
   # ===========================================================================
   # _evaluate-generation: Internal evaluation praxis (not exposed via MCP)

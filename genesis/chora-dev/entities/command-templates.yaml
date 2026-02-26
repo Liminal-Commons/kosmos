@@ -1,0 +1,115 @@
+# Chora-Dev Cargo Command Templates
+# Commands as data in the graph, not code in Rust
+#
+# Design principle: Generic primitives + command templates = homoiconic tool integration
+# Adding new tools (npm, go, make) requires only new YAML entities, not new Rust code.
+#
+# Each template specifies:
+# - command: The executable to run
+# - args: Structured argument array (strings or conditional {value, when} objects)
+# - output_format: How to parse the output (maps to parse-output formats)
+# - success_check: Expression to determine success
+#
+# Conditional args use 'when:' — same pattern as render-spec widgets.
+# No ternary operators, no Jinja blocks. Computation via structure, not template logic.
+
+entities:
+
+  # =============================================================================
+  # CARGO COMMAND TEMPLATES
+  # =============================================================================
+
+  - eidos: command-template
+    id: command-template/cargo-build
+    data:
+      name: cargo-build
+      command: cargo
+      args:
+        - "build"
+        - "--package"
+        - "{{ $crate_name }}"
+        - value: "--release"
+          when: "$profile == 'release'"
+        - value: "--profile=test"
+          when: "$profile == 'test'"
+        - value: "--features"
+          when: "$features"
+        - value: "{{ $features | join(',') }}"
+          when: "$features"
+        - value: "--target"
+          when: "$target_triple"
+        - value: "{{ $target_triple }}"
+          when: "$target_triple"
+      success_check: "$result.exit_code == 0"
+      artifact_path_segments:
+        - "target"
+        - value: "release"
+          when: "$profile == 'release'"
+        - value: "debug"
+          when: "$profile != 'release'"
+        - "{{ $crate_name }}"
+      timeout_ms: 600000
+
+  - eidos: command-template
+    id: command-template/cargo-test
+    data:
+      name: cargo-test
+      command: cargo
+      args:
+        - "test"
+        - "--package"
+        - "{{ $crate_name }}"
+        - value: "--"
+          when: "$test_filter"
+        - value: "{{ $test_filter }}"
+          when: "$test_filter"
+        - value: "--nocapture"
+          when: "$nocapture"
+      output_format: cargo-test
+      success_check: "$parsed.failed == 0"
+      timeout_ms: 300000
+
+  - eidos: command-template
+    id: command-template/cargo-clippy
+    data:
+      name: cargo-clippy
+      command: cargo
+      args:
+        - "clippy"
+        - "--package"
+        - "{{ $crate_name }}"
+        - "--message-format=json"
+        - value: "--"
+          when: "$deny_warnings"
+        - value: "-D"
+          when: "$deny_warnings"
+        - value: "warnings"
+          when: "$deny_warnings"
+      output_format: cargo-clippy
+      success_check: "$parsed.errors == 0"
+      timeout_ms: 300000
+
+  - eidos: command-template
+    id: command-template/cargo-metadata
+    data:
+      name: cargo-metadata
+      command: cargo
+      args:
+        - "metadata"
+        - "--format-version=1"
+        - "--no-deps"
+      output_format: cargo-metadata
+      success_check: "$result.exit_code == 0"
+      timeout_ms: 30000
+
+  - eidos: command-template
+    id: command-template/cargo-clean
+    data:
+      name: cargo-clean
+      command: cargo
+      args:
+        - "clean"
+        - "--package"
+        - "{{ $crate_name }}"
+      success_check: "$result.exit_code == 0"
+      timeout_ms: 60000

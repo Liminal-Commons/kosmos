@@ -20,9 +20,9 @@ With aither:
 
 The central concept is the **syndesmos** (σύνδεσμος — bond, connection). A syndesmos declares desired connection state; the network is what actually is. Reconciliation aligns them.
 
-## Circle Context
+## Oikos Context
 
-### Self Circle
+### Self Oikos
 
 A solitary dweller uses aither to:
 - Federate their own devices (laptop, phone)
@@ -30,19 +30,19 @@ A solitary dweller uses aither to:
 - Track their own presence across substrates
 - Maintain self-sync connections
 
-Self-federation enables one persona, many devices.
+Self-federation enables one prosopon, many devices.
 
-### Peer Circle
+### Peer Oikos
 
 Collaborators use aither to:
 - Maintain persistent connections to each other
 - See who is present (online, away, busy)
-- Exchange expressions in real-time
+- Exchange phaseis in real-time
 - Reconnect automatically after disruption
 
 Peer connections enable the living graph.
 
-### Commons Circle
+### Commons Oikos
 
 A commons uses aither to:
 - Coordinate presence across many members
@@ -50,7 +50,7 @@ A commons uses aither to:
 - Provide relay infrastructure (via propylon)
 - Aggregate connection health metrics
 
-Commons provide the ether through which circles breathe.
+Commons provide the ether through which oikoi breathe.
 
 ## Core Entities (Eide)
 
@@ -94,7 +94,7 @@ Persistent connection state with reconciliation — the core abstraction.
 **Fields:**
 - `room_id` — signaling room
 - `peer_id` — remote peer (if known)
-- `circle_id` — circle context
+- `oikos_id` — oikos context
 - `intent` — connected, disconnected, suspended
 - `status` — disconnected, connecting, connected, reconnecting, failed, suspended
 - `retry_count`, `backoff_ms`, `max_retries` — exponential backoff state
@@ -111,7 +111,7 @@ Queued message for offline delivery.
 
 **Fields:**
 - `target_peer` — destination peer or room
-- `message_type` — phoreta, content-sync, presence-update, expression
+- `message_type` — phoreta, content-sync, presence-update, phasis
 - `content` — JSON-encoded payload
 - `status` — pending, sending, delivered, failed, expired
 - `attempts`, `max_attempts` — delivery tracking
@@ -124,11 +124,11 @@ Queued message for offline delivery.
 
 ### presence-record
 
-Ephemeral presence in a room or circle.
+Ephemeral presence in a room or oikos.
 
 **Fields:**
-- `persona_id` — whose presence
-- `circle_id`, `room_id` — where present
+- `prosopon_id` — whose presence
+- `oikos_id`, `room_id` — where present
 - `status` — online, away, busy, offline
 - `last_heartbeat` — last activity timestamp
 - `heartbeat_interval_ms`, `expire_after_ms` — timing
@@ -143,10 +143,10 @@ Ephemeral presence in a room or circle.
 Envelope for P2P synchronization messages.
 
 **Fields:**
-- `type` — expression, entity, presence, catch-up-request, catch-up-response
+- `type` — phasis, entity, presence, catch-up-request, catch-up-response
 - `action` — create, update, delete, request, response
 - `entity`, `entities` — payload(s)
-- `circle_id` — context
+- `oikos_id` — context
 - `sender_id`, `timestamp` — provenance
 
 ## Bonds (Desmoi)
@@ -180,30 +180,30 @@ Outbound message queued for this syndesmos.
 
 ### targets-peer
 
-Syndesmos targets this persona.
+Syndesmos targets this prosopon.
 
 - **From:** syndesmos
-- **To:** persona
+- **To:** prosopon
 - **Cardinality:** many-to-one
 - **Traversal:** Find connections to a peer
 
-### present-in
+### present-in-oikos
 
-Presence record in a circle.
+Presence record in an oikos.
 
 - **From:** presence-record
-- **To:** circle
+- **To:** oikos
 - **Cardinality:** many-to-one
-- **Traversal:** List who is present in a circle
+- **Traversal:** List who is present in an oikos
 
 ### presence-of
 
-Presence record belongs to persona.
+Presence record belongs to prosopon.
 
 - **From:** presence-record
-- **To:** persona
+- **To:** prosopon
 - **Cardinality:** many-to-one
-- **Traversal:** Find a persona's presence across circles
+- **Traversal:** Find a prosopon's presence across oikoi
 
 ## Operations (Praxeis)
 
@@ -275,16 +275,16 @@ Messaging capability — sending and receiving through channels.
 Presence capability — tracking who is here.
 
 - **Grants:** update-presence, heartbeat, expire-stale-presence, list-presence
-- **Scope:** circle
-- **Rationale:** Presence is visible within circle context
+- **Scope:** oikos
+- **Rationale:** Presence is visible within oikos context
 
 ### attainment/sync
 
 Synchronization capability — P2P entity replication.
 
 - **Grants:** broadcast-sync, receive-sync, request-catch-up
-- **Scope:** circle
-- **Rationale:** Sync operates on circle data; requires membership
+- **Scope:** oikos
+- **Rationale:** Sync operates on oikos data; requires membership
 
 ### attainment/sense
 
@@ -339,11 +339,11 @@ Propylon provides signaling relay. Aither uses relay for peer discovery before P
 
 ### amplifies thyra
 
-Expressions flow through aither channels. Voice streams could use WebRTC media.
+Phaseis flow through aither channels. Voice streams could use WebRTC media.
 
 ### amplifies politeia
 
-Circle membership determines who you connect to. Presence is circle-scoped.
+Oikos membership determines who you connect to. Presence is oikos-scoped.
 
 ### amplifies hypostasis
 

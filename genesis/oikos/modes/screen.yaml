@@ -1,0 +1,29 @@
+# Oikos Screen Mode — Session history
+# Browse dwelling sessions through thyra.
+
+entities:
+
+  - eidos: mode
+    id: mode/session-history
+    data:
+      name: session-history
+      topos: oikos
+      substrate: screen
+      description: |
+        Session history — past and current dwelling sessions
+        with start time and status. Center panel.
+      item_spec_id: render-spec/session-card
+      arrangement: scroll
+      empty_message: "No sessions recorded"
+      spatial:
+        position: center
+        height: fill
+      source_query: "gather(eidos: session, sort: started_at, order: desc, limit: 50)"
+      config:
+        watch_eidos: session
+      created_at: "2026-02-22T00:00:00Z"
+
+bonds:
+  - from_id: mode/session-history
+    to_id: render-spec/session-card
+    desmos: uses-render-spec

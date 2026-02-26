@@ -2,7 +2,7 @@
 
 ἔργον (ergon) — work, deed, thing to be done
 
-> **See also:** [REACTIVE-SYSTEM.md](../REACTIVE-SYSTEM.md) — Ergon's reflex system is Layer 1 of the complete reactive architecture.
+> Ergon's reflex system provides autonomic response to graph mutations.
 
 ## Ontological Purpose
 
@@ -11,20 +11,20 @@ Ergon addresses **the gap between discovery and capability** — the coordinatio
 Without ergon:
 - Gaps discovered during dwelling vanish into conversation
 - Work items have no graph representation
-- Cross-circle coordination requires external tools
+- Cross-oikos coordination requires external tools
 - Resolution has no traceability to discovery
 
 With ergon:
 - **Pragma entities**: Gaps become first-class entities
-- **Signals-to bonds**: Work flows to circles with capability
+- **Signals-to bonds**: Work flows to oikoi with capability
 - **Evidence bonds**: Traceability from gap to what demonstrated it
 - **Resolution bonds**: Traceability from gap to what fixed it
 
-The central concept is the **pragma** (πρᾶγμα — a thing to be done). A pragma is created where a gap is discovered and signals to the circle with the capability to resolve it.
+The central concept is the **pragma** (πρᾶγμα — a thing to be done). A pragma is created where a gap is discovered and signals to the oikos with the capability to resolve it.
 
-## Circle Context
+## Oikos Context
 
-### Self Circle
+### Self Oikos
 
 A solitary dweller uses ergon to:
 - Track gaps discovered during exploration
@@ -32,9 +32,9 @@ A solitary dweller uses ergon to:
 - Mark pragma resolved when addressed
 - Maintain personal work queue
 
-Self-circle pragma are notes about what needs doing.
+Self-oikos pragma are notes about what needs doing.
 
-### Peer Circle
+### Peer Oikos
 
 Collaborators use ergon to:
 - Signal gaps discovered in shared work
@@ -42,12 +42,12 @@ Collaborators use ergon to:
 - Track who is working on what
 - Resolve pragma with shared visibility
 
-Peer circle pragma enable coordination without external tools.
+Peer oikos pragma enable coordination without external tools.
 
-### Commons Circle
+### Commons Oikos
 
 A commons uses ergon to:
-- Receive pragma from member circles (kosmos → chora)
+- Receive pragma from member oikoi (kosmos → chora)
 - Track gaps in shared infrastructure
 - Coordinate resolution across contributors
 - Maintain traceability from gap to fix
@@ -79,12 +79,12 @@ A thing to be done — gap, issue, or work item.
 
 ### signals-to
 
-Pragma signals to a circle for attention.
+Pragma signals to an oikos for attention.
 
 - **From:** pragma
-- **To:** circle
+- **To:** oikos
 - **Cardinality:** many-to-one
-- **Traversal:** Find pragma waiting for a circle's attention
+- **Traversal:** Find pragma waiting for an oikos's attention
 
 ### evidenced-by
 
@@ -117,15 +117,15 @@ Entity resolves a pragma — traceability to the fix.
 
 ### create-pragma
 
-Create a pragma and signal it to a target circle.
+Create a pragma and signal it to a target oikos.
 
 - **When:** Gap discovered requiring work in another context
 - **Requires:** signal attainment
-- **Provides:** Pragma entity bonded to target circle
+- **Provides:** Pragma entity bonded to target oikos
 
 ### list-pragma
 
-List pragma signaled to a circle, optionally filtered by status.
+List pragma signaled to an oikos, optionally filtered by status.
 
 - **When:** Checking work queue
 - **Requires:** work attainment
@@ -151,19 +151,19 @@ Mark pragma resolved with resolution text.
 
 ### attainment/signal
 
-Signal capability — creating gaps for other circles' attention.
+Signal capability — creating gaps for other oikoi's attention.
 
 - **Grants:** create-pragma
-- **Scope:** circle
-- **Rationale:** Signaling requires membership in the discovering circle
+- **Scope:** oikos
+- **Rationale:** Signaling requires membership in the discovering oikos
 
 ### attainment/work
 
 Work capability — managing pragma lifecycle.
 
-- **Grants:** list-pragma, accept-pragma, resolve-pragma
-- **Scope:** circle
-- **Rationale:** Work operations require membership in the target circle
+- **Grants:** list-pragma, accept-pragma, resolve-pragma, sense-pragma
+- **Scope:** oikos
+- **Rationale:** Work operations require membership in the target oikos
 
 ## Embodiment
 
@@ -171,7 +171,7 @@ Work capability — managing pragma lifecycle.
 
 | Level | Status |
 |-------|--------|
-| Defined | 1 eidos, 4 desmoi, 4 praxeis |
+| Defined | 2 eide (pragma, reflex), 4 desmoi, 5 praxeis |
 | Loaded | Bootstrap loads all definitions |
 | Projected | All praxeis visible as MCP tools |
 | Embodied | Partial — pragma count in body-schema |
@@ -205,7 +205,7 @@ An ergon reconciler would surface:
 
 ### amplifies politeia
 
-Pragma signal to circles. Circle membership determines who can accept/resolve.
+Pragma signal to oikoi. Oikos membership determines who can accept/resolve.
 
 ### amplifies nous
 
@@ -213,7 +213,7 @@ Pragma can be indexed, related to theoria. Resolution becomes searchable knowled
 
 ### amplifies thyra
 
-Pragma could surface as expressions for discussion.
+Pragma could surface as phaseis in the portal for discussion.
 
 ### amplifies dynamis
 
@@ -227,15 +227,13 @@ When work is interrupted by a gap, capturing it as a pragma preserves the discov
 
 ### T56: Work flows to capability
 
-Pragma signal to circles where capability exists. A gap in kosmos signals to chora because that's where the interpreter lives. The graph knows where work should flow.
+Pragma signal to oikoi where capability exists. A gap in kosmos signals to chora because that's where the interpreter lives. The graph knows where work should flow.
 
 ### T57: Resolution completes the loop
 
 Bonding the resolving entity to the pragma creates traceability. Future exploration can trace from gap discovery through to what fixed it. This is institutional memory in graph form.
 
 ## Reflex System — Autonomic Response
-
-> **Full architecture:** See [REACTIVE-SYSTEM.md](../REACTIVE-SYSTEM.md) for how reflexes integrate with reconcilers and actuality modes.
 
 ### Concept
 
@@ -259,31 +257,69 @@ Matching reflexes fire automatically
 Response praxis invoked with mutation context
 ```
 
-### Example: Oikos Development
+### Homoiconic Reactive Architecture
 
-When an eidos is added to a developing oikos:
+Reflexes, triggers, and responses are all entities connected by bonds. No inline trigger/response fields -- the graph IS the configuration.
 
-```yaml
-- eidos: reflex
-  id: reflex/oikos-artifact-added
-  data:
-    trigger:
-      event: bond_created
-      desmos: contains
-      from_eidos: oikos
-      to_eidos: [eidos, praxis, desmos]
-      condition: '$from.data.status == "composing"'
-    response:
-      praxis: demiurge/update-manifest
-      params:
-        oikos_id: "$from.id"
-        artifact_id: "$to.id"
+```
+reflex --[triggered-by]--> trigger --[matches-event]--> mutation-event
+                                  \--[filters-eidos]--> eidos (optional)
+                                  \--[filters-desmos]--> desmos (optional)
+reflex --[responds-with]--> praxis (bond data carries params)
 ```
 
-This reflex:
-1. Detects when a `contains` bond is created from an oikos to an artifact
-2. Checks that the oikos is in "composing" status
-3. Automatically invokes `demiurge/update-manifest` with the context
+This homoiconic form means:
+- Triggers are reusable across reflexes (many-to-one)
+- The graph can be traversed to answer "what responds to this event?"
+- Configuration is queryable, not embedded in opaque fields
+
+### Example: Pragma Signaled
+
+When a pragma signals to an oikos, notify members:
+
+```yaml
+# Trigger entity
+- eidos: trigger
+  id: trigger/pragma-signaled
+  data:
+    name: pragma-signaled
+    enabled: true
+
+# Reflex entity
+- eidos: reflex
+  id: reflex/ergon/pragma-signaled
+  data:
+    name: pragma-signaled
+    description: Add notification when pragma signals to an oikos.
+    enabled: true
+    scope: global
+
+# Bonds connecting the pieces
+- bond:
+    from: trigger/pragma-signaled
+    desmos: matches-event
+    to: bond-mutation/created
+
+- bond:
+    from: trigger/pragma-signaled
+    desmos: filters-desmos
+    to: desmos/signals-to
+
+- bond:
+    from: reflex/ergon/pragma-signaled
+    desmos: triggered-by
+    to: trigger/pragma-signaled
+
+- bond:
+    from: reflex/ergon/pragma-signaled
+    desmos: responds-with
+    to: praxis/soma/add-notification
+    data:
+      params:
+        type: pragma_received
+        oikos_id: "$to.id"
+        pragma_id: "$from.id"
+```
 
 ### Reflex vs Reconciler
 
@@ -295,7 +331,7 @@ This reflex:
 | **Latency** | Polling interval | Immediate (post-commit) |
 
 Reconcilers answer: "Is intent aligned with actuality?"
-Reflexes answer: "Something changed — what should happen?"
+Reflexes answer: "Something changed -- what should happen?"
 
 ### Reflex Eidos
 
@@ -304,50 +340,62 @@ Reflexes answer: "Something changed — what should happen?"
   fields:
     name: Short identifier
     description: What this reflex does
-    trigger:
-      event: entity_created | entity_updated | entity_deleted |
-             bond_created | bond_updated | bond_deleted
-      eidos: Entity type filter (for entity events)
-      desmos: Bond type filter (for bond events)
-      from_eidos: Source entity type (for bond events)
-      to_eidos: Target entity type (for bond events)
-      condition: Expression evaluated against mutation context
-    response:
-      praxis: Praxis to invoke
-      params: Parameters (can reference $from, $to, $entity, $bond)
     enabled: Whether this reflex is active
-    scope: circle | oikos | global
+    scope: oikos | topos | global
+    oikos_id: Oikos ID when scope is 'oikos'
+    topos_id: Topos ID when scope is 'topos'
 ```
 
-### Trigger Events
+Trigger and response are expressed via bonds, not inline fields:
+- `triggered-by` bond to a `trigger` entity
+- `responds-with` bond to a `praxis` entity (bond data carries params)
+
+### Trigger Eidos
+
+```yaml
+- eidos: trigger
+  fields:
+    name: Short identifier for this trigger pattern
+    condition: Expression evaluated against mutation context
+    enabled: Whether this trigger is active
+```
+
+Trigger scope is expressed via bonds:
+- `matches-event` bond to `entity-mutation` or `bond-mutation` instance
+- `filters-eidos` bond to an `eidos` (optional)
+- `filters-desmos` bond to a `desmos` (optional)
+
+### Mutation Events
 
 | Event | Context Variables | Use Case |
 |-------|-------------------|----------|
-| `entity_created` | `$entity` | New entity arrived |
-| `entity_updated` | `$entity`, `$previous` | Entity data changed |
-| `entity_deleted` | `$entity` | Entity removed |
-| `bond_created` | `$bond`, `$from`, `$to` | Relationship established |
-| `bond_updated` | `$bond`, `$from`, `$to`, `$previous` | Bond data changed |
-| `bond_deleted` | `$bond`, `$from`, `$to` | Relationship dissolved |
+| `entity-mutation/created` | `$entity` | New entity arrived |
+| `entity-mutation/updated` | `$entity`, `$previous` | Entity data changed |
+| `entity-mutation/deleted` | `$entity` | Entity removed |
+| `bond-mutation/created` | `$bond`, `$from`, `$to` | Relationship established |
+| `bond-mutation/updated` | `$bond`, `$from`, `$to`, `$previous` | Bond data changed |
+| `bond-mutation/deleted` | `$bond`, `$from`, `$to` | Relationship dissolved |
 
 ### Scope
 
-- **circle** — Reflex fires only for mutations within a specific circle
-- **oikos** — Reflex fires for mutations involving entities of an oikos
-- **global** — Reflex fires for all matching mutations
+- **oikos** -- Reflex fires only for mutations within a specific oikos
+- **topos** -- Reflex fires for mutations involving entities of a topos
+- **global** -- Reflex fires for all matching mutations
 
 ### Implementation Path
 
 **In kosmos (schema-driven):**
-1. Reflex eidos defines trigger/response structure
-2. Reflex entities are loaded at bootstrap
-3. Reflex registry indexed by event type for fast lookup
+1. Reflex, trigger, and mutation-event eide define the reactive vocabulary
+2. Entities and bonds loaded at bootstrap
+3. Trigger registry indexed by event type for fast lookup via graph traversal
 
 **In chora (event-driven):**
 1. Entity/bond mutations fire post-commit hook
-2. Hook checks reflex registry for matching triggers
-3. Matching reflexes invoke response praxis with context
-4. Reflex execution logged for auditability
+2. Hook traverses `matches-event` bonds to find matching triggers
+3. Traverses `triggered-by` bonds to find reflexes
+4. Traverses `responds-with` bonds to find response praxeis
+5. Response praxis invoked with mutation context and bond params
+6. Reflex execution logged for auditability
 
 ### Relationship to Cursor Model
 
@@ -355,56 +403,8 @@ The cursor model (`last-saw` desmos) tracks what Claude has *observed*.
 Reflexes track what the *system* should *do* in response to changes.
 
 They complement each other:
-- Cursor → "What's new for Claude to see?"
-- Reflex → "What should happen automatically?"
-
-### Example Reflexes
-
-**1. Update manifest on artifact addition:**
-```yaml
-trigger:
-  event: bond_created
-  desmos: contains
-  from_eidos: oikos
-response:
-  praxis: demiurge/update-manifest
-```
-
-**2. Validate on praxis change:**
-```yaml
-trigger:
-  event: entity_updated
-  eidos: praxis
-response:
-  praxis: demiurge/validate-praxis
-```
-
-**3. Notify on pragma received:**
-```yaml
-trigger:
-  event: bond_created
-  desmos: signals-to
-  to_eidos: circle
-response:
-  praxis: soma/add-notification
-  params:
-    type: pragma_received
-    pragma_id: "$from.id"
-```
-
-**4. Auto-register MCP tool on praxis added to developing oikos:**
-```yaml
-trigger:
-  event: bond_created
-  desmos: contains
-  from_eidos: oikos
-  to_eidos: praxis
-  condition: '$from.data.status == "composing"'
-response:
-  praxis: demiurge/register-praxis-tool
-```
-
-This last reflex would **obsolete project-oikos** — praxeis become available automatically as they're added.
+- Cursor: "What's new for Claude to see?"
+- Reflex: "What should happen automatically?"
 
 ---
 
@@ -418,7 +418,7 @@ When a praxis fails due to a missing stoicheion, automatically create a pragma f
 
 ### Notification System
 
-Alert circle members when pragma arrive. Integration with presence/attention system.
+Alert oikos members when pragma arrive. Integration with parousia/attention system.
 
 **With reflexes:** The pragma-signaled reflex triggers notification creation.
 

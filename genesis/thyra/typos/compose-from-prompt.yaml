@@ -1,0 +1,24 @@
+entities:
+
+  - eidos: typos
+    id: typos/compose-from-prompt
+    data:
+      name: compose-from-prompt
+      description: |
+        Compose content from a user-provided prompt.
+        The prompt is the user's typed text, passed directly
+        to governed inference. Returns structured content.
+      output_type: object
+
+      slots:
+        generation:
+          fill: generated
+          tier: fast
+          prompt: "{{ prompt }}"
+          output_schema:
+            type: object
+            properties:
+              content:
+                type: string
+                description: "The composed content in markdown format"
+            required: [content]

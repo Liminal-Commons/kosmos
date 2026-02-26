@@ -1,0 +1,51 @@
+# Aither Typos — Networking & Signaling
+#
+# Typos for the aither (networking/signaling) domain.
+
+entities:
+
+# =============================================================================
+# AITHER (NETWORKING/SIGNALING)
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-signaling-session
+  data:
+    name: signaling-session
+    description: "Compose a signaling-session entity"
+    target_eidos: signaling-session
+
+- eidos: typos
+  id: typos-def-data-channel
+  data:
+    name: data-channel
+    description: "Compose a data-channel entity"
+    target_eidos: data-channel
+
+- eidos: typos
+  id: typos-def-syndesmos
+  data:
+    name: syndesmos
+    description: "Compose a syndesmos entity (connection state)"
+    target_eidos: syndesmos
+
+- eidos: typos
+  id: typos-def-outbound-message
+  data:
+    name: outbound-message
+    description: "Compose an outbound-message entity (offline queue)"
+    target_eidos: outbound-message
+
+- eidos: typos
+  id: typos-def-presence-record
+  data:
+    name: presence-record
+    description: "Compose a presence-record entity"
+    target_eidos: presence-record
+
+- eidos: typos
+  id: typos-def-sync-message
+  data:
+    name: sync-message
+    description: "Compose a sync-message entity (P2P sync envelope)"
+    target_eidos: sync-message

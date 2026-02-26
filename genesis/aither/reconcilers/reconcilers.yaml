@@ -1,0 +1,51 @@
+# Aither Reconciler — Syndesmos Connection Lifecycle
+# Maps (intent, status) pairs to lifecycle actions.
+# The generic reconciler engine interprets this table.
+#
+# intent = desired connection state (connected, disconnected, suspended)
+# status = actual connection state (disconnected, connecting, connected, reconnecting, failed, suspended)
+#
+# Traces to: PROMPT-SUBSTRATE-WEBRTC.md
+
+entities:
+
+  - eidos: reconciler
+    id: reconciler/syndesmos
+    data:
+      target_eidos: syndesmos
+      intent_field: intent
+      actuality_field: status
+      transitions:
+        # Want connected, but disconnected or failed -> manifest (join room)
+        - intent: connected
+          actual: [disconnected, failed]
+          action: manifest
+
+        # Want connected, currently reconnecting -> sense (wait for resolution)
+        - intent: connected
+          actual: reconnecting
+          action: sense
+
+        # Want connected, already connected -> sense (verify still healthy)
+        - intent: connected
+          actual: connected
+          action: sense
+
+        # Want disconnected, but connected or reconnecting or connecting -> unmanifest (leave room)
+        - intent: disconnected
+          actual: [connected, reconnecting, connecting]
+          action: unmanifest
+
+        # Want disconnected, already disconnected or failed -> none
+        - intent: disconnected
+          actual: [disconnected, failed]
+          action: none
+
+        # Suspended — close connection but preserve intent for resume
+        - intent: suspended
+          actual: [connected, reconnecting, connecting]
+          action: unmanifest
+
+        - intent: suspended
+          actual: [disconnected, failed, suspended]
+          action: none

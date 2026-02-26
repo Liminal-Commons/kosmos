@@ -1,0 +1,80 @@
+# Topos Summary Card — Topos inventory browser
+# Displays a topos with its scale, status, purpose, and category
+
+entities:
+  - eidos: render-spec
+    id: render-spec/chora-dev/topos-summary-card
+    data:
+      name: topos-summary-card
+      description: "Topos overview card showing scale, status, purpose, and category"
+      target_eidos: topos
+      variant: card
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+            on_click: ui/set-selection
+            on_click_params:
+              selection_type: selected-topos
+              entity_id: "{id}"
+          children:
+            # Header row: name + scale badge
+            - widget: row
+              props:
+                gap: sm
+                align: center
+                justify: between
+              children:
+                - widget: text
+                  props:
+                    content: "{name}"
+                    variant: emphasis
+
+                - widget: row
+                  props:
+                    gap: xs
+                  children:
+                    - widget: badge
+                      when: "scale"
+                      props:
+                        content: "{scale}"
+                        variant: info
+
+                    - widget: badge
+                      when: "category"
+                      props:
+                        content: "{category}"
+                        variant: default
+
+            # Purpose
+            - widget: text
+              when: "purpose"
+              props:
+                content: "{purpose}"
+                variant: caption
+
+            # Description
+            - widget: text
+              when: "description"
+              props:
+                content: "{description}"
+                variant: caption
+
+            # Status + version row
+            - widget: row
+              props:
+                gap: xs
+                align: center
+              children:
+                - widget: badge
+                  when: "status"
+                  props:
+                    content: "{status}"
+                    variant: "{status}"
+
+                - widget: text
+                  when: "version"
+                  props:
+                    content: "v{version}"
+                    variant: caption

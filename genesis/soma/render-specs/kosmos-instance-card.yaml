@@ -1,0 +1,59 @@
+# Kosmos Instance Card Render-Spec
+# Running kosmos interpreter display
+#
+# Traces to: genesis/soma/DESIGN.md § Infrastructure Eide
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/kosmos-instance-card
+    data:
+      name: kosmos-instance-card
+      target_eidos: kosmos-instance
+      variant: card
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+          children:
+            - widget: stack
+              props:
+                gap: sm
+              children:
+                - widget: row
+                  props:
+                    justify: between
+                    align: center
+                  children:
+                    - widget: text
+                      props:
+                        content: "{name}"
+                        variant: emphasis
+                    - widget: status-indicator
+                      props:
+                        status: "{status}"
+                - widget: row
+                  props:
+                    gap: sm
+                  children:
+                    - widget: badge
+                      when: "version"
+                      props:
+                        content: "{version}"
+                        variant: info
+                    - widget: badge
+                      when: "mcp_available"
+                      props:
+                        content: "MCP"
+                        variant: success
+                    - widget: badge
+                      when: "http_available"
+                      props:
+                        content: "HTTP"
+                        variant: success
+                - widget: text
+                  when: "server_url"
+                  props:
+                    content: "{server_url}"
+                    variant: caption

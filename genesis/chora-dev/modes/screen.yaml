@@ -1,0 +1,84 @@
+# Chora-Dev Screen Modes — Topos development browser
+#
+# Three modes for browsing the ontology through thyra:
+# - topos-browser: Browse all eide (left panel)
+# - praxis-browser: Browse all praxeis (center panel)
+# - topos-overview: Browse all topoi (right panel)
+#
+# These modes use constitutional render-specs from chora-dev/render-specs/
+# to make the graph's constitutional entities visible.
+
+entities:
+
+  - eidos: mode
+    id: mode/topos-browser
+    data:
+      name: topos-browser
+      topos: chora-dev
+      substrate: screen
+      description: |
+        Browse entity types across all topoi. Left panel showing
+        every eidos in the graph with fields and constitutional status.
+      item_spec_id: render-spec/chora-dev/eidos-card
+      arrangement: scroll
+      empty_message: "No eide found"
+      spatial:
+        position: left
+        height: fill
+      source_query: "gather(eidos: eidos, sort: id, order: asc)"
+      config:
+        watch_eidos: eidos
+      created_at: "2026-02-22T00:00:00Z"
+
+  - eidos: mode
+    id: mode/praxis-browser
+    data:
+      name: praxis-browser
+      topos: chora-dev
+      substrate: screen
+      description: |
+        Browse praxeis across all topoi. Center panel showing
+        every praxis with topos, tier, and visibility badges.
+      item_spec_id: render-spec/chora-dev/praxis-card
+      arrangement: scroll
+      empty_message: "No praxeis found"
+      spatial:
+        position: center
+        height: fill
+      source_query: "gather(eidos: praxis, sort: name, order: asc, limit: 200)"
+      config:
+        watch_eidos: praxis
+      created_at: "2026-02-22T00:00:00Z"
+
+  - eidos: mode
+    id: mode/topos-overview
+    data:
+      name: topos-overview
+      topos: chora-dev
+      substrate: screen
+      description: |
+        Topos inventory and overview. Right panel showing
+        every topos with scale, status, and purpose.
+      item_spec_id: render-spec/chora-dev/topos-summary-card
+      arrangement: scroll
+      empty_message: "No topoi found"
+      spatial:
+        position: right
+        height: fill
+      source_query: "gather(eidos: topos, sort: name, order: asc)"
+      config:
+        watch_eidos: topos
+      created_at: "2026-02-22T00:00:00Z"
+
+bonds:
+  - from_id: mode/topos-browser
+    to_id: render-spec/chora-dev/eidos-card
+    desmos: uses-render-spec
+
+  - from_id: mode/praxis-browser
+    to_id: render-spec/chora-dev/praxis-card
+    desmos: uses-render-spec
+
+  - from_id: mode/topos-overview
+    to_id: render-spec/chora-dev/topos-summary-card
+    desmos: uses-render-spec

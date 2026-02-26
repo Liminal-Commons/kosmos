@@ -421,7 +421,7 @@ entities:
   data:
     _genesis:
       authorized_by: expression/genesis-root
-      source: genesis/spora/definitions/pege.yaml
+      source: genesis/demiurge/typos/pege.yaml
     description: 'Renders bonds from/to an entity as a section.
 
       Pattern: queried
@@ -454,7 +454,7 @@ entities:
   data:
     _genesis:
       authorized_by: expression/genesis-root
-      source: genesis/spora/definitions/core.yaml
+      source: genesis/politeia/typos/politeia.yaml
     defaults:
       kind: intimate
     description: 'Create a new circle (trust boundary).
@@ -468,7 +468,7 @@ entities:
   data:
     _genesis:
       authorized_by: expression/genesis-root
-      source: genesis/spora/definitions/pege.yaml
+      source: genesis/demiurge/typos/pege.yaml
     defaults:
       code: ''
       language: ''
@@ -491,7 +491,7 @@ entities:
   data:
     _genesis:
       authorized_by: expression/genesis-root
-      source: genesis/spora/definitions/core.yaml
+      source: genesis/oikos/typos/oikos.yaml
     defaults:
       status: active
     description: 'Open a conversation within a session.
@@ -505,7 +505,7 @@ entities:
   data:
     _genesis:
       authorized_by: expression/genesis-root
-      source: genesis/spora/definitions/pege.yaml
+      source: genesis/demiurge/typos/pege.yaml
     description: 'A complete reference document for a desmos (bond type).
 
       '
@@ -574,7 +574,7 @@ entities:
   data:
     _genesis:
       authorized_by: expression/genesis-root
-      source: genesis/spora/definitions/core.yaml
+      source: genesis/thyra/typos/dns.yaml
     bonds:
     - desmos: provided-by
       from_slot: zone_id
@@ -598,7 +598,7 @@ entities:
   data:
     _genesis:
       authorized_by: expression/genesis-root
-      source: genesis/spora/definitions/core.yaml
+      source: genesis/thyra/typos/dns.yaml
     bonds:
     - desmos: in-zone
       from_self: true
@@ -627,7 +627,7 @@ entities:
   data:
     _genesis:
       authorized_by: expression/genesis-root
-      source: genesis/spora/definitions/core.yaml
+      source: genesis/thyra/typos/dns.yaml
     bonds:
     - desmos: manages-zone
       from_context: _circle
@@ -652,7 +652,7 @@ entities:
   data:
     _genesis:
       authorized_by: expression/genesis-root
-      source: genesis/spora/definitions/pege.yaml
+      source: genesis/demiurge/typos/pege.yaml
     description: 'An index of all eide in the kosmos.
 
       '
@@ -700,7 +700,7 @@ entities:
   data:
     _genesis:
       authorized_by: expression/genesis-root
-      source: genesis/spora/definitions/pege.yaml
+      source: genesis/demiurge/typos/pege.yaml
     description: "A complete reference document for an eidos.\nPattern: composed (from\
       \ Level 0-2 artifacts)\n\nSlots:\n  - title: literal\n  - description: queried\
       \ from entity\n  - fields: composed (field-table)\n  - actuality: conditional\
@@ -797,7 +797,7 @@ entities:
   data:
     _genesis:
       authorized_by: expression/genesis-root
-      source: genesis/spora/definitions/pege.yaml
+      source: genesis/demiurge/typos/pege.yaml
     defaults:
       code: ''
       description: ''
@@ -828,7 +828,7 @@ entities:
   data:
     _genesis:
       authorized_by: expression/genesis-root
-      source: genesis/spora/definitions/pege.yaml
+      source: genesis/demiurge/typos/pege.yaml
     defaults:
       fields: {}
       title: '## Fields'
@@ -865,7 +865,7 @@ entities:
   data:
     _genesis:
       authorized_by: expression/genesis-root
-      source: genesis/spora/definitions/core.yaml
+      source: genesis/hypostasis/typos/hypostasis.yaml
     bonds:
     - desmos: belongs-to
       from_self: true
@@ -889,7 +889,7 @@ entities:
   data:
     _genesis:
       authorized_by: expression/genesis-root
-      source: genesis/spora/definitions/core.yaml
+      source: genesis/demiurge/typos/composition.yaml
     defaults:
       name: friend
     description: 'Simple greeting template for testing.
@@ -903,7 +903,7 @@ entities:
   data:
     _genesis:
       authorized_by: expression/genesis-root
-      source: genesis/spora/definitions/pege.yaml
+      source: genesis/demiurge/typos/pege.yaml
     defaults:
       level: 1
       text: Untitled
@@ -920,7 +920,7 @@ entities:
   data:
     _genesis:
       authorized_by: expression/genesis-root
-      source: genesis/spora/definitions/core.yaml
+      source: genesis/nous/typos/nous.yaml
     bonds:
     - desmos: belongs-to
       from_self: true
@@ -941,7 +941,7 @@ entities:
   data:
     _genesis:
       authorized_by: expression/genesis-root
-      source: genesis/spora/definitions/core.yaml
+      source: genesis/oikos/typos/oikos.yaml
     bonds:
     - desmos: surfaced-in
       from_self: true
@@ -958,7 +958,7 @@ entities:
   data:
     _genesis:
       authorized_by: expression/genesis-root
-      source: genesis/spora/definitions/core.yaml
+      source: genesis/nous/typos/nous.yaml
     bonds:
     - desmos: belongs-to
       from_self: true
@@ -983,7 +983,7 @@ entities:
   data:
     _genesis:
       authorized_by: expression/genesis-root
-      source: genesis/spora/definitions/core.yaml
+      source: genesis/nous/typos/nous.yaml
     bonds:
     - desmos: belongs-to
       from_self: true
@@ -1008,7 +1008,7 @@ entities:
   data:
     _genesis:
       authorized_by: expression/genesis-root
-      source: genesis/spora/definitions/core.yaml
+      source: genesis/nous/typos/nous.yaml
     bonds:
     - desmos: belongs-to
       from_self: true
@@ -1030,7 +1030,7 @@ entities:
   data:
     _genesis:
       authorized_by: expression/genesis-root
-      source: genesis/spora/definitions/pege.yaml
+      source: genesis/demiurge/typos/pege.yaml
     defaults:
       links: []
     description: 'A list of links to entities.
@@ -1048,7 +1048,7 @@ entities:
   data:
     _genesis:
       authorized_by: expression/genesis-root
-      source: genesis/spora/definitions/pege.yaml
+      source: genesis/demiurge/typos/pege.yaml
     defaults:
       items: []
       style: bullet
@@ -1067,7 +1067,7 @@ entities:
   data:
     _genesis:
       authorized_by: expression/genesis-root
-      source: genesis/spora/definitions/core.yaml
+      source: genesis/oikos/typos/oikos.yaml
     bonds:
     - desmos: belongs-to
       from_self: true
@@ -1090,7 +1090,7 @@ entities:
   data:
     _genesis:
       authorized_by: expression/genesis-root
-      source: genesis/spora/definitions/pege.yaml
+      source: genesis/demiurge/typos/pege.yaml
     description: 'An index of praxeis organized by oikos.
 
       '
@@ -1134,7 +1134,7 @@ entities:
   data:
     _genesis:
       authorized_by: expression/genesis-root
-      source: genesis/spora/definitions/pege.yaml
+      source: genesis/demiurge/typos/pege.yaml
     defaults:
       params: []
       title: '## Parameters'
@@ -1166,7 +1166,7 @@ entities:
   data:
     _genesis:
       authorized_by: expression/genesis-root
-      source: genesis/spora/definitions/core.yaml
+      source: genesis/politeia/typos/politeia.yaml
     bonds:
     - desmos: belongs-to
       from_self: true
@@ -1185,7 +1185,7 @@ entities:
   data:
     _genesis:
       authorized_by: expression/genesis-root
-      source: genesis/spora/definitions/core.yaml
+      source: genesis/politeia/typos/politeia.yaml
     description: 'Create a new persona (identity).
 
       '
@@ -1197,7 +1197,7 @@ entities:
   data:
     _genesis:
       authorized_by: expression/genesis-root
-      source: genesis/spora/definitions/pege.yaml
+      source: genesis/demiurge/typos/pege.yaml
     description: 'A complete reference document for a praxis.
 
       '
@@ -1279,7 +1279,7 @@ entities:
   data:
     _genesis:
       authorized_by: expression/genesis-root
-      source: genesis/spora/definitions/core.yaml
+      source: genesis/politeia/typos/politeia.yaml
     bonds:
     - desmos: belongs-to
       from_self: true
@@ -1298,7 +1298,7 @@ entities:
   data:
     _genesis:
       authorized_by: expression/genesis-root
-      source: genesis/spora/definitions/core.yaml
+      source: genesis/demiurge/typos/composition.yaml
     description: 'Generate a Rust struct definition.
 
       '
@@ -1326,7 +1326,7 @@ entities:
   data:
     _genesis:
       authorized_by: expression/genesis-root
-      source: genesis/spora/definitions/pege.yaml
+      source: genesis/demiurge/typos/pege.yaml
     description: 'A section with heading and content blocks.
 
       Pattern: composed
@@ -1351,7 +1351,7 @@ entities:
   data:
     _genesis:
       authorized_by: expression/genesis-root
-      source: genesis/spora/definitions/core.yaml
+      source: genesis/oikos/typos/oikos.yaml
     defaults:
       status: active
     description: 'Open a session - a presence container.
@@ -1365,7 +1365,7 @@ entities:
   data:
     _genesis:
       authorized_by: expression/genesis-root
-      source: genesis/spora/definitions/core.yaml
+      source: genesis/hypostasis/typos/hypostasis.yaml
     bonds:
     - desmos: belongs-to
       from_self: true
@@ -1396,7 +1396,7 @@ entities:
   data:
     _genesis:
       authorized_by: expression/genesis-root
-      source: genesis/spora/definitions/pege.yaml
+      source: genesis/demiurge/typos/pege.yaml
     description: 'A complete reference document for a stoicheion.
 
       '
@@ -1485,7 +1485,7 @@ entities:
   data:
     _genesis:
       authorized_by: expression/genesis-root
-      source: genesis/spora/definitions/core.yaml
+      source: genesis/demiurge/typos/composition.yaml
     defaults:
       timestamp: now
       title: Untitled
@@ -1510,7 +1510,7 @@ entities:
   data:
     _genesis:
       authorized_by: expression/genesis-root
-      source: genesis/spora/definitions/core.yaml
+      source: genesis/nous/typos/nous.yaml
     bonds:
     - desmos: belongs-to
       from_self: true
@@ -1526,7 +1526,7 @@ entities:
   data:
     _genesis:
       authorized_by: expression/genesis-root
-      source: genesis/spora/definitions/pege.yaml
+      source: genesis/demiurge/typos/pege.yaml
     defaults:
       columns: []
       rows: []
@@ -1563,7 +1563,7 @@ entities:
   data:
     _genesis:
       authorized_by: expression/genesis-root
-      source: genesis/spora/definitions/pege.yaml
+      source: genesis/demiurge/typos/pege.yaml
     defaults:
       content: ''
     description: 'A block of text or markdown content.
@@ -1579,7 +1579,7 @@ entities:
   data:
     _genesis:
       authorized_by: expression/genesis-root
-      source: genesis/spora/definitions/core.yaml
+      source: genesis/nous/typos/nous.yaml
     bonds:
     - desmos: belongs-to
       from_self: true
@@ -1606,7 +1606,7 @@ entities:
   data:
     _genesis:
       authorized_by: expression/genesis-root
-      source: genesis/spora/definitions/core.yaml
+      source: genesis/dokimasia/typos/dokimasia.yaml
     bonds:
     - desmos: belongs-to
       from_self: true
@@ -1655,7 +1655,7 @@ entities:
   data:
     _genesis:
       authorized_by: expression/genesis-root
-      source: genesis/spora/definitions/core.yaml
+      source: genesis/nous/typos/nous.yaml
     defaults:
       status: pending
     description: 'Add a waypoint to a journey.
@@ -1669,7 +1669,7 @@ entities:
   data:
     _genesis:
       authorized_by: expression/genesis-root
-      source: genesis/spora/definitions/core.yaml
+      source: genesis/demiurge/typos/composition.yaml
     description: 'Generate a YAML entity definition.
 
       '

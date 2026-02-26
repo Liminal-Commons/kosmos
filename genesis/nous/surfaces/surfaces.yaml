@@ -1,0 +1,25 @@
+# Nous Surface Contracts
+
+entities:
+
+  - eidos: surface
+    id: surface/understanding
+    data:
+      surface_id: understanding
+      description: |
+        Semantic search, knowledge surfacing, and understanding management.
+
+        Consumers of this surface can search by meaning, crystallize theoria,
+        traverse knowledge graphs, and access ambient intelligence that
+        surfaces relevant understanding based on context.
+      praxeis:
+        - praxis/nous/surface
+        - praxis/nous/surface-for-context
+        - praxis/nous/find
+        - praxis/nous/gather
+        - praxis/nous/traverse
+        - praxis/nous/index
+        - praxis/nous/index-entity
+        - praxis/nous/crystallize-theoria
+        - praxis/nous/find-related
+      version: "1.0"

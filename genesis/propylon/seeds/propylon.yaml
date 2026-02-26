@@ -2,10 +2,10 @@
 # Initial propylon-relay infrastructure entities
 #
 # These entities represent commons-operated entry infrastructure.
-# Each relay is operated by a circle and serves their entry flows.
+# Each relay is operated by an oikos and serves their entry flows.
 #
 # Traces to: genesis/propylon/manifest.yaml
-# Authorized by: expression/genesis-root
+# Authorized by: phasis/genesis-root
 
 entities:
 
@@ -33,8 +33,8 @@ entities:
 # =============================================================================
 # BONDS — Created during bootstrap
 # =============================================================================
-# Note: The operates-relay bond from circle to propylon-relay
-# is created when the operating circle is established.
+# Note: The operates-relay bond from oikos to propylon-relay
+# is created when the operating oikos is established.
 #
 # Example (created via praxis, not seeded here):
-#   circle/liminal-commons → operates-relay → propylon-relay/liminal-primary
+#   oikos/liminal-commons → operates-relay → propylon-relay/liminal-primary

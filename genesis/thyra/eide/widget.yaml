@@ -1,0 +1,1506 @@
+# Thyra Widget Eidos
+# Atomic UI primitives — the building blocks of render-specs
+#
+# The complete widget vocabulary for declarative UI composition.
+# Agents use these when generating render-specs via demiurge.
+#
+# 38 widgets across 10 categories (synced with chora implementation):
+#   - layout: Spatial arrangement (card, stack, row, list, list-item)
+#   - display: Content primitives (text, heading, badge, icon, image, code)
+#   - interactive: User actions (button, link)
+#   - form: Input elements (input, textarea, select, checkbox, toggle, form)
+#   - utility: Structure helpers (divider, spacer)
+#   - feedback: Status indicators (progress, status-indicator, avatar, spinner, tooltip, toast, skeleton)
+#   - overlay: Modal content (modal, confirm)
+#   - navigation: Multi-step flows (steps, tabs, accordion)
+#   - composition: Meta-widgets (scroll, artifact)
+#   - substrate: Platform-specific (video, grid, phaser-canvas)
+#
+# Traces to: docs/reference/widget-system.md
+
+entities:
+
+  # =========================================================================
+  # WIDGET EIDOS DEFINITION
+  # =========================================================================
+
+  - eidos: eidos
+    id: eidos/widget
+    data:
+      name: widget
+      description: |
+        An atomic UI primitive that can be composed in render-specs.
+        Widgets are the leaves of the render tree — they produce actual DOM.
+
+        Categories (38 total):
+        - layout: Spatial arrangement (card, stack, row, list, list-item)
+        - display: Content primitives (text, heading, badge, icon, image, code)
+        - interactive: User actions (button, link)
+        - form: Input elements (input, textarea, select, checkbox, toggle, form)
+        - utility: Structure helpers (divider, spacer)
+        - feedback: Status indicators (progress, status-indicator, avatar, spinner, tooltip, toast, skeleton)
+        - overlay: Modal content (modal, confirm)
+        - navigation: Multi-step flows (steps, tabs, accordion)
+        - composition: Meta-widgets (scroll, artifact)
+        - substrate: Platform-specific (video, grid, phaser-canvas)
+
+      fields:
+        widget_type:
+          type: enum
+          required: true
+          values:
+            # Layout widgets (5)
+            - card         # Bordered container with optional padding
+            - stack        # Vertical stack (flex column)
+            - row          # Horizontal row (flex row)
+            - list         # Semantic list container
+            - list-item    # List item wrapper
+            # Display widgets (6)
+            - text         # Display text content
+            - heading      # Section headings
+            - badge        # Status indicators
+            - icon         # Symbolic icons (100+ icons)
+            - image        # Image display
+            - code         # Code blocks with syntax highlighting
+            # Interactive widgets (2)
+            - button       # Clickable action
+            - link         # Navigation link
+            # Form widgets (6)
+            - input        # Single-line text input
+            - textarea     # Multi-line text input
+            - select       # Dropdown selection
+            - checkbox     # Boolean checkbox
+            - toggle       # Toggle switch
+            - form         # Form container with field registration
+            # Utility widgets (2)
+            - divider      # Visual separator
+            - spacer       # Flexible spacing
+            # Feedback widgets (7)
+            - progress          # Progress indicator
+            - status-indicator  # Compact status dot
+            - avatar            # User/entity avatar
+            - spinner           # Loading spinner
+            - tooltip           # Hover tooltip
+            - toast             # Transient notification
+            - skeleton          # Loading placeholder
+            # Overlay widgets (2)
+            - modal        # Dialog overlay
+            - confirm      # Confirmation dialog
+            # Navigation widgets (3)
+            - steps        # Journey waypoint indicators
+            - tabs         # Tabbed navigation
+            - accordion    # Collapsible sections
+            # Composition widgets (2)
+            - scroll       # Scrollable container
+            - artifact     # Composed artifact from typos
+            # Substrate widgets (3)
+            - video        # Video/WebRTC display
+            - grid         # CSS grid layout
+            - phaser-canvas # Phaser game engine canvas
+          description: "The type of widget — determines available props"
+
+        category:
+          type: enum
+          required: true
+          values: [layout, display, interactive, form, utility, feedback, overlay, navigation, composition, substrate]
+          description: "Widget category for discovery filtering"
+
+        props_schema:
+          type: object
+          required: false
+          description: "Widget-specific configuration schema"
+
+        default_props:
+          type: object
+          required: false
+          description: "Default values for props"
+
+        supports_children:
+          type: boolean
+          required: true
+          default: false
+          description: "Whether widget accepts children array"
+
+        supports_when:
+          type: boolean
+          required: true
+          default: true
+          description: "Whether widget supports conditional rendering via when:"
+
+  # =========================================================================
+  # LAYOUT WIDGETS (5)
+  # =========================================================================
+
+  - eidos: widget
+    id: widget/card
+    data:
+      widget_type: card
+      category: layout
+      description: |
+        Bordered container for grouping content.
+        The primary container for card-based UIs.
+
+        Props:
+          variant: default | bordered | elevated | compact
+          padding: none | sm | md | lg
+          on_click: praxis ID (makes card clickable)
+          on_click_params: params passed to praxis
+
+        Example:
+          - widget: card
+            props:
+              variant: elevated
+              padding: md
+              on_click: politeia/view-oikos
+              on_click_params:
+                oikos_id: "{id}"
+            children: [...]
+      props_schema:
+        variant:
+          type: enum
+          values: [default, bordered, elevated, compact]
+          default: default
+        padding:
+          type: enum
+          values: [none, sm, md, lg]
+          default: md
+        on_click:
+          type: string
+          description: "Praxis ID to invoke on click"
+        on_click_params:
+          type: object
+          description: "Params passed to on_click praxis"
+      supports_children: true
+
+  - eidos: widget
+    id: widget/stack
+    data:
+      widget_type: stack
+      category: layout
+      description: |
+        Vertical stack (flex column) for arranging children vertically.
+
+        Props:
+          gap: none | xs | sm | md | lg | xl
+          align: start | center | end | stretch
+
+        Example:
+          - widget: stack
+            props:
+              gap: sm
+            children:
+              - widget: text
+                props:
+                  content: "Line 1"
+              - widget: text
+                props:
+                  content: "Line 2"
+      props_schema:
+        gap:
+          type: enum
+          values: [none, xs, sm, md, lg, xl]
+          default: md
+        align:
+          type: enum
+          values: [start, center, end, stretch]
+          default: stretch
+      supports_children: true
+
+  - eidos: widget
+    id: widget/row
+    data:
+      widget_type: row
+      category: layout
+      description: |
+        Horizontal row (flex row) for arranging children horizontally.
+
+        Props:
+          gap: none | xs | sm | md | lg | xl
+          align: start | center | end | stretch
+          justify: start | center | end | between | around
+
+        Example:
+          - widget: row
+            props:
+              gap: sm
+              align: center
+              justify: between
+            children:
+              - widget: text
+                props:
+                  content: "Left"
+              - widget: button
+                props:
+                  label: "Right"
+      props_schema:
+        gap:
+          type: enum
+          values: [none, xs, sm, md, lg, xl]
+          default: md
+        align:
+          type: enum
+          values: [start, center, end, stretch]
+          default: center
+        justify:
+          type: enum
+          values: [start, center, end, between, around]
+          default: start
+      supports_children: true
+
+  - eidos: widget
+    id: widget/list
+    data:
+      widget_type: list
+      category: layout
+      description: |
+        Semantic list container for list-item children.
+        Use for ordered or unordered lists.
+
+        Props:
+          ordered: boolean (numbered list)
+          gap: none | xs | sm | md | lg
+
+        Example:
+          - widget: list
+            props:
+              ordered: false
+              gap: sm
+            children:
+              - widget: list-item
+                children:
+                  - widget: text
+                    props:
+                      content: "First item"
+      props_schema:
+        ordered:
+          type: boolean
+          default: false
+        gap:
+          type: enum
+          values: [none, xs, sm, md, lg]
+          default: sm
+      supports_children: true
+
+  - eidos: widget
+    id: widget/list-item
+    data:
+      widget_type: list-item
+      category: layout
+      description: |
+        List item wrapper for use inside list widget.
+
+        Props:
+          bullet: string (custom bullet character)
+
+        Example:
+          - widget: list-item
+            children:
+              - widget: text
+                props:
+                  content: "Item content"
+      props_schema:
+        bullet:
+          type: string
+          description: "Custom bullet character"
+      supports_children: true
+
+  # =========================================================================
+  # DISPLAY WIDGETS (6)
+  # =========================================================================
+
+  - eidos: widget
+    id: widget/text
+    data:
+      widget_type: text
+      category: display
+      description: |
+        Display text content with optional styling variant.
+
+        Props:
+          content: string or binding (required)
+          variant: body | caption | label | emphasis | title
+
+        Example:
+          - widget: text
+            props:
+              content: "{name}"
+              variant: emphasis
+      props_schema:
+        content:
+          type: string
+          required: true
+          description: "Text content or binding (e.g., {field_name})"
+        variant:
+          type: enum
+          values: [body, caption, label, emphasis, title]
+          default: body
+      supports_children: false
+
+  - eidos: widget
+    id: widget/heading
+    data:
+      widget_type: heading
+      category: display
+      description: |
+        Section heading with level (h1-h6 equivalent).
+
+        Props:
+          content: string or binding (required)
+          level: 1 | 2 | 3 | 4 | 5 | 6
+
+        Example:
+          - widget: heading
+            props:
+              level: 3
+              content: "Actions"
+      props_schema:
+        content:
+          type: string
+          required: true
+          description: "Heading text or binding"
+        level:
+          type: number
+          values: [1, 2, 3, 4, 5, 6]
+          default: 2
+      supports_children: false
+
+  - eidos: widget
+    id: widget/badge
+    data:
+      widget_type: badge
+      category: display
+      description: |
+        Status indicator badge with semantic variants.
+
+        Props:
+          content: string or binding (required)
+          variant: default | success | warning | error | info
+
+        Example:
+          - widget: badge
+            props:
+              content: "Active"
+              variant: success
+      props_schema:
+        content:
+          type: string
+          required: true
+          description: "Badge text or binding"
+        variant:
+          type: enum
+          values: [default, success, warning, error, info]
+          default: default
+      supports_children: false
+
+  - eidos: widget
+    id: widget/icon
+    data:
+      widget_type: icon
+      category: display
+      description: |
+        Symbolic icon from the thyra icon library (100+ icons).
+
+        Props:
+          name: string (icon name, required)
+          size: sm | md | lg
+          color: string (CSS color or semantic name)
+
+        Icon Categories:
+          Status: circle, circle-check, circle-x, circle-dot, alert-circle
+          Media: mic, mic-off, video, video-off, camera, headphones, volume, play, pause, record
+          Infrastructure: server, terminal, cloud, database, globe, monitor, smartphone, wifi
+          Security: lock, unlock, key, shield, shield-check
+          Knowledge: lightbulb, brain, compass, book-open, file-text
+          Navigation: map-pin, flag, navigation, map, target, crosshair
+          Communication: mail, send, reply, at-sign, message-square
+          Organization: folder, layers, grid, list, hash, tag
+          Alerts: bell, bell-off, zap, flame
+          Progress: loader, hourglass
+          Governance: building, crown, award, hand, heart
+          Actions: plus, edit, trash, save, x, check, chevron-right, chevron-down
+          Users: user, users, user-plus, user-minus, user-x, user-check
+
+        Example:
+          - widget: icon
+            props:
+              name: user-plus
+              size: sm
+      props_schema:
+        name:
+          type: string
+          required: true
+          description: "Icon name from thyra icon library"
+        size:
+          type: enum
+          values: [sm, md, lg]
+          default: md
+        color:
+          type: string
+          description: "CSS color or semantic (success, warning, error)"
+      supports_children: false
+
+  - eidos: widget
+    id: widget/image
+    data:
+      widget_type: image
+      category: display
+      description: |
+        Image display with optional sizing and alt text.
+
+        Props:
+          src: string (image URL or binding, required)
+          alt: string (accessibility text)
+          width: string | number
+          height: string | number
+          fit: contain | cover | fill | none
+
+        Example:
+          - widget: image
+            props:
+              src: "{thumbnail_url}"
+              alt: "{name}"
+              fit: cover
+      props_schema:
+        src:
+          type: string
+          required: true
+          description: "Image URL or binding"
+        alt:
+          type: string
+          description: "Alt text for accessibility"
+        width:
+          type: string
+        height:
+          type: string
+        fit:
+          type: enum
+          values: [contain, cover, fill, none]
+          default: contain
+      supports_children: false
+
+  - eidos: widget
+    id: widget/code
+    data:
+      widget_type: code
+      category: display
+      description: |
+        Code block with optional syntax highlighting.
+
+        Props:
+          content: string (code content, required)
+          language: string (syntax highlighting language)
+          wrap: boolean (wrap long lines)
+
+        Example:
+          - widget: code
+            props:
+              content: "{source_code}"
+              language: yaml
+              wrap: true
+      props_schema:
+        content:
+          type: string
+          required: true
+          description: "Code content or binding"
+        language:
+          type: string
+          description: "Language for syntax highlighting"
+        wrap:
+          type: boolean
+          default: false
+      supports_children: false
+
+  # =========================================================================
+  # INTERACTIVE WIDGETS (2)
+  # =========================================================================
+
+  - eidos: widget
+    id: widget/button
+    data:
+      widget_type: button
+      category: interactive
+      description: |
+        Clickable button that invokes a praxis.
+
+        Props:
+          label: string (button text, required)
+          variant: primary | secondary | ghost | danger
+          on_click: praxis ID (required)
+          on_click_params: params passed to praxis
+          disabled: boolean
+          loading: boolean
+
+        Example:
+          - widget: button
+            props:
+              label: "Accept"
+              variant: primary
+              on_click: politeia/accept-invitation
+              on_click_params:
+                invitation_id: "{id}"
+      props_schema:
+        label:
+          type: string
+          required: true
+          description: "Button text"
+        variant:
+          type: enum
+          values: [primary, secondary, ghost, danger]
+          default: secondary
+        on_click:
+          type: string
+          required: true
+          description: "Praxis ID to invoke on click"
+        on_click_params:
+          type: object
+          description: "Params passed to on_click praxis"
+        disabled:
+          type: boolean
+          default: false
+        loading:
+          type: boolean
+          default: false
+      supports_children: false
+
+  - eidos: widget
+    id: widget/link
+    data:
+      widget_type: link
+      category: interactive
+      description: |
+        Navigation link to another view or external URL.
+
+        Props:
+          content: string (link text, required)
+          href: string (URL or route)
+          on_click: praxis ID (alternative to href)
+          on_click_params: params passed to praxis
+          external: boolean (opens in new tab)
+
+        Example:
+          - widget: link
+            props:
+              content: "View details"
+              on_click: ui/navigate
+              on_click_params:
+                route: entity/{id}
+      props_schema:
+        content:
+          type: string
+          required: true
+          description: "Link text or binding"
+        href:
+          type: string
+          description: "URL or route path"
+        on_click:
+          type: string
+          description: "Praxis ID to invoke on click"
+        on_click_params:
+          type: object
+        external:
+          type: boolean
+          default: false
+      supports_children: false
+
+  # =========================================================================
+  # FORM WIDGETS (5)
+  # =========================================================================
+
+  - eidos: widget
+    id: widget/input
+    data:
+      widget_type: input
+      category: form
+      description: |
+        Single-line text input.
+        Binds to form state via field prop.
+
+        Props:
+          field: string (form field name, required)
+          placeholder: string
+          type: text | email | password | number | search
+
+        IMPORTANT: Use $form.field (NO braces) in on_click_params to read value.
+
+        Example:
+          - widget: input
+            props:
+              field: email
+              type: email
+              placeholder: "your@email.com"
+      props_schema:
+        field:
+          type: string
+          required: true
+          description: "Form field name to bind to"
+        placeholder:
+          type: string
+        type:
+          type: enum
+          values: [text, email, password, number, search]
+          default: text
+      supports_children: false
+
+  - eidos: widget
+    id: widget/textarea
+    data:
+      widget_type: textarea
+      category: form
+      description: |
+        Multi-line text input.
+        Binds to form state via field prop.
+
+        Props:
+          field: string (form field name, required)
+          placeholder: string
+          rows: number (visible rows)
+
+        IMPORTANT: Use $form.field (NO braces) in on_click_params to read value.
+
+        Example:
+          - widget: textarea
+            props:
+              field: content
+              placeholder: "Enter your message..."
+              rows: 3
+      props_schema:
+        field:
+          type: string
+          required: true
+          description: "Form field name to bind to"
+        placeholder:
+          type: string
+        rows:
+          type: number
+          default: 3
+      supports_children: false
+
+  - eidos: widget
+    id: widget/select
+    data:
+      widget_type: select
+      category: form
+      description: |
+        Dropdown selection input.
+        Binds to form state via field prop.
+
+        Props:
+          field: string (form field name, required)
+          options: array of {value, label}
+          placeholder: string
+
+        IMPORTANT: Use $form.field (NO braces) in on_click_params to read value.
+
+        Example:
+          - widget: select
+            props:
+              field: mode
+              options:
+                - value: declaration
+                  label: Declare
+                - value: inquiry
+                  label: Ask
+      props_schema:
+        field:
+          type: string
+          required: true
+          description: "Form field name to bind to"
+        options:
+          type: array
+          required: true
+          description: "Array of {value, label} options"
+        placeholder:
+          type: string
+          description: "Placeholder text when no selection"
+      supports_children: false
+
+  - eidos: widget
+    id: widget/checkbox
+    data:
+      widget_type: checkbox
+      category: form
+      description: |
+        Boolean checkbox input.
+        Binds to form state via field prop.
+
+        Props:
+          field: string (form field name, required)
+          label: string (checkbox label)
+
+        Example:
+          - widget: checkbox
+            props:
+              field: agree_to_terms
+              label: "I agree to the terms"
+      props_schema:
+        field:
+          type: string
+          required: true
+          description: "Form field name to bind to"
+        label:
+          type: string
+          description: "Checkbox label text"
+      supports_children: false
+
+  - eidos: widget
+    id: widget/toggle
+    data:
+      widget_type: toggle
+      category: form
+      description: |
+        Toggle switch for boolean values.
+        More visual alternative to checkbox.
+
+        Props:
+          field: string (form field name, required)
+          label: string (toggle label)
+
+        Example:
+          - widget: toggle
+            props:
+              field: notifications_enabled
+              label: "Enable notifications"
+      props_schema:
+        field:
+          type: string
+          required: true
+          description: "Form field name to bind to"
+        label:
+          type: string
+          description: "Toggle label text"
+      supports_children: false
+
+  # =========================================================================
+  # UTILITY WIDGETS (2)
+  # =========================================================================
+
+  - eidos: widget
+    id: widget/divider
+    data:
+      widget_type: divider
+      category: utility
+      description: |
+        Visual separator line.
+
+        Props:
+          orientation: horizontal | vertical
+          spacing: none | sm | md | lg
+
+        Example:
+          - widget: divider
+            props:
+              spacing: md
+      props_schema:
+        orientation:
+          type: enum
+          values: [horizontal, vertical]
+          default: horizontal
+        spacing:
+          type: enum
+          values: [none, sm, md, lg]
+          default: md
+      supports_children: false
+
+  - eidos: widget
+    id: widget/spacer
+    data:
+      widget_type: spacer
+      category: utility
+      description: |
+        Flexible spacing element.
+        Expands to fill available space in flex containers.
+
+        Props:
+          size: xs | sm | md | lg | xl | flex (flex = expand)
+
+        Example:
+          - widget: row
+            children:
+              - widget: text
+                props:
+                  content: "Left"
+              - widget: spacer
+                props:
+                  size: flex
+              - widget: text
+                props:
+                  content: "Right"
+      props_schema:
+        size:
+          type: enum
+          values: [xs, sm, md, lg, xl, flex]
+          default: flex
+      supports_children: false
+
+  # =========================================================================
+  # FEEDBACK WIDGETS (7)
+  # =========================================================================
+
+  - eidos: widget
+    id: widget/progress
+    data:
+      widget_type: progress
+      category: feedback
+      description: |
+        Progress indicator bar or circle.
+
+        Props:
+          value: number (0-100)
+          variant: bar | circle
+          size: sm | md | lg
+          color: default | success | warning | error
+
+        Example:
+          - widget: progress
+            props:
+              value: "{completion_percent}"
+              variant: bar
+              color: success
+      props_schema:
+        value:
+          type: number
+          required: true
+          description: "Progress value (0-100)"
+        variant:
+          type: enum
+          values: [bar, circle]
+          default: bar
+        size:
+          type: enum
+          values: [sm, md, lg]
+          default: md
+        color:
+          type: enum
+          values: [default, success, warning, error]
+          default: default
+      supports_children: false
+
+  - eidos: widget
+    id: widget/status-indicator
+    data:
+      widget_type: status-indicator
+      category: feedback
+      description: |
+        Compact status dot showing at-a-glance state.
+        Maps status values to semantic colors without text.
+
+        Props:
+          status: string (status value to display)
+          size: sm | md | lg
+
+        Status → Color mapping:
+          online, running, active, success → green
+          offline, stopped, inactive → gray
+          error, failed → red
+          degraded, warning, starting, stopping → yellow
+          unknown → gray (dimmed)
+
+        Example:
+          - widget: status-indicator
+            props:
+              status: "{status}"
+              size: sm
+      props_schema:
+        status:
+          type: string
+          required: true
+          description: "Status value (online, offline, error, etc.)"
+        size:
+          type: enum
+          values: [sm, md, lg]
+          default: sm
+      supports_children: false
+
+  - eidos: widget
+    id: widget/avatar
+    data:
+      widget_type: avatar
+      category: feedback
+      description: |
+        User or entity avatar with fallback to initials.
+
+        Props:
+          name: string (for initials fallback)
+          src: string (image URL or binding)
+          size: sm | md | lg
+
+        Example:
+          - widget: avatar
+            props:
+              name: "{prosopon_name}"
+              src: "{avatar_url}"
+              size: md
+      props_schema:
+        name:
+          type: string
+          description: "Name for initials fallback"
+        src:
+          type: string
+          description: "Image URL or binding"
+        size:
+          type: enum
+          values: [sm, md, lg]
+          default: md
+      supports_children: false
+
+  - eidos: widget
+    id: widget/spinner
+    data:
+      widget_type: spinner
+      category: feedback
+      description: |
+        Loading spinner animation.
+
+        Props:
+          size: sm | md | lg
+          label: string (accessibility label)
+
+        Example:
+          - widget: spinner
+            when: "loading"
+            props:
+              size: md
+              label: "Loading..."
+      props_schema:
+        size:
+          type: enum
+          values: [sm, md, lg]
+          default: md
+        label:
+          type: string
+          description: "Screen reader label"
+      supports_children: false
+
+  - eidos: widget
+    id: widget/tooltip
+    data:
+      widget_type: tooltip
+      category: feedback
+      description: |
+        Hover tooltip that wraps content.
+
+        Props:
+          content: string (tooltip text)
+          position: top | bottom | left | right
+
+        Example:
+          - widget: tooltip
+            props:
+              content: "Click to edit"
+              position: top
+            children:
+              - widget: button
+                props:
+                  label: "Edit"
+      props_schema:
+        content:
+          type: string
+          required: true
+          description: "Tooltip text"
+        position:
+          type: enum
+          values: [top, bottom, left, right]
+          default: top
+      supports_children: true
+
+  - eidos: widget
+    id: widget/toast
+    data:
+      widget_type: toast
+      category: feedback
+      description: |
+        Transient notification with auto-dismiss.
+        Triggered by praxis side effects, not declaratively placed.
+
+        Props:
+          message: string (notification text)
+          variant: info | success | warning | error
+          duration: number (ms, 0 = no auto-dismiss)
+
+        Note: Usually triggered via praxis return value, not placed in layout.
+      props_schema:
+        message:
+          type: string
+          required: true
+        variant:
+          type: enum
+          values: [info, success, warning, error]
+          default: info
+        duration:
+          type: number
+          default: 3000
+      supports_children: false
+
+  - eidos: widget
+    id: widget/skeleton
+    data:
+      widget_type: skeleton
+      category: feedback
+      description: |
+        Loading placeholder for content.
+
+        Props:
+          variant: text | circle | rect
+          width: string
+          height: string
+          lines: number (for text variant)
+
+        Example:
+          - widget: skeleton
+            when: "!loaded"
+            props:
+              variant: text
+              lines: 3
+      props_schema:
+        variant:
+          type: enum
+          values: [text, circle, rect]
+          default: text
+        width:
+          type: string
+        height:
+          type: string
+        lines:
+          type: number
+          default: 1
+          description: "Number of lines for text skeleton"
+      supports_children: false
+
+  # =========================================================================
+  # OVERLAY WIDGETS (2)
+  # =========================================================================
+
+  - eidos: widget
+    id: widget/modal
+    data:
+      widget_type: modal
+      category: overlay
+      description: |
+        Dialog overlay with ESC and click-outside dismiss.
+
+        Props:
+          open: boolean (controlled visibility)
+          title: string
+          on_close: praxis ID
+
+        Example:
+          - widget: modal
+            props:
+              open: "{show_modal}"
+              title: "Confirm Action"
+              on_close: ui/close-modal
+            children:
+              - widget: text
+                props:
+                  content: "Modal content here"
+      props_schema:
+        open:
+          type: boolean
+          required: true
+          description: "Whether modal is visible"
+        title:
+          type: string
+        on_close:
+          type: string
+          description: "Praxis to call on close"
+      supports_children: true
+
+  - eidos: widget
+    id: widget/confirm
+    data:
+      widget_type: confirm
+      category: overlay
+      description: |
+        Confirmation dialog with confirm/cancel actions.
+
+        Props:
+          open: boolean
+          title: string
+          message: string
+          confirm_label: string
+          cancel_label: string
+          on_confirm: praxis ID
+          on_cancel: praxis ID
+          variant: default | danger
+
+        Example:
+          - widget: confirm
+            props:
+              open: "{show_delete_confirm}"
+              title: "Delete Item"
+              message: "Are you sure you want to delete this?"
+              confirm_label: "Delete"
+              variant: danger
+              on_confirm: items/delete
+              on_cancel: ui/close-confirm
+      props_schema:
+        open:
+          type: boolean
+          required: true
+        title:
+          type: string
+        message:
+          type: string
+        confirm_label:
+          type: string
+          default: "Confirm"
+        cancel_label:
+          type: string
+          default: "Cancel"
+        on_confirm:
+          type: string
+          required: true
+        on_cancel:
+          type: string
+        variant:
+          type: enum
+          values: [default, danger]
+          default: default
+      supports_children: false
+
+  # =========================================================================
+  # NAVIGATION WIDGETS (3)
+  # =========================================================================
+
+  - eidos: widget
+    id: widget/steps
+    data:
+      widget_type: steps
+      category: navigation
+      description: |
+        Journey waypoint indicators (horizontal or vertical).
+        Use for multi-step flows and progress tracking.
+
+        Props:
+          current: number (current step index)
+          items: array of {label, description?, status?}
+          orientation: horizontal | vertical
+
+        Example:
+          - widget: steps
+            props:
+              current: 1
+              orientation: horizontal
+              items:
+                - label: "Start"
+                  status: complete
+                - label: "Configure"
+                  status: current
+                - label: "Review"
+                - label: "Complete"
+      props_schema:
+        current:
+          type: number
+          required: true
+        items:
+          type: array
+          required: true
+          description: "Array of step definitions"
+        orientation:
+          type: enum
+          values: [horizontal, vertical]
+          default: horizontal
+      supports_children: false
+
+  - eidos: widget
+    id: widget/tabs
+    data:
+      widget_type: tabs
+      category: navigation
+      description: |
+        Tabbed navigation for switching between views.
+
+        Props:
+          active: string (active tab id)
+          items: array of {id, label, icon?}
+          on_change: praxis ID
+
+        Example:
+          - widget: tabs
+            props:
+              active: "{active_tab}"
+              on_change: ui/set-tab
+              items:
+                - id: overview
+                  label: "Overview"
+                - id: details
+                  label: "Details"
+                - id: settings
+                  label: "Settings"
+                  icon: settings
+      props_schema:
+        active:
+          type: string
+          required: true
+        items:
+          type: array
+          required: true
+        on_change:
+          type: string
+          description: "Praxis to call on tab change"
+      supports_children: false
+
+  - eidos: widget
+    id: widget/accordion
+    data:
+      widget_type: accordion
+      category: navigation
+      description: |
+        Collapsible sections for organizing content.
+
+        Props:
+          items: array of {id, title, content}
+          allow_multiple: boolean (multiple open at once)
+          default_open: array of ids
+
+        Example:
+          - widget: accordion
+            props:
+              allow_multiple: false
+              items:
+                - id: section1
+                  title: "Section One"
+                - id: section2
+                  title: "Section Two"
+            children:
+              # Children are rendered into sections by id
+      props_schema:
+        items:
+          type: array
+          required: true
+        allow_multiple:
+          type: boolean
+          default: false
+        default_open:
+          type: array
+          description: "IDs of sections open by default"
+      supports_children: true
+
+  # =========================================================================
+  # COMPOSITION WIDGETS (1)
+  # =========================================================================
+
+  - eidos: widget
+    id: widget/scroll
+    data:
+      widget_type: scroll
+      category: composition
+      description: |
+        Scrollable container for content that may overflow.
+        Use for lists, threads, and any content of variable length.
+
+        Props:
+          auto_scroll_bottom: boolean (auto-scroll to bottom on content change)
+          max_height: string (CSS max-height value)
+
+        Example:
+          - widget: scroll
+            props:
+              auto_scroll_bottom: true
+            children:
+              - widget: text
+                each: "{messages}"
+                props:
+                  content: "{.}"
+      props_schema:
+        auto_scroll_bottom:
+          type: boolean
+          default: false
+        max_height:
+          type: string
+          description: "CSS max-height (e.g., '400px', '50vh')"
+      supports_children: true
+
+  - eidos: widget
+    id: widget/artifact
+    data:
+      widget_type: artifact
+      category: composition
+      description: |
+        Renders a composed artifact from a typos definition.
+        Calls demiurge/compose-cached to get cached or freshly composed HTML.
+
+        The artifact widget is the bridge between typos composition and UI rendering.
+        It handles the compose-cached call and injects the resulting HTML + styles.
+
+        Props:
+          typos_id: string (required) - The typos to compose
+          inputs: object (optional) - Additional inputs for composition
+
+        Example:
+          - widget: artifact
+            props:
+              typos_id: typos/my-nodes-view
+      props_schema:
+        typos_id:
+          type: string
+          required: true
+          description: "Typos ID to compose (e.g., typos/my-nodes-view)"
+        inputs:
+          type: object
+          required: false
+          description: "Additional inputs passed to composition"
+      supports_children: false
+
+  # =========================================================================
+  # FORM WIDGETS — form container (1)
+  # =========================================================================
+
+  - eidos: widget
+    id: widget/form
+    data:
+      widget_type: form
+      category: form
+      description: |
+        Form container with field registration context.
+        Child widgets (input, textarea, select) register their value getters.
+        Event handlers use $form.field syntax to read values at dispatch time.
+
+        Props:
+          class: string (additional CSS class)
+
+        Example:
+          - widget: form
+            children:
+              - widget: textarea
+                props:
+                  name: content
+                  placeholder: "Write something..."
+              - widget: button
+                props:
+                  label: Submit
+                  on_click: logos/express
+                  on_click_params:
+                    content: "$form.content"
+      props_schema:
+        class:
+          type: string
+          description: "Additional CSS class"
+      supports_children: true
+
+  # =========================================================================
+  # SUBSTRATE WIDGETS (3)
+  # =========================================================================
+
+  - eidos: widget
+    id: widget/video
+    data:
+      widget_type: video
+      category: substrate
+      description: |
+        Video display widget for WebRTC streams.
+        Displays MediaStreamTrack from the WebRTC substrate.
+
+        Props:
+          track_id: string (WebRTC track ID to display)
+          muted: boolean (mute audio, default: false)
+          autoplay: boolean (auto-play video, default: true)
+          fit: contain | cover | fill (object-fit style)
+          mirror: boolean (mirror horizontally for self-view)
+
+        Example:
+          - widget: video
+            props:
+              track_id: "{local_video_track}"
+              muted: true
+              mirror: true
+              fit: cover
+      props_schema:
+        track_id:
+          type: string
+          description: "WebRTC track ID to display"
+        muted:
+          type: boolean
+          default: false
+        autoplay:
+          type: boolean
+          default: true
+        fit:
+          type: enum
+          values: [contain, cover, fill]
+          default: contain
+        mirror:
+          type: boolean
+          default: false
+      supports_children: true
+
+  - eidos: widget
+    id: widget/grid
+    data:
+      widget_type: grid
+      category: substrate
+      description: |
+        CSS Grid layout widget for responsive content arrangement.
+
+        Props:
+          columns: number | "auto-fit" (number of columns or responsive auto-fit)
+          min_column_width: string (minimum column width with auto-fit, e.g., "200px")
+          gap: xs | sm | md | lg (gap between items)
+
+        Example:
+          - widget: grid
+            props:
+              columns: auto-fit
+              min_column_width: "250px"
+              gap: md
+            children:
+              - widget: card
+                props:
+                  variant: bordered
+      props_schema:
+        columns:
+          type: string
+          description: "Number of columns or 'auto-fit' for responsive"
+        min_column_width:
+          type: string
+          default: "200px"
+          description: "Minimum column width (used with auto-fit)"
+        gap:
+          type: enum
+          values: [xs, sm, md, lg]
+          default: md
+      supports_children: true
+
+  - eidos: widget
+    id: widget/phaser-canvas
+    data:
+      widget_type: phaser-canvas
+      category: substrate
+      description: |
+        Container for Phaser.js game scenes.
+        Provides a DOM container for the Phaser substrate to render into.
+
+        Props:
+          scene_id: string (Phaser scene ID to render)
+
+        Example:
+          - widget: phaser-canvas
+            props:
+              scene_id: agora-main
+      props_schema:
+        scene_id:
+          type: string
+          description: "Phaser scene ID to render"
+      supports_children: false
+
+  # =========================================================================
+  # SECURITY BOUNDARY — native widgets requiring Tauri access
+  # =========================================================================
+
+  - eidos: widget
+    id: widget/credential-manager
+    data:
+      widget_type: credential-manager
+      category: security
+      description: |
+        Native credential lifecycle manager. Requires Tauri-side keyring
+        access for encryption/decryption — cannot be expressed as a
+        render-spec. Shows existing credentials with remove, and an
+        add form with service presets.
+
+        No props required — reads directly from credential store signals.
+
+        Example:
+          - widget: credential-manager
+      props_schema: {}
+      supports_children: false

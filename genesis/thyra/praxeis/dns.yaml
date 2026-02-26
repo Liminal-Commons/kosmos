@@ -7,7 +7,7 @@
 # - reconciler aligns intent with actuality (phylax pattern)
 #
 # Core concepts:
-# - Zone: sovereignty boundary managed by a circle
+# - Zone: sovereignty boundary managed by an oikos
 # - Record: dual existence (intent + actuality)
 # - Provider binding: credentials and connection to provider
 
@@ -19,15 +19,18 @@ entities:
 
 - eidos: praxis
   id: praxis/dns/create-zone
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/dns-admin
   data:
-    oikos: thyra
+    topos: thyra
     name: create-zone
     visible: true
     tier: 2
     description: |
-      Create a DNS zone managed by the dwelling circle.
+      Create a DNS zone managed by the dwelling oikos.
 
-      Zones are sovereignty boundaries. A circle that manages a zone
+      Zones are sovereignty boundaries. An oikos that manages a zone
       has authority over all records within it.
     params:
       - name: name
@@ -51,13 +54,13 @@ entities:
           created_at: "{{ now() }}"
         bind_to: zone
 
-      # Bond zone to dwelling circle
+      # Bond zone to dwelling oikos
       - step: switch
         cases:
-          - when: "$_circle"
+          - when: "$_oikos"
             then:
               - step: bind
-                from_id: "$_circle"
+                from_id: "$_oikos"
                 to_id: "$zone.id"
                 desmos: manages-zone
 
@@ -68,8 +71,11 @@ entities:
 
 - eidos: praxis
   id: praxis/dns/bind-zone-provider
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/dns-admin
   data:
-    oikos: thyra
+    topos: thyra
     name: bind-zone-provider
     visible: true
     tier: 2
@@ -135,18 +141,21 @@ entities:
 
 - eidos: praxis
   id: praxis/dns/list-zones
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/dns-read
   data:
-    oikos: thyra
+    topos: thyra
     name: list-zones
     visible: true
     tier: 1
     description: |
-      List DNS zones, optionally filtered by circle management.
+      List DNS zones, optionally filtered by oikos management.
     params:
-      - name: circle_id
+      - name: oikos_id
         type: string
         required: false
-        description: Filter to zones managed by this circle
+        description: Filter to zones managed by this oikos
       - name: limit
         type: number
         required: false
@@ -159,12 +168,12 @@ entities:
 
       - step: switch
         cases:
-          - when: "$circle_id"
+          - when: "$oikos_id"
             then:
               - step: trace
-                from_id: "$circle_id"
+                from_id: "$oikos_id"
                 desmos: manages-zone
-                direction: outward
+                resolve: "to"
                 bind_to: managed_zone_ids
               - step: filter
                 items: "$zones"
@@ -182,8 +191,11 @@ entities:
 
 - eidos: praxis
   id: praxis/dns/create-record
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/dns-write
   data:
-    oikos: thyra
+    topos: thyra
     name: create-record
     visible: true
     tier: 2
@@ -293,8 +305,11 @@ entities:
 
 - eidos: praxis
   id: praxis/dns/sense-record
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/dns-read
   data:
-    oikos: thyra
+    topos: thyra
     name: sense-record
     visible: true
     tier: 3
@@ -330,8 +345,11 @@ entities:
 
 - eidos: praxis
   id: praxis/dns/reconcile-record
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/dns-admin
   data:
-    oikos: thyra
+    topos: thyra
     name: reconcile-record
     visible: true
     tier: 3
@@ -438,8 +456,11 @@ entities:
 
 - eidos: praxis
   id: praxis/dns/delete-record
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/dns-write
   data:
-    oikos: thyra
+    topos: thyra
     name: delete-record
     visible: true
     tier: 2
@@ -478,8 +499,11 @@ entities:
 
 - eidos: praxis
   id: praxis/dns/list-records
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/dns-read
   data:
-    oikos: thyra
+    topos: thyra
     name: list-records
     visible: true
     tier: 1
@@ -511,7 +535,7 @@ entities:
       - step: trace
         to_id: "$zone_id"
         desmos: in-zone
-        direction: inward
+        resolve: "from"
         bind_to: records
 
       # Filter by record type if specified
@@ -546,8 +570,11 @@ entities:
 
 - eidos: praxis
   id: praxis/dns/reconcile-zone
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/dns-admin
   data:
-    oikos: thyra
+    topos: thyra
     name: reconcile-zone
     visible: true
     tier: 3
@@ -630,7 +657,7 @@ entities:
 - eidos: praxis
   id: praxis/dns/sense-zone
   data:
-    oikos: thyra
+    topos: thyra
     name: sense-zone
     visible: true
     tier: 3

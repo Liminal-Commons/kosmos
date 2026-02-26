@@ -1,0 +1,119 @@
+# Nous Render Specifications — theoria detail
+# Detail view for theoria showing full content
+#
+# Theoria fields:
+#   - insight (string, required): The crystallized understanding
+#   - domain (string, required): Knowledge domain
+#   - status (enum: provisional, confirmed, superseded): Lifecycle status
+#   - source (string, optional): Where understanding came from
+#   - id (string): Entity identifier
+#
+# Migrated from: genesis/nous/entities/rendering.yaml (render-spec/theoria)
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/theoria
+    data:
+      name: theoria-detail
+      description: |
+        Detail rendering for theoria entities.
+        Shows heading, domain badge, status indicator, insight text,
+        source, and entity ID.
+      target_eidos: theoria
+      variant: detail
+
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+          children:
+            - widget: stack
+              props:
+                gap: sm
+              children:
+                # Title
+                - widget: heading
+                  props:
+                    content: "Theoria"
+                    level: 2
+
+                # Meta row: domain badge + status
+                - widget: row
+                  props:
+                    gap: sm
+                    align: center
+                  children:
+                    - widget: badge
+                      props:
+                        content: "{domain}"
+                        variant: info
+
+                    - widget: badge
+                      when: "status == 'provisional'"
+                      props:
+                        content: "Draft"
+                        variant: warning
+                    - widget: badge
+                      when: "status == 'confirmed'"
+                      props:
+                        content: "Crystallized"
+                        variant: success
+                    - widget: badge
+                      when: "status == 'superseded'"
+                      props:
+                        content: "Superseded"
+                        variant: default
+
+                    - widget: status-indicator
+                      props:
+                        status: "{status}"
+
+                - widget: divider
+
+                # Insight block
+                - widget: stack
+                  props:
+                    gap: xs
+                  children:
+                    - widget: text
+                      props:
+                        content: "Insight"
+                        variant: label
+                    - widget: text
+                      props:
+                        content: "{insight}"
+                        variant: body
+
+                # Source
+                - widget: row
+                  when: "source"
+                  props:
+                    gap: xs
+                    align: center
+                  children:
+                    - widget: text
+                      props:
+                        content: "Source:"
+                        variant: label
+                    - widget: text
+                      props:
+                        content: "{source}"
+                        variant: body
+
+                # Entity ID
+                - widget: row
+                  props:
+                    gap: xs
+                    align: center
+                  children:
+                    - widget: text
+                      props:
+                        content: "ID:"
+                        variant: label
+                    - widget: code
+                      props:
+                        content: "{id}"
+
+      created_at: "2026-02-09T00:00:00Z"

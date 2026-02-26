@@ -6,6 +6,10 @@ The implementation lives in [chora](https://github.com/liminalcommons/chora).
 
 ---
 
+##Screenshots dir: /Users/victorpiper/Desktop/screenshots
+
+---
+
 ## The Two Repositories
 
 | Repository | What It Contains |
@@ -15,7 +19,7 @@ The implementation lives in [chora](https://github.com/liminalcommons/chora).
 
 **Kosmos is the world. Chora makes it breathe.**
 
-Chora depends on kosmos via symlink: `chora/genesis → ../kosmos/genesis`
+Chora depends on kosmos via symlinks: `chora/genesis → ../kosmos/genesis`, `chora/docs → ../kosmos/docs`
 
 ---
 
@@ -25,30 +29,39 @@ You are working in the genesis layer — the constitutional definitions of the k
 
 Genesis is the source of truth. Definitions here ARE the kosmos.
 
+For shared development methodology (DDD+TDD, prescriptive principle, three pillars), see chora's [CLAUDE.md](https://github.com/liminalcommons/chora/blob/main/CLAUDE.md). For contribution guidelines, see [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ---
 
 ## Key Documents
 
 | Document | Purpose |
 |----------|---------|
-| [KOSMOGONIA.md](KOSMOGONIA.md) | Constitutional root — ontology and principles |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | Technical implementation — reconciliation loops, validation |
-| [COMPOSITION-GUIDE.md](COMPOSITION-GUIDE.md) | Artifact composition — fill patterns, extending kosmos, emission scopes |
-| [ROADMAP.md](ROADMAP.md) | Development phases |
+| [KOSMOGONIA.md](genesis/KOSMOGONIA.md) | Constitutional root — ontology and principles |
+| [docs/index.md](docs/index.md) | Documentation portal (Diataxis) |
+| [genesis/ROADMAP.md](genesis/ROADMAP.md) | Development phases |
+
+### Diataxis Documentation
+
+| Category | Key Docs |
+|----------|----------|
+| **Tutorial** | [Create a Mode](docs/tutorial/presentation/create-a-mode.md), [Create Your First Reflex](docs/tutorial/reactivity/create-your-first-reflex.md) |
+| **How-To** | [Topos Development](docs/how-to/topos-development/topos-development.md), [Mode Development](docs/how-to/presentation/mode-development.md) |
+| **Explanation** | [Architecture](docs/explanation/architecture.md), [Oikos Guide](docs/explanation/oikos/index.md), [Klimax](docs/explanation/klimax/index.md) |
+| **Reference** | [Composition](docs/reference/composition.md), [Topos Map](docs/reference/domain/topos-map.md), [Theoria Index](genesis/nous/theoria/INDEX.md) |
 
 ---
 
 ## The Archai
 
-Six foundational forms define what can exist:
+Five foundational forms define what can exist (see [KOSMOGONIA](genesis/KOSMOGONIA.md) § The Five Archai):
 
 | Arche | File | What It Defines |
 |-------|------|-----------------|
 | **Eidos** | `arche/eidos.yaml` | Entity types — what things ARE |
+| **Typos** | `{topos}/typos/` | Molds — HOW things are made |
 | **Desmos** | `arche/desmos.yaml` | Bond types — how things RELATE |
 | **Stoicheion** | `stoicheia-portable/eide/stoicheion.yaml` | Step types — what things DO |
-| **Oikos** | Implicit in praxeis | Domains — where capability DWELLS |
-| **Typos** | `spora/definitions/` | Molds — composition templates |
 | **Dynamis** | Tier annotations | Power — substrate capability stoicheia draw upon |
 
 ---
@@ -68,85 +81,79 @@ genesis/
 │   └── eide/
 │       └── stoicheion.yaml # Stoicheion definitions (schema source)
 │
-├── spora/                  # Seeds — praxeis organized by oikos
-│   └── praxeis/
-│       ├── nous.yaml       # Mind — thinking, theoria
-│       ├── soma.yaml       # Body — channels, embodiment
-│       ├── thyra.yaml      # Portal — streams, expression
-│       ├── ergon.yaml      # Work — daemons, reconciliation
-│       ├── demiurge.yaml   # Craftsman — composition
-│       ├── politeia.yaml   # Governance — circles, attainments
-│       └── ...
+├── spora/                  # The seed — germination sequence
+│   └── spora.yaml          # Bootstrap: arche + topos content roots
 │
-└── {oikos}/                # Per-oikos design docs
-    └── DESIGN.md
+└── {topos}/                # Per-topos definitions
+    ├── DESIGN.md            # Design rationale
+    ├── manifest.yaml        # Content paths declaration
+    ├── eide/                # Entity type definitions
+    ├── desmoi/              # Bond definitions
+    ├── praxeis/             # Step sequences
+    └── typos/               # Composition molds
 ```
 
 ---
 
-## Composition Quickstart
+## Design Principles
 
-**To create an entity:**
-```yaml
-- step: compose
-  typos_id: typos-def-{eidos}   # e.g., typos-def-theoria
-  inputs:
-    id: "{eidos}/my-id"
-    # ... eidos fields
-  bind_to: result
+These principles guide authoring in kosmos. They operationalize the constitution established in [KOSMOGONIA](genesis/KOSMOGONIA.md).
+
+### Templates Are Dumb Molds (GDS)
+
+Typos templates support **only** simple `{{ variable }}` substitution and `{{ var | filter }}` pipes.
+
+**Not supported:** `{{#each}}`, `{{#if}}`, `{{/each}}`, ternary operators (`? :`), block conditionals (`{{ if $var }}...{{ end }}`), or any Handlebars/Jinja block syntax.
+
+### The GDS Principle (Graph-Data-Slots)
+
+Computation lives in **praxis steps**. Templates **only assemble pre-computed values**.
+
+```
+❌  Template with computation (conditionals, loops, branching)
+✅  Praxis computes → slots receive finished values → template assembles
 ```
 
-**To generate content:**
-```yaml
-- step: call
-  praxis: manteia/governed-inference
-  params:
-    prompt: "Generate..."
-    output_schema: { ... }            # or target_eidos: theoria
-  bind_to: result
-```
+**For iteration:** Use `for_each` in praxis steps to build arrays, or `for-each` widget in render-specs.
 
-**Never use `arise` or `infer` directly** — they are internal. See [ARCHITECTURE.md § Constitutional Enforcement](ARCHITECTURE.md#constitutional-enforcement).
+**For conditionals:** Use `switch`/`set` in praxis steps to prepare the right value, or `when:` on typos slots to gate inclusion. In render-specs, use `when:` on widgets.
 
----
+**For formatting:** Use praxis steps (`map`, `set`, `join()`) to prepare formatted strings before passing to the template.
 
-## Authoring Praxeis
+### Anti-Patterns in Typos
 
-Praxeis are composed of steps. Each step invokes a stoicheion.
+| Pattern | Problem | Fix |
+|---------|---------|-----|
+| `{{#each items}}` | Block helpers unsupported | Praxis `for_each` + pass result to slot |
+| `{{#if condition}}` | Block conditionals unsupported | Praxis `switch`/`set` or slot `when:` |
+| `$x ? 'a' : 'b'` | Ternary unsupported | Praxis `switch` step |
+| `{{ items \| map_list() }}` | Complex filter chains | Praxis `map` step |
+| `<script>` in template | Embedded JS | Use render-spec with widgets |
 
-```yaml
-- eidos: praxis
-  id: praxis/{oikos}/{name}
-  data:
-    oikos: {oikos}
-    name: {name}
-    visible: true                    # Expose as MCP tool?
-    description: |
-      What this praxis does.
-    params:
-      - name: param_name
-        type: string
-        required: true
-    steps:
-      - step: assert
-        condition: "$param_name"
-        message: "param_name required"
-      - step: compose
-        typos_id: typos-def-thing
-        inputs:
-          id: "entity/$param_name"
-          field: "$param_name"
-        bind_to: entity
-      - step: return
-        value: "$entity"
-```
+### Render-Specs Are the Model
 
-### Step Names
+The render-spec widget system proves the GDS pattern for UI:
+- `for-each` widget = iteration (not template loops)
+- `when:` expressions = conditionals (not template branches)
+- `include` widget = composition (not template partials)
 
-Use exact stoicheion names. Common errors:
-- `each` → use `for_each`
-- `sense` → use `sense_actuality`
-- `id:` in manifest → use `entity_id:`
+Apply the same principle to all composition domains: configs, documents, prompts.
+
+### Fix at Generation Level
+
+When generated code is wrong, fix the schema or generator — never the output. Generated artifacts have provenance headers pointing to their source. Edit the source.
+
+### Full-Circle Genesis
+
+The kosmos can emit itself, re-bootstrap from emission, and emit again with identical output. `emit → bootstrap → emit` = same BLAKE3 hash. This is self-verifying coherence. Constitutional content uses literal fill only. Derivable content is baked before emission.
+
+### Structural Constraints Over Lint
+
+Prefer schemas that prevent misuse over validators that catch it after the fact. Make wrong things unrepresentable rather than representable-but-flagged.
+
+### Push Capability Toward Content
+
+Maximize what lives as topos definitions (YAML). Minimize what requires Rust (interpreter) or TypeScript (UI). When something can be expressed as eidos/praxis, it should be.
 
 ---
 
@@ -163,14 +170,10 @@ Use exact stoicheion names. Common errors:
 
 ## Validation
 
-After authoring, test via MCP:
+After authoring genesis YAML, verify via chora:
 
-```
-# Bootstrap
-cargo run --bin kosmos-mcp -- --db ./kosmos.db --genesis ./genesis
-
-# Test praxis
-Use tool: {oikos}_{name}
+```bash
+just dev    # In chora — clean DB, bootstrap, launch Thyra
 ```
 
-Bootstrap validates all praxis YAML against stoicheion schemas.
+Bootstrap validates all praxis YAML against stoicheion schemas. For praxis authoring patterns, see [tutorial/foundations/first-praxis.md](docs/tutorial/foundations/first-praxis.md). For composition patterns, see [reference/composition.md](docs/reference/composition.md).

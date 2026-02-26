@@ -1,6 +1,6 @@
 # Oikos Eide
 # Intimate dwelling eide — sessions, conversations, notes, insights
-# Plus package ecosystem eide (oikos-manifest, oikos-dev, oikos-prod)
+# Plus topos packaging eide (topos-manifest, topos-dev, topos-prod)
 
 entities:
 
@@ -16,10 +16,10 @@ entities:
       description: "Current presence instance — a period of dwelling activity."
       constitutional: false
       fields:
-        animus_id:
+        parousia_id:
           type: string
           required: true
-          description: "The animus (embodied persona) in this session"
+          description: "The parousia (embodied prosopon) in this session"
         started_at:
           type: timestamp
           required: true
@@ -124,21 +124,21 @@ entities:
           required: true
 
   # =============================================================================
-  # OIKOS PACKAGING EIDE (for demiurge/politeia consumption)
+  # TOPOS PACKAGING EIDE (for demiurge/politeia consumption)
   # =============================================================================
 
-  # oikos-manifest — oikos package declaration
+  # topos-manifest — topos package declaration
   - eidos: eidos
-    id: eidos/oikos-manifest
+    id: eidos/topos-manifest
     data:
-      name: oikos-manifest
-      description: "Declaration of what an oikos requires and provides. The contract between oikos and substrate."
+      name: topos-manifest
+      description: "Declaration of what a topos requires and provides. The contract between topos and substrate."
       constitutional: false
       fields:
-        oikos_id:
+        topos_id:
           type: string
           required: true
-          description: "Oikos identifier (e.g., soma, nous, demiurge)"
+          description: "Topos identifier (e.g., soma, nous, demiurge)"
         version:
           type: string
           required: true
@@ -162,18 +162,18 @@ entities:
           required: false
           description: "Actuality mode configurations for dual-mode entities"
 
-  # oikos-dev — Development oikos package
+  # topos-dev — Development topos package
   - eidos: eidos
-    id: eidos/oikos-dev
+    id: eidos/topos-dev
     data:
-      name: oikos-dev
-      description: "Development oikos package. Can contain generation specs. Mutable during development."
+      name: topos-dev
+      description: "Development topos package. Can contain generation specs. Mutable during development."
       constitutional: false
       fields:
-        oikos_id:
+        topos_id:
           type: string
           required: true
-          description: "Oikos identifier"
+          description: "Topos identifier"
         version:
           type: string
           required: true
@@ -183,7 +183,7 @@ entities:
         manifest:
           type: object
           required: true
-          description: "The oikos-manifest (requires_dynamis, provides)"
+          description: "The topos-manifest (requires_dynamis, provides)"
         content:
           type: object
           required: true
@@ -201,37 +201,37 @@ entities:
           enum: [generative-commons, binary-only, private]
           default: binary-only
           description: |
-            How this oikos-dev may be shared:
+            How this topos-dev may be shared:
             - generative-commons: Share source (generation specs). Others can bake locally.
-            - binary-only: Share only baked oikos-prod. Generation specs stay private.
+            - binary-only: Share only baked topos-prod. Generation specs stay private.
             - private: Not shared at all. Internal use only.
-        author_persona:
+        author_prosopon:
           type: string
           required: false
-          description: "Persona ID of the author"
+          description: "Prosopon ID of the author"
         created_at:
           type: integer
           required: false
 
-  # oikos-prod — Production oikos package
+  # topos-prod — Production topos package
   - eidos: eidos
-    id: eidos/oikos-prod
+    id: eidos/topos-prod
     data:
-      name: oikos-prod
-      description: "Production oikos package. Frozen, signed, no generation specs. Ready for distribution."
+      name: topos-prod
+      description: "Production topos package. Frozen, signed, no generation specs. Ready for distribution."
       constitutional: false
       fields:
-        oikos_id:
+        topos_id:
           type: string
           required: true
-          description: "Oikos identifier"
+          description: "Topos identifier"
         version:
           type: string
           required: true
         fetch_url:
           type: string
           required: true
-          description: "URL where the oikos content can be fetched"
+          description: "URL where the topos content can be fetched"
         locale:
           type: string
           required: false
@@ -242,7 +242,7 @@ entities:
         manifest:
           type: object
           required: true
-          description: "The oikos-manifest (requires_dynamis, provides)"
+          description: "The topos-manifest (requires_dynamis, provides)"
         content:
           type: object
           required: true
@@ -262,7 +262,7 @@ entities:
         baked_from:
           type: string
           required: false
-          description: "ID of the oikos-dev this was baked from"
+          description: "ID of the topos-dev this was baked from"
         published_at:
           type: integer
           required: true
@@ -272,21 +272,21 @@ entities:
     id: eidos/publish-attestation
     data:
       name: publish-attestation
-      description: "Attestation record for oikos publication. Provides audit trail for provenance."
+      description: "Attestation record for topos publication. Provides audit trail for provenance."
       constitutional: false
       fields:
-        dev_oikos_id:
+        dev_topos_id:
           type: string
           required: true
-          description: "ID of the source oikos-dev"
-        prod_oikos_id:
+          description: "ID of the source topos-dev"
+        prod_topos_id:
           type: string
           required: true
-          description: "ID of the resulting oikos-prod"
-        publisher_persona:
+          description: "ID of the resulting topos-prod"
+        publisher_prosopon:
           type: string
           required: true
-          description: "Persona ID of the publisher"
+          description: "Prosopon ID of the publisher"
         publisher_pubkey:
           type: string
           required: true
@@ -301,11 +301,11 @@ entities:
         dev_version:
           type: string
           required: true
-          description: "Version of the dev-oikos at time of publish"
+          description: "Version of the topos-dev at time of publish"
         locale:
           type: string
           required: false
-          description: "BCP 47 locale code of the baked oikos-prod"
+          description: "BCP 47 locale code of the baked topos-prod"
         generation_hashes:
           type: array
           required: false
@@ -323,13 +323,13 @@ entities:
         Dwelling capability — session and conversation management.
         Enables opening sessions, managing conversations, and adding segments.
         The fundamental activity of being present in the household.
-      oikos: oikos
-      scope: circle
-      grants:
-        - praxis/oikos/open-session
-        - praxis/oikos/close-session
-        - praxis/oikos/open-conversation
-        - praxis/oikos/add-segment
+      topos: oikos
+      scope: oikos
+    bonds:
+      - { desmos: grants-praxis, to: praxis/oikos/open-session }
+      - { desmos: grants-praxis, to: praxis/oikos/close-session }
+      - { desmos: grants-praxis, to: praxis/oikos/open-conversation }
+      - { desmos: grants-praxis, to: praxis/oikos/add-segment }
 
   - eidos: attainment
     id: attainment/reflect
@@ -339,10 +339,10 @@ entities:
         Reflection capability — notes and insight surfacing.
         Enables taking notes, listing them, surfacing insights,
         and crystallizing insights into theoria.
-      oikos: oikos
-      scope: circle
-      grants:
-        - praxis/oikos/take-note
-        - praxis/oikos/list-notes
-        - praxis/oikos/surface-insight
-        - praxis/oikos/crystallize-insight
+      topos: oikos
+      scope: oikos
+    bonds:
+      - { desmos: grants-praxis, to: praxis/oikos/take-note }
+      - { desmos: grants-praxis, to: praxis/oikos/list-notes }
+      - { desmos: grants-praxis, to: praxis/oikos/surface-insight }
+      - { desmos: grants-praxis, to: praxis/oikos/crystallize-insight }

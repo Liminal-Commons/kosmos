@@ -22,7 +22,7 @@ entities:
       1. Password → Argon2id → encryption key
       2. Decrypt master seed
       3. Seed lives in process memory (chora), not kosmos
-      4. All circle keys derived on-demand from unlocked seed
+      4. All oikos keys derived on-demand from unlocked seed
 
       This enables signing operations without re-entering mnemonic.
     fields:
@@ -169,6 +169,80 @@ entities:
         description: "Optional jump host for bastion access"
 
 # =============================================================================
+# PHORETA (φορητά = carrier)
+# =============================================================================
+
+- eidos: eidos
+  id: eidos/phoreta
+  data:
+    name: phoreta
+    description: |
+      Signed bundle for federation transport.
+      Phoreta are the universal carrier format — a portable envelope of
+      entities and bonds with cryptographic provenance.
+
+      Used for:
+      - Backup (export to file)
+      - Recovery (import from file)
+      - Federation (sync between oikoi)
+      - Archive (cold storage)
+      - Prosopon export (multi-device)
+
+      The bundle is signed by the exporting prosopon so the receiver
+      can verify authenticity. Content hash ensures integrity.
+    fields:
+      type:
+        type: enum
+        values: [full-snapshot, delta, prosopon-export, topos-bundle]
+        required: true
+        description: |
+          What kind of phoreta this is:
+          - full-snapshot: Complete oikos state
+          - delta: Incremental changes since a version
+          - prosopon-export: Prosopon identity + memberships + theoria
+          - topos-bundle: Distributable topos package
+      entities:
+        type: array
+        required: true
+        description: "Array of entity records included in the bundle"
+      bonds:
+        type: array
+        required: true
+        description: "Array of bond records included in the bundle"
+      entity_count:
+        type: number
+        required: true
+        description: "Number of entities in the bundle"
+      bond_count:
+        type: number
+        required: true
+        description: "Number of bonds in the bundle"
+      content_hash:
+        type: string
+        required: true
+        description: "BLAKE3 hash of entities + bonds (integrity check)"
+      signature:
+        type: string
+        required: false
+        description: "Ed25519 signature over content_hash (base64)"
+      public_key:
+        type: string
+        required: false
+        description: "Signer's Ed25519 public key (base64)"
+      origin_oikos_id:
+        type: string
+        required: false
+        description: "Oikos that produced this phoreta"
+      exported_at:
+        type: timestamp
+        required: true
+        description: "When this phoreta was created"
+      since_version:
+        type: number
+        required: false
+        description: "For delta type: version number this delta starts from"
+
+# =============================================================================
 # ATTAINMENTS
 # =============================================================================
 
@@ -177,13 +251,13 @@ entities:
   data:
     name: sign
     description: |
-      Capability to sign content with circle-scoped keys.
+      Capability to sign content with oikos-scoped keys.
       Required for cryptographic attestation of content.
-    oikos: hypostasis
-    scope: circle
-    grants:
-      - praxis/hypostasis/sign-content
-      - praxis/hypostasis/sign-with-session
+    topos: hypostasis
+    scope: oikos
+  bonds:
+    - { desmos: grants-praxis, to: praxis/hypostasis/sign-content }
+    - { desmos: grants-praxis, to: praxis/hypostasis/sign-with-session }
 
 - eidos: attainment
   id: attainment/export
@@ -191,13 +265,13 @@ entities:
     name: export
     description: |
       Capability to export phoreta bundles and snapshots.
-      Required for backup, federation, and persona export.
-    oikos: hypostasis
-    scope: circle
-    grants:
-      - praxis/hypostasis/export-phoreta
-      - praxis/hypostasis/create-snapshot
-      - praxis/hypostasis/export-persona
+      Required for backup, federation, and prosopon export.
+    topos: hypostasis
+    scope: oikos
+  bonds:
+    - { desmos: grants-praxis, to: praxis/hypostasis/export-phoreta }
+    - { desmos: grants-praxis, to: praxis/hypostasis/create-snapshot }
+    - { desmos: grants-praxis, to: praxis/hypostasis/export-prosopon }
 
 - eidos: attainment
   id: attainment/manage-keyring
@@ -205,12 +279,12 @@ entities:
     name: manage-keyring
     description: |
       Capability to create and manage encrypted keyring.
-      Persona-scoped: only the persona owner can manage their keyring.
-    oikos: hypostasis
-    scope: persona
-    grants:
-      - praxis/hypostasis/create-keyring
-      - praxis/hypostasis/change-keyring-password
+      Prosopon-scoped: only the prosopon owner can manage their keyring.
+    topos: hypostasis
+    scope: prosopon
+  bonds:
+    - { desmos: grants-praxis, to: praxis/hypostasis/create-keyring }
+    - { desmos: grants-praxis, to: praxis/hypostasis/change-keyring-password }
 
 # NOTE: attainment/manage-credentials moved to genesis/credentials/eide/credentials.yaml
 
@@ -221,8 +295,8 @@ entities:
     description: |
       Capability to participate in genesis signing ceremony.
       Granted to trusted individuals who can attest to constitutional content.
-    oikos: hypostasis
-    scope: circle
-    grants:
-      - praxis/hypostasis/begin-genesis-ceremony
-      - praxis/hypostasis/add-genesis-signature
+    topos: hypostasis
+    scope: oikos
+  bonds:
+    - { desmos: grants-praxis, to: praxis/hypostasis/begin-genesis-ceremony }
+    - { desmos: grants-praxis, to: praxis/hypostasis/add-genesis-signature }

@@ -7,8 +7,8 @@
 # Praxeis organized by attainment:
 # - compose: Core composition, caching, dependencies
 # - develop: Generative Development Spiral (generate-*, actualize-*, validate-*)
-# - package: Oikos packaging (compose-oikos-dev, bake-oikos, publish-oikos, verify-oikos)
-# - emit: Genesis emission (emit-genesis, emit-oikos, verify-full-circle)
+# - package: Topos packaging (compose-topos-dev, bake-topos, publish-topos, verify-topos)
+# - emit: Genesis emission (emit-genesis, emit-topos, verify-full-circle)
 
 entities:
 
@@ -19,7 +19,7 @@ entities:
 - eidos: praxis
   id: praxis/demiurge/compose
   data:
-    oikos: demiurge
+    topos: demiurge
     name: compose
     visible: true
     description: |
@@ -49,7 +49,7 @@ entities:
       - name: authorized_by
         type: string
         required: false
-        description: Expression ID that authorizes this composition (provenance root)
+        description: Phasis ID that authorizes this composition (provenance root)
     steps:
       # The compose step does the heavy lifting
       # Sets _schema_dependencies in scope when generated slots use schema sources
@@ -63,6 +63,8 @@ entities:
         value:
           result: "$result"
           schema_dependencies: "$_schema_dependencies"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/compose }
 
 # =============================================================================
 # ARTIFACT CACHING (Phase 14)
@@ -71,7 +73,7 @@ entities:
 - eidos: praxis
   id: praxis/demiurge/compose-cached
   data:
-    oikos: demiurge
+    topos: demiurge
     name: compose-cached
     visible: true
     tier: 2
@@ -93,7 +95,7 @@ entities:
       - name: authorized_by
         type: string
         required: false
-        description: Expression ID that authorizes this composition
+        description: Phasis ID that authorizes this composition
       - name: force_refresh
         type: boolean
         required: false
@@ -102,7 +104,7 @@ entities:
       # Build cache key from definition + inputs
       - step: set
         bindings:
-          inputs_json: "$inputs | to_json"
+          inputs_json: "$inputs | json_encode"
 
       - step: digest
         input: "$typos_id-$inputs_json"
@@ -124,23 +126,44 @@ entities:
             then:
               - step: return
                 value:
-                  artifact: "$cached"
-                  from_cache: true
+                  artifact_id: "$cached.id"
+                  content: "$cached.data.content"
+                  styles: "$cached.data.styles"
                   cache_key: "$cache_key"
+                  composed_at: "$cached.data.composed_at"
+                  from_cache: true
 
-      # Cache miss or stale — compose fresh
+      # Cache miss or stale — compose fresh content
+      # Compose returns the rendered content (string for graph/template composition)
       - step: compose
         typos_id: "$typos_id"
         inputs: "$inputs"
-        id: "$artifact_id"
-        bind_to: composed
+        bind_to: composed_content
 
-      # Update the artifact with cache metadata
-      - step: update
+      # Get the typos to extract styles
+      - step: find
+        id: "$typos_id"
+        bind_to: typos
+
+      # Extract styles from typos (may be null)
+      - step: set
+        bindings:
+          styles: "$typos.data.styles"
+
+      # Create or update the artifact entity with composed content
+      # Exception: end-of-pipeline persist. Content composed by prior compose step.
+      - step: arise
+        internal: true
+        eidos: artifact
         id: "$artifact_id"
         data:
+          typos_id: "$typos_id"
+          content: "$composed_content"
+          styles: "$styles"
           cache_key: "$cache_key"
+          composed_at: "$now()"
           stale: false
+        bind_to: artifact
 
       # Automatically bind schema dependencies if present
       # The compose step sets _schema_dependencies when generated slots use schema sources
@@ -157,15 +180,20 @@ entities:
 
       - step: return
         value:
-          artifact: "$composed"
-          from_cache: false
+          artifact_id: "$artifact_id"
+          content: "$composed_content"
+          styles: "$styles"
           cache_key: "$cache_key"
+          composed_at: "$artifact.data.composed_at"
+          from_cache: false
           schema_dependencies: "$_schema_dependencies"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/compose }
 
 - eidos: praxis
   id: praxis/demiurge/check-cache
   data:
-    oikos: demiurge
+    topos: demiurge
     name: check-cache
     visible: true
     tier: 1
@@ -185,7 +213,7 @@ entities:
     steps:
       - step: set
         bindings:
-          inputs_json: "$inputs | to_json"
+          inputs_json: "$inputs | json_encode"
 
       - step: digest
         input: "$typos_id-$inputs_json"
@@ -214,6 +242,8 @@ entities:
         value:
           cached: false
           cache_key: "$cache_key"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/compose }
 
 # =============================================================================
 # DEPENDENCY MANAGEMENT (Phase 15)
@@ -222,7 +252,7 @@ entities:
 - eidos: praxis
   id: praxis/demiurge/bind-dependencies
   data:
-    oikos: demiurge
+    topos: demiurge
     name: bind-dependencies
     visible: true
     tier: 2
@@ -262,11 +292,13 @@ entities:
         value:
           artifact_id: "$artifact_id"
           dependencies_bound: "$dependency_ids | length"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/compose }
 
 - eidos: praxis
   id: praxis/demiurge/mark-dependents-stale
   data:
-    oikos: demiurge
+    topos: demiurge
     name: mark-dependents-stale
     visible: true
     tier: 2
@@ -308,11 +340,13 @@ entities:
         value:
           entity_id: "$entity_id"
           dependents_marked_stale: "$marked_count"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/compose }
 
 - eidos: praxis
   id: praxis/demiurge/list-stale-artifacts
   data:
-    oikos: demiurge
+    topos: demiurge
     name: list-stale-artifacts
     visible: true
     tier: 1
@@ -336,11 +370,13 @@ entities:
         value:
           artifacts: "$stale_artifacts"
           count: "$stale_artifacts | length"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/compose }
 
 - eidos: praxis
   id: praxis/demiurge/refresh-stale
   data:
-    oikos: demiurge
+    topos: demiurge
     name: refresh-stale
     visible: true
     tier: 2
@@ -385,45 +421,47 @@ entities:
         value:
           refreshed: true
           artifact_id: "$artifact_id"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/compose }
 
 # =============================================================================
-# OIKOS PACKAGING
+# TOPOS PACKAGING
 # =============================================================================
 
 - eidos: praxis
-  id: praxis/demiurge/compose-oikos-dev
+  id: praxis/demiurge/compose-topos-dev
   data:
-    oikos: demiurge
-    name: compose-oikos-dev
+    topos: demiurge
+    name: compose-topos-dev
     visible: true
     tier: 2
     description: |
-      Compose an oikos-dev package from a genesis oikos.
+      Compose an topos-dev package from a genesis topos.
 
-      Takes an oikos_id (e.g., "nous", "demiurge") and:
-      1. Finds the oikos entity and oikos-manifest
+      Takes an topos_id (e.g., "nous", "demiurge") and:
+      1. Finds the topos entity and topos-manifest
       2. Gathers all content (eide, desmoi, praxeis, stoicheia)
-      3. Creates an oikos-dev entity with the complete package
+      3. Creates an topos-dev entity with the complete package
 
-      This is K3.1 — the first step in the oikos packaging pipeline:
-        genesis/oikos/ → compose-oikos-dev → oikos-dev/{id}-{version}
+      This is K3.1 — the first step in the topos packaging pipeline:
+        genesis/topos/ → compose-topos-dev → topos-dev/{id}-{version}
                                                     ↓
-                                              bake-oikos
+                                              bake-topos
                                                     ↓
-                                              publish-oikos
+                                              publish-topos
                                                     ↓
-                                              oikos-prod/{id}-{version}
+                                              topos-prod/{id}-{version}
 
-      The resulting oikos-dev can be:
+      The resulting topos-dev can be:
       - Baked (resolve generation specs to literals)
-      - Published (sign and freeze as oikos-prod)
+      - Published (sign and freeze as topos-prod)
       - Shared as generative-commons (others can bake locally)
-      - Forked (create derivative oikos-dev)
+      - Forked (create derivative topos-dev)
     params:
-      - name: oikos_id
+      - name: topos_id
         type: string
         required: true
-        description: The oikos to package (e.g., "nous", "demiurge", "politeia")
+        description: The topos to package (e.g., "nous", "demiurge", "politeia")
       - name: version
         type: string
         required: false
@@ -431,36 +469,36 @@ entities:
       - name: description
         type: string
         required: false
-        description: Description override (defaults to oikos description)
+        description: Description override (defaults to topos description)
       - name: distribution
         type: string
         required: false
         description: "Distribution mode: generative-commons, binary-only, or private (default: binary-only)"
     steps:
-      # Find the oikos entity
+      # Find the topos entity
       - step: set
         bindings:
-          oikos_entity_id: "oikos/$oikos_id"
-          manifest_entity_id: "oikos-manifest/$oikos_id"
+          topos_entity_id: "topos/$topos_id"
+          manifest_entity_id: "topos-manifest/$topos_id"
 
       - step: find
-        id: "$oikos_entity_id"
-        bind_to: oikos_entity
+        id: "$topos_entity_id"
+        bind_to: topos_entity
 
       - step: assert
-        condition: "$oikos_entity"
-        message: "Oikos not found: $oikos_id"
+        condition: "$topos_entity"
+        message: "Oikos not found: $topos_id"
 
-      # Find the oikos-manifest
+      # Find the topos-manifest
       - step: find
         id: "$manifest_entity_id"
         bind_to: manifest_entity
 
       - step: assert
         condition: "$manifest_entity"
-        message: "Oikos manifest not found: $oikos_id"
+        message: "Oikos manifest not found: $topos_id"
 
-      # Gather all eide that belong to this oikos
+      # Gather all eide that belong to this topos
       - step: gather
         eidos: eidos
         bind_to: all_eide
@@ -468,10 +506,10 @@ entities:
       - step: filter
         in: "$all_eide"
         as: e
-        condition: "$e.data._genesis.oikos == '$oikos_id'"
-        bind_to: oikos_eide
+        condition: "$e.data._genesis.topos == '$topos_id'"
+        bind_to: topos_eide
 
-      # Gather all desmoi that belong to this oikos
+      # Gather all desmoi that belong to this topos
       - step: gather
         eidos: desmos
         bind_to: all_desmoi
@@ -479,10 +517,10 @@ entities:
       - step: filter
         in: "$all_desmoi"
         as: d
-        condition: "$d.data._genesis.oikos == '$oikos_id'"
-        bind_to: oikos_desmoi
+        condition: "$d.data._genesis.topos == '$topos_id'"
+        bind_to: topos_desmoi
 
-      # Gather all praxeis that belong to this oikos
+      # Gather all praxeis that belong to this topos
       - step: gather
         eidos: praxis
         bind_to: all_praxeis
@@ -490,10 +528,10 @@ entities:
       - step: filter
         in: "$all_praxeis"
         as: p
-        condition: "$p.data.oikos == '$oikos_id'"
-        bind_to: oikos_praxeis
+        condition: "$p.data.topos == '$topos_id'"
+        bind_to: topos_praxeis
 
-      # Gather all stoicheia that belong to this oikos
+      # Gather all stoicheia that belong to this topos
       - step: gather
         eidos: stoicheion
         bind_to: all_stoicheia
@@ -501,43 +539,43 @@ entities:
       - step: filter
         in: "$all_stoicheia"
         as: s
-        condition: "$s.data._genesis.oikos == '$oikos_id'"
-        bind_to: oikos_stoicheia
+        condition: "$s.data._genesis.topos == '$topos_id'"
+        bind_to: topos_stoicheia
 
       # Resolve version (from param or manifest)
       - step: set
         bindings:
           effective_version: "$version ? $version : $manifest_entity.data.version"
-          effective_description: "$description ? $description : $oikos_entity.data.description"
+          effective_description: "$description ? $description : $topos_entity.data.description"
           effective_distribution: "$distribution ? $distribution : 'binary-only'"
-          dev_id: "oikos-dev/$oikos_id-$effective_version"
+          dev_id: "topos-dev/$topos_id-$effective_version"
 
       # Build content structure
       - step: set
         bindings:
           content:
-            eide: "$oikos_eide"
-            desmoi: "$oikos_desmoi"
-            praxeis: "$oikos_praxeis"
-            stoicheia: "$oikos_stoicheia"
+            eide: "$topos_eide"
+            desmoi: "$topos_desmoi"
+            praxeis: "$topos_praxeis"
+            stoicheia: "$topos_stoicheia"
 
       # Build manifest from manifest entity
       - step: set
         bindings:
           manifest:
-            oikos_id: "$oikos_id"
+            topos_id: "$topos_id"
             version: "$effective_version"
             requires_dynamis: "$manifest_entity.data.requires_dynamis"
             provides: "$manifest_entity.data.provides"
             stoicheia_form: "$manifest_entity.data.stoicheia_form"
             actuality_modes: "$manifest_entity.data.actuality_modes"
 
-      # Compose the oikos-dev entity
+      # Compose the topos-dev entity
       - step: compose
-        typos_id: "typos-def-oikos-dev"
+        typos_id: "typos-def-topos-dev"
         inputs:
           id: "$dev_id"
-          oikos_id: "$oikos_id"
+          topos_id: "$topos_id"
           version: "$effective_version"
           description: "$effective_description"
           manifest: "$manifest"
@@ -545,58 +583,71 @@ entities:
           generation_specs: []
           status: "draft"
           distribution: "$effective_distribution"
-          author_persona: "$dwelling.animus_id"
+          author_prosopon: "$dwelling.parousia_id"
           created_at: "{{ now() }}"
         bind_to: dev_oikos
 
-      # Bond to source oikos
+      # Bond to source topos
       - step: bind
         from_id: "$dev_id"
-        to_id: "$oikos_entity_id"
+        to_id: "$topos_entity_id"
         desmos: "packages"
+
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Composed topos-dev $topos_id v$effective_version"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: topos-dev
+            source_id: "$dev_id"
 
       - step: return
         value:
           oikos_dev_id: "$dev_id"
-          oikos_id: "$oikos_id"
+          topos_id: "$topos_id"
           version: "$effective_version"
           content_counts:
-            eide: "$oikos_eide | length"
-            desmoi: "$oikos_desmoi | length"
-            praxeis: "$oikos_praxeis | length"
-            stoicheia: "$oikos_stoicheia | length"
+            eide: "$topos_eide | length"
+            desmoi: "$topos_desmoi | length"
+            praxeis: "$topos_praxeis | length"
+            stoicheia: "$topos_stoicheia | length"
           status: "draft"
           distribution: "$effective_distribution"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/package }
 
 - eidos: praxis
-  id: praxis/demiurge/bake-oikos
+  id: praxis/demiurge/bake-topos
   data:
-    oikos: demiurge
-    name: bake-oikos
+    topos: demiurge
+    name: bake-topos
     visible: true
     tier: 3
     description: |
-      Bake an oikos-dev into frozen content ready for signing.
+      Bake an topos-dev into frozen content ready for signing.
 
       Transforms generation specs into literals:
-      1. Find oikos-dev entity
+      1. Find topos-dev entity
       2. Walk content looking for generation specs (caller: generated)
       3. For each spec, invoke manteia/governed-inference with locale context
       4. Replace spec with literal (caller: literal, value: generated_content)
       5. Compute content hash (BLAKE3)
       6. Return baked content with locale tag
 
-      Does NOT create oikos-prod — use publish-oikos for that.
+      Does NOT create topos-prod — use publish-topos for that.
       This allows review of baked content before signing.
 
       **Bake-time Internationalization:**
-      The same oikos-dev can be baked multiple times with different target_locale
-      values, producing locale-specific oikos-prod versions:
+      The same topos-dev can be baked multiple times with different target_locale
+      values, producing locale-specific topos-prod versions:
 
-        oikos-dev/mypackage-1.0.0
-          ├── bake(locale: "en-US") → oikos-prod/mypackage-1.0.0-en-US
-          ├── bake(locale: "zh-CN") → oikos-prod/mypackage-1.0.0-zh-CN
-          └── bake(locale: "ar-SA") → oikos-prod/mypackage-1.0.0-ar-SA
+        topos-dev/mypackage-1.0.0
+          ├── bake(locale: "en-US") → topos-prod/mypackage-1.0.0-en-US
+          ├── bake(locale: "zh-CN") → topos-prod/mypackage-1.0.0-zh-CN
+          └── bake(locale: "ar-SA") → topos-prod/mypackage-1.0.0-ar-SA
 
       The locale is passed to manteia as context, influencing how generation
       specs are resolved. The baked output includes the locale tag.
@@ -604,11 +655,11 @@ entities:
       - name: oikos_dev_id
         type: string
         required: true
-        description: The oikos-dev entity to bake
+        description: The topos-dev entity to bake
       - name: authorized_by
         type: string
         required: true
-        description: Expression ID that authorizes this bake (for manteia calls)
+        description: Phasis ID that authorizes this bake (for manteia calls)
       - name: target_locale
         type: string
         required: false
@@ -617,18 +668,18 @@ entities:
           If provided, generation specs receive locale context for i18n.
           Omit for locale-agnostic baking (default behavior).
     steps:
-      # Find the dev oikos
+      # Find the dev topos
       - step: find
         id: "$oikos_dev_id"
         bind_to: dev_oikos
 
       - step: assert
         condition: "$dev_oikos"
-        message: "oikos-dev not found: $oikos_dev_id"
+        message: "topos-dev not found: $oikos_dev_id"
 
       - step: assert
-        condition: "$dev_oikos.eidos == 'oikos-dev'"
-        message: "Entity is not an oikos-dev: $oikos_dev_id"
+        condition: "$dev_oikos.eidos == 'topos-dev'"
+        message: "Entity is not an topos-dev: $oikos_dev_id"
 
       # Extract content and generation specs
       - step: set
@@ -696,11 +747,22 @@ entities:
       # Compute content hash of the entire baked package
       - step: set
         bindings:
-          content_json: "$baked_content | to_json"
+          content_json: "$baked_content | json_encode"
 
       - step: digest
         input: "$content_json"
         bind_to: content_hash
+
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Baked topos $oikos_dev_id ($baked_generations | length generations)"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: topos-dev
+            source_id: "$oikos_dev_id"
 
       - step: return
         value:
@@ -711,42 +773,44 @@ entities:
           generations_count: "$baked_generations | length"
           locale: "$effective_locale"
           ready_for_signing: true
+  bonds:
+    - { desmos: requires-attainment, to: attainment/package }
 
 - eidos: praxis
-  id: praxis/demiurge/publish-oikos
+  id: praxis/demiurge/publish-topos
   data:
-    oikos: demiurge
-    name: publish-oikos
+    topos: demiurge
+    name: publish-topos
     visible: true
     tier: 3
     description: |
-      Publish an oikos-dev as oikos-prod.
+      Publish an topos-dev as topos-prod.
 
       Complete publish flow:
-      1. Bake the oikos-dev (resolve all generation specs)
-      2. Sign the content hash with circle-scoped key
-      3. Create oikos-prod entity with signature
+      1. Bake the topos-dev (resolve all generation specs)
+      2. Sign the content hash with oikos-scoped key
+      3. Create topos-prod entity with signature
       4. Create publish-attestation for audit trail
-      5. Bond oikos-prod to dev and publisher
+      5. Bond topos-prod to dev and publisher
 
-      Requires oikos-publish attainment.
+      Requires topos-publish attainment.
     params:
       - name: oikos_dev_id
         type: string
         required: true
-        description: The oikos-dev to publish
+        description: The topos-dev to publish
       - name: mnemonic
         type: string
         required: true
         description: BIP-39 mnemonic for signing
-      - name: circle_id
+      - name: topos_id
         type: string
         required: true
-        description: Circle context for key derivation
+        description: Oikos context for key derivation
       - name: authorized_by
         type: string
         required: true
-        description: Expression that authorizes this publication
+        description: Phasis that authorizes this publication
       - name: attestation
         type: string
         required: false
@@ -756,40 +820,40 @@ entities:
         required: false
         description: |
           BCP 47 locale code for bake-time i18n (e.g., "en-US", "zh-CN").
-          If provided, produces a locale-specific oikos-prod.
+          If provided, produces a locale-specific topos-prod.
           Omit for locale-agnostic publishing.
     steps:
-      # Verify oikos-publish attainment (caller must have permission)
+      # Verify topos-publish attainment (caller must have permission)
       # TODO: Add attainment check when attainment verification is implemented
 
-      # Find the dev oikos
+      # Find the dev topos
       - step: find
         id: "$oikos_dev_id"
         bind_to: dev_oikos
 
       - step: assert
         condition: "$dev_oikos"
-        message: "oikos-dev not found: $oikos_dev_id"
+        message: "topos-dev not found: $oikos_dev_id"
 
       - step: assert
         condition: "$dev_oikos.data.status == 'ready_to_publish'"
-        message: "oikos-dev is not ready to publish (status must be 'ready_to_publish')"
+        message: "topos-dev is not ready to publish (status must be 'ready_to_publish')"
 
-      # Bake the oikos (with optional locale for i18n)
+      # Bake the topos (with optional locale for i18n)
       - step: call
-        praxis: "demiurge/bake-oikos"
+        praxis: "demiurge/bake-topos"
         params:
           oikos_dev_id: "$oikos_dev_id"
           authorized_by: "$authorized_by"
           target_locale: "$target_locale"
         bind_to: bake_result
 
-      # Derive circle key
+      # Derive oikos key
       - step: call
-        praxis: "hypostasis/derive-circle-key"
+        praxis: "hypostasis/derive-oikos-key"
         params:
           mnemonic: "$mnemonic"
-          circle_id: "$circle_id"
+          topos_id: "$topos_id"
         bind_to: key_result
 
       # Sign the content hash
@@ -797,23 +861,23 @@ entities:
         praxis: "hypostasis/sign-content"
         params:
           mnemonic: "$mnemonic"
-          circle_id: "$circle_id"
+          topos_id: "$topos_id"
           content: "$bake_result.content_hash"
         bind_to: sign_result
 
-      # Create oikos-prod entity
+      # Create topos-prod entity
       # ID includes locale suffix when present (e.g., mypackage-1.0.0-zh-CN)
       - step: set
         bindings:
           locale_suffix: "$bake_result.locale != 'und' ? '-' + $bake_result.locale : ''"
-          prod_id: "oikos-prod/$dev_oikos.data.oikos_id-$dev_oikos.data.version$locale_suffix"
+          prod_id: "topos-prod/$dev_oikos.data.topos_id-$dev_oikos.data.version$locale_suffix"
 
       # CE4: compose instead of arise
       - step: compose
-        typos_id: "typos-def-oikos-prod"
+        typos_id: "typos-def-topos-prod"
         inputs:
           id: "$prod_id"
-          oikos_id: "$dev_oikos.data.oikos_id"
+          topos_id: "$dev_oikos.data.topos_id"
           version: "$dev_oikos.data.version"
           locale: "$bake_result.locale"
           manifest: "$bake_result.baked_content.manifest"
@@ -828,16 +892,16 @@ entities:
       # Create publish-attestation (includes locale suffix when present)
       - step: set
         bindings:
-          attestation_id: "publish-attestation/$dev_oikos.data.oikos_id-$dev_oikos.data.version$locale_suffix"
+          attestation_id: "publish-attestation/$dev_oikos.data.topos_id-$dev_oikos.data.version$locale_suffix"
 
       # CE4: compose instead of arise
       - step: compose
         typos_id: "typos-def-publish-attestation"
         inputs:
           id: "$attestation_id"
-          dev_oikos_id: "$oikos_dev_id"
-          prod_oikos_id: "$prod_id"
-          publisher_persona: "$dwelling.animus_id"
+          dev_topos_id: "$oikos_dev_id"
+          prod_topos_id: "$prod_id"
+          publisher_prosopon: "$dwelling.parousia_id"
           publisher_pubkey: "$key_result.public_key"
           attestation: "$attestation"
           published_at: "{{ now() }}"
@@ -854,7 +918,7 @@ entities:
 
       - step: bind
         from_id: "$prod_id"
-        to_id: "$dwelling.animus_id"
+        to_id: "$dwelling.parousia_id"
         desmos: "published-by"
 
       - step: bind
@@ -862,25 +926,38 @@ entities:
         to_id: "$prod_id"
         desmos: "attests-to"
 
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Published topos $prod_id"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: topos-prod
+            source_id: "$prod_id"
+
       - step: return
         value:
           published: true
-          prod_oikos_id: "$prod_id"
+          prod_topos_id: "$prod_id"
           attestation_id: "$attestation_id"
           content_hash: "$bake_result.content_hash"
           signature: "$sign_result.signature"
           publisher_pubkey: "$key_result.public_key"
           locale: "$bake_result.locale"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/package }
 
 - eidos: praxis
-  id: praxis/demiurge/verify-oikos
+  id: praxis/demiurge/verify-topos
   data:
-    oikos: demiurge
-    name: verify-oikos
+    topos: demiurge
+    name: verify-topos
     visible: true
     tier: 2
     description: |
-      Verify an oikos-prod package.
+      Verify an topos-prod package.
 
       Checks:
       1. Content hash matches declared hash
@@ -892,7 +969,7 @@ entities:
       - name: oikos_prod_id
         type: string
         required: true
-        description: The oikos-prod to verify
+        description: The topos-prod to verify
     steps:
       - step: find
         id: "$oikos_prod_id"
@@ -900,11 +977,11 @@ entities:
 
       - step: assert
         condition: "$prod_oikos"
-        message: "oikos-prod not found: $oikos_prod_id"
+        message: "topos-prod not found: $oikos_prod_id"
 
       - step: assert
-        condition: "$prod_oikos.eidos == 'oikos-prod'"
-        message: "Entity is not an oikos-prod: $oikos_prod_id"
+        condition: "$prod_oikos.eidos == 'topos-prod'"
+        message: "Entity is not an topos-prod: $oikos_prod_id"
 
       # Recompute content hash
       - step: set
@@ -912,7 +989,7 @@ entities:
           content_to_hash:
             manifest: "$prod_oikos.data.manifest"
             content: "$prod_oikos.data.content"
-          content_json: "$content_to_hash | to_json"
+          content_json: "$content_to_hash | json_encode"
 
       - step: digest
         input: "$content_json"
@@ -959,47 +1036,49 @@ entities:
           oikos_prod_id: "$oikos_prod_id"
           content_hash: "$prod_oikos.data.content_hash"
           publisher_pubkey: "$prod_oikos.data.publisher_pubkey"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/package }
 
 - eidos: praxis
-  id: praxis/demiurge/validate-oikos
+  id: praxis/demiurge/validate-topos
   data:
-    oikos: demiurge
-    name: validate-oikos
+    topos: demiurge
+    name: validate-topos
     visible: true
     tier: 2
     description: |
-      Validate an oikos and all its contained definitions.
+      Validate a topos and all its contained definitions.
 
       Checks:
       - All eide have valid field definitions
       - All praxeis reference valid stoicheia
-      - All desmoi reference valid eide (in this oikos or existing)
+      - All desmoi reference valid eide (in this topos or existing)
       - Cross-references resolve
 
-      Updates oikos status to 'valid' or leaves as 'composing' with errors.
+      Updates topos status to 'valid' or leaves as 'composing' with errors.
     params:
-      - name: oikos_id
+      - name: topos_id
         type: string
         required: true
-        description: The oikos to validate
+        description: The topos to validate
     steps:
       - step: find
-        entity_id: "$oikos_id"
-        bind_to: oikos
+        id: "$topos_id"
+        bind_to: topos
 
       - step: assert
-        condition: "$oikos"
-        message: "Oikos not found: $oikos_id"
+        condition: "$topos"
+        message: "Oikos not found: $topos_id"
 
       # Update status to validating
       - step: update
-        id: "$oikos.id"
+        id: "$topos.id"
         data:
           status: validating
 
       # Gather all contained definitions
       - step: trace
-        from_id: "$oikos.id"
+        from_id: "$topos.id"
         desmos: contains
         resolve: to
         bind_to: all_definitions
@@ -1058,7 +1137,7 @@ entities:
             do:
               # Look up the stoicheion definition
               - step: find
-                entity_id: "stoicheion/$step_def.step"
+                id: "stoicheion/$step_def.step"
                 bind_to: stoicheion
 
               # Check if stoicheion exists
@@ -1179,7 +1258,7 @@ entities:
       # Compare inferred vs declared dynamis
       - step: switch
         cases:
-          - when: '$inferred_dynamis | length > 0 and (!$oikos.data.requires_dynamis or $oikos.data.requires_dynamis | length == 0)'
+          - when: '$inferred_dynamis | length > 0 and (!$topos.data.requires_dynamis or $topos.data.requires_dynamis | length == 0)'
             then:
               - step: append
                 to: "$warnings"
@@ -1187,7 +1266,7 @@ entities:
                   type: missing-dynamis
                   message: "Oikos uses tier $max_tier stoicheia but declares no requires_dynamis"
                   inferred: "$inferred_dynamis"
-                  guidance: "Add requires_dynamis to oikos manifest for substrate compatibility"
+                  guidance: "Add requires_dynamis to topos manifest for substrate compatibility"
                 bind_to: warnings
 
       # =============================================================================
@@ -1212,7 +1291,7 @@ entities:
             value: "$e.id"
             bind_to: known_eidos_names
 
-      # Also add eide being defined in this oikos
+      # Also add eide being defined in this topos
       - step: for_each
         items: "$eide"
         as: e
@@ -1263,7 +1342,7 @@ entities:
           - when: "$is_valid"
             then:
               - step: update
-                id: "$oikos.id"
+                id: "$topos.id"
                 data:
                   status: valid
                   validation_errors: []
@@ -1271,7 +1350,7 @@ entities:
           - when: "!$is_valid"
             then:
               - step: update
-                id: "$oikos.id"
+                id: "$topos.id"
                 data:
                   status: composing
                   validation_errors: "$errors"
@@ -1289,11 +1368,13 @@ entities:
             praxeis: "$praxeis | length"
             desmoi: "$desmoi | length"
             max_stoicheion_tier: "$max_tier"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/develop }
 
 - eidos: praxis
   id: praxis/demiurge/discover-stoicheia
   data:
-    oikos: demiurge
+    topos: demiurge
     name: discover-stoicheia
     visible: true
     tier: 1
@@ -1377,11 +1458,13 @@ entities:
             tier_1: "$tier_1 | length"
             tier_2: "$tier_2 | length"
             tier_3: "$tier_3 | length"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/develop }
 
 - eidos: praxis
   id: praxis/demiurge/discover-typos
   data:
-    oikos: demiurge
+    topos: demiurge
     name: discover-typos
     visible: true
     tier: 1
@@ -1398,7 +1481,7 @@ entities:
       - name: target_eidos
         type: string
         required: false
-        description: Filter by target eidos (e.g., "theoria", "circle")
+        description: Filter by target eidos (e.g., "theoria", "oikos")
     steps:
       - step: gather
         eidos: "typos"
@@ -1425,7 +1508,7 @@ entities:
         do:
           - step: switch
             cases:
-              - when: '$t.id == "typos-def-eidos" or $t.id == "typos-def-praxis" or $t.id == "typos-def-desmos" or $t.id == "typos-def-oikos" or $t.id == "typos-def-typos"'
+              - when: '$t.id == "typos-def-eidos" or $t.id == "typos-def-praxis" or $t.id == "typos-def-desmos" or $t.id == "typos-def-topos" or $t.id == "typos-def-typos"'
                 then:
                   - step: append
                     to: "$constitutional"
@@ -1445,11 +1528,13 @@ entities:
           summary:
             constitutional_count: "$constitutional | length"
             domain_count: "$domain | length"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/develop }
 
 - eidos: praxis
   id: praxis/demiurge/discover-desmoi
   data:
-    oikos: demiurge
+    topos: demiurge
     name: discover-desmoi
     visible: true
     tier: 1
@@ -1500,11 +1585,13 @@ entities:
         value:
           total: "$all_desmoi | length"
           desmoi: "$all_desmoi"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/develop }
 
 - eidos: praxis
   id: praxis/demiurge/sense-development
   data:
-    oikos: demiurge
+    topos: demiurge
     name: sense-development
     visible: false  # Internal, called by sense-body
     tier: 1
@@ -1512,7 +1599,7 @@ entities:
       Sense development state for body-schema contribution.
 
       Aggregates:
-      - Active oikoi the animus is developing
+      - Active topoi the parousia is developing
       - Definition counts (eide, praxeis, desmoi) for each
       - Palette awareness (stoicheia tiers, typos, desmoi counts)
       - Pending actions (validation, emission opportunities)
@@ -1520,27 +1607,27 @@ entities:
       This is called by soma/sense-body to include development state.
     params: []
     steps:
-      # Trace developing bonds from animus to find active oikoi
+      # Trace developing bonds from parousia to find active topoi
       - step: trace
-        from_id: "$_animus.id"
+        from_id: "$_parousia.id"
         desmos: developing
         resolve: to
-        bind_to: developing_oikoi
+        bind_to: developing_topoi
 
-      # Build active oikoi list with definition counts
+      # Build active topoi list with definition counts
       - step: set
         bindings:
-          active_oikoi: []
+          active_topoi: []
           needs_validation: 0
           ready_to_emit: 0
 
       - step: for_each
-        items: "$developing_oikoi"
-        as: oikos
+        items: "$developing_topoi"
+        as: topos
         do:
           # Get all contained definitions
           - step: trace
-            from_id: "$oikos.id"
+            from_id: "$topos.id"
             desmos: contains
             resolve: to
             bind_to: definitions
@@ -1564,29 +1651,29 @@ entities:
           # Track validation/emission status
           - step: switch
             cases:
-              - when: '$oikos.data.status == "composing"'
+              - when: '$topos.data.status == "composing"'
                 then:
                   - step: set
                     bindings:
                       needs_validation: "$needs_validation + 1"
-              - when: '$oikos.data.status == "valid"'
+              - when: '$topos.data.status == "valid"'
                 then:
                   - step: set
                     bindings:
                       ready_to_emit: "$ready_to_emit + 1"
 
-          # Add to active oikoi list
+          # Add to active topoi list
           - step: append
-            to: "$active_oikoi"
+            to: "$active_topoi"
             value:
-              id: "$oikos.id"
-              name: "$oikos.data.name"
-              status: "$oikos.data.status"
-              scale: "$oikos.data.scale"
+              id: "$topos.id"
+              name: "$topos.data.name"
+              status: "$topos.data.status"
+              scale: "$topos.data.scale"
               eide_count: "$eide | length"
               praxeis_count: "$praxeis | length"
               desmoi_count: "$desmoi | length"
-            bind_to: active_oikoi
+            bind_to: active_topoi
 
       # Gather palette awareness
       - step: gather
@@ -1634,8 +1721,8 @@ entities:
               - step: append
                 to: "$pending_actions"
                 value:
-                  action: "validate-oikos"
-                  reason: "$needs_validation oikos in 'composing' status need validation"
+                  action: "validate-topos"
+                  reason: "$needs_validation topoi in 'composing' status need validation"
                 bind_to: pending_actions
 
       - step: switch
@@ -1645,14 +1732,14 @@ entities:
               - step: append
                 to: "$pending_actions"
                 value:
-                  action: "emit-oikos"
-                  reason: "$ready_to_emit oikos are validated and ready to emit"
+                  action: "emit-topos"
+                  reason: "$ready_to_emit topoi are validated and ready to emit"
                 bind_to: pending_actions
 
       - step: return
         value:
-          active_oikoi: "$active_oikoi"
-          oikoi_count: "$active_oikoi | length"
+          active_topoi: "$active_topoi"
+          topoi_count: "$active_topoi | length"
           palette_awareness:
             stoicheia:
               total: "$all_stoicheia | length"
@@ -1674,7 +1761,7 @@ entities:
 - eidos: praxis
   id: praxis/demiurge/validate-praxis
   data:
-    oikos: demiurge
+    topos: demiurge
     name: validate-praxis
     visible: false  # Internal, invoked by reflex
     tier: 2
@@ -1727,6 +1814,8 @@ entities:
           praxis_id: "$praxis_id"
           valid: "$errors | length == 0"
           errors: "$errors"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/develop }
 
 # =============================================================================
 # GENERATIVE DEVELOPMENT SPIRAL — Generation
@@ -1739,12 +1828,12 @@ entities:
 # 4. Create entity from generated content
 # 5. Bond provenance (informed-by)
 #
-# Uses typos from genesis/spora/definitions/oikos-generation.yaml
+# Uses typos from genesis/demiurge/typos/oikos-generation.yaml
 
 - eidos: praxis
   id: praxis/demiurge/generate-eidos
   data:
-    oikos: demiurge
+    topos: demiurge
     name: generate-eidos
     visible: true
     tier: 3  # Requires inference (actuality)
@@ -1802,7 +1891,7 @@ entities:
             then:
               - step: surface
                 query: "$domain ontology eidos"
-                eidos: theoria
+                eidos_filter: theoria
                 limit: 5
                 bind_to: theoria
         default:
@@ -1873,10 +1962,10 @@ entities:
       - step: for_each
         items: "$theoria"
         as: t
-        steps:
+        do:
           - step: bind
-            from: "$artifact.id"
-            to: "$t.id"
+            from_id: "$artifact.id"
+            to_id: "$t.id"
             desmos: informed-by
 
       # Step 7: Return
@@ -1886,11 +1975,13 @@ entities:
           generated: "$generated.content"
           verdict: "$generated.verdict"
           informed_by: "$theoria | map(.id)"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/develop }
 
 - eidos: praxis
   id: praxis/demiurge/generate-praxis
   data:
-    oikos: demiurge
+    topos: demiurge
     name: generate-praxis
     visible: true
     tier: 3  # Requires inference (actuality)
@@ -1906,10 +1997,10 @@ entities:
         type: string
         required: true
         description: The praxis name (kebab-case)
-      - name: oikos
+      - name: topos
         type: string
         required: true
-        description: Which oikos this praxis belongs to
+        description: Which topos this praxis belongs to
       - name: purpose
         type: string
         required: true
@@ -1941,7 +2032,7 @@ entities:
         typos_id: typos-inference-praxis
         inputs:
           name: "$name"
-          oikos: "$oikos"
+          topos: "$topos"
           purpose: "$purpose"
           params_spec: "$params_spec"
           available_stoicheia: "$available_stoicheia"
@@ -1956,7 +2047,7 @@ entities:
             then:
               - step: surface
                 query: "$domain praxis workflow"
-                eidos: theoria
+                eidos_filter: theoria
                 limit: 5
                 bind_to: theoria
         default:
@@ -2016,8 +2107,8 @@ entities:
       - step: compose
         typos_id: typos-def-artifact
         inputs:
-          id: "artifact/praxis-$oikos-$name"
-          title: "Praxis: $oikos/$name"
+          id: "artifact/praxis-$topos-$name"
+          title: "Praxis: $topos/$name"
           kind: definition
           domain: "$domain"
           content: "$generated.content"
@@ -2027,10 +2118,10 @@ entities:
       - step: for_each
         items: "$theoria"
         as: t
-        steps:
+        do:
           - step: bind
-            from: "$artifact.id"
-            to: "$t.id"
+            from_id: "$artifact.id"
+            to_id: "$t.id"
             desmos: informed-by
 
       # Step 7: Return
@@ -2040,11 +2131,13 @@ entities:
           generated: "$generated.content"
           verdict: "$generated.verdict"
           informed_by: "$theoria | map(.id)"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/develop }
 
 - eidos: praxis
   id: praxis/demiurge/generate-desmos
   data:
-    oikos: demiurge
+    topos: demiurge
     name: generate-desmos
     visible: true
     tier: 3  # Requires inference (actuality)
@@ -2100,7 +2193,7 @@ entities:
             then:
               - step: surface
                 query: "$domain relationship bond"
-                eidos: theoria
+                eidos_filter: theoria
                 limit: 5
                 bind_to: theoria
         default:
@@ -2171,10 +2264,10 @@ entities:
       - step: for_each
         items: "$theoria"
         as: t
-        steps:
+        do:
           - step: bind
-            from: "$artifact.id"
-            to: "$t.id"
+            from_id: "$artifact.id"
+            to_id: "$t.id"
             desmos: informed-by
 
       # Step 7: Return
@@ -2184,18 +2277,20 @@ entities:
           generated: "$generated.content"
           verdict: "$generated.verdict"
           informed_by: "$theoria | map(.id)"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/develop }
 
 - eidos: praxis
-  id: praxis/demiurge/generate-oikos
+  id: praxis/demiurge/generate-topos
   data:
-    oikos: demiurge
-    name: generate-oikos
+    topos: demiurge
+    name: generate-topos
     visible: true
     tier: 3  # Requires inference (actuality)
     description: |
-      Generate an oikos design using inference-context.
+      Generate a topos design using inference-context.
 
-      This is the meta-level: generate the structure of an entire oikos,
+      This is the meta-level: generate the structure of an entire topos,
       including what eide, praxeis, and desmoi it should contain.
 
       Returns a design artifact that can guide subsequent generation
@@ -2205,11 +2300,11 @@ entities:
       - name: name
         type: string
         required: true
-        description: The oikos name (lowercase)
+        description: The topos name (lowercase)
       - name: purpose
         type: string
         required: true
-        description: What ontological gap does this oikos address?
+        description: What ontological gap does this topos address?
       - name: scale
         type: string
         required: false
@@ -2218,15 +2313,15 @@ entities:
       - name: capabilities
         type: array
         required: false
-        description: High-level capabilities this oikos should provide
+        description: High-level capabilities this topos should provide
       - name: interaction_surfaces
         type: array
         required: false
         description: "Which surfaces to leverage: rendering, reasoning, etc."
-      - name: existing_oikoi
+      - name: existing_topoi
         type: array
         required: false
-        description: Related oikoi to consider for dependencies
+        description: Related topoi to consider for dependencies
       - name: evaluate
         type: boolean
         required: false
@@ -2235,20 +2330,20 @@ entities:
     steps:
       # Step 1: Compose inference context
       - step: compose
-        typos_id: typos-inference-oikos
+        typos_id: typos-inference-topos
         inputs:
           name: "$name"
           purpose: "$purpose"
           scale: "$scale"
           capabilities: "$capabilities"
           interaction_surfaces: "$interaction_surfaces"
-          existing_oikoi: "$existing_oikoi"
+          existing_topoi: "$existing_topoi"
         bind_to: context
 
       # Step 2: Surface domain theoria
       - step: surface
-        query: "oikos design architecture capability"
-        eidos: theoria
+        query: "topos design architecture capability"
+        eidos_filter: theoria
         limit: 5
         bind_to: theoria
 
@@ -2290,13 +2385,13 @@ entities:
           evaluate: "$evaluate"
           criteria:
             - name: ontological_coherence
-              description: "Does this oikos address a clear ontological gap?"
+              description: "Does this topos address a clear ontological gap?"
               weight: 1.0
             - name: component_completeness
               description: "Are eide, praxeis, and desmoi sufficiently defined?"
               weight: 0.9
             - name: dependency_clarity
-              description: "Are dependencies on other oikoi clear and justified?"
+              description: "Are dependencies on other topoi clear and justified?"
               weight: 0.7
             - name: attainment_design
               description: "Are capabilities properly gated by attainments?"
@@ -2307,10 +2402,10 @@ entities:
       - step: compose
         typos_id: typos-def-artifact
         inputs:
-          id: "artifact/oikos-$name-design"
+          id: "artifact/topos-$name-design"
           title: "Oikos Design: $name"
           kind: design
-          domain: "oikos"
+          domain: "topos"
           content: "$generated.content"
         bind_to: artifact
 
@@ -2318,10 +2413,10 @@ entities:
       - step: for_each
         items: "$theoria"
         as: t
-        steps:
+        do:
           - step: bind
-            from: "$artifact.id"
-            to: "$t.id"
+            from_id: "$artifact.id"
+            to_id: "$t.id"
             desmos: informed-by
 
       # Step 7: Return
@@ -2335,11 +2430,13 @@ entities:
             - "Use generate-eidos for each eidos in design.eide"
             - "Use generate-praxis for each praxis in design.praxeis"
             - "Use generate-desmos for each desmos in design.desmoi"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/develop }
 
 - eidos: praxis
   id: praxis/demiurge/actualize-eidos
   data:
-    oikos: demiurge
+    topos: demiurge
     name: actualize-eidos
     visible: true
     tier: 2
@@ -2355,7 +2452,7 @@ entities:
         type: string
         required: true
         description: ID of the artifact containing the eidos definition
-      - name: oikos_id
+      - name: topos_id
         type: string
         required: false
         description: Oikos to bind the eidos to
@@ -2389,21 +2486,32 @@ entities:
           fields: "$definition.fields"
         bind_to: eidos
 
-      # Step 4: Bind to oikos if provided
+      # Step 4: Bind to topos if provided
       - step: switch
         cases:
-          - when: "$oikos_id"
+          - when: "$topos_id"
             then:
               - step: bind
-                from: "$eidos.id"
-                to: "$oikos_id"
+                from_id: "$eidos.id"
+                to_id: "$topos_id"
                 desmos: belongs-to
 
       # Step 5: Bond provenance from artifact
       - step: bind
-        from: "$eidos.id"
-        to: "$artifact_id"
+        from_id: "$eidos.id"
+        to_id: "$artifact_id"
         desmos: composed-from
+
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Actualized eidos $eidos.id from artifact"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: eidos
+            source_id: "$eidos.id"
 
       # Step 6: Return
       - step: return
@@ -2411,11 +2519,13 @@ entities:
           eidos: "$eidos"
           artifact_id: "$artifact_id"
           actualized: true
+  bonds:
+    - { desmos: requires-attainment, to: attainment/develop }
 
 - eidos: praxis
   id: praxis/demiurge/actualize-praxis
   data:
-    oikos: demiurge
+    topos: demiurge
     name: actualize-praxis
     visible: true
     tier: 2
@@ -2445,8 +2555,8 @@ entities:
       - step: compose
         typos_id: typos-def-praxis
         inputs:
-          id: "praxis/$definition.oikos/$definition.name"
-          oikos: "$definition.oikos"
+          id: "praxis/$definition.topos/$definition.name"
+          topos: "$definition.topos"
           name: "$definition.name"
           visible: "$definition.visible"
           description: "$definition.description"
@@ -2455,20 +2565,33 @@ entities:
         bind_to: praxis
 
       - step: bind
-        from: "$praxis.id"
-        to: "$artifact_id"
+        from_id: "$praxis.id"
+        to_id: "$artifact_id"
         desmos: composed-from
+
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Actualized praxis $praxis.id from artifact"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: praxis
+            source_id: "$praxis.id"
 
       - step: return
         value:
           praxis: "$praxis"
           artifact_id: "$artifact_id"
           actualized: true
+  bonds:
+    - { desmos: requires-attainment, to: attainment/develop }
 
 - eidos: praxis
   id: praxis/demiurge/actualize-desmos
   data:
-    oikos: demiurge
+    topos: demiurge
     name: actualize-desmos
     visible: true
     tier: 2
@@ -2508,33 +2631,46 @@ entities:
         bind_to: desmos
 
       - step: bind
-        from: "$desmos.id"
-        to: "$artifact_id"
+        from_id: "$desmos.id"
+        to_id: "$artifact_id"
         desmos: composed-from
+
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Actualized desmos $desmos.id from artifact"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: desmos
+            source_id: "$desmos.id"
 
       - step: return
         value:
           desmos: "$desmos"
           artifact_id: "$artifact_id"
           actualized: true
+  bonds:
+    - { desmos: requires-attainment, to: attainment/develop }
 
 # =============================================================================
 # GENERATIVE DEVELOPMENT SPIRAL — Actualization & Workflow
 # =============================================================================
 #
-# The master workflow for developing an oikos from specification to actuality.
+# The master workflow for developing a topos from specification to actuality.
 # This is the compound leverage pattern — each step informs the next,
 # and provenance accumulates for future learning.
 
 - eidos: praxis
-  id: praxis/demiurge/develop-oikos-from-design
+  id: praxis/demiurge/develop-topos-from-design
   data:
-    oikos: demiurge
-    name: develop-oikos-from-design
+    topos: demiurge
+    name: develop-topos-from-design
     visible: true
     tier: 3
     description: |
-      Develop an oikos from an existing DESIGN.md document.
+      Develop a topos from an existing DESIGN.md document.
 
       Takes a design document and generates all components.
       Use this when you have a detailed design spec ready.
@@ -2547,10 +2683,10 @@ entities:
         type: string
         required: true
         description: The design document content (markdown)
-      - name: oikos_name
+      - name: topos_name
         type: string
         required: true
-        description: The oikos name
+        description: The topos name
       - name: actualize
         type: boolean
         required: false
@@ -2562,19 +2698,19 @@ entities:
         praxis: manteia/governed-inference
         params:
           prompt: |
-            Parse this oikos design document and extract a structured specification.
+            Parse this topos design document and extract a structured specification.
 
             Design document:
             {{ $design_content }}
 
             Extract:
-            - purpose: The main purpose/gap this oikos addresses
+            - purpose: The main purpose/gap this topos addresses
             - scale: The klimax scale (kosmos, polis, oikos, soma, psyche)
             - eide: List of {name, purpose, key_fields, source?} — set source if defined elsewhere
-            - praxeis: List of {name, purpose, params, namespace?} — set namespace if different from oikos
+            - praxeis: List of {name, purpose, params, namespace?} — set namespace if different from topos
             - desmoi: List of {name, from, to, purpose, source?} — set source if defined elsewhere
             - attainments: List of {name, purpose, grants, source?} — set source if defined elsewhere
-            - dependencies: List of other oikoi this depends on
+            - dependencies: List of other topoi this depends on
 
             Important patterns:
             - If eidos says "(from X)" or "(defined in X)", set source: X
@@ -2618,7 +2754,7 @@ entities:
                         type: string
                     namespace:
                       type: string
-                      description: "Override namespace if different from oikos name"
+                      description: "Override namespace if different from topos name"
               desmoi:
                 type: array
                 items:
@@ -2644,10 +2780,17 @@ entities:
                       type: string
                     purpose:
                       type: string
-                    grants:
+                    bonds:
                       type: array
                       items:
-                        type: string
+                        type: object
+                        properties:
+                          desmos:
+                            type: string
+                            description: "Bond type (e.g., 'grants-praxis')"
+                          to:
+                            type: string
+                            description: "Target entity ID"
                     source:
                       type: string
                       description: "Oikos that defines this attainment, if external"
@@ -2662,10 +2805,10 @@ entities:
       - step: compose
         typos_id: typos-def-artifact
         inputs:
-          id: "artifact/oikos-$oikos_name-design"
-          title: "Oikos Design: $oikos_name"
+          id: "artifact/topos-$topos_name-design"
+          title: "Oikos Design: $topos_name"
           kind: design
-          domain: "oikos"
+          domain: "topos"
           content: "$parsed.content"
         bind_to: design_artifact
 
@@ -2707,7 +2850,7 @@ entities:
             params:
               name: "$eidos_spec.name"
               purpose: "$eidos_spec.purpose"
-              domain: "$oikos_name"
+              domain: "$topos_name"
               field_hints: "$eidos_spec.key_fields"
             bind_to: result
 
@@ -2716,8 +2859,8 @@ entities:
             value: "$result.artifact"
 
           - step: bind
-            from: "$result.artifact.id"
-            to: "$design_artifact.id"
+            from_id: "$result.artifact.id"
+            to_id: "$design_artifact.id"
             desmos: composed-from
 
       # Generate praxeis (handle namespace override)
@@ -2731,16 +2874,16 @@ entities:
                 steps:
                   - step: set
                     bindings:
-                      praxis_oikos: "$praxis_spec.namespace or $oikos_name"
+                      praxis_topos: "$praxis_spec.namespace or $topos_name"
 
                   - step: call
                     praxis: demiurge/generate-praxis
                     params:
                       name: "$praxis_spec.name"
-                      oikos: "$praxis_oikos"
+                      topos: "$praxis_topos"
                       purpose: "$praxis_spec.purpose"
                       params_spec: "$praxis_spec.params"
-                      domain: "$oikos_name"
+                      domain: "$topos_name"
                     bind_to: result
 
                   - step: append
@@ -2748,8 +2891,8 @@ entities:
                     value: "$result.artifact"
 
                   - step: bind
-                    from: "$result.artifact.id"
-                    to: "$design_artifact.id"
+                    from_id: "$result.artifact.id"
+                    to_id: "$design_artifact.id"
                     desmos: composed-from
 
       # Generate desmoi (filter out external)
@@ -2777,7 +2920,7 @@ entities:
                       purpose: "$desmos_spec.purpose"
                       from_eidos: "$desmos_spec.from"
                       to_eidos: "$desmos_spec.to"
-                      domain: "$oikos_name"
+                      domain: "$topos_name"
                     bind_to: result
 
                   - step: append
@@ -2785,8 +2928,8 @@ entities:
                     value: "$result.artifact"
 
                   - step: bind
-                    from: "$result.artifact.id"
-                    to: "$design_artifact.id"
+                    from_id: "$result.artifact.id"
+                    to_id: "$design_artifact.id"
                     desmos: composed-from
 
       # Actualize if requested
@@ -2806,7 +2949,7 @@ entities:
                     praxis: demiurge/actualize-eidos
                     params:
                       artifact_id: "$artifact.id"
-                      oikos_id: "oikos/$oikos_name"
+                      topos_id: "topos/$topos_name"
                     bind_to: result
                   - step: append
                     to: actualized
@@ -2840,7 +2983,7 @@ entities:
 
       - step: return
         value:
-          oikos_name: "$oikos_name"
+          topos_name: "$topos_name"
           design_artifact: "$design_artifact"
           design: "$design"
           artifacts:
@@ -2851,3 +2994,5 @@ entities:
             eide: "$external_eide"
             desmoi: "$external_desmoi"
           actualized: "$actualized"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/develop }

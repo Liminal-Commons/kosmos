@@ -1,0 +1,56 @@
+# Segment Item Render-Spec
+# Compact list item for segment — a unit within conversation
+#
+# Segment fields (from oikos/eide/oikos.yaml):
+#   - content (string, required): Segment content
+#   - author_kind (enum: human, ai, system): Who authored this segment
+#
+# Replaces HTML template in oikos/entities/rendering.yaml
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/segment-item
+    data:
+      name: segment-item
+      description: |
+        Compact list item for segment entities.
+        Shows author indicator and content text.
+      target_eidos: segment
+      variant: item
+
+      layout:
+        - widget: card
+          props:
+            variant: compact
+            padding: sm
+          children:
+            - widget: row
+              props:
+                gap: sm
+                align: center
+              children:
+                # Author indicator icons
+                - widget: icon
+                  when: "author_kind == 'human'"
+                  props:
+                    name: user
+                    size: sm
+                - widget: icon
+                  when: "author_kind == 'ai'"
+                  props:
+                    name: cpu
+                    size: sm
+                - widget: icon
+                  when: "author_kind == 'system'"
+                  props:
+                    name: settings
+                    size: sm
+
+                # Content
+                - widget: text
+                  props:
+                    content: "{content}"
+                    variant: body
+
+      created_at: "2026-02-09T00:00:00Z"

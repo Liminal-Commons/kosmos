@@ -1,0 +1,136 @@
+# Nous Reflexes — Homoiconic Form
+# Autonomic responses for knowledge indexing and ambient intelligence
+#
+# Bonds are co-located on their parent entities:
+#   trigger.bonds: [matches-event, filters-eidos]
+#   reflex.bonds: [triggered-by, responds-with]
+#   reflex.data.response_params: params for the responds-with praxis
+
+entities:
+
+  # =============================================================================
+  # TRIGGERS
+  # =============================================================================
+
+  - eidos: trigger
+    id: trigger/nous/theoria-created
+    data:
+      name: theoria-created
+      enabled: true
+    bonds:
+      - desmos: matches-event
+        to: entity-mutation/created
+      - desmos: filters-eidos
+        to: eidos/theoria
+
+  - eidos: trigger
+    id: trigger/nous/phasis-created
+    data:
+      name: phasis-created
+      enabled: true
+    bonds:
+      - desmos: matches-event
+        to: entity-mutation/created
+      - desmos: filters-eidos
+        to: eidos/phasis
+
+  - eidos: trigger
+    id: trigger/nous/suggest-pattern
+    data:
+      name: suggest-pattern
+      enabled: true
+    bonds:
+      - desmos: matches-event
+        to: entity-mutation/created
+      - desmos: filters-eidos
+        to: eidos/theoria
+
+  - eidos: trigger
+    id: trigger/nous/announce-pattern
+    data:
+      name: announce-pattern
+      enabled: true
+    bonds:
+      - desmos: matches-event
+        to: entity-mutation/created
+      - desmos: filters-eidos
+        to: eidos/pattern
+
+  # =============================================================================
+  # REFLEXES
+  # =============================================================================
+
+  - eidos: reflex
+    id: reflex/nous/theoria-created
+    data:
+      name: theoria-created
+      description: |
+        Auto-index theoria for semantic search when created.
+
+        Makes crystallized understanding discoverable via nous/surface.
+      enabled: true
+      scope: global
+      response_params:
+        entity_id: "$entity.id"
+    bonds:
+      - desmos: triggered-by
+        to: trigger/nous/theoria-created
+      - desmos: responds-with
+        to: praxis/nous/index-entity
+
+  - eidos: reflex
+    id: reflex/nous/phasis-created
+    data:
+      name: phasis-created
+      description: |
+        Auto-index phaseis for semantic search.
+
+        Makes conversation content searchable.
+      enabled: true
+      scope: global
+      response_params:
+        entity_id: "$entity.id"
+    bonds:
+      - desmos: triggered-by
+        to: trigger/nous/phasis-created
+      - desmos: responds-with
+        to: praxis/nous/index-entity
+
+  - eidos: reflex
+    id: reflex/nous/suggest-pattern
+    data:
+      name: suggest-pattern
+      description: |
+        When a new theoria is crystallized, check if enough theoria
+        exist in the same domain to suggest pattern detection.
+      enabled: true
+      scope: global
+      response_params:
+        domain: "$entity.data.domain"
+    bonds:
+      - desmos: triggered-by
+        to: trigger/nous/suggest-pattern
+      - desmos: responds-with
+        to: praxis/nous/detect-patterns
+
+  - eidos: reflex
+    id: reflex/nous/announce-pattern
+    data:
+      name: announce-pattern
+      description: |
+        When a pattern emerges from theoria clustering, announce
+        in discourse as a significant knowledge event.
+      enabled: true
+      scope: global
+      response_params:
+        content: "Pattern emerged: $entity.data.name"
+        stance: declaration
+        source_kind: topos
+        metadata:
+          source_eidos: pattern
+          source_id: "$entity.id"
+    bonds:
+      - desmos: triggered-by
+        to: trigger/nous/announce-pattern
+      - desmos: responds-with
+        to: praxis/logos/emit-phasis

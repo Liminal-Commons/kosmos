@@ -1,0 +1,115 @@
+# Aither Reflexes — Homoiconic Form
+# Autonomic responses for syndesmos reconciliation and sync message processing
+#
+# Reflexes connect to triggers and praxeis via bonds:
+#   reflex --[triggered-by]--> trigger --[matches-event]--> mutation-event
+#   reflex --[responds-with]--> praxis (response_params carries params)
+#
+# Traces to: PROMPT-SUBSTRATE-WEBRTC.md
+
+entities:
+
+  # =============================================================================
+  # SYNC MESSAGE TRIGGERS + REFLEXES
+  # =============================================================================
+
+  - eidos: trigger
+    id: trigger/aither/sync-message-received
+    data:
+      name: sync-message-received
+      enabled: true
+    bonds:
+      - desmos: matches-event
+        to: entity-mutation/created
+      - desmos: filters-eidos
+        to: eidos/sync-message
+
+  - eidos: reflex
+    id: reflex/aither/sync-message-received
+    data:
+      name: sync-message-received
+      description: |
+        Process federation sync message when it arrives.
+
+        When a sync-message entity is created (message received via WebRTC),
+        this reflex triggers processing. Replaces poll_channels() interval
+        with event-driven message handling.
+      enabled: true
+      scope: global
+      response_params:
+        message_id: "$entity.id"
+    bonds:
+      - desmos: triggered-by
+        to: trigger/aither/sync-message-received
+      - desmos: responds-with
+        to: praxis/aither/process-sync-message
+
+  # =============================================================================
+  # SYNDESMOS INTENT-CHANGE TRIGGER + REFLEX
+  # =============================================================================
+
+  - eidos: trigger
+    id: trigger/aither/syndesmos-intent-changed
+    data:
+      name: syndesmos-intent-changed
+      condition: '$entity.data.intent != $previous.data.intent'
+      enabled: true
+    bonds:
+      - desmos: matches-event
+        to: entity-mutation/updated
+      - desmos: filters-eidos
+        to: eidos/syndesmos
+
+  - eidos: reflex
+    id: reflex/aither/syndesmos-intent-changed
+    data:
+      name: syndesmos-intent-changed
+      description: |
+        Trigger reconciliation when syndesmos intent changes.
+        When intent changes (e.g., connected -> disconnected),
+        the reconciler dispatches the appropriate lifecycle action.
+      enabled: true
+      scope: global
+      response_params:
+        reconciler_id: "reconciler/syndesmos"
+        entity_id: "$entity.id"
+    bonds:
+      - desmos: triggered-by
+        to: trigger/aither/syndesmos-intent-changed
+      - desmos: responds-with
+        to: praxis/dynamis/reconcile
+
+  # =============================================================================
+  # SYNDESMOS DRIFT-DETECTION TRIGGER + REFLEX
+  # =============================================================================
+
+  - eidos: trigger
+    id: trigger/aither/syndesmos-drift
+    data:
+      name: syndesmos-drift
+      condition: '$entity.data.intent == "connected" and $entity.data.status in ["disconnected", "failed"]'
+      enabled: true
+    bonds:
+      - desmos: matches-event
+        to: entity-mutation/updated
+      - desmos: filters-eidos
+        to: eidos/syndesmos
+
+  - eidos: reflex
+    id: reflex/aither/syndesmos-drift
+    data:
+      name: syndesmos-drift
+      description: |
+        When a syndesmos connection's sensed status diverges from intent,
+        invoke reconciliation to reconnect. Fires when the daemon senses
+        a disconnected/failed status but intent is connected.
+      enabled: true
+      scope: global
+      response_params:
+        reconciler_id: "reconciler/syndesmos"
+        entity_id: "$entity.id"
+    bonds:
+      - desmos: triggered-by
+        to: trigger/aither/syndesmos-drift
+      - desmos: responds-with
+        to: praxis/dynamis/reconcile

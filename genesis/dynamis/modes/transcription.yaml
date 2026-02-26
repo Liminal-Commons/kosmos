@@ -1,0 +1,50 @@
+# Transcription Mode (compute substrate)
+# ASR bridge — consumes audio PCM, produces text utterances.
+# Modality bridge: transforms audio signal into semantic content.
+#
+# Traces to: PROMPT-VOICE-DECOMPOSITION.md
+
+entities:
+
+  - eidos: mode
+    id: mode/transcription
+    data:
+      name: transcription
+      topos: dynamis
+      substrate: compute
+      provider: whisper-local
+      description: |
+        ASR bridge — consumes audio PCM, produces text utterances.
+        Modality bridge: transforms audio signal into semantic content.
+        Shared by voice composing (utterances), live captions, recording transcription.
+      operations:
+        manifest:
+          stoicheion: transcription-start
+          description: "Start transcription process, connect to audio source"
+        sense:
+          stoicheion: transcription-sense
+          description: "Check transcription process health"
+        unmanifest:
+          stoicheion: transcription-stop
+          description: "Stop transcription process"
+
+  - eidos: mode
+    id: mode/transcription-parakeet
+    data:
+      name: transcription
+      topos: dynamis
+      substrate: compute
+      provider: parakeet-lan
+      description: |
+        Network transcription via Parakeet on chora-node (LAN).
+        Same VAD pipeline, HTTP inference instead of in-process whisper.
+      operations:
+        manifest:
+          stoicheion: transcription-start-parakeet
+          description: "Start transcription with network provider"
+        sense:
+          stoicheion: transcription-sense
+          description: "Check transcription process health"
+        unmanifest:
+          stoicheion: transcription-stop
+          description: "Stop transcription process"

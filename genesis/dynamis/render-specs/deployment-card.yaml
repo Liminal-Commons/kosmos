@@ -1,0 +1,108 @@
+# Dynamis Render Specifications — deployment card
+# Card view for deployment showing desired/actual state comparison
+#
+# Deployment fields:
+#   - name (string): Deployment name
+#   - desired_state (enum): Target state
+#   - actual_state (enum: running, stopped, degraded, failed, unknown): Current state
+#   - last_sensed_at (timestamp): Last actuality check
+#
+# Migrated from: genesis/dynamis/entities/rendering.yaml
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/deployment-card
+    data:
+      name: deployment-card
+      description: |
+        Card rendering for deployment entities.
+        Shows desired vs actual state comparison with status indicator.
+      target_eidos: deployment
+      variant: card
+
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+          children:
+            - widget: stack
+              props:
+                gap: sm
+              children:
+                # Header: icon and name
+                - widget: row
+                  props:
+                    gap: sm
+                    align: center
+                  children:
+                    - widget: icon
+                      props:
+                        name: rocket
+                        size: md
+                    - widget: text
+                      props:
+                        content: "{name}"
+                        variant: title
+
+                # State comparison row: desired -> actual
+                - widget: row
+                  props:
+                    gap: sm
+                    align: center
+                    justify: center
+                  children:
+                    - widget: badge
+                      props:
+                        content: "{desired_state}"
+                        variant: info
+                    - widget: icon
+                      props:
+                        name: arrow-right
+                        size: sm
+                    - widget: status-indicator
+                      props:
+                        status: "{actual_state}"
+                    - widget: badge
+                      when: "actual_state == 'running'"
+                      props:
+                        content: "{actual_state}"
+                        variant: success
+                    - widget: badge
+                      when: "actual_state == 'stopped'"
+                      props:
+                        content: "{actual_state}"
+                        variant: default
+                    - widget: badge
+                      when: "actual_state == 'degraded'"
+                      props:
+                        content: "{actual_state}"
+                        variant: warning
+                    - widget: badge
+                      when: "actual_state == 'failed'"
+                      props:
+                        content: "{actual_state}"
+                        variant: error
+                    - widget: badge
+                      when: "actual_state == 'unknown'"
+                      props:
+                        content: "{actual_state}"
+                        variant: default
+
+                # Last sensed timestamp
+                - widget: row
+                  props:
+                    gap: xs
+                    align: center
+                  children:
+                    - widget: icon
+                      props:
+                        name: clock
+                        size: sm
+                    - widget: text
+                      props:
+                        content: "Sensed {last_sensed_at}"
+                        variant: caption
+
+      created_at: "2026-02-09T00:00:00Z"

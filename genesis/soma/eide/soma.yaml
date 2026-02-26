@@ -1,8 +1,8 @@
 # Soma Eide
-# Embodiment eide — the body through which animus perceives and acts
+# Embodiment eide — the body through which parousia perceives and acts
 #
 # Extracted from spora.yaml stage-2-presence
-# Note: animus stays in spora.yaml as foundational (needed by founder stage)
+# Note: parousia stays in spora.yaml as foundational (needed by founder stage)
 
 entities:
 
@@ -80,7 +80,7 @@ entities:
   id: eidos/body-schema
   data:
     name: body-schema
-    description: "The animus's sense of its own shape and capacity"
+    description: "The parousia's sense of its own shape and capacity"
     fields:
       channels:
         type: array
@@ -102,16 +102,16 @@ entities:
     name: notification
     description: |
       A notification created by reflexes to signal events requiring attention.
-      Appears in body-schema awareness for persona to see.
+      Appears in body-schema awareness for prosopon to see.
     fields:
       type:
         type: string
         required: true
         description: "Notification type (pragma_received, pragma_resolved, etc.)"
-      circle_id:
+      oikos_id:
         type: string
         required: false
-        description: "Target circle for the notification"
+        description: "Target oikos for the notification"
       pragma_id:
         type: string
         required: false
@@ -146,13 +146,13 @@ entities:
   data:
     name: embody
     description: |
-      Capability to arise and depart as animus — managing presence.
-      Required to instantiate persona as embodied presence in a circle.
-    oikos: soma
-    scope: circle
-    grants:
-      - praxis/soma/arise-animus
-      - praxis/soma/depart-animus
+      Capability to arise and depart as parousia — managing presence.
+      Required to instantiate prosopon as embodied presence in an oikos.
+    topos: soma
+    scope: oikos
+  bonds:
+    - { desmos: grants-praxis, to: praxis/soma/arise-parousia }
+    - { desmos: grants-praxis, to: praxis/soma/depart-parousia }
 
 - eidos: attainment
   id: attainment/channel
@@ -160,12 +160,12 @@ entities:
     name: channel
     description: |
       Capability to open and close channels — managing I/O pathways.
-      Required to establish communication pathways for perception and expression.
-    oikos: soma
-    scope: circle
-    grants:
-      - praxis/soma/open-channel
-      - praxis/soma/close-channel
+      Required to establish communication pathways for perception and phasis.
+    topos: soma
+    scope: oikos
+  bonds:
+    - { desmos: grants-praxis, to: praxis/soma/open-channel }
+    - { desmos: grants-praxis, to: praxis/soma/close-channel }
 
 # =============================================================================
 # INFRASTRUCTURE EIDE
@@ -204,10 +204,10 @@ entities:
         type: string
         required: false
         description: "Public URL if accessible outside private network"
-      steward_circle_id:
+      steward_oikos_id:
         type: string
         required: false
-        description: "For commons nodes — which circle governs this infrastructure"
+        description: "For commons nodes — which oikos governs this infrastructure"
       status:
         type: enum
         values: [online, offline, degraded, unknown]
@@ -259,7 +259,7 @@ entities:
   data:
     name: kosmos-instance
     description: |
-      A running kosmos interpreter serving one circle's database.
+      A running kosmos interpreter serving one oikos's database.
       Observational entity for health sensing and federation discovery.
       Note: The substrate (systemd, Thyra) starts the instance; this entity describes it.
     fields:
@@ -267,10 +267,10 @@ entities:
         type: string
         required: true
         description: "Instance identifier"
-      circle_id:
+      oikos_id:
         type: string
         required: true
-        description: "Circle this instance serves"
+        description: "Oikos this instance serves"
       server_url:
         type: string
         required: false
@@ -309,14 +309,14 @@ entities:
     description: |
       Capability to register and manage infrastructure entities (nodes, services).
       Required for commons operations and self-hosting.
-    oikos: soma
-    scope: circle
-    grants:
-      - praxis/soma/register-node
-      - praxis/soma/sense-node
-      - praxis/soma/register-service
-      - praxis/soma/sense-service
-      - praxis/soma/sense-kosmos-instance
+    topos: soma
+    scope: oikos
+  bonds:
+    - { desmos: grants-praxis, to: praxis/soma/register-node }
+    - { desmos: grants-praxis, to: praxis/soma/sense-node }
+    - { desmos: grants-praxis, to: praxis/soma/register-service }
+    - { desmos: grants-praxis, to: praxis/soma/sense-service }
+    - { desmos: grants-praxis, to: praxis/soma/sense-kosmos-instance }
 
 # =============================================================================
 # CONFIGURATION EIDE
@@ -344,7 +344,7 @@ entities:
       discovery_timeout_ms:
         type: integer
         required: false
-        description: "Timeout for circle discovery operations (default: 10000)"
+        description: "Timeout for oikos discovery operations (default: 10000)"
 
       # Health Checking
       health_check_timeout_ms:

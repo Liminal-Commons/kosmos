@@ -1,0 +1,224 @@
+# Mode and Thyra-Config Eide
+# The mode framework — how existence becomes actuality on a substrate.
+#
+# A mode declares how a topos actualizes on a substrate. Screen modes
+# present in spatial positions. Infrastructure modes manifest processes,
+# storage, network resources. All modes share the same shape: substrate,
+# manifest/sense/unmanifest, dependencies.
+#
+# Layout is emergent — the consequence of active screen modes and their
+# spatial declarations.
+
+entities:
+
+  # =============================================================================
+  # MODE — How existence becomes actuality on a substrate
+  # =============================================================================
+
+  - eidos: eidos
+    id: eidos/mode
+    data:
+      name: mode
+      description: |
+        How existence becomes actuality on a specific substrate.
+        The bridge between the two modes of being.
+
+        Every mode declares a substrate and has three operations:
+        manifest, sense, unmanifest. Screen modes use render-spec
+        fields; infrastructure modes use operations blocks.
+
+        Screen mode patterns (exactly one required for substrate: screen):
+        1. Singleton: render_spec_id — one entity, one render-spec
+        2. Collection: item_spec_id — gather entities, render each with item spec
+        3. Compound: sections — multiple data sources, each with own item spec
+
+        Substrates: screen, compute, storage, network, filesystem, remote
+
+        The reconciler operates through modes universally.
+
+        Examples:
+        - mode/compose-full (substrate: screen, singleton)
+        - mode/process-local (substrate: compute, local provider)
+        - mode/object-storage-r2 (substrate: storage, r2 provider)
+        - mode/voice (substrate: compute, audio capture)
+      fields:
+        name:
+          type: string
+          required: true
+          description: "Human-readable mode name"
+
+        topos:
+          type: string
+          required: true
+          description: "Which topos this mode belongs to"
+
+        substrate:
+          type: string
+          required: true
+          description: |
+            What this mode acts on.
+            Values: screen, compute, storage, network, filesystem, remote
+
+        provider:
+          type: string
+          required: false
+          description: |
+            Provider variant within a substrate. Allows multiple providers
+            per substrate (e.g. r2 vs s3 for storage, local vs docker for compute).
+            Default: "local"
+
+        description:
+          type: string
+          required: false
+
+        # --- Dependencies ---
+
+        requires:
+          type: array
+          required: false
+          description: |
+            Mode IDs this mode depends on being active.
+            Cross-substrate: a screen mode may require a compute mode.
+            When this mode activates, required modes are manifested first.
+
+        # --- Screen substrate fields ---
+
+        render_spec_id:
+          type: string
+          required: false
+          description: |
+            Render-spec for singleton modes (one entity, one widget tree).
+            Mutually exclusive with item_spec_id and sections.
+            Only meaningful for substrate: screen.
+
+        item_spec_id:
+          type: string
+          required: false
+          description: |
+            Render-spec for each entity in a collection mode.
+            The layout engine gathers entities via source_query and
+            renders each with this spec. Mutually exclusive with
+            render_spec_id and sections.
+            Only meaningful for substrate: screen.
+
+        arrangement:
+          type: string
+          required: false
+          description: |
+            How items are laid out in a collection or compound mode.
+            Values: scroll, scroll-bottom, stack, list, grid.
+            Only meaningful with item_spec_id or sections.
+
+        empty_message:
+          type: string
+          required: false
+          description: "Text shown when source_query returns no entities"
+
+        chrome_spec_id:
+          type: string
+          required: false
+          description: |
+            Render-spec for surrounding chrome (heading, actions).
+            Rendered once with the mode's context entity, before items.
+
+        sections:
+          type: array
+          required: false
+          description: |
+            Compound mode: multiple data sources with their own specs.
+            Each section: { heading?, source_query, item_spec_id, arrangement, empty_message? }
+            Mutually exclusive with item_spec_id and render_spec_id.
+
+        spatial:
+          type: object
+          required: false
+          description: |
+            Spatial declaration for screen modes: { position, height? }
+            position: center, bottom, top, left, right
+            height: number (px), "fill", "auto"
+            Required for substrate: screen.
+
+        source_entity_id:
+          type: string
+          required: false
+          description: "Specific entity ID for modes bound to a singleton (e.g. accumulation/default)"
+
+        source_query:
+          type: string
+          required: false
+          description: "Entity query for modes that render collections (e.g. gather(eidos: phasis))"
+
+        config:
+          type: object
+          required: false
+          description: "Mode-specific configuration passed to the render context"
+
+        # --- Infrastructure substrate fields ---
+
+        operations:
+          type: object
+          required: false
+          description: |
+            Manifest/sense/unmanifest operations for non-screen substrates.
+            Each operation uses EITHER stoicheion OR handler:
+            - stoicheion: { stoicheion, params, returns, description }
+              build.rs reads these and generates dispatch tables automatically.
+              Used by infrastructure modes (process, storage, DNS).
+            - handler: { handler, params, returns, description }
+              Hand-wired Rust implementation (e.g. voice::manifest_stream).
+              Used when logic is too complex for stoicheion dispatch.
+              build.rs skips modes with handler-based operations.
+            Additional custom operations may be defined (e.g. push_fragment, clarify).
+
+        config_schema:
+          type: object
+          required: false
+          description: "Schema for infrastructure mode configuration"
+
+        requires_dynamis:
+          type: array
+          required: false
+          description: "Dynamis capabilities needed by this mode"
+
+        created_at:
+          type: timestamp
+          required: false
+
+  # =============================================================================
+  # THYRA-CONFIG — Window configuration (which modes are active)
+  # =============================================================================
+
+  - eidos: eidos
+    id: eidos/thyra-config
+    data:
+      name: thyra-config
+      description: |
+        Window configuration — which modes are active and how the window behaves.
+
+        A thyra-config is a named set of active modes. Mode switching updates
+        the active_modes list; the layout engine re-renders accordingly.
+
+        Examples: workspace (full authoring + voice), hud (minimal overlay)
+      fields:
+        name:
+          type: string
+          required: true
+          description: "Configuration name"
+
+        description:
+          type: string
+          required: false
+
+        active_modes:
+          type: array
+          required: true
+          description: "Ordered list of mode entity IDs"
+
+        window:
+          type: object
+          required: false
+          description: "Window behavior: { size: full|compact|hud, always_on_top: bool }"
+
+        created_at:
+          type: timestamp
+          required: false

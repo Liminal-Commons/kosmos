@@ -1,0 +1,50 @@
+# Dokimasia Render Specifications — validation-error item
+# Compact list item for validation errors
+#
+# Validation-error fields:
+#   - layer (enum: provenance, schema, semantic, behavioral): Which layer failed
+#   - code (string): Error code
+#   - message (string): Human-readable error message
+#
+# Traces to: genesis/dokimasia/DESIGN.md
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/validation-error-item
+    data:
+      name: validation-error-item
+      description: |
+        Compact list item for validation-error entities.
+        Shows layer badge, error code, and message.
+      target_eidos: validation-error
+      variant: item
+
+      layout:
+        - widget: card
+          props:
+            variant: compact
+            padding: sm
+          children:
+            - widget: row
+              props:
+                gap: sm
+                align: center
+              children:
+                - widget: icon
+                  props:
+                    name: alert-circle
+                    size: sm
+                - widget: badge
+                  props:
+                    content: "{layer}"
+                    variant: error
+                - widget: code
+                  props:
+                    content: "{code}"
+                - widget: text
+                  props:
+                    content: "{message}"
+                    variant: body
+
+      created_at: "2026-02-09T00:00:00Z"

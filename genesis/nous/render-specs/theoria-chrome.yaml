@@ -1,0 +1,19 @@
+# Theoria Chrome Render-Spec
+# Heading for the theoria browsing sidebar
+#
+# Rendered once by the layout engine as chrome for mode/theoria-sidebar.
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/theoria-chrome
+    data:
+      name: theoria-chrome
+      description: "Heading chrome for theoria browsing sidebar"
+      variant: chrome
+
+      layout:
+        - widget: heading
+          props:
+            level: 3
+            content: "Theoria"

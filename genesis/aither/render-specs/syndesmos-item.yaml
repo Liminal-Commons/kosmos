@@ -1,0 +1,48 @@
+# Aither Render Specifications — syndesmos item
+# Compact connection status indicator
+#
+# Syndesmos fields used:
+#   - peer_id (string): Remote peer identifier
+#   - status (enum): disconnected | connecting | connected | reconnecting | failed | suspended
+#
+# Traces to: genesis/aither/eide/aither.yaml § syndesmos
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/syndesmos-item
+    data:
+      name: syndesmos-item
+      description: "Compact status indicator for syndesmos — status dot, peer, and label."
+      target_eidos: syndesmos
+      variant: item
+
+      layout:
+        - widget: card
+          props:
+            variant: compact
+            padding: sm
+          children:
+            - widget: row
+              props:
+                gap: sm
+                align: center
+              children:
+                # Status dot
+                - widget: status-indicator
+                  props:
+                    status: "{status}"
+
+                # Peer ID
+                - widget: text
+                  props:
+                    content: "{peer_id}"
+                    variant: body
+
+                # Status label
+                - widget: text
+                  props:
+                    content: "{status}"
+                    variant: caption
+
+      created_at: "2026-02-09T00:00:00Z"

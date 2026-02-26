@@ -18,16 +18,16 @@ entities:
 - eidos: praxis
   id: praxis/propylon/create-link
   data:
-    oikos: propylon
+    topos: propylon
     name: create-link
     visible: true
     tier: 2
     description: |
-      Create a shareable invitation link for a circle.
+      Create a shareable invitation link for an oikos.
 
       The link encodes:
       - invitation_id (UUID)
-      - circle_id (target circle)
+      - oikos_id (target oikos)
       - inviter_pubkey (for verification)
       - signature (Ed25519 over invitation_id)
       - display metadata (names, message)
@@ -35,10 +35,10 @@ entities:
 
       Returns a URL-safe encoded link.
     params:
-      - name: circle_id
+      - name: oikos_id
         type: string
         required: true
-        description: Circle to invite to
+        description: Oikos to invite to
       - name: message
         type: string
         required: false
@@ -63,17 +63,17 @@ entities:
         bind_to: body
 
       - step: assert
-        condition: "$body.animus_id"
-        message: "No animus in dwelling context"
+        condition: "$body.parousia_id"
+        message: "No parousia in dwelling context"
 
-      # Verify caller is sovereign to the circle
+      # Verify caller is sovereign to the oikos
       - step: find
-        id: "$circle_id"
-        bind_to: circle
+        id: "$oikos_id"
+        bind_to: target_oikos
 
       - step: assert
-        condition: "$circle"
-        message: "Circle not found: $circle_id"
+        condition: "$target_oikos"
+        message: "Oikos not found: $oikos_id"
 
       # Generate invitation ID
       - step: set
@@ -83,9 +83,9 @@ entities:
 
       # Get inviter's keypair from dwelling context
       - step: call
-        praxis: hypostasis/derive-circle-key
+        praxis: hypostasis/derive-oikos-key
         params:
-          circle_id: "$circle_id"
+          oikos_id: "$oikos_id"
           purpose: invitation
         bind_to: keypair
 
@@ -97,18 +97,18 @@ entities:
           private_key: "$keypair.private_key"
         bind_to: signature_result
 
-      # Get inviter persona
+      # Get inviter prosopon
       - step: find
-        id: "$body.persona_id"
-        bind_to: persona
+        id: "$body.prosopon_id"
+        bind_to: prosopon
 
       # Create invitation entity (CE4: compose instead of arise)
       - step: compose
         typos_id: "typos-def-invitation"
         inputs:
           id: "$invitation_id"
-          circle_id: "$circle_id"
-          inviter_id: "$body.persona_id"
+          oikos_id: "$oikos_id"
+          inviter_id: "$body.prosopon_id"
           message: "$message"
           expires_at: "$expires_at"
           max_uses: "$max_uses"
@@ -124,13 +124,13 @@ entities:
           id: "propylon-link/{{ uuid() }}"
           invitation_id: "$invitation_id"
           bootstrap: "wss://propylon.liminalcommons.com"
-          circle_id: "$circle_id"
-          inviter_id: "$body.persona_id"
+          oikos_id: "$oikos_id"
+          inviter_id: "$body.prosopon_id"
           inviter_pubkey: "$keypair.public_key"
           signature: "$signature_result.signature"
           display:
-            circle_name: "$circle.data.name"
-            inviter_name: "$persona.data.name"
+            oikos_name: "$target_oikos.data.name"
+            inviter_name: "$prosopon.data.name"
             message: "$message"
           expires_at: "$expires_at"
           max_uses: "$max_uses"
@@ -143,7 +143,7 @@ entities:
       - step: bind
         desmos: grants-entry-to
         from_id: "$link_entity.id"
-        to_id: "$circle_id"
+        to_id: "$oikos_id"
 
       # Encode the link for sharing
       - step: call
@@ -159,6 +159,8 @@ entities:
           encoded_link: "$encoded.url"
           shareable_url: "https://chora.link/p/$encoded.url"
           expires_at: "$expires_at"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/manage-links }
 
 # =============================================================================
 # LINK ENCODING/DECODING
@@ -167,7 +169,7 @@ entities:
 - eidos: praxis
   id: praxis/propylon/encode-link
   data:
-    oikos: propylon
+    topos: propylon
     name: encode-link
     visible: false
     tier: 1
@@ -198,7 +200,7 @@ entities:
             inviter_id: "$link.data.inviter_id"
             inviter_pubkey: "$link.data.inviter_pubkey"
             signature: "$link.data.signature"
-            circle_id: "$link.data.circle_id"
+            oikos_id: "$link.data.oikos_id"
             display: "$link.data.display"
             expires_at: "$link.data.expires_at"
 
@@ -215,7 +217,7 @@ entities:
 - eidos: praxis
   id: praxis/propylon/decode-link
   data:
-    oikos: propylon
+    topos: propylon
     name: decode-link
     visible: true
     tier: 1
@@ -242,9 +244,11 @@ entities:
           inviter_id: "$link_data.inviter_id"
           inviter_pubkey: "$link_data.inviter_pubkey"
           signature: "$link_data.signature"
-          circle_id: "$link_data.circle_id"
+          oikos_id: "$link_data.oikos_id"
           display: "$link_data.display"
           expires_at: "$link_data.expires_at"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/enter }
 
 # =============================================================================
 # LINK VALIDATION
@@ -253,7 +257,7 @@ entities:
 - eidos: praxis
   id: praxis/propylon/validate-link
   data:
-    oikos: propylon
+    topos: propylon
     name: validate-link
     visible: true
     tier: 2
@@ -356,9 +360,11 @@ entities:
         value:
           valid: true
           invitation_id: "$link_data.invitation_id"
-          circle_id: "$link_data.circle_id"
+          oikos_id: "$link_data.oikos_id"
           inviter_id: "$link_data.inviter_id"
           require_approval: "$invitation.data.require_approval"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/enter }
 
 # =============================================================================
 # CHALLENGE-RESPONSE AUTHENTICATION
@@ -367,7 +373,7 @@ entities:
 - eidos: praxis
   id: praxis/propylon/challenge-entry
   data:
-    oikos: propylon
+    topos: propylon
     name: challenge-entry
     visible: true
     tier: 2
@@ -413,7 +419,7 @@ entities:
         inputs:
           id: "$session_id"
           invitation_id: "$validation.invitation_id"
-          circle_id: "$validation.circle_id"
+          oikos_id: "$validation.oikos_id"
           nonce: "$nonce"
           entrant_pubkey: "$entrant_pubkey"
           status: challenged
@@ -445,19 +451,32 @@ entities:
                 from_id: "$session_id"
                 to_id: "$link.id"
 
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Entry requested for oikos $validation.oikos_id"
+          stance: request
+          source_kind: topos
+          metadata:
+            source_eidos: propylon-session
+            source_id: "$session_id"
+
       - step: return
         value:
           session_id: "$session_id"
           nonce: "$nonce"
           challenge_expires: "$challenge_expires"
-          circle_id: "$validation.circle_id"
+          oikos_id: "$validation.oikos_id"
           require_approval: "$validation.require_approval"
           first_time: "{{ !$entrant_pubkey }}"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/enter }
 
 - eidos: praxis
   id: praxis/propylon/verify-entry
   data:
-    oikos: propylon
+    topos: propylon
     name: verify-entry
     visible: true
     tier: 2
@@ -468,7 +487,7 @@ entities:
       For returning entry: verify signature with known pubkey
 
       On success:
-      - Creates animus
+      - Creates parousia
       - Updates invitation use count
       - Returns connection info for P2P
 
@@ -486,10 +505,10 @@ entities:
         type: string
         required: true
         description: Public key that signed the nonce
-      - name: persona_name
+      - name: prosopon_name
         type: string
         required: false
-        description: Display name for new persona (first-time entry)
+        description: Display name for new prosopon (first-time entry)
     steps:
       # Find the session
       - step: find
@@ -557,47 +576,47 @@ entities:
                 data:
                   status: pending_approval
                   entrant_pubkey: "$entrant_pubkey"
-                  persona_name: "$persona_name"
+                  prosopon_name: "$prosopon_name"
               - step: return
                 value:
                   success: true
                   status: pending_approval
                   message: "Entry request submitted. Awaiting inviter approval."
 
-      # Direct entry: create persona and animus
+      # Direct entry: create prosopon and parousia
       - step: set
         bindings:
-          persona_id: "persona/{{ uuid() }}"
-          animus_id: "animus/{{ uuid() }}"
+          prosopon_id: "prosopon/{{ uuid() }}"
+          parousia_id: "parousia/{{ uuid() }}"
 
-      # Create persona for new entrant (CE4: compose instead of arise)
+      # Create prosopon for new entrant (CE4: compose instead of arise)
       - step: compose
-        typos_id: "typos-def-persona"
+        typos_id: "typos-def-prosopon"
         inputs:
-          id: "$persona_id"
-          name: "$persona_name || 'Anonymous'"
+          id: "$prosopon_id"
+          name: "$prosopon_name || 'Anonymous'"
           pubkey: "$entrant_pubkey"
           created_at: "{{ now() }}"
-        bind_to: persona
+        bind_to: prosopon
 
-      # Create animus via soma
+      # Create parousia via soma
       - step: call
-        praxis: soma/arise-animus
+        praxis: soma/arise-parousia
         params:
-          persona_id: "$persona_id"
-          animus_id: "$animus_id"
-        bind_to: animus_result
+          prosopon_id: "$prosopon_id"
+          parousia_id: "$parousia_id"
+        bind_to: parousia_result
 
-      # Add membership to circle
+      # Add membership to oikos
       - step: bind
         desmos: member-of
-        from_id: "$animus_id"
-        to_id: "$session.data.circle_id"
+        from_id: "$parousia_id"
+        to_id: "$session.data.oikos_id"
 
-      # Bond animus to session for audit
+      # Bond parousia to session for audit
       - step: bind
         desmos: authenticated-via
-        from_id: "$animus_id"
+        from_id: "$parousia_id"
         to_id: "$session_id"
 
       # Update session to authenticated
@@ -606,15 +625,15 @@ entities:
         data:
           status: authenticated
           entrant_pubkey: "$entrant_pubkey"
-          animus_id: "$animus_id"
+          parousia_id: "$parousia_id"
           authenticated_at: "{{ now() }}"
 
-      # Sync oikoi distributed by this circle (non-blocking)
+      # Sync topoi distributed by this oikos (non-blocking)
       # If sync fails, entry still succeeds - user can sync manually later
       - step: call
-        praxis: "politeia/sync-circle-oikoi"
+        praxis: "politeia/sync-oikos-topoi"
         params:
-          circle_id: "$session.data.circle_id"
+          oikos_id: "$session.data.oikos_id"
         bind_to: sync_result
 
       # Get connection info for P2P handoff
@@ -626,7 +645,7 @@ entities:
                 - urls: ["stun:stun.l.google.com:19302"]
             relay:
               url: "wss://propylon.liminalcommons.com"
-              room_id: "$session.data.circle_id"
+              room_id: "$session.data.oikos_id"
             session:
               id: "$session_id"
               expires_at: "{{ timestamp_add_hours(now(), 1) }}"
@@ -635,11 +654,13 @@ entities:
         value:
           success: true
           status: authenticated
-          persona_id: "$persona_id"
-          animus_id: "$animus_id"
-          circle_id: "$session.data.circle_id"
+          prosopon_id: "$prosopon_id"
+          parousia_id: "$parousia_id"
+          oikos_id: "$session.data.oikos_id"
           connection_info: "$connection_info"
-          oikoi_synced: "$sync_result.oikoi_synced"
+          topoi_synced: "$sync_result.topoi_synced"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/enter }
 
 # =============================================================================
 # LINK MANAGEMENT
@@ -648,7 +669,7 @@ entities:
 - eidos: praxis
   id: praxis/propylon/revoke-link
   data:
-    oikos: propylon
+    topos: propylon
     name: revoke-link
     visible: true
     tier: 2
@@ -679,7 +700,7 @@ entities:
         bind_to: body
 
       - step: assert
-        condition: "$invitation.data.inviter_id == $body.persona_id"
+        condition: "$invitation.data.inviter_id == $body.prosopon_id"
         message: "Only the inviter can revoke"
 
       # Update invitation
@@ -717,24 +738,26 @@ entities:
         value:
           revoked: true
           invitation_id: "$invitation_id"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/manage-links }
 
 - eidos: praxis
   id: praxis/propylon/list-entry-audit
   data:
-    oikos: propylon
+    topos: propylon
     name: list-entry-audit
     visible: true
     tier: 1
     description: |
-      Query entry history for a circle.
+      Query entry history for an oikos.
 
-      Returns propylon-sessions for the caller's circles.
+      Returns propylon-sessions for the caller's oikoi.
       Useful for intrusion detection and audit.
     params:
-      - name: circle_id
+      - name: oikos_id
         type: string
         required: true
-        description: Circle to query
+        description: Oikos to query
       - name: status
         type: string
         required: false
@@ -744,11 +767,11 @@ entities:
         required: false
         description: Maximum results (default 50)
     steps:
-      # Gather sessions for this circle
+      # Gather sessions for this oikos
       - step: gather
         eidos: propylon-session
         where:
-          circle_id: "$circle_id"
+          oikos_id: "$oikos_id"
         limit: "$limit || 50"
         bind_to: sessions
 
@@ -771,9 +794,11 @@ entities:
 
       - step: return
         value:
-          circle_id: "$circle_id"
+          oikos_id: "$oikos_id"
           count: "{{ length($sessions) }}"
           sessions: "$sessions"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/audit }
 
 # =============================================================================
 # APPROVAL FLOW
@@ -782,7 +807,7 @@ entities:
 - eidos: praxis
   id: praxis/propylon/approve-entry
   data:
-    oikos: propylon
+    topos: propylon
     name: approve-entry
     visible: true
     tier: 2
@@ -790,7 +815,7 @@ entities:
       Approve a pending entry request.
 
       Called by the inviter to approve someone waiting.
-      Creates the animus and returns connection info.
+      Creates the parousia and returns connection info.
     params:
       - name: session_id
         type: string
@@ -820,59 +845,72 @@ entities:
         bind_to: body
 
       - step: assert
-        condition: "$invitation.data.inviter_id == $body.persona_id"
+        condition: "$invitation.data.inviter_id == $body.prosopon_id"
         message: "Only the inviter can approve"
 
-      # Create persona and animus
+      # Create prosopon and parousia
       - step: set
         bindings:
-          persona_id: "persona/{{ uuid() }}"
-          animus_id: "animus/{{ uuid() }}"
+          prosopon_id: "prosopon/{{ uuid() }}"
+          parousia_id: "parousia/{{ uuid() }}"
 
       # CE4: compose instead of arise
       - step: compose
-        typos_id: "typos-def-persona"
+        typos_id: "typos-def-prosopon"
         inputs:
-          id: "$persona_id"
-          name: "$session.data.persona_name || 'Anonymous'"
+          id: "$prosopon_id"
+          name: "$session.data.prosopon_name || 'Anonymous'"
           pubkey: "$session.data.entrant_pubkey"
           created_at: "{{ now() }}"
 
       - step: call
-        praxis: soma/arise-animus
+        praxis: soma/arise-parousia
         params:
-          persona_id: "$persona_id"
-          animus_id: "$animus_id"
-        bind_to: animus_result
+          prosopon_id: "$prosopon_id"
+          parousia_id: "$parousia_id"
+        bind_to: parousia_result
 
       - step: bind
         desmos: member-of
-        from_id: "$animus_id"
-        to_id: "$session.data.circle_id"
+        from_id: "$parousia_id"
+        to_id: "$session.data.oikos_id"
 
       - step: bind
         desmos: authenticated-via
-        from_id: "$animus_id"
+        from_id: "$parousia_id"
         to_id: "$session_id"
 
       - step: update
         id: "$session_id"
         data:
           status: authenticated
-          animus_id: "$animus_id"
+          parousia_id: "$parousia_id"
           approved_at: "{{ now() }}"
-          approved_by: "$body.persona_id"
+          approved_by: "$body.prosopon_id"
+
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Entry approved for $session.data.prosopon_name"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: propylon-session
+            source_id: "$session_id"
 
       - step: return
         value:
           success: true
-          persona_id: "$persona_id"
-          animus_id: "$animus_id"
+          prosopon_id: "$prosopon_id"
+          parousia_id: "$parousia_id"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/approve }
 
 - eidos: praxis
   id: praxis/propylon/reject-entry
   data:
-    oikos: propylon
+    topos: propylon
     name: reject-entry
     visible: true
     tier: 2
@@ -911,7 +949,7 @@ entities:
         bind_to: body
 
       - step: assert
-        condition: "$invitation.data.inviter_id == $body.persona_id"
+        condition: "$invitation.data.inviter_id == $body.prosopon_id"
         message: "Only the inviter can reject"
 
       - step: update
@@ -920,12 +958,14 @@ entities:
           status: rejected
           rejection_reason: "$reason"
           rejected_at: "{{ now() }}"
-          rejected_by: "$body.persona_id"
+          rejected_by: "$body.prosopon_id"
 
       - step: return
         value:
           rejected: true
           session_id: "$session_id"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/approve }
 
 # =============================================================================
 # SELF-FEDERATION
@@ -934,14 +974,14 @@ entities:
 - eidos: praxis
   id: praxis/propylon/create-self-link
   data:
-    oikos: propylon
+    topos: propylon
     name: create-self-link
     visible: true
     tier: 2
     description: |
       Create a self-invite link for device synchronization.
 
-      This link allows the same persona to connect from another device.
+      This link allows the same prosopon to connect from another device.
       Unlike peer invitations, self-links:
       - Don't require human verification (pubkey verification instead)
       - Have longer expiry (30 days default)
@@ -954,10 +994,10 @@ entities:
       4. Pubkey verification (no video call needed)
       5. P2P sync begins
     params:
-      - name: circle_id
+      - name: oikos_id
         type: string
         required: true
-        description: Circle to sync (typically home circle)
+        description: Oikos to sync (typically home oikos)
       - name: expires_in_days
         type: number
         required: false
@@ -974,17 +1014,17 @@ entities:
         bind_to: body
 
       - step: assert
-        condition: "$body.animus_id"
-        message: "No animus in dwelling context"
+        condition: "$body.parousia_id"
+        message: "No parousia in dwelling context"
 
-      # Verify caller is member of the circle
+      # Verify caller is member of the oikos
       - step: find
-        id: "$circle_id"
-        bind_to: circle
+        id: "$oikos_id"
+        bind_to: target_oikos
 
       - step: assert
-        condition: "$circle"
-        message: "Circle not found: $circle_id"
+        condition: "$target_oikos"
+        message: "Oikos not found: $oikos_id"
 
       # Generate invitation ID with self-sync marker
       - step: set
@@ -992,11 +1032,11 @@ entities:
           invitation_id: "invitation/self-{{ uuid() }}"
           expires_at: "{{ timestamp_add_days(now(), $expires_in_days || 30) }}"
 
-      # Get persona's keypair
+      # Get prosopon's keypair
       - step: call
-        praxis: hypostasis/derive-circle-key
+        praxis: hypostasis/derive-oikos-key
         params:
-          circle_id: "$circle_id"
+          oikos_id: "$oikos_id"
           purpose: self-sync
         bind_to: keypair
 
@@ -1008,18 +1048,18 @@ entities:
           private_key: "$keypair.private_key"
         bind_to: signature_result
 
-      # Get persona
+      # Get prosopon
       - step: find
-        id: "$body.persona_id"
-        bind_to: persona
+        id: "$body.prosopon_id"
+        bind_to: prosopon
 
       # Create invitation entity (marked as self-sync) (CE4: compose instead of arise)
       - step: compose
         typos_id: "typos-def-invitation"
         inputs:
           id: "$invitation_id"
-          circle_id: "$circle_id"
-          inviter_id: "$body.persona_id"
+          oikos_id: "$oikos_id"
+          inviter_id: "$body.prosopon_id"
           kind: self-sync
           label: "$label"
           expires_at: "$expires_at"
@@ -1036,14 +1076,14 @@ entities:
           id: "propylon-link/self-{{ uuid() }}"
           invitation_id: "$invitation_id"
           bootstrap: "wss://propylon.liminalcommons.com"
-          circle_id: "$circle_id"
-          inviter_id: "$body.persona_id"
+          oikos_id: "$oikos_id"
+          inviter_id: "$body.prosopon_id"
           inviter_pubkey: "$keypair.public_key"
           signature: "$signature_result.signature"
           kind: self-sync
           display:
-            circle_name: "$circle.data.name"
-            inviter_name: "$persona.data.name"
+            oikos_name: "$target_oikos.data.name"
+            inviter_name: "$prosopon.data.name"
             label: "$label"
             message: "Self-sync link for device federation"
           expires_at: "$expires_at"
@@ -1057,7 +1097,7 @@ entities:
       - step: bind
         desmos: grants-entry-to
         from_id: "$link_entity.id"
-        to_id: "$circle_id"
+        to_id: "$oikos_id"
 
       # Encode the link for sharing
       - step: call
@@ -1080,6 +1120,8 @@ entities:
             2. Enter your 24-word mnemonic
             3. Paste this link when prompted
             4. Your devices will sync automatically
+  bonds:
+    - { desmos: requires-attainment, to: attainment/manage-links }
 
 # =============================================================================
 # SESSION TOKEN (Cross-Process Auth)
@@ -1088,7 +1130,7 @@ entities:
 - eidos: praxis
   id: praxis/propylon/create-session-token
   data:
-    oikos: propylon
+    topos: propylon
     name: create-session-token
     visible: false
     tier: 1
@@ -1100,20 +1142,20 @@ entities:
       Secret Service) where other processes (MCP, CLI) can read it.
 
       The token encodes:
-      - persona_id (who is authenticated)
-      - circles (accessible circle IDs)
+      - prosopon_id (who is authenticated)
+      - oikoi (accessible oikos IDs)
       - attainments (unlocked capabilities)
       - issued_at, expires_at (validity window)
       - signature (Ed25519 over payload)
     params:
-      - name: persona_id
+      - name: prosopon_id
         type: string
         required: true
-        description: Authenticated persona's ID
-      - name: circles
+        description: Authenticated prosopon's ID
+      - name: oikoi
         type: array
         required: true
-        description: Circle IDs this session can access
+        description: Oikos IDs this session can access
       - name: attainments
         type: array
         required: false
@@ -1139,8 +1181,8 @@ entities:
           issued_at: "{{ now() }}"
           expires_at: "{{ timestamp_add_hours(now(), $ttl_hours || 24) }}"
           payload:
-            persona_id: "$persona_id"
-            circles: "$circles"
+            prosopon_id: "$prosopon_id"
+            oikoi: "$oikoi"
             attainments: "$attainments || []"
             issued_at: "$issued_at"
             expires_at: "$expires_at"
@@ -1166,18 +1208,18 @@ entities:
         typos_id: "typos-def-session-token"
         inputs:
           id: "$token_id"
-          persona_id: "$persona_id"
-          circles: "$circles"
+          prosopon_id: "$prosopon_id"
+          oikoi: "$oikoi"
           attainments: "$attainments || []"
           issued_at: "$issued_at"
           expires_at: "$expires_at"
           signature: "$signature_result.signature"
         bind_to: token_entity
 
-      # Bond token to persona
+      # Bond token to prosopon
       - step: bind
         desmos: issued-token
-        from_id: "$persona_id"
+        from_id: "$prosopon_id"
         to_id: "$token_id"
 
       # Encode as JWT-like structure: base64url(payload).base64url(signature)
@@ -1192,11 +1234,13 @@ entities:
           token: "$token"
           token_id: "$token_id"
           expires_at: "$expires_at"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/session }
 
 - eidos: praxis
   id: praxis/propylon/validate-session-token
   data:
-    oikos: propylon
+    topos: propylon
     name: validate-session-token
     visible: false
     tier: 1
@@ -1204,10 +1248,10 @@ entities:
       Validate a JWT session token and extract session context.
 
       Called by MCP server on startup. Reads token from OS credential store,
-      validates signature against persona's public key, checks expiry.
+      validates signature against prosopon's public key, checks expiry.
 
       On success, returns session context that can be used to initialize
-      DwellingState with the authenticated persona's scope.
+      DwellingState with the authenticated prosopon's scope.
     params:
       - name: token
         type: string
@@ -1245,19 +1289,19 @@ entities:
                   valid: false
                   error: "Session token has expired"
 
-      # Get persona's public key
+      # Get prosopon's public key
       - step: find
-        id: "$payload.persona_id"
-        bind_to: persona
+        id: "$payload.prosopon_id"
+        bind_to: prosopon
 
       - step: switch
         cases:
-          - when: "!$persona"
+          - when: "!$prosopon"
             then:
               - step: return
                 value:
                   valid: false
-                  error: "Persona not found"
+                  error: "Prosopon not found"
 
       # Verify signature
       - step: call
@@ -1265,7 +1309,7 @@ entities:
         params:
           message: "$payload_json"
           signature: "$signature"
-          public_key: "$persona.data.pubkey"
+          public_key: "$prosopon.data.pubkey"
         bind_to: sig_result
 
       - step: switch
@@ -1281,9 +1325,11 @@ entities:
       - step: return
         value:
           valid: true
-          persona_id: "$payload.persona_id"
-          persona_name: "$persona.data.name"
-          circles: "$payload.circles"
+          prosopon_id: "$payload.prosopon_id"
+          prosopon_name: "$prosopon.data.name"
+          oikoi: "$payload.oikoi"
           attainments: "$payload.attainments"
           issued_at: "$payload.issued_at"
           expires_at: "$payload.expires_at"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/session }

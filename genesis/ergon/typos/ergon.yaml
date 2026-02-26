@@ -1,0 +1,41 @@
+# Ergon Typos Definitions — Work Coordination Composition Templates
+
+entities:
+  - eidos: typos
+    id: typos-def-pragma
+    data:
+      name: pragma
+      description: |
+        Compose a pragma entity for cross-oikos work coordination.
+
+        Pragmas signal gaps discovered in one context to another context
+        with the capability to resolve them. They are the coordination
+        primitive for the two-repo workflow (kosmos/chora).
+
+        Required inputs:
+        - id: Unique pragma identifier (e.g., "pragma/compose-step-error")
+        - title: Short description of the gap
+        - description: Full context of what failed
+        - created_at: When the gap was discovered
+
+        Optional inputs:
+        - context: Situation when gap was encountered
+        - priority: critical | high | normal | low
+        - status: Lifecycle state (defaults to "open")
+      target_eidos: pragma
+      defaults:
+        status: open
+        priority: normal
+      bonds:
+        - desmos: belongs-to
+          from_self: true
+          to_literal: topos/ergon
+
+  - eidos: typos
+    id: typos-def-trigger
+    data:
+      name: trigger
+      description: "Compose a trigger entity for reflex patterns"
+      target_eidos: trigger
+      defaults:
+        enabled: true

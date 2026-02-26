@@ -1,0 +1,67 @@
+# Mode Card — Browse actuality modes
+# Displays a mode with its topos, substrate, position, and provider
+
+entities:
+  - eidos: render-spec
+    id: render-spec/chora-dev/mode-card
+    data:
+      name: mode-card
+      description: "Mode card showing topos, substrate, spatial position, and provider"
+      target_eidos: mode
+      variant: card
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+            on_click: ui/set-selection
+            on_click_params:
+              selection_type: selected-mode
+              entity_id: "{id}"
+          children:
+            # Header row: name + substrate badge
+            - widget: row
+              props:
+                gap: sm
+                align: center
+                justify: between
+              children:
+                - widget: text
+                  props:
+                    content: "{name}"
+                    variant: emphasis
+
+                - widget: badge
+                  props:
+                    content: "{substrate}"
+                    variant: info
+
+            # Description
+            - widget: text
+              when: "description"
+              props:
+                content: "{description}"
+                variant: caption
+
+            # Metadata row: topos + position + provider
+            - widget: row
+              props:
+                gap: xs
+                align: center
+              children:
+                - widget: badge
+                  props:
+                    content: "{topos}"
+                    variant: default
+
+                - widget: badge
+                  when: "spatial"
+                  props:
+                    content: "{spatial.position}"
+                    variant: default
+
+                - widget: badge
+                  when: "provider"
+                  props:
+                    content: "{provider}"
+                    variant: default

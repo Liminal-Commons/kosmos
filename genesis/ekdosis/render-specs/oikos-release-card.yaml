@@ -1,0 +1,105 @@
+# Ekdosis Render Specifications — oikos-release card
+# Card view for versioned oikos publications
+#
+# Uses widget vocabulary from thyra/eide/widget.yaml
+# Replaces the HTML template format in ekdosis/entities/rendering.yaml
+#
+# Oikos-release fields (from ekdosis/eide/ekdosis.yaml):
+#   - version (string, required): Semantic version
+#   - channel (enum: stable, beta, alpha, canary): Release channel
+#   - notes (string, optional): Release notes
+#   - published_at (timestamp, required): Publication time
+#   - publisher_prosopon (string, required): Publisher identity
+#
+# Traces to: genesis/ekdosis/DESIGN.md
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/oikos-release-card
+    data:
+      name: oikos-release-card
+      description: |
+        Card view for oikos-release — versioned publication.
+        Shows version badge, channel indicator, notes, publisher, and publication time.
+      target_eidos: oikos-release
+      variant: card
+
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+          children:
+            - widget: stack
+              props:
+                gap: sm
+              children:
+                # Header row: icon + version + channel badge
+                - widget: row
+                  props:
+                    gap: sm
+                    align: center
+                  children:
+                    - widget: icon
+                      props:
+                        name: package
+
+                    - widget: text
+                      props:
+                        content: "v{version}"
+                        variant: emphasis
+
+                    # Channel badges with semantic colors
+                    - widget: badge
+                      when: "channel == 'stable'"
+                      props:
+                        content: "stable"
+                        variant: success
+                    - widget: badge
+                      when: "channel == 'beta'"
+                      props:
+                        content: "beta"
+                        variant: info
+                    - widget: badge
+                      when: "channel == 'alpha'"
+                      props:
+                        content: "alpha"
+                        variant: warning
+                    - widget: badge
+                      when: "channel == 'canary'"
+                      props:
+                        content: "canary"
+                        variant: error
+
+                # Release notes (when present)
+                - widget: text
+                  when: "notes"
+                  props:
+                    content: "{notes}"
+                    variant: body
+
+                # Publisher row
+                - widget: row
+                  props:
+                    gap: xs
+                    align: center
+                  children:
+                    - widget: text
+                      props:
+                        content: "By:"
+                        variant: label
+                    - widget: text
+                      props:
+                        content: "{publisher_prosopon}"
+                        variant: body
+
+                # Footer: publication time
+                - widget: divider
+
+                - widget: text
+                  props:
+                    content: "Published {published_at}"
+                    variant: caption
+
+      created_at: "2025-02-09T00:00:00Z"

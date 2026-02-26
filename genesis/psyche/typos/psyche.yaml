@@ -1,0 +1,51 @@
+# Psyche Typos — Attention & Intention
+#
+# Typos for the psyche (attention/intention/mood) domain.
+
+entities:
+
+# =============================================================================
+# PSYCHE (ATTENTION/INTENTION)
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-attention
+  data:
+    name: attention
+    description: "Compose an attention entity"
+    target_eidos: attention
+
+- eidos: typos
+  id: typos-def-intention
+  data:
+    name: intention
+    description: "Compose an intention entity"
+    target_eidos: intention
+
+- eidos: typos
+  id: typos-def-mood
+  data:
+    name: mood
+    description: "Compose a mood entity"
+    target_eidos: mood
+
+- eidos: typos
+  id: typos-def-perceptual-field
+  data:
+    name: perceptual-field
+    description: "Compose a perceptual-field entity"
+    target_eidos: perceptual-field
+
+- eidos: typos
+  id: typos-def-prospect
+  data:
+    name: prospect
+    description: "Compose a prospect entity"
+    target_eidos: prospect
+
+- eidos: typos
+  id: typos-def-kairos
+  data:
+    name: kairos
+    description: "Compose a kairos entity"
+    target_eidos: kairos

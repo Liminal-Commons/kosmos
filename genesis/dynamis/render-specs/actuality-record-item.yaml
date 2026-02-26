@@ -1,0 +1,51 @@
+# Dynamis Render Specifications — actuality-record item
+# Compact audit log item for actuality-record
+#
+# Actuality-record fields:
+#   - entity_id (string): The entity this record describes
+#   - aligned (boolean): Whether expected matches actual
+#   - sensed_at (timestamp): When the actuality was sensed
+#
+# Migrated from: genesis/dynamis/entities/rendering.yaml
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/actuality-record-item
+    data:
+      name: actuality-record-item
+      description: |
+        Compact list item for actuality-record entities.
+        Shows alignment indicator, entity ID, and sensed timestamp.
+      target_eidos: actuality-record
+      variant: item
+
+      layout:
+        - widget: card
+          props:
+            variant: compact
+            padding: sm
+          children:
+            - widget: row
+              props:
+                gap: sm
+                align: center
+              children:
+                - widget: status-indicator
+                  when: "aligned == true"
+                  props:
+                    status: active
+                - widget: status-indicator
+                  when: "aligned == false"
+                  props:
+                    status: warning
+                - widget: text
+                  props:
+                    content: "{entity_id}"
+                    variant: body
+                - widget: text
+                  props:
+                    content: "{sensed_at}"
+                    variant: caption
+
+      created_at: "2026-02-09T00:00:00Z"

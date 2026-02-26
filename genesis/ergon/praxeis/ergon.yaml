@@ -1,12 +1,12 @@
 # ergon.yaml
-# Ergon praxeis for cross-circle work coordination
+# Ergon praxeis for cross-oikos work coordination
 #
-# Pragma entities signal gaps discovered in one circle to another
-# circle with the capability to resolve them. This enables the
+# Pragma entities signal gaps discovered in one oikos to another
+# oikos with the capability to resolve them. This enables the
 # two-repo workflow (kosmos/chora) where gaps discovered during
 # dwelling flow as trackable entities.
 #
-# See: cross-circle-coordination.md for design rationale
+# See: cross-oikos-coordination.md for design rationale
 
 entities:
 
@@ -16,18 +16,21 @@ entities:
 
 - eidos: praxis
   id: praxis/ergon/create-pragma
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/signal
   data:
-    oikos: ergon
+    topos: ergon
     name: create-pragma
     visible: true
     tier: 2
     description: |
-      Create a pragma and signal it to a target circle.
+      Create a pragma and signal it to a target oikos.
 
       Use this when you encounter a gap that requires work in another
       context (e.g., kosmos work discovers a gap needing chora work).
 
-      The pragma is bonded to the target circle via signals-to.
+      The pragma is bonded to the target oikos via signals-to.
       Optionally provide evidence_ids to link entities that demonstrate the gap.
     params:
       - name: pragma_id
@@ -42,10 +45,10 @@ entities:
         type: string
         required: true
         description: Full context — what you were trying to do, what failed
-      - name: target_circle_id
+      - name: target_oikos_id
         type: string
         required: true
-        description: Circle to signal (e.g., circle/chora-dev)
+        description: Oikos to signal (e.g., oikos/chora-dev)
       - name: context
         type: string
         required: false
@@ -73,14 +76,14 @@ entities:
             bindings:
               pragma_priority: "normal"
 
-      # Verify target circle exists
+      # Verify target oikos exists
       - step: find
-        id: "$target_circle_id"
-        bind_to: target_circle
+        id: "$target_oikos_id"
+        bind_to: target_oikos
 
       - step: assert
-        condition: "$target_circle"
-        message: "Target circle not found: $target_circle_id"
+        condition: "$target_oikos"
+        message: "Target oikos not found: $target_oikos_id"
 
       # Compose the pragma entity
       - step: compose
@@ -95,10 +98,10 @@ entities:
           created_at: "{{ now() }}"
         bind_to: pragma_entity
 
-      # Bond pragma to target circle
+      # Bond pragma to target oikos
       - step: bind
         from_id: "$pragma_id"
-        to_id: "$target_circle_id"
+        to_id: "$target_oikos_id"
         desmos: "signals-to"
 
       # Optionally bind evidence entities
@@ -115,11 +118,22 @@ entities:
                     to_id: "$evidence_id"
                     desmos: "evidenced-by"
 
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "New pragma: $title"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: pragma
+            source_id: "$pragma_id"
+
       - step: return
         value:
           pragma_id: "$pragma_id"
           title: "$title"
-          signaled_to: "$target_circle_id"
+          signaled_to: "$target_oikos_id"
           priority: "$pragma_priority"
           status: "open"
 
@@ -129,43 +143,46 @@ entities:
 
 - eidos: praxis
   id: praxis/ergon/list-pragma
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/work
   data:
-    oikos: ergon
+    topos: ergon
     name: list-pragma
     visible: true
     tier: 1
     description: |
-      List pragma signaled to a circle.
+      List pragma signaled to an oikos.
 
       Use to see what work items are waiting for attention.
-      Defaults to the current dwelling circle if not specified.
+      Defaults to the current dwelling oikos if not specified.
     params:
-      - name: circle_id
+      - name: oikos_id
         type: string
         required: false
-        description: Circle to check (defaults to dwelling circle)
+        description: Oikos to check (defaults to dwelling oikos)
       - name: status
         type: string
         required: false
         description: Filter by status (open, accepted, in_progress, resolved, etc.)
     steps:
-      # Determine target circle
+      # Determine target oikos
       - step: set
         bindings:
-          target_circle: "$circle_id"
+          target_oikos: "$oikos_id"
 
       - step: switch
         cases:
-          - when: "$target_circle"
+          - when: "$target_oikos"
             then: []
         default:
           - step: set
             bindings:
-              target_circle: "$_circle"
+              target_oikos: "$_oikos"
 
-      # Trace all pragma that signal to this circle
+      # Trace all pragma that signal to this oikos
       - step: trace
-        to_id: "$target_circle"
+        to_id: "$target_oikos"
         desmos: "signals-to"
         direction: "inbound"
         bind_to: all_pragma
@@ -181,14 +198,14 @@ entities:
                 bind_to: filtered_pragma
               - step: return
                 value:
-                  circle_id: "$target_circle"
+                  oikos_id: "$target_oikos"
                   pragma: "$filtered_pragma"
                   count: "{{ $filtered_pragma | length }}"
                   filter_status: "$status"
 
       - step: return
         value:
-          circle_id: "$target_circle"
+          oikos_id: "$target_oikos"
           pragma: "$all_pragma"
           count: "{{ $all_pragma | length }}"
 
@@ -198,8 +215,11 @@ entities:
 
 - eidos: praxis
   id: praxis/ergon/accept-pragma
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/work
   data:
-    oikos: ergon
+    topos: ergon
     name: accept-pragma
     visible: true
     tier: 2
@@ -245,8 +265,11 @@ entities:
 
 - eidos: praxis
   id: praxis/ergon/resolve-pragma
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/work
   data:
-    oikos: ergon
+    topos: ergon
     name: resolve-pragma
     visible: true
     tier: 2
@@ -296,6 +319,17 @@ entities:
                 to_id: "$pragma_id"
                 desmos: "resolves"
 
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Pragma resolved: $pragma.data.title"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: pragma
+            source_id: "$pragma_id"
+
       - step: return
         value:
           pragma_id: "$pragma_id"
@@ -310,23 +344,23 @@ entities:
 - eidos: praxis
   id: praxis/ergon/sense-pragma
   data:
-    oikos: ergon
+    topos: ergon
     name: sense-pragma
     visible: true
     tier: 1
     description: |
       Sense pragma state for body-schema contribution.
 
-      Returns a summary of work items signaled to the current circle:
+      Returns a summary of work items signaled to the current oikos:
       - Open pragma awaiting attention
       - In-progress pragma being worked
       - Blocked pragma
       - Recently resolved pragma
     params: []
     steps:
-      # Trace pragma signaled to current dwelling circle
+      # Trace pragma signaled to current dwelling oikos
       - step: trace
-        to_id: "$_circle"
+        to_id: "$_oikos"
         desmos: "signals-to"
         direction: "inbound"
         bind_to: all_pragma
@@ -354,7 +388,7 @@ entities:
 
       - step: return
         value:
-          circle_id: "$_circle"
+          oikos_id: "$_oikos"
           total_count: "{{ $all_pragma | length }}"
           open_count: "{{ $open_pragma | length }}"
           active_count: "{{ $active_pragma | length }}"

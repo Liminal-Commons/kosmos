@@ -16,14 +16,13 @@ entities:
       description: |
         Journey navigation capability — moving through waypoints.
         Enables getting current position, advancing, branching, and
-        validating forms along the way. Per-animus scope for personal
+        validating forms along the way. Per-parousia scope for personal
         journey progress.
-      oikos: hodos
-      scope: animus
-      grants:
-        - praxis/hodos/get-current-waypoint
-        - praxis/hodos/advance-waypoint
-        - praxis/hodos/branch-waypoint
-        - praxis/hodos/get-panel-render-data
-        - praxis/hodos/validate-form
-        - praxis/hodos/start-onboarding
+      topos: hodos
+      scope: parousia
+    bonds:
+      - { desmos: grants-praxis, to: praxis/hodos/get-current-waypoint }
+      - { desmos: grants-praxis, to: praxis/hodos/advance-waypoint }
+      - { desmos: grants-praxis, to: praxis/hodos/branch-waypoint }
+      - { desmos: grants-praxis, to: praxis/hodos/validate-form }
+      - { desmos: grants-praxis, to: praxis/hodos/start-onboarding }

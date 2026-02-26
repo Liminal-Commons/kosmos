@@ -1,0 +1,49 @@
+# Logos Desmoi
+# Discourse bonds — phasis threading, provenance, and contribution
+#
+# Moved from thyra — logos introduces phasis, logos owns phasis bonds.
+
+entities:
+  # phasis-in — phasis expressed in oikos
+  - eidos: desmos
+    id: desmos/phasis-in
+    data:
+      name: phasis-in
+      description: "Phasis expressed in oikos. The dwelling context."
+      from_eidos: phasis
+      to_eidos: oikos
+      cardinality: many-to-one
+      symmetric: false
+
+  # in-reply-to — phasis threading
+  - eidos: desmos
+    id: desmos/in-reply-to
+    data:
+      name: in-reply-to
+      description: "Phasis threading — conversation structure."
+      from_eidos: phasis
+      to_eidos: phasis
+      cardinality: many-to-one
+      symmetric: false
+
+  # derives-from — phasis derives from stream or artifact
+  - eidos: desmos
+    id: desmos/derives-from
+    data:
+      name: derives-from
+      description: "Phasis derives from stream or artifact. Provenance."
+      from_eidos: phasis
+      to_eidos: any
+      cardinality: many-to-one
+      symmetric: false
+
+  # contributes-to — utterance contributes to phasis
+  - eidos: desmos
+    id: desmos/contributes-to
+    data:
+      name: contributes-to
+      description: "Utterance contributes to phasis."
+      from_eidos: utterance
+      to_eidos: phasis
+      cardinality: many-to-one
+      symmetric: false

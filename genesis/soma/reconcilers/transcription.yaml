@@ -1,0 +1,29 @@
+# Transcription Reconciler
+# desired_state/actual_state reconciliation for transcriber entities.
+#
+# Traces to: PROMPT-VOICE-DECOMPOSITION.md
+
+entities:
+
+  - eidos: reconciler
+    id: reconciler/transcription
+    data:
+      target_eidos: transcriber
+      intent_field: desired_state
+      actuality_field: actual_state
+      transitions:
+        - intent: active
+          actual: [pending, closed]
+          action: manifest
+        - intent: active
+          actual: active
+          action: sense
+        - intent: active
+          actual: failed
+          action: manifest
+        - intent: closed
+          actual: [active]
+          action: unmanifest
+        - intent: closed
+          actual: [closed, pending]
+          action: none

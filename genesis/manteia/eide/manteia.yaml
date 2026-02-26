@@ -133,13 +133,13 @@ entities:
         Core governed inference capability — schema-constrained generation.
         Enables generating structured outputs that conform to JSON schemas
         derived from stoicheia, eide, or explicit definitions.
-      oikos: manteia
-      scope: circle
-      grants:
-        - praxis/manteia/governed-inference
-        - praxis/manteia/generate-entity
-        - praxis/manteia/get-stoicheion-schema
-        - praxis/manteia/list-stoicheia
+      topos: manteia
+      scope: oikos
+    bonds:
+      - { desmos: grants-praxis, to: praxis/manteia/governed-inference }
+      - { desmos: grants-praxis, to: praxis/manteia/generate-entity }
+      - { desmos: grants-praxis, to: praxis/manteia/get-stoicheion-schema }
+      - { desmos: grants-praxis, to: praxis/manteia/list-stoicheia }
 
   - eidos: attainment
     id: attainment/generate-meta
@@ -149,9 +149,9 @@ entities:
         Meta-level generation capability — creating kosmos definitions.
         Enables generating valid praxeis, steps, and typoi that alter
         kosmos behavior. Requires higher trust than basic inference.
-      oikos: manteia
-      scope: circle
-      grants:
-        - praxis/manteia/generate-step
-        - praxis/manteia/generate-praxis
-        - praxis/manteia/generate-typos
+      topos: manteia
+      scope: oikos
+    bonds:
+      - { desmos: grants-praxis, to: praxis/manteia/generate-step }
+      - { desmos: grants-praxis, to: praxis/manteia/generate-praxis }
+      - { desmos: grants-praxis, to: praxis/manteia/generate-typos }

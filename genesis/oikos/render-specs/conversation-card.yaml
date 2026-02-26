@@ -1,0 +1,102 @@
+# Conversation Card Render-Spec
+# Card view for conversation — a dialogue within session
+#
+# Conversation fields (from oikos/eide/oikos.yaml):
+#   - title (string, optional): Conversation title
+#   - opened_at (timestamp, required): When conversation started
+#   - closed_at (timestamp, optional): When conversation ended
+#   - status (enum: active, closed): Conversation lifecycle status
+#
+# Replaces HTML template in oikos/entities/rendering.yaml
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/conversation-card
+    data:
+      name: conversation-card
+      description: |
+        Card rendering for conversation entities.
+        Shows title, status indicator, and time range.
+      target_eidos: conversation
+      variant: card
+
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+          children:
+            - widget: stack
+              props:
+                gap: sm
+              children:
+                # Header: title and status
+                - widget: row
+                  props:
+                    justify: between
+                    align: center
+                  children:
+                    - widget: row
+                      props:
+                        gap: sm
+                        align: center
+                      children:
+                        - widget: status-indicator
+                          props:
+                            status: "{status}"
+                        - widget: heading
+                          when: "title"
+                          props:
+                            content: "{title}"
+                            level: 4
+                        - widget: text
+                          when: "!title"
+                          props:
+                            content: "Untitled Conversation"
+                            variant: emphasis
+
+                    # Status badge
+                    - widget: badge
+                      when: "status == 'active'"
+                      props:
+                        content: "Active"
+                        variant: success
+                    - widget: badge
+                      when: "status == 'closed'"
+                      props:
+                        content: "Closed"
+                        variant: default
+
+                # Opened at
+                - widget: row
+                  props:
+                    gap: xs
+                    align: center
+                  children:
+                    - widget: icon
+                      props:
+                        name: clock
+                        size: sm
+                    - widget: text
+                      props:
+                        content: "Opened {opened_at}"
+                        variant: caption
+
+                # Closed at (conditional)
+                - widget: row
+                  when: "closed_at"
+                  props:
+                    gap: xs
+                    align: center
+                  children:
+                    - widget: icon
+                      props:
+                        name: calendar
+                        size: sm
+                    - widget: text
+                      props:
+                        content: "Closed {closed_at}"
+                        variant: caption
+
+      created_at: "2026-02-09T00:00:00Z"

@@ -1,0 +1,103 @@
+# Chora-Dev Ergon Integration
+# Reconcilers and daemons for automated substrate development
+#
+# Connects chora-dev to ergon topos for:
+# - Periodic reconciliation of build staleness
+# - File watching daemon for source changes
+
+entities:
+
+  # =============================================================================
+  # RECONCILERS — Transition-Table Style
+  # =============================================================================
+
+  - eidos: reconciler
+    id: reconciler/build-target
+    data:
+      name: build-target
+      description: |
+        Reconcile build-target entities by comparing desired_state vs actual_state.
+        Dispatches manifest (build), sense (check freshness), or unmanifest (clean).
+      target_eidos: build-target
+      intent_field: desired_state
+      actuality_field: actual_state
+      transitions:
+        - intent: succeeded
+          actual: [absent, stale, pending]
+          action: manifest
+        - intent: succeeded
+          actual: failed
+          action: manifest
+        - intent: succeeded
+          actual: manifested
+          action: sense
+        - intent: absent
+          actual: [manifested, stale, failed]
+          action: unmanifest
+        - intent: absent
+          actual: absent
+          action: none
+
+  - eidos: reconciler
+    id: reconciler/test-run
+    data:
+      name: test-run
+      description: |
+        Reconcile test-run entities by comparing desired_state vs actual_state.
+        Dispatches manifest (run tests), sense (check status), or unmanifest.
+      target_eidos: test-run
+      intent_field: desired_state
+      actuality_field: actual_state
+      transitions:
+        - intent: succeeded
+          actual: [absent, stale, pending]
+          action: manifest
+        - intent: succeeded
+          actual: failed
+          action: manifest
+        - intent: succeeded
+          actual: manifested
+          action: sense
+        - intent: absent
+          actual: [manifested, stale, failed]
+          action: unmanifest
+        - intent: absent
+          actual: absent
+          action: none
+
+  - eidos: reconciler
+    id: reconciler/lint-run
+    data:
+      name: lint-run
+      description: |
+        Reconcile lint-run entities by comparing desired_state vs actual_state.
+        Dispatches manifest (run lints), sense (check status), or unmanifest.
+      target_eidos: lint-run
+      intent_field: desired_state
+      actuality_field: actual_state
+      transitions:
+        - intent: succeeded
+          actual: [absent, stale, pending]
+          action: manifest
+        - intent: succeeded
+          actual: failed
+          action: manifest
+        - intent: succeeded
+          actual: manifested
+          action: sense
+        - intent: absent
+          actual: [manifested, stale, failed]
+          action: unmanifest
+        - intent: absent
+          actual: absent
+          action: none
+
+  # =============================================================================
+  # DAEMONS
+  # =============================================================================
+  # Non-standard daemons (chora-dev-watcher, chora-dev-build-queue) removed.
+  # They used on_event/on_item patterns not supported by daemon_loop.rs.
+  #
+  # Staleness detection: handled by reflexes (trigger/chora-dev/detect-staleness)
+  # Periodic sensing: handled by daemon/sense-cargo-builds (daemons/daemons.yaml)
+  # Build reconciliation: handled by intent-changed + drift reflexes (reflexes.yaml)

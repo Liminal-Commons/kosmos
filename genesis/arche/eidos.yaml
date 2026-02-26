@@ -14,7 +14,7 @@
     The form of forms. An eidos defines what kind of thing an entity is.
     This is the meta-eidos — the eidos of eidos itself.
 
-    Constitutional eide are pre-oikos: they define what packages CAN be.
+    Constitutional eide are pre-topos: they define what topoi CAN be.
     They must emit from literal fill methods (cannot be derived).
   fields:
     id:
@@ -30,7 +30,7 @@
       required: false
       default: false
       description: |
-        Whether this eidos is constitutional (pre-oikos, foundational grammar).
+        Whether this eidos is constitutional (pre-topos, foundational grammar).
         Constitutional eide must be authored with literal fill methods.
         They cannot have generated or queried slots — they ARE the ground.
     fields:
@@ -117,11 +117,11 @@
     entities — making "from where" traversable, not implicit.
 
     Constitutional content roots (arche, spora) have constitutional: true and
-    load before oikos content. Regular oikos content roots load in dependency
+    load before topos content. Regular topos content roots load in dependency
     order specified by manifest.yaml.
 
     Multi-source composition becomes graph navigation:
-    - Oikos can have multiple content-root parents
+    - Topoi can have multiple content-root parents
     - Content entities bond to their content-root via sourced-from
     - Bootstrap queries content-roots instead of hardcoding paths
   fields:
@@ -134,24 +134,24 @@
       required: true
       description: |
         Relative path from genesis directory to content location.
-        Examples: "arche/", "nous/eide/", "spora/definitions/"
-    oikos_id:
+        Examples: "arche/", "nous/eide/", "nous/typos/"
+    topos_id:
       type: string
       required: false
-      description: Oikos this content root belongs to (if not constitutional)
+      description: Topos this content root belongs to (if not constitutional)
     constitutional:
       type: boolean
       required: false
       default: false
       description: |
-        Whether this content is foundational (loads before oikoi).
+        Whether this content is foundational (loads before topoi).
         Constitutional content roots: arche, spora germination stages.
     order:
       type: number
       required: false
       default: 0
       description: |
-        Load order within constitutional phase or within oikos.
+        Load order within constitutional phase or within topos.
         Lower numbers load first. Enables dependency ordering.
     content_types:
       type: array
@@ -425,13 +425,41 @@
       items:
         type: string
 
-- id: oikos
+- id: surface
   description: |
-    A domain of concern. Oikos group related definitions, praxeis, and eide.
-    Each oikos establishes part of the kosmos structure.
+    A capability contract between topoi. Declares what praxeis a surface
+    provides and what schemas they conform to.
 
-    Oikoi can be developed within kosmos (composed, elaborated, validated)
-    and then emitted to genesis for bootstrap.
+    Surfaces make inter-topos dependencies explicit, validated, and
+    graph-traversable. When a topos declares surfaces_provided in its
+    manifest, bootstrap creates provides-surface bonds. When surfaces_consumed
+    is declared, bootstrap validates that a provider exists.
+  fields:
+    surface_id:
+      type: string
+      required: true
+      description: Unique surface identifier (e.g., 'reasoning', 'transport')
+    description:
+      type: string
+      required: true
+      description: What this surface provides
+    praxeis:
+      type: array
+      required: true
+      description: Praxis IDs this surface exposes
+    version:
+      type: string
+      required: false
+      description: Surface contract version (semver)
+
+- id: topos
+  description: |
+    A capability domain where praxeis dwell. Topoi group related definitions,
+    praxeis, and eide. Each topos establishes part of the kosmos structure.
+
+    Topoi can be developed within kosmos (composed, elaborated, validated)
+    and then emitted to genesis for bootstrap. Oikoi host topoi to gain
+    capability — the primordial bond.
   fields:
     id:
       type: string
@@ -445,12 +473,12 @@
     purpose:
       type: string
       required: false
-      description: What ontological gap does this oikos address?
+      description: What ontological gap does this topos address?
     scale:
       type: string
       required: false
       enum: [kosmos, physis, polis, oikos, soma, psyche]
-      description: Which klimax scale this oikos belongs to
+      description: Which klimax scale this topos belongs to
     status:
       type: string
       required: false
@@ -463,7 +491,7 @@
         - valid: All definitions validate, ready to emit
         - emitting: Emission to genesis in progress
         - emitted: Written to genesis filesystem
-        - bootstrapped: Loaded from genesis at startup (default for existing oikoi)
+        - bootstrapped: Loaded from genesis at startup (default for existing topoi)
     version:
       type: string
       required: false
@@ -472,7 +500,7 @@
     depends_on:
       type: array
       required: false
-      description: Other oikoi this depends on
+      description: Other topoi this depends on
     requires_dynamis:
       type: array
       required: false
@@ -486,31 +514,31 @@
       required: false
       enum: [interface, domain, infrastructure]
       description: |
-        Oikos category for interaction surface palette:
-        - interface: Provides access to substrate capabilities (manteia, opsis, aither, thyra)
+        Topos category for interaction surface palette:
+        - interface: Provides access to substrate capabilities (manteia, aither, thyra)
         - domain: Models specific concerns (nous, politeia, psyche)
         - infrastructure: Manages substrate resources (dynamis, ergon, soma)
     surfaces:
       type: array
       required: false
       description: |
-        Interaction surfaces this oikos leverages.
+        Interaction surfaces this topos leverages.
         Populated during validation based on praxeis analysis.
-        Used to discover which interface oikoi are needed.
+        Used to discover which interface topoi are needed.
       items:
         type: string
         enum: [rendering, reasoning, understanding, computation, transport, coordination, emission]
 
-- id: oikos-manifest
+- id: topos-manifest
   description: |
-    Manifest declaring what an oikos requires and provides.
-    Manifests formalize the contract between oikos and substrate.
-    An oikos with manifest becomes packageable.
+    Manifest declaring what a topos requires and provides.
+    Manifests formalize the contract between topos and substrate.
+    A topos with manifest becomes packageable.
   fields:
-    oikos_id:
+    topos_id:
       type: string
       required: true
-      description: The oikos this manifest describes
+      description: The topos this manifest describes
     version:
       type: string
       required: true
@@ -519,13 +547,13 @@
       type: array
       required: false
       description: |
-        Dynamis capabilities this oikos needs from the substrate.
+        Dynamis capabilities this topos needs from the substrate.
         Format: domain.capability (e.g., db.arise, aisthesis.embed, fs.read)
     provides:
       type: object
       required: false
       description: |
-        What this oikos contributes to the kosmos.
+        What this topos contributes to the kosmos.
         Contains: eide, desmoi, praxeis, stoicheia (arrays of IDs)
     stoicheia_form:
       type: object
@@ -548,10 +576,10 @@
     description:
       type: string
       required: true
-    oikos:
+    topos:
       type: string
       required: true
-      description: Which oikos this praxis belongs to
+      description: Which topos this praxis belongs to
     params:
       type: object
       required: false
@@ -737,71 +765,8 @@
             description: Action to take when both match
 
 # =============================================================================
-# ACTUALITY MODE EIDOS — Schema-driven energeia generation
+# NOTE: actuality-mode eidos RETIRED — unified into eidos/mode (thyra)
 # =============================================================================
-
-- id: actuality-mode
-  description: |
-    Schema for actuality bridging operations. Defines how an entity type
-    manifests to, senses from, and unmanifests from chora.
-
-    This is the schema-driven pillar applied to dynamis. Instead of hand-writing
-    energeia handlers in Rust, we declare the operations here. build.rs reads
-    these definitions and generates the dispatch code.
-
-    Adding a new provider (S3, GCS, local filesystem) requires only:
-    1. Create an actuality-mode entity with the operations
-    2. Rebuild (build.rs generates dispatch)
-    No hand-written Rust required.
-  fields:
-    name:
-      type: string
-      required: true
-      description: Mode identifier (e.g., "object-storage", "process")
-    provider:
-      type: string
-      required: true
-      description: Provider implementation (e.g., "r2", "s3", "local")
-    operations:
-      type: object
-      required: true
-      description: |
-        The three actuality operations. Each specifies the stoicheion
-        to invoke and its parameter mapping.
-      properties:
-        manifest:
-          type: object
-          description: How to bring entity into actuality
-          properties:
-            stoicheion:
-              type: string
-              description: Step type to invoke (e.g., "upload-object")
-            params:
-              type: array
-              description: Parameter names required
-        sense:
-          type: object
-          description: How to query actual state
-          properties:
-            stoicheion:
-              type: string
-              description: Step type to invoke (e.g., "head-object")
-            params:
-              type: array
-              description: Parameter names required
-        unmanifest:
-          type: object
-          description: How to remove from actuality
-          properties:
-            stoicheion:
-              type: string
-              description: Step type to invoke (e.g., "delete-object")
-            params:
-              type: array
-              description: Parameter names required
-    config_schema:
-      type: object
-      required: true
-      description: |
-        Schema for provider-specific configuration.
-        Entities using this mode must provide config matching this schema.
+# Infrastructure modes (compute, storage, network) are now eidos: mode
+# with substrate field. See genesis/thyra/eide/mode.yaml for the unified schema.
+# Mode entities live in genesis/*/modes/*.yaml.

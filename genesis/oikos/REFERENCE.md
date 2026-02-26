@@ -70,7 +70,7 @@ Current presence instance
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `animus_id` | string | ✓ |  |
+| `parousia_id` | string | ✓ |  |
 | `started_at` | timestamp | ✓ |  |
 
 ## Praxeis (Operations)
@@ -134,7 +134,7 @@ Open a new conversation within a session.
 
 ### open-session 🔧
 
-Open a new session. Requires dwelling context (animus in circle).
+Open a new session. Requires dwelling context (parousia in oikos).
 
 **Tier:** 2 | **ID:** `praxis/oikos/open-session`
 
@@ -171,16 +171,16 @@ Take a note about something.
 | Desmos | From → To | Description |
 |--------|-----------|-------------|
 | `about` | note → any | Note is about an entity |
-| `attests-to` | publish-attestation → oikos-prod | Publish attestation attests to a production oikos. |
-| `authored-by` | any → persona | Persona authored this segment/note |
-| `baked-from` | oikos-prod → oikos-dev | Production oikos was baked from a development oikos. |
+| `attests-to` | publish-attestation → topos-prod | Publish attestation attests to a production topos. |
+| `authored-by` | any → prosopon | Prosopon authored this segment/note |
+| `baked-from` | topos-prod → topos-dev | Production topos was baked from a development topos. |
 | `crystallizes` | insight → theoria | Insight crystallizes into theoria |
-| `distributes` | circle → oikos-prod | Circle distributes an oikos (commons or premium). |
-| `oikos-derives-from` | oikos-dev → oikos-dev | Oikos-dev derives from another oikos-dev (fork/adaptation). Tracks generative-commons lineage. |
-| `published-by` | oikos-prod → persona | Production oikos was published by a persona. |
-| `surfaced-in` | insight → circle | Insight surfaced in circle |
+| `distributes` | oikos → topos-prod | Oikos distributes a topos (commons or premium). |
+| `topos-derives-from` | topos-dev → topos-dev | Topos-dev derives from another topos-dev (fork/adaptation). Tracks generative-commons lineage. |
+| `published-by` | topos-prod → prosopon | Production topos was published by a prosopon. |
+| `surfaced-in` | insight → oikos | Insight surfaced in oikos |
 | `surfaces` | note → insight | Note surfaces into insight |
-| `uses-oikos` | circle → oikos-prod | Circle has installed/activated an oikos-prod. Tracks which oikoi are active for a dwelling. |
+| `uses-topos` | oikos → topos-prod | Oikos has installed/activated a topos-prod. Tracks which topoi are active for a dwelling. |
 | `within` | any → any | Containment within session/conversation |
 
 ---

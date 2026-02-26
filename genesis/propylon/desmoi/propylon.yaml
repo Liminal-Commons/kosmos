@@ -4,21 +4,21 @@
 # Extracted from spora.yaml stage-2-propylon
 
 desmoi:
-  # grants-entry-to — link grants entry to circle
+  # grants-entry-to — link grants entry to oikos
   - id: desmos/grants-entry-to
     data:
       name: grants-entry-to
-      description: "A propylon-link grants entry to a circle"
+      description: "A propylon-link grants entry to an oikos"
       from_eidos: propylon-link
-      to_eidos: circle
+      to_eidos: oikos
       cardinality: many-to-one
 
-  # authenticated-via — how animus entered
+  # authenticated-via — how parousia entered
   - id: desmos/authenticated-via
     data:
       name: authenticated-via
-      description: "Animus authenticated through a propylon-session"
-      from_eidos: animus
+      description: "Parousia authenticated through a propylon-session"
+      from_eidos: parousia
       to_eidos: propylon-session
       cardinality: one-to-one
 
@@ -31,15 +31,15 @@ desmoi:
       to_eidos: propylon-link
       cardinality: many-to-one
 
-  # operates-relay — circle operates relay infrastructure
+  # operates-relay — oikos operates relay infrastructure
   - id: desmos/operates-relay
     data:
       name: operates-relay
       description: |
-        A circle operates a propylon-relay. The relay is commons infrastructure
-        owned and maintained by the operating circle. Entry links from this
-        circle's invitations use this relay's bootstrap URL.
-      from_eidos: circle
+        An oikos operates a propylon-relay. The relay is commons infrastructure
+        owned and maintained by the operating oikos. Entry links from this
+        oikos's invitations use this relay's bootstrap URL.
+      from_eidos: oikos
       to_eidos: propylon-relay
       cardinality: one-to-many
 
@@ -52,23 +52,23 @@ desmoi:
       to_eidos: propylon-relay
       cardinality: many-to-one
 
-  # authorized-by — animus authorized by another persona's session
+  # authorized-by — parousia authorized by another prosopon's session
   - id: desmos/authorized-by
     data:
       name: authorized-by
       description: |
-        An animus operating under the authorization of another persona's session.
-        Used when Claude's animus arises within Victor's authenticated scope —
-        Claude acts with its own identity but scoped to Victor's circle access.
-      from_eidos: animus
-      to_eidos: persona
+        A parousia operating under the authorization of another prosopon's session.
+        Used when Claude's parousia arises within Victor's authenticated scope —
+        Claude acts with its own identity but scoped to Victor's oikos access.
+      from_eidos: parousia
+      to_eidos: prosopon
       cardinality: many-to-one
 
-  # issued-token — persona issued a session token
+  # issued-token — prosopon issued a session token
   - id: desmos/issued-token
     data:
       name: issued-token
-      description: "A persona issued a session-token for cross-process auth"
-      from_eidos: persona
+      description: "A prosopon issued a session-token for cross-process auth"
+      from_eidos: prosopon
       to_eidos: session-token
       cardinality: one-to-many

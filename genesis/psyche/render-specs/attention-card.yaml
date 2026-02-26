@@ -1,0 +1,74 @@
+# Attention Card Render-Spec
+# Focus indicator showing where attention rests
+#
+# Attention fields:
+#   - target_id (string): What is being attended to
+#   - weight (number): Intensity of focus (0-1)
+#   - reason (string): Why attending
+#   - since (datetime): When attention began
+#
+# Traces to: genesis/demiurge/THYRA-EVOLUTION.md
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/attention-card
+    data:
+      name: attention-card
+      description: |
+        Focus indicator card showing what the experiencing self
+        is attending to and with what intensity.
+      target_eidos: attention
+      variant: card
+
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+          children:
+            - widget: stack
+              props:
+                gap: sm
+              children:
+                # Header with attention icon
+                - widget: row
+                  props:
+                    justify: between
+                    align: center
+                  children:
+                    - widget: row
+                      props:
+                        gap: sm
+                        align: center
+                      children:
+                        - widget: icon
+                          props:
+                            name: target
+                            size: md
+                        - widget: text
+                          props:
+                            content: "Attending"
+                            variant: emphasis
+
+                    # Weight as progress indicator
+                    - widget: progress
+                      props:
+                        value: "{weight}"
+                        variant: bar
+                        color: info
+
+                # Target
+                - widget: text
+                  props:
+                    content: "{target_id}"
+                    variant: body
+
+                # Reason
+                - widget: text
+                  when: "reason"
+                  props:
+                    content: "{reason}"
+                    variant: caption
+
+      created_at: "2026-02-03T00:00:00Z"

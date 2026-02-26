@@ -1,0 +1,98 @@
+# Core Principles — Seeds from V7
+# These are the normative commitments that survived. They become V8's ground.
+
+principles:
+  - id: visibility-is-reachability
+    content: |
+      Visibility equals reachability — structure IS security.
+      Access through bond, not policy. No separate layer to bypass.
+    adopted_at: "2026-01-14"
+    grounded_in: [theoria/visibility-reachability-is-mathematical-invariant]
+
+  - id: narrow-way
+    content: |
+      Minimal substrate, maximum emergence — economy at the base enables
+      richness at the top. The constraint creates the freedom.
+    adopted_at: "2026-01-14"
+
+  - id: compose-from-understanding
+    content: |
+      Compose FROM understanding, not write ABOUT it — participation
+      over description. Embodiment over articulation.
+    adopted_at: "2026-01-14"
+
+  - id: seed-before-emit
+    content: |
+      Seed before emit — the kosmos should contain understanding before
+      projecting it outward. Emit views of state, not separate sources of truth.
+    adopted_at: "2026-01-14"
+
+  - id: theoria-has-provenance
+    content: |
+      Theoria has provenance — understanding is grounded in what was observed.
+      Never free-floating. Always traceable to evidence.
+    adopted_at: "2026-01-14"
+
+  - id: oikos-is-the-unit-of-sharing
+    content: |
+      To share is to dwell in the same oikos. Federation happens through
+      oikoi, not identity-to-identity bonds. The oikos is the syndesmos —
+      the dwelling-between.
+    adopted_at: "2026-01-13"
+
+  - id: participation-preserves-sovereignty
+    content: |
+      Your sole oikos persists regardless of what other oikoi you join.
+      Participation doesn't subsume identity. The ground remains yours.
+    adopted_at: "2026-01-13"
+
+  - id: artifacts-not-approvals
+    content: |
+      Produce artifacts, not approvals — when response is called for, compose
+      something with claims that invites engagement. Not 'shall I proceed?' but a thing.
+    adopted_at: "2026-01-14"
+
+  - id: query-compose-generate
+    content: |
+      Query before compose before generate — most inputs can be queried or computed.
+      Reserve generation for what truly requires judgment.
+    adopted_at: "2026-01-14"
+
+  - id: deletion-deserves-dignity
+    content: |
+      Deletion deserves the same dignity as creation — explicit dissolution,
+      not silent disappearance. What ends should be witnessed.
+    adopted_at: "2026-01-14"
+
+  - id: compositor-simplicity
+    content: |
+      The compositor is simple; complexity lives in the caller — each layer
+      does one thing. Expressions yield values, filters transform, stoicheia interpret.
+    adopted_at: "2026-01-14"
+
+  - id: provenance-is-physics
+    content: |
+      Every entity must trace to an authorizing phasis. This is not optional
+      governance — it is physics. Creation without provenance is structurally impossible.
+      Trust becomes traceable. To evaluate an entity, trace its provenance chain.
+    adopted_at: "2026-01-18"
+
+  - id: private-key-is-identity
+    content: |
+      The private key is the identity. What you can sign, you own. What you own,
+      you steward. Sovereignty flows from cryptographic ground, not granted permission.
+    source: principle/2026-01-17T02:17:57.098020+00:00
+
+  - id: three-truths
+    content: |
+      Three truths ground everything:
+      1. Composition is fundamental (to exist is to be composed)
+      2. Structure IS security (visibility equals reachability)
+      3. Memory is distillation (each layer trades verbosity for density)
+    source: principle/2026-01-17T02:17:57.123351+00:00
+
+  - id: presence-is-becoming-situated
+    content: |
+      Without dwelling, identity would be trapped in keys. The parousia arises
+      when prosopon arrives in oikos. Presence is not connection — it is becoming-situated.
+    source: principle/2026-01-17T02:17:57.154815+00:00

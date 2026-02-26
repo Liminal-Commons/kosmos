@@ -1,0 +1,51 @@
+# Mode Desmoi
+# Bond types for the mode system
+
+entities:
+
+  # =============================================================================
+  # MODE → MODE — Mode requires another mode
+  # =============================================================================
+
+  - eidos: desmos
+    id: desmos/requires-mode
+    data:
+      name: requires-mode
+      description: |
+        Mode depends on another mode being active.
+        When this mode activates, required modes are manifested first.
+        Cross-substrate: screen mode may require compute mode.
+      from_eidos: mode
+      to_eidos: mode
+      cardinality: one-to-many
+      symmetric: false
+
+  # =============================================================================
+  # MODE → RENDER-SPEC — Mode uses this render-spec for its widget tree
+  # =============================================================================
+
+  - eidos: desmos
+    id: desmos/uses-render-spec
+    data:
+      name: uses-render-spec
+      description: |
+        Mode uses this render-spec for rendering.
+
+        Three mode patterns use render-specs differently:
+        - Singleton: render_spec_id renders once with entity or mode context
+        - Collection: item_spec_id renders per entity; chrome_spec_id for surrounding chrome
+        - Compound: sections[].item_spec_id per section; chrome_spec_id for surrounding chrome
+
+        The operational fields on the mode are what the layout engine reads.
+        This bond makes the relationship graph-traversable for tooling,
+        generation, and introspection.
+
+        Examples:
+        - mode/compose-full --uses-render-spec--> render-spec/compose-full
+        - mode/oikos-nav --uses-render-spec--> render-spec/oikos-card
+        - mode/oikos-nav --uses-render-spec--> render-spec/oikos-chrome
+        - mode/phasis-feed --uses-render-spec--> render-spec/phasis-bubble
+      from_eidos: mode
+      to_eidos: render-spec
+      cardinality: many-to-one
+      symmetric: false

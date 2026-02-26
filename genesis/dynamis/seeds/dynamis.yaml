@@ -1,11 +1,13 @@
 # dynamis.yaml
-# Seed entities for dynamis oikos
+# Seed entities for dynamis topos
 #
 # These entities exist from the moment dynamis is loaded.
-# They establish the infrastructure for release distribution.
+# They establish the substrate infrastructure for deployments.
 #
-# Traces to: oikoi/dynamis/manifest.yaml
-# Authorized by: expression/genesis-root
+# Distribution channel seeds live in genesis/release/seeds/release.yaml
+#
+# Traces to: genesis/dynamis/manifest.yaml
+# Authorized by: phasis/genesis-root
 
 entities:
 
@@ -51,42 +53,3 @@ entities:
       Linux 64-bit AppImage — runs on most Linux distributions.
       Built with Rust's x86_64-unknown-linux-gnu target.
     active: true
-
-# =============================================================================
-# DISTRIBUTION CHANNELS — How releases reach users
-# =============================================================================
-
-# Thyra R2 Channel — Primary distribution for Thyra releases
-- eidos: distribution-channel
-  id: distribution-channel/thyra-r2
-  data:
-    name: thyra-r2
-    provider: r2
-    description: |
-      Primary distribution channel for Thyra releases.
-      Files stored in Cloudflare R2, served via thyra.liminalcommons.com.
-    config:
-      bucket: thyra-releases
-      endpoint: env://R2_ENDPOINT
-      key_pattern: "v{{ version }}/{{ filename }}"
-      credential_ref: env://R2_ACCESS_KEY_ID,env://R2_SECRET_ACCESS_KEY
-    base_url: https://thyra.liminalcommons.com/download
-    status: active
-    created_at: "{{ now() }}"
-
-# GitHub Releases Channel — Secondary distribution
-- eidos: distribution-channel
-  id: distribution-channel/github-releases
-  data:
-    name: github-releases
-    provider: github
-    description: |
-      Secondary distribution channel via GitHub Releases.
-      Provides direct download links and release notes.
-    config:
-      owner: liminalcommons
-      repo: chora
-      credential_ref: env://GITHUB_TOKEN
-    base_url: https://github.com/liminalcommons/chora/releases
-    status: active
-    created_at: "{{ now() }}"

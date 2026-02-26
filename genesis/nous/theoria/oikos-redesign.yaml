@@ -3,7 +3,7 @@
 # 70 theoria (T18-T87) captured during comprehensive oikos redesign.
 # Each theoria represents understanding that stabilized into knowledge.
 #
-# Organized by source domain (the oikos where insight emerged).
+# Organized by source domain (the topos where insight emerged).
 # Reviewed and expanded 2026-01-29 for clarity and completeness.
 
 entities:
@@ -15,7 +15,7 @@ entities:
 - eidos: theoria
   id: theoria/T18
   data:
-    insight: "An oikos becomes embodied when sense-body includes its state — without body-schema contribution, an oikos remains invisible to the animus"
+    insight: "An oikos becomes embodied when sense-body includes its state — without body-schema contribution, an oikos remains invisible to the parousia"
     domain: ekdosis
     source: reasoning
     status: crystallized
@@ -86,7 +86,7 @@ entities:
 - eidos: theoria
   id: theoria/T25
   data:
-    insight: "Attainments are derived, not assigned — capabilities emerge from circle membership and credential bonds rather than explicit role grants"
+    insight: "Attainments are derived, not assigned — capabilities emerge from oikos membership and credential bonds rather than explicit role grants"
     domain: politeia
     source: reasoning
     status: crystallized
@@ -108,7 +108,7 @@ entities:
 - eidos: theoria
   id: theoria/T27
   data:
-    insight: "Presence precedes perception — to perceive through a channel, animus must first be present in soma; embodiment enables sensing"
+    insight: "Presence precedes perception — to perceive through a channel, parousia must first be present in soma; embodiment enables sensing"
     domain: soma
     source: reasoning
     status: crystallized
@@ -126,7 +126,7 @@ entities:
 - eidos: theoria
   id: theoria/T29
   data:
-    insight: "Body-schema is proprioceptive truth — it reveals what the animus can do and sense right now, not what might theoretically be possible"
+    insight: "Body-schema is proprioceptive truth — it reveals what the parousia can do and sense right now, not what might theoretically be possible"
     domain: soma
     source: reasoning
     status: crystallized
@@ -343,7 +343,7 @@ entities:
 - eidos: theoria
   id: theoria/T50
   data:
-    insight: "The commitment boundary is the send moment — until expression commits, content is ephemeral and retractable; after, it enters the durable graph"
+    insight: "The commitment boundary is the send moment — until phasis commits, content is ephemeral and retractable; after, it enters the durable graph"
     domain: thyra
     source: reasoning
     status: crystallized
@@ -361,7 +361,7 @@ entities:
 - eidos: theoria
   id: theoria/T52
   data:
-    insight: "Expression modes signal stance — draft vs final, tentative vs committed; the mode communicates certainty level to recipients"
+    insight: "Phasis modes signal stance — draft vs final, tentative vs committed; the mode communicates certainty level to recipients"
     domain: thyra
     source: reasoning
     status: crystallized
@@ -401,7 +401,7 @@ entities:
 - eidos: theoria
   id: theoria/T56
   data:
-    insight: "Work flows to capability — pragma signals from the circle that discovered a gap to the circle that can resolve it, crossing discipline boundaries"
+    insight: "Work flows to capability — pragma signals from the oikos that discovered a gap to the oikos that can resolve it, crossing discipline boundaries"
     domain: ergon
     source: reasoning
     status: crystallized
@@ -561,7 +561,7 @@ entities:
 - eidos: theoria
   id: theoria/T69
   data:
-    insight: "Zone management is circle governance in network form — who can create subdomains follows the same attainment pattern as other capabilities"
+    insight: "Zone management is oikos governance in network form — who can create subdomains follows the same attainment pattern as other capabilities"
     domain: dns
     source: reasoning
     status: crystallized
@@ -583,7 +583,7 @@ entities:
 - eidos: theoria
   id: theoria/T71
   data:
-    insight: "Navigation is personal — each animus has their own position and history through a shared journey definition; the path walked is individual"
+    insight: "Navigation is personal — each parousia has their own position and history through a shared journey definition; the path walked is individual"
     domain: hodos
     source: reasoning
     status: crystallized
@@ -685,7 +685,7 @@ entities:
 - eidos: theoria
   id: theoria/T81
   data:
-    insight: "Attainment unifies capability sources — whether from circle membership or API credential, the check is the same: does animus have attainment X?"
+    insight: "Attainment unifies capability sources — whether from oikos membership or API credential, the check is the same: does parousia have attainment X?"
     domain: credentials
     source: reasoning
     status: crystallized

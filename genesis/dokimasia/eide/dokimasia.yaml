@@ -85,15 +85,15 @@ entities:
     id: attainment/examine
     data:
       name: examine
-      oikos: dokimasia
-      scope: circle
+      topos: dokimasia
+      scope: oikos
       description: |
         Validation capability — can run validation operations and verify authenticity.
-        Anyone with circle membership should be able to verify authenticity of
-        entities visible within that circle.
-      grants:
-        - praxis/dokimasia/validate-provenance
-        - praxis/dokimasia/validate-schema
-        - praxis/dokimasia/validate-semantic
-        - praxis/dokimasia/validate-generation
-        - praxis/dokimasia/compose-validation-report
+        Anyone with oikos membership should be able to verify authenticity of
+        entities visible within that oikos.
+    bonds:
+      - { desmos: grants-praxis, to: praxis/dokimasia/validate-provenance }
+      - { desmos: grants-praxis, to: praxis/dokimasia/validate-schema }
+      - { desmos: grants-praxis, to: praxis/dokimasia/validate-semantic }
+      - { desmos: grants-praxis, to: praxis/dokimasia/validate-generation }
+      - { desmos: grants-praxis, to: praxis/dokimasia/compose-validation-report }

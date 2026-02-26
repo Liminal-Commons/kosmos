@@ -1,0 +1,371 @@
+# Chora-Dev Reflexes — Homoiconic Form
+# Autonomic responses for substrate development events
+#
+# Bonds are co-located on their parent entities:
+#   trigger.bonds: [matches-event, filters-eidos]
+#   reflex.bonds: [triggered-by, responds-with]
+#   reflex.data.response_params: params for the responds-with praxis
+
+entities:
+
+  # =============================================================================
+  # TRIGGERS
+  # =============================================================================
+
+  - eidos: trigger
+    id: trigger/chora-dev/notify-build-complete
+    data:
+      name: notify-build-complete
+      condition: "$previous.data.build_status == 'building' and $entity.data.build_status in ['succeeded', 'failed']"
+      enabled: true
+    bonds:
+      - desmos: matches-event
+        to: entity-mutation/updated
+      - desmos: filters-eidos
+        to: eidos/build-target
+
+  - eidos: trigger
+    id: trigger/chora-dev/notify-test-failure
+    data:
+      name: notify-test-failure
+      condition: "$entity.data.status == 'failed'"
+      enabled: true
+    bonds:
+      - desmos: matches-event
+        to: entity-mutation/updated
+      - desmos: filters-eidos
+        to: eidos/test-run
+
+  - eidos: trigger
+    id: trigger/chora-dev/detect-staleness
+    data:
+      name: detect-staleness
+      pattern: "crates/**/src/**/*.rs"
+      enabled: true
+    bonds:
+      - desmos: matches-event
+        to: file-mutation/changed
+
+  - eidos: trigger
+    id: trigger/chora-dev/detect-staleness-cargo
+    data:
+      name: detect-staleness-cargo
+      pattern: "crates/**/Cargo.toml"
+      enabled: true
+    bonds:
+      - desmos: matches-event
+        to: file-mutation/changed
+
+  - eidos: trigger
+    id: trigger/chora-dev/auto-index-build-target
+    data:
+      name: auto-index-build-target
+      enabled: true
+    bonds:
+      - desmos: matches-event
+        to: entity-mutation/created
+      - desmos: filters-eidos
+        to: eidos/build-target
+
+  - eidos: trigger
+    id: trigger/chora-dev/auto-index-test-run
+    data:
+      name: auto-index-test-run
+      enabled: true
+    bonds:
+      - desmos: matches-event
+        to: entity-mutation/created
+      - desmos: filters-eidos
+        to: eidos/test-run
+
+  # =============================================================================
+  # REFLEXES
+  # =============================================================================
+
+  - eidos: reflex
+    id: reflex/chora-dev/notify-build-complete
+    data:
+      name: notify-build-complete
+      description: |
+        Notify when a build completes (success or failure).
+        Triggers when build-target transitions from 'building' to terminal state.
+      enabled: true
+      scope: global
+      response_params:
+        title: "Build {{ $entity.data.build_status }}"
+        body: "{{ $entity.data.crate_name }} ({{ $entity.data.profile }})"
+        icon: "{{ $entity.data.build_status == 'succeeded' ? 'check-circle' : 'x-circle' }}"
+        sound: "{{ $entity.data.build_status == 'succeeded' ? 'success' : 'error' }}"
+        actions:
+          - label: "View"
+            navigate: "{{ $entity.id }}"
+    bonds:
+      - desmos: triggered-by
+        to: trigger/chora-dev/notify-build-complete
+      - desmos: responds-with
+        to: praxis/thyra/notify
+
+  - eidos: reflex
+    id: reflex/chora-dev/notify-test-failure
+    data:
+      name: notify-test-failure
+      description: |
+        Urgent notification when tests fail.
+        Higher priority than build notifications.
+      enabled: true
+      scope: global
+      response_params:
+        title: "Tests Failed"
+        body: "{{ $entity.data.failed_count }} tests failed"
+        icon: x-circle
+        urgency: high
+        actions:
+          - label: "View Output"
+            navigate: "{{ $entity.id }}"
+    bonds:
+      - desmos: triggered-by
+        to: trigger/chora-dev/notify-test-failure
+      - desmos: responds-with
+        to: praxis/thyra/notify
+
+  - eidos: reflex
+    id: reflex/chora-dev/detect-staleness
+    data:
+      name: detect-staleness
+      description: |
+        Mark build targets as stale when source files change.
+        Triggered by file system events in Rust source directories.
+
+        Note: Debounce is handled at the event layer (1s default).
+      enabled: true
+      scope: global
+      response_params:
+        crate_name: "{{ $trigger.path | match('crates/([^/]+)/') | first }}"
+    bonds:
+      - desmos: triggered-by
+        to: trigger/chora-dev/detect-staleness
+      - desmos: responds-with
+        to: praxis/chora-dev/mark-stale
+
+  - eidos: reflex
+    id: reflex/chora-dev/detect-staleness-cargo
+    data:
+      name: detect-staleness-cargo
+      description: |
+        Mark build targets as stale when Cargo.toml changes.
+        Dependencies changes require rebuild.
+      enabled: true
+      scope: global
+      response_params:
+        crate_name: "{{ $trigger.path | match('crates/([^/]+)/') | first }}"
+    bonds:
+      - desmos: triggered-by
+        to: trigger/chora-dev/detect-staleness-cargo
+      - desmos: responds-with
+        to: praxis/chora-dev/mark-stale
+
+  - eidos: reflex
+    id: reflex/chora-dev/auto-index-build-target
+    data:
+      name: auto-index-build-target
+      description: |
+        Index build targets for semantic search.
+        Makes build artifacts discoverable via nous/surface.
+      enabled: true
+      scope: global
+      response_params:
+        entity_id: "$entity.id"
+    bonds:
+      - desmos: triggered-by
+        to: trigger/chora-dev/auto-index-build-target
+      - desmos: responds-with
+        to: praxis/nous/index-entity
+
+  - eidos: reflex
+    id: reflex/chora-dev/auto-index-test-run
+    data:
+      name: auto-index-test-run
+      description: |
+        Index test runs for semantic search.
+        Makes test history searchable via nous/surface.
+      enabled: true
+      scope: global
+      response_params:
+        entity_id: "$entity.id"
+    bonds:
+      - desmos: triggered-by
+        to: trigger/chora-dev/auto-index-test-run
+      - desmos: responds-with
+        to: praxis/nous/index-entity
+
+  # =============================================================================
+  # INTENT-CHANGE TRIGGERS — fire when desired_state changes
+  # =============================================================================
+
+  - eidos: trigger
+    id: trigger/chora-dev/build-intent-changed
+    data:
+      name: build-intent-changed
+      condition: '$entity.data.desired_state != $previous.data.desired_state'
+      enabled: true
+    bonds:
+      - { desmos: matches-event, to: entity-mutation/updated }
+      - { desmos: filters-eidos, to: eidos/build-target }
+
+  - eidos: trigger
+    id: trigger/chora-dev/test-intent-changed
+    data:
+      name: test-intent-changed
+      condition: '$entity.data.desired_state != $previous.data.desired_state'
+      enabled: true
+    bonds:
+      - { desmos: matches-event, to: entity-mutation/updated }
+      - { desmos: filters-eidos, to: eidos/test-run }
+
+  - eidos: trigger
+    id: trigger/chora-dev/lint-intent-changed
+    data:
+      name: lint-intent-changed
+      condition: '$entity.data.desired_state != $previous.data.desired_state'
+      enabled: true
+    bonds:
+      - { desmos: matches-event, to: entity-mutation/updated }
+      - { desmos: filters-eidos, to: eidos/lint-run }
+
+  # =============================================================================
+  # INTENT-CHANGE REFLEXES — invoke reconciliation on desired_state change
+  # =============================================================================
+
+  - eidos: reflex
+    id: reflex/chora-dev/build-intent-changed
+    data:
+      name: build-intent-changed
+      description: |
+        Trigger reconciliation when build target intent changes.
+        When desired_state changes, the reconciler senses actuality and converges.
+      enabled: true
+      scope: global
+      response_params:
+        reconciler_id: "reconciler/build-target"
+        entity_id: "$entity.id"
+    bonds:
+      - { desmos: triggered-by, to: trigger/chora-dev/build-intent-changed }
+      - { desmos: responds-with, to: praxis/dynamis/reconcile }
+
+  - eidos: reflex
+    id: reflex/chora-dev/test-intent-changed
+    data:
+      name: test-intent-changed
+      description: |
+        Trigger reconciliation when test run intent changes.
+      enabled: true
+      scope: global
+      response_params:
+        reconciler_id: "reconciler/test-run"
+        entity_id: "$entity.id"
+    bonds:
+      - { desmos: triggered-by, to: trigger/chora-dev/test-intent-changed }
+      - { desmos: responds-with, to: praxis/dynamis/reconcile }
+
+  - eidos: reflex
+    id: reflex/chora-dev/lint-intent-changed
+    data:
+      name: lint-intent-changed
+      description: |
+        Trigger reconciliation when lint run intent changes.
+      enabled: true
+      scope: global
+      response_params:
+        reconciler_id: "reconciler/lint-run"
+        entity_id: "$entity.id"
+    bonds:
+      - { desmos: triggered-by, to: trigger/chora-dev/lint-intent-changed }
+      - { desmos: responds-with, to: praxis/dynamis/reconcile }
+
+  # =============================================================================
+  # DRIFT-DETECTION TRIGGERS — fire when actual_state diverges from desired_state
+  # =============================================================================
+
+  - eidos: trigger
+    id: trigger/chora-dev/build-drift
+    data:
+      name: build-drift
+      condition: '$entity.data.desired_state != $entity.data.actual_state'
+      enabled: true
+    bonds:
+      - { desmos: matches-event, to: entity-mutation/updated }
+      - { desmos: filters-eidos, to: eidos/build-target }
+
+  - eidos: trigger
+    id: trigger/chora-dev/test-drift
+    data:
+      name: test-drift
+      condition: '$entity.data.desired_state != $entity.data.actual_state'
+      enabled: true
+    bonds:
+      - { desmos: matches-event, to: entity-mutation/updated }
+      - { desmos: filters-eidos, to: eidos/test-run }
+
+  - eidos: trigger
+    id: trigger/chora-dev/lint-drift
+    data:
+      name: lint-drift
+      condition: '$entity.data.desired_state != $entity.data.actual_state'
+      enabled: true
+    bonds:
+      - { desmos: matches-event, to: entity-mutation/updated }
+      - { desmos: filters-eidos, to: eidos/lint-run }
+
+  # =============================================================================
+  # DRIFT-DETECTION REFLEXES — invoke reconciliation on actuality divergence
+  # =============================================================================
+
+  - eidos: reflex
+    id: reflex/chora-dev/build-drift
+    data:
+      name: build-drift
+      description: |
+        When a build target's sensed actuality diverges from intent,
+        invoke reconciliation to correct. Fires on actual_state changes
+        from external drift (e.g., build artifacts deleted, source changes
+        marking build as stale).
+      enabled: true
+      scope: global
+      response_params:
+        reconciler_id: "reconciler/build-target"
+        entity_id: "$entity.id"
+    bonds:
+      - { desmos: triggered-by, to: trigger/chora-dev/build-drift }
+      - { desmos: responds-with, to: praxis/dynamis/reconcile }
+
+  - eidos: reflex
+    id: reflex/chora-dev/test-drift
+    data:
+      name: test-drift
+      description: |
+        When a test run's sensed actuality diverges from intent,
+        invoke reconciliation to correct.
+      enabled: true
+      scope: global
+      response_params:
+        reconciler_id: "reconciler/test-run"
+        entity_id: "$entity.id"
+    bonds:
+      - { desmos: triggered-by, to: trigger/chora-dev/test-drift }
+      - { desmos: responds-with, to: praxis/dynamis/reconcile }
+
+  - eidos: reflex
+    id: reflex/chora-dev/lint-drift
+    data:
+      name: lint-drift
+      description: |
+        When a lint run's sensed actuality diverges from intent,
+        invoke reconciliation to correct.
+      enabled: true
+      scope: global
+      response_params:
+        reconciler_id: "reconciler/lint-run"
+        entity_id: "$entity.id"
+    bonds:
+      - { desmos: triggered-by, to: trigger/chora-dev/lint-drift }
+      - { desmos: responds-with, to: praxis/dynamis/reconcile }

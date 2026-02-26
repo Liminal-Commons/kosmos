@@ -112,10 +112,10 @@ entities:
           type: string
           required: true
           description: "Signaling room ID for the connection"
-        circle_id:
+        oikos_id:
           type: string
           required: false
-          description: "Circle context for this connection"
+          description: "Oikos context for this connection"
         intent:
           type: string
           required: true
@@ -173,7 +173,7 @@ entities:
         message_type:
           type: string
           required: true
-          enum: [phoreta, content-sync, presence-update, expression]
+          enum: [phoreta, content-sync, presence-update, phasis]
           description: "Type of message for routing"
         content:
           type: string
@@ -207,23 +207,23 @@ entities:
           type: string
           required: false
 
-  # presence-record — ephemeral presence in room/circle
+  # presence-record — ephemeral presence in room/oikos
   - eidos: eidos
     id: eidos/presence-record
     data:
       name: presence-record
       description: |
-        Ephemeral presence in a room or circle.
+        Ephemeral presence in a room or oikos.
         Updated via heartbeat, expires after timeout.
       fields:
-        persona_id:
+        prosopon_id:
           type: string
           required: true
-          description: "Persona whose presence this represents"
-        circle_id:
+          description: "Prosopon whose presence this represents"
+        oikos_id:
           type: string
           required: false
-          description: "Circle where present"
+          description: "Oikos where present"
         room_id:
           type: string
           required: false
@@ -261,7 +261,7 @@ entities:
         type:
           type: string
           required: true
-          enum: [expression, entity, presence, catch-up-request, catch-up-response]
+          enum: [phasis, entity, presence, catch-up-request, catch-up-response]
           description: "Type of sync message"
         action:
           type: string
@@ -276,10 +276,10 @@ entities:
           type: array
           required: false
           description: "Multiple entities (for catch-up-response)"
-        circle_id:
+        oikos_id:
           type: string
           required: true
-          description: "Circle context for this sync"
+          description: "Oikos context for this sync"
         timestamp:
           type: timestamp
           required: true
@@ -287,7 +287,7 @@ entities:
         sender_id:
           type: string
           required: true
-          description: "Persona ID of the sender"
+          description: "Prosopon ID of the sender"
         since:
           type: timestamp
           required: false
@@ -307,56 +307,56 @@ entities:
     id: attainment/connect
     data:
       name: connect
-      oikos: aither
+      topos: aither
       scope: soma
       description: |
         Connection capability — establishing and managing network connections.
         Substrate-local because network interfaces belong to the soma.
-      grants:
-        - praxis/aither/connect-signaling
-        - praxis/aither/disconnect-signaling
-        - praxis/aither/send-offer
-        - praxis/aither/send-answer
-        - praxis/aither/create-channel
-        - praxis/aither/accept-answer
-        - praxis/aither/answer-channel
-        - praxis/aither/close-channel
-        - praxis/aither/reconcile-channel
-        - praxis/aither/ensure-connection
-        - praxis/aither/attempt-reconnect
-        - praxis/aither/disconnect-syndesmos
+    bonds:
+      - { desmos: grants-praxis, to: praxis/aither/connect-signaling }
+      - { desmos: grants-praxis, to: praxis/aither/disconnect-signaling }
+      - { desmos: grants-praxis, to: praxis/aither/send-offer }
+      - { desmos: grants-praxis, to: praxis/aither/send-answer }
+      - { desmos: grants-praxis, to: praxis/aither/create-channel }
+      - { desmos: grants-praxis, to: praxis/aither/accept-answer }
+      - { desmos: grants-praxis, to: praxis/aither/answer-channel }
+      - { desmos: grants-praxis, to: praxis/aither/close-channel }
+      - { desmos: grants-praxis, to: praxis/aither/reconcile-channel }
+      - { desmos: grants-praxis, to: praxis/aither/ensure-connection }
+      - { desmos: grants-praxis, to: praxis/aither/attempt-reconnect }
+      - { desmos: grants-praxis, to: praxis/aither/disconnect-syndesmos }
 
   # message — sending and receiving through channels
   - eidos: attainment
     id: attainment/message
     data:
       name: message
-      oikos: aither
+      topos: aither
       scope: soma
       description: |
         Messaging capability — sending and receiving through channels.
         Requires an established connection on this substrate.
-      grants:
-        - praxis/aither/send-message
-        - praxis/aither/receive-messages
-        - praxis/aither/queue-message
-        - praxis/aither/flush-queue
+    bonds:
+      - { desmos: grants-praxis, to: praxis/aither/send-message }
+      - { desmos: grants-praxis, to: praxis/aither/receive-messages }
+      - { desmos: grants-praxis, to: praxis/aither/queue-message }
+      - { desmos: grants-praxis, to: praxis/aither/flush-queue }
 
   # presence — tracking who is here
   - eidos: attainment
     id: attainment/presence
     data:
       name: presence
-      oikos: aither
-      scope: circle
+      topos: aither
+      scope: oikos
       description: |
         Presence capability — tracking who is here.
-        Circle-scoped because presence visibility follows membership.
-      grants:
-        - praxis/aither/update-presence
-        - praxis/aither/heartbeat
-        - praxis/aither/expire-stale-presence
-        - praxis/aither/list-presence
+        Oikos-scoped because presence visibility follows membership.
+    bonds:
+      - { desmos: grants-praxis, to: praxis/aither/update-presence }
+      - { desmos: grants-praxis, to: praxis/aither/heartbeat }
+      - { desmos: grants-praxis, to: praxis/aither/expire-stale-presence }
+      - { desmos: grants-praxis, to: praxis/aither/list-presence }
 
   # sync — P2P entity replication
   - eidos: attainment
@@ -365,27 +365,27 @@ entities:
       name: sync
       description: |
         Synchronization capability — P2P entity replication.
-        Circle-scoped because sync operates on circle data.
-      oikos: aither
-      scope: circle
-      grants:
-        - praxis/aither/broadcast-sync
-        - praxis/aither/receive-sync
-        - praxis/aither/request-catch-up
+        Oikos-scoped because sync operates on oikos data.
+      topos: aither
+      scope: oikos
+    bonds:
+      - { desmos: grants-praxis, to: praxis/aither/broadcast-sync }
+      - { desmos: grants-praxis, to: praxis/aither/receive-sync }
+      - { desmos: grants-praxis, to: praxis/aither/request-catch-up }
 
   # sense — reading connection and signaling state
   - eidos: attainment
     id: attainment/sense
     data:
       name: sense
-      oikos: aither
+      topos: aither
       scope: soma
       description: |
         Sense capability — reading connection and signaling state.
         Read-only access for debugging and monitoring.
-      grants:
-        - praxis/aither/sense-signaling
-        - praxis/aither/poll-signaling
-        - praxis/aither/sense-channel
-        - praxis/aither/list-channels
-        - praxis/aither/list-connections
+    bonds:
+      - { desmos: grants-praxis, to: praxis/aither/sense-signaling }
+      - { desmos: grants-praxis, to: praxis/aither/poll-signaling }
+      - { desmos: grants-praxis, to: praxis/aither/sense-channel }
+      - { desmos: grants-praxis, to: praxis/aither/list-channels }
+      - { desmos: grants-praxis, to: praxis/aither/list-connections }

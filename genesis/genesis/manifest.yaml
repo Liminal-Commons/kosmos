@@ -1,25 +1,25 @@
-# Oikos Manifest: Genesis
+# Topos Manifest: Genesis
 # γένεσις — origin, creation, coming into being. The source of truth.
 #
 # The full-circle guarantee: emit → bootstrap → emit = same hash.
 # What is emitted can be bootstrapped. What is bootstrapped can be emitted identically.
 #
-# Manifest v2.1 — oikos metadata for entity composition
+# Manifest v2.1 — topos metadata for entity composition
 
 format_version: "2.1"
-oikos_id: genesis
+topos_id: genesis
 version: "0.1.0"
 
-# Oikos metadata (v2.1)
-oikos_name: Genesis
-oikos_description: |
+# Topos metadata (v2.1)
+topos_name: Genesis
+topos_description: |
   The source of truth. Where kosmos meets filesystem.
   Emission persists definitions; bootstrap restores them.
   The full-circle property guarantees fidelity.
-oikos_scale: kosmos
+topos_scale: kosmos
 
 # Development experience metadata
-oikos_category: infrastructure
+topos_category: infrastructure
 surfaces_provided:
   - emission            # Provides filesystem emission
 surfaces_consumed: []   # Genesis is foundational
@@ -31,6 +31,10 @@ content_paths:
     content_types: [desmos]
   - path: praxeis/
     content_types: [praxis]
+  - path: typos/
+    content_types: [typos]
+  - path: surfaces/
+    content_types: [surface]
 
 requires_dynamis:
   - db.find
@@ -54,7 +58,7 @@ provides:
 
   praxeis:
     - genesis/emit-genesis       # Full genesis emission
-    - genesis/emit-oikos         # Single oikos emission
+    - genesis/emit-topos         # Single topos emission
     - genesis/verify-full-circle # Prove round-trip fidelity
     - genesis/register-content-root
     - genesis/list-content-roots

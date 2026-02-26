@@ -17,22 +17,22 @@ entities:
   data:
     title: "Add try/catch stoicheion for error handling in praxeis"
     description: |
-      The oikos distribution praxeis (sync-circle-oikoi, reconcile-circle-oikoi)
-      need to continue on individual oikos failures. Currently there's no way
+      The topos distribution praxeis (sync-oikos-topoi, reconcile-oikos-topoi)
+      need to continue on individual topos failures. Currently there's no way
       to catch errors and continue — a single failure aborts the whole praxis.
 
       Desired pattern:
       ```yaml
       - step: for_each
         items: "$distributed_oikoi"
-        as: oikos_prod
+        as: topos_prod
         do:
           - step: try
             do:
               - step: call
-                praxis: politeia/install-oikos-if-needed
+                praxis: politeia/install-topos-if-needed
                 params:
-                  oikos_prod_id: "$oikos_prod.id"
+                  topos_prod_id: "$topos_prod.id"
             catch:
               - step: set
                 bindings:
@@ -41,7 +41,7 @@ entities:
 
       Without this, we implemented simpler versions that don't catch errors,
       meaning sync is all-or-nothing rather than best-effort.
-    context: "K3, K5, K6, K7 implementation in oikos-distribution-execution-plan.md"
+    context: "K3, K5, K6, K7 implementation in topos-distribution-execution-plan.md"
     status: resolved
     priority: high
     created_at: "2026-01-28T00:00:00Z"
@@ -72,10 +72,10 @@ entities:
 
       - step: for_each
         items: "$distributed_oikoi"
-        as: oikos_prod
+        as: topos_prod
         do:
           - step: call
-            praxis: install-oikos-if-needed
+            praxis: install-topos-if-needed
             bind_to: result
           - step: append
             to: "$sync_results"
@@ -84,7 +84,7 @@ entities:
 
       Without this, we can't build detailed result arrays. The v1 implementation
       just returns counts rather than per-item results.
-    context: "K3, K7 implementation in oikos-distribution-execution-plan.md"
+    context: "K3, K7 implementation in topos-distribution-execution-plan.md"
     status: resolved
     priority: normal
     created_at: "2026-01-28T00:00:00Z"
@@ -113,16 +113,16 @@ entities:
       - step: try
         do:
           - step: call
-            praxis: sync-circle-oikoi
+            praxis: sync-oikos-topoi
             bind_to: sync_result
         catch:
           - step: log
             level: warn
-            message: "Oikos sync failed: $_error"
+            message: "Topos sync failed: $_error"
       ```
 
       Without this, errors either block execution or disappear silently.
-    context: "K5, K6 implementation in oikos-distribution-execution-plan.md"
+    context: "K5, K6 implementation in topos-distribution-execution-plan.md"
     status: resolved
     priority: normal
     created_at: "2026-01-28T00:00:00Z"
@@ -142,15 +142,15 @@ entities:
   data:
     title: "Add compare-semver praxis for version comparison"
     description: |
-      The update-oikos-if-newer praxis (K4.5) needs to compare semantic versions
+      The update-topos-if-newer praxis (K4.5) needs to compare semantic versions
       to determine if an update is needed. Currently there's no semver comparison.
 
       Desired pattern:
       ```yaml
       - step: call
-        praxis: oikos/compare-semver
+        praxis: topos/compare-semver
         params:
-          version_a: "$oikos_prod.data.version"
+          version_a: "$topos_prod.data.version"
           version_b: "$installed.data.version"
         bind_to: comparison
 
@@ -159,18 +159,18 @@ entities:
           - when: "$comparison.result == 1"
             then:
               - step: call
-                praxis: politeia/install-oikos
+                praxis: politeia/install-topos
       ```
 
       The v1 implementation uses simple string inequality which doesn't handle
       semver ordering correctly (e.g., "1.10.0" vs "1.9.0").
-    context: "K4.5, K9 in oikos-distribution-execution-plan.md"
+    context: "K4.5, K9 in topos-distribution-execution-plan.md"
     status: resolved
     priority: high
     created_at: "2026-01-28T00:00:00Z"
     resolved_at: "2026-01-28T12:00:00Z"
     resolution: |
-      Implemented in chora as praxis/oikos/compare-semver in oikos.yaml.
+      Implemented in chora as praxis/topos/compare-semver in topos.yaml.
       - Compares two semver strings
       - Returns result: -1 (less), 0 (equal), 1 (greater)
       - Returns comparison label for human readability
@@ -178,9 +178,9 @@ entities:
 # =============================================================================
 # Bonds for these pragmas (historical reference)
 # =============================================================================
-# These bonds were conceptually signaled to circle/chora-dev:
+# These bonds were conceptually signaled to oikos/chora-dev:
 #
-# - pragma/stoicheion-try-catch → circle/chora-dev (resolved)
-# - pragma/stoicheion-append → circle/chora-dev (resolved)
-# - pragma/stoicheion-log → circle/chora-dev (resolved)
-# - pragma/praxis-compare-semver → circle/chora-dev (resolved)
+# - pragma/stoicheion-try-catch → oikos/chora-dev (resolved)
+# - pragma/stoicheion-append → oikos/chora-dev (resolved)
+# - pragma/stoicheion-log → oikos/chora-dev (resolved)
+# - pragma/praxis-compare-semver → oikos/chora-dev (resolved)

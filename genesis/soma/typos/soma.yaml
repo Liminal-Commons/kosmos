@@ -1,0 +1,78 @@
+# Soma Typos — Body & Embodiment
+#
+# Typos for the soma (body/embodiment) domain.
+# Parousia, body-schema, channels, percepts, signals, notifications.
+
+entities:
+
+# =============================================================================
+# SOMA (BODY/EMBODIMENT)
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-notification
+  data:
+    name: notification
+    description: |
+      Compose a notification entity for body-schema awareness.
+
+      Notifications are created by reflexes to signal events that
+      require prosopon attention. They appear in the body-schema
+      and can be marked as read.
+
+      Required inputs:
+      - type: Notification type (pragma_received, pragma_resolved, etc.)
+
+      Optional inputs:
+      - oikos_id: Target oikos for the notification
+      - pragma_id: Related pragma ID
+      - title: Notification title
+      - priority: Priority level
+      - resolution: Resolution text (for resolved pragmas)
+    target_eidos: notification
+    defaults:
+      read: false
+    computed:
+      created_at: "{{ now() }}"
+    bonds:
+      - desmos: belongs-to
+        from_self: true
+        to_literal: topos/soma
+
+- eidos: typos
+  id: typos-def-parousia
+  data:
+    name: parousia
+    description: "Compose a parousia entity (dwelling presence)"
+    target_eidos: parousia
+
+- eidos: typos
+  id: typos-def-body-schema
+  data:
+    name: body-schema
+    description: "Compose a body-schema entity"
+    target_eidos: body-schema
+
+- eidos: typos
+  id: typos-def-channel
+  data:
+    name: channel
+    description: "Compose a channel entity"
+    target_eidos: channel
+
+- eidos: typos
+  id: typos-def-percept
+  data:
+    name: percept
+    description: "Compose a percept entity"
+    target_eidos: percept
+
+- eidos: typos
+  id: typos-def-body-signal
+  data:
+    name: body-signal
+    description: "Compose a body-signal entity (output through a channel)"
+    target_eidos: body-signal
+
+# NOTE: typos-def-node and typos-def-service-instance are defined in
+# dynamis/typos/deployment.yaml (canonical owner — deployment infrastructure)

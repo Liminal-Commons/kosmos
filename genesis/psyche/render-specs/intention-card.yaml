@@ -1,0 +1,124 @@
+# Intention Card Render-Spec
+# Goal card showing what is being pursued
+#
+# Intention fields:
+#   - description (string): What is intended
+#   - status (enum): forming | active | suspended | fulfilled | abandoned
+#   - priority (enum): low | medium | high | critical
+#
+# Traces to: genesis/demiurge/THYRA-EVOLUTION.md
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/intention-card
+    data:
+      name: intention-card
+      description: |
+        Goal card showing active intentions and their status.
+        Supports click to view or modify intention.
+      target_eidos: intention
+      variant: card
+
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+          children:
+            - widget: stack
+              props:
+                gap: sm
+              children:
+                # Header with status
+                - widget: row
+                  props:
+                    justify: between
+                    align: center
+                  children:
+                    - widget: row
+                      props:
+                        gap: sm
+                        align: center
+                      children:
+                        # Status-specific icons
+                        - widget: icon
+                          when: "status == 'forming'"
+                          props:
+                            name: loader
+                            size: md
+                        - widget: icon
+                          when: "status == 'active'"
+                          props:
+                            name: zap
+                            size: md
+                            color: success
+                        - widget: icon
+                          when: "status == 'suspended'"
+                          props:
+                            name: pause
+                            size: md
+                        - widget: icon
+                          when: "status == 'fulfilled'"
+                          props:
+                            name: check
+                            size: md
+                            color: success
+                        - widget: icon
+                          when: "status == 'abandoned'"
+                          props:
+                            name: x-circle
+                            size: md
+                            color: error
+
+                        - widget: text
+                          props:
+                            content: "Intention"
+                            variant: emphasis
+
+                    # Status badge
+                    - widget: badge
+                      when: "status == 'forming'"
+                      props:
+                        content: "Forming"
+                        variant: default
+                    - widget: badge
+                      when: "status == 'active'"
+                      props:
+                        content: "Active"
+                        variant: success
+                    - widget: badge
+                      when: "status == 'suspended'"
+                      props:
+                        content: "Suspended"
+                        variant: warning
+                    - widget: badge
+                      when: "status == 'fulfilled'"
+                      props:
+                        content: "Fulfilled"
+                        variant: success
+                    - widget: badge
+                      when: "status == 'abandoned'"
+                      props:
+                        content: "Abandoned"
+                        variant: error
+
+                # Description
+                - widget: text
+                  props:
+                    content: "{description}"
+                    variant: body
+
+                # Priority indicator
+                - widget: badge
+                  when: "priority == 'critical'"
+                  props:
+                    content: "Critical"
+                    variant: error
+                - widget: badge
+                  when: "priority == 'high'"
+                  props:
+                    content: "High Priority"
+                    variant: warning
+
+      created_at: "2026-02-03T00:00:00Z"

@@ -1,0 +1,13 @@
+# Logos Typos — Phasis Composition
+#
+# Typos for the logos (discourse) domain.
+# Moved from thyra — logos introduces phasis, logos owns typos-def-phasis.
+
+entities:
+
+- eidos: typos
+  id: typos-def-phasis
+  data:
+    name: phasis
+    description: "Compose a phasis entity (intentional contribution)"
+    target_eidos: phasis

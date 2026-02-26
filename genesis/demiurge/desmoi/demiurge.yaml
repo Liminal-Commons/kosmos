@@ -16,88 +16,89 @@ entities:
       cardinality: many-to-many
       symmetric: false
 
-  # packages — oikos-dev packages an oikos
+  # packages — topos-dev packages a topos
   - eidos: desmos
     id: desmos/packages
     data:
       name: packages
       description: |
-        An oikos-dev packages a source oikos. This bond tracks which
-        development package was composed from which genesis oikos.
-      from_eidos: oikos-dev
-      to_eidos: oikos
+        A topos-dev packages a source topos. This bond tracks which
+        development package was composed from which genesis topos.
+      from_eidos: topos-dev
+      to_eidos: topos
       cardinality: many-to-one
       symmetric: false
 
-  # baked-from — oikos-prod was baked from oikos-dev
+  # baked-from — topos-prod was baked from topos-dev
   - eidos: desmos
     id: desmos/baked-from
     data:
       name: baked-from
       description: |
-        An oikos-prod was baked (generation specs resolved) from an oikos-dev.
+        A topos-prod was baked (generation specs resolved) from a topos-dev.
         Provides provenance from published package to development source.
-      from_eidos: oikos-prod
-      to_eidos: oikos-dev
+      from_eidos: topos-prod
+      to_eidos: topos-dev
       cardinality: many-to-one
       symmetric: false
 
-  # published-by — oikos-prod was published by an animus
+  # published-by — topos-prod was published by a parousia
   - eidos: desmos
     id: desmos/published-by
     data:
       name: published-by
       description: |
-        An oikos-prod was published by an animus (persona in circle).
+        A topos-prod was published by a parousia (prosopon in oikos).
         Tracks who signed and released the package.
-      from_eidos: oikos-prod
-      to_eidos: animus
+      from_eidos: topos-prod
+      to_eidos: parousia
       cardinality: many-to-one
       symmetric: false
 
-  # attests-to — publish-attestation attests to oikos-prod
+  # attests-to — publish-attestation attests to topos-prod
   - eidos: desmos
     id: desmos/attests-to
     data:
       name: attests-to
       description: |
-        A publish-attestation attests to the publication of an oikos-prod.
+        A publish-attestation attests to the publication of a topos-prod.
         Provides audit trail for package provenance.
       from_eidos: publish-attestation
-      to_eidos: oikos-prod
+      to_eidos: topos-prod
       cardinality: many-to-one
       symmetric: false
 
-  # derives-from — oikos-dev was forked from another oikos-dev
+  # forked-from — topos-dev was forked from another topos-dev
   - eidos: desmos
-    id: desmos/derives-from
+    id: desmos/forked-from
     data:
-      name: derives-from
+      name: forked-from
       description: |
-        An oikos-dev was forked/derived from another oikos-dev.
+        A topos-dev was forked/derived from another topos-dev.
         Used for tracking generative-commons fork lineage.
-      from_eidos: oikos-dev
-      to_eidos: oikos-dev
+        (Renamed from derives-from to disambiguate from logos/derives-from: phasis→any)
+      from_eidos: topos-dev
+      to_eidos: topos-dev
       cardinality: many-to-one
       symmetric: false
 
   # =============================================================================
-  # OIKOS DEVELOPMENT BONDS
+  # TOPOS DEVELOPMENT BONDS
   # =============================================================================
 
-  # contains — oikos contains a definition
+  # contains — topos contains a definition
   - eidos: desmos
     id: desmos/contains
     data:
       name: contains
       description: |
-        Oikos contains a definition (eidos, praxis, or desmos).
-        The oikos is the package; contained entities belong to it.
+        Topos contains a definition (eidos, praxis, or desmos).
+        The topos is the package; contained entities belong to it.
 
-        Used during oikos development to track which definitions
-        are part of an oikos being composed.
+        Used during topos development to track which definitions
+        are part of a topos being composed.
       from_eidos:
-        - oikos
+        - topos
       to_eidos:
         - eidos
         - praxis
@@ -105,20 +106,20 @@ entities:
       cardinality: one-to-many
       symmetric: false
 
-  # developing — animus is actively developing an oikos
+  # developing — parousia is actively developing a topos
   - eidos: desmos
     id: desmos/developing
     data:
       name: developing
       description: |
-        Animus is actively developing an oikos.
+        Parousia is actively developing a topos.
 
         This bond surfaces in body-schema as the current development
-        context. An animus may develop multiple oikoi simultaneously.
+        context. A parousia may develop multiple topoi simultaneously.
       from_eidos:
-        - animus
+        - parousia
       to_eidos:
-        - oikos
+        - topos
       cardinality: one-to-many
       symmetric: false
 

@@ -1,0 +1,19 @@
+# Release Sensing Daemons
+# Periodic actuality sensing for release artifact distribution
+#
+# Traces to: docs/reference/daemon-runner.md
+# Authorized by: phasis/genesis-root
+
+entities:
+
+  - eidos: daemon
+    id: daemon/sense-releases
+    data:
+      name: sense-releases
+      description: |
+        Periodically sense release artifact distribution.
+        Checks if release artifacts are present in R2 storage.
+      praxis: release/sense-release-distribution
+      interval: 300
+      enabled: true
+      scope: global

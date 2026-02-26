@@ -1,0 +1,46 @@
+# Release Reflexes — Drift Detection
+# Autonomic responses for release artifact distribution drift
+#
+# Traces to: docs/reference/daemon-runner.md
+# Authorized by: phasis/genesis-root
+
+entities:
+
+  # =============================================================================
+  # DRIFT-DETECTION TRIGGERS
+  # =============================================================================
+
+  - eidos: trigger
+    id: trigger/release/distribution-drift
+    data:
+      name: distribution-drift
+      condition: '$entity.data.uploaded == true and $entity.data._sensed.exists == false'
+      enabled: true
+    bonds:
+      - desmos: matches-event
+        to: entity-mutation/updated
+      - desmos: filters-eidos
+        to: eidos/release-artifact
+
+  # =============================================================================
+  # DRIFT-DETECTION REFLEXES
+  # =============================================================================
+
+  - eidos: reflex
+    id: reflex/release/distribution-drift
+    data:
+      name: distribution-drift
+      description: |
+        When a release artifact should be uploaded but is not present
+        in R2 storage (sensed by daemon), invoke reconciliation to
+        re-distribute.
+      enabled: true
+      scope: global
+      response_params:
+        reconciler_id: "reconciler/release-artifact"
+        entity_id: "$entity.id"
+    bonds:
+      - desmos: triggered-by
+        to: trigger/release/distribution-drift
+      - desmos: responds-with
+        to: praxis/dynamis/reconcile

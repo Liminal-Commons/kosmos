@@ -184,4 +184,4 @@ Separation of world from implementation enables:
 ---
 
 *χώρα receives. κόσμος is received.*
-*Traces to: expression/genesis-root*
+*Traces to: phasis/genesis-root*

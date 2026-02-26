@@ -1,12 +1,12 @@
 # End-to-End Design: The Invitation Flow
 
-*From "I have an app" to "My friend is in my circle"*
+*From "I have an app" to "My friend is in my oikos"*
 
 ---
 
 ## Overview
 
-The invitation flow is the complete path from a user installing Thyra to successfully inviting a friend into their circle. This document captures the full architecture spanning three repositories.
+The invitation flow is the complete path from a user installing Thyra to successfully inviting a friend into their oikos. This document captures the full architecture spanning three repositories.
 
 ```
 Layer 5: Ongoing Federation
@@ -37,13 +37,13 @@ Layer 1: Bootstrap & Identity
 ### Phase 3: Identity Creation
 - Generate BIP-39 mnemonic (24 words)
 - Derive Ed25519 keypair for signing
-- Create persona entity
-- Create home circle with user as sovereign
+- Create prosopon entity
+- Create home oikos with user as sovereign
 
 ### Phase 4: Invitation Creation
-- User selects circle to invite to
+- User selects oikos to invite to
 - Create propylon link with:
-  - Circle ID
+  - Oikos ID
   - Inviter's public key
   - Message
   - Expiry / constraints
@@ -79,20 +79,20 @@ Layer 1: Bootstrap & Identity
 
 ### Phase 9: Phoreta Exchange
 - On approval, inviter creates phoreta bundle:
-  - Friend's persona
-  - Circle membership bond
+  - Friend's prosopon
+  - Oikos membership bond
   - Attainments (express, perceive)
   - Signed by inviter's key
 - Send phoreta over WebRTC data channel
 - Friend imports, now has membership
 
 ### Phase 10: Ongoing Federation
-- Circle content syncs via data channel
+- Oikos content syncs via data channel
 - Incremental phoreta for updates
 - Reconnection when available
 - Multiple members can sync P2P
 
-> **Via Negativa (from ALIGNMENT.md):** Phase 10 is explicitly **post-MVP**. MVP is complete when a friend joins a circle (Phase 9 complete). Ongoing sync adds complexity without changing the core value proposition.
+> **Via Negativa (from ALIGNMENT.md):** Phase 10 is explicitly **post-MVP**. MVP is complete when a friend joins an oikos (Phase 9 complete). Ongoing sync adds complexity without changing the core value proposition.
 
 ---
 
@@ -103,7 +103,7 @@ Per [ALIGNMENT.md](./ALIGNMENT.md) Lens 4 (Via Negativa), MVP is defined as:
 ```
 MVP = Phase 9 complete
     = Friend has membership in their local kosmos
-    = They can see circle content (one-time sync)
+    = They can see oikos content (one-time sync)
 
 NOT MVP:
     - Ongoing sync (Phase 10)
@@ -191,7 +191,7 @@ Infrastructure repository — the signaling bridge.
 | Replay attack | Nonce-based challenge; signatures tied to session |
 | Man-in-middle | E2E encryption after WebRTC established |
 | Impersonation | Human verification — eyes and ears |
-| Key compromise | Circle-scoped keys limit blast radius |
+| Key compromise | Oikos-scoped keys limit blast radius |
 | Relay trust | Relay only sees encrypted SDP; no access to content |
 
 ---
@@ -201,7 +201,7 @@ Infrastructure repository — the signaling bridge.
 Per [ALIGNMENT.md](./ALIGNMENT.md) Lens 6 (Federation Sovereignty), the invitation flow maintains a clear sovereignty model that should be visible to users:
 
 ```
-Your circle is YOURS.
+Your oikos is YOURS.
 - You decide who enters.
 - You decide what they can do.
 - You decide what leaves and arrives via sync.
@@ -209,11 +209,11 @@ Your circle is YOURS.
 - Your sovereignty rests on your mnemonic.
   (Guard it; it is you.)
 
-When you JOIN a circle:
+When you JOIN an oikos:
 - You are a guest in another's sovereignty.
 - You receive what you're granted.
 - You can leave whenever you wish.
-- You bring nothing of their circle to yours
+- You bring nothing of their oikos to yours
   unless explicitly shared.
 ```
 
@@ -279,4 +279,4 @@ Genesis ✅  →  Relay ✅  →  C1 (app shell)
 ---
 
 *χώρα receives. Three repositories, one flow.*
-*Traces to: expression/genesis-root*
+*Traces to: phasis/genesis-root*

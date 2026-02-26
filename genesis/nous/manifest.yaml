@@ -1,30 +1,31 @@
-# Oikos Manifest: Nous
+# Topos Manifest: Nous
 # νοῦς — understanding operations, theoria, inquiry, synthesis, journeys.
 #
 # Nous is a cross-scale oikos for understanding operations that run through
 # all scales. Not a klimax scale but the operational layer for surfacing,
 # gathering, finding, traversal, and crystallization.
 #
-# Manifest v2.1 — oikos metadata for entity composition
+# Manifest v2.1 — topos metadata for entity composition
 
 format_version: "2.1"
-oikos_id: nous
+topos_id: nous
 version: "0.1.0"
 
-# Oikos metadata (v2.1)
-oikos_name: Nous
-oikos_description: |
+# Topos metadata (v2.1)
+topos_name: Nous
+topos_description: |
   Understanding operations — theoria, inquiry, synthesis, journeys.
   The cross-scale operational layer for surfacing, gathering, finding,
   traversal, and crystallization of knowledge.
-oikos_scale: cross-scale
+topos_scale: cross-scale
 
 # Development experience metadata
-oikos_category: domain
+topos_category: domain
 surfaces_provided:
   - understanding    # Provides crystallize-theoria, surface, traverse for other oikoi
 surfaces_consumed:
-  - reasoning        # Uses manteia/governed-inference in invoke praxis
+  - reasoning           # Uses manteia/governed-inference in invoke praxis
+  - reactivity          # Reflexes for knowledge mutation response
 
 content_paths:
   - path: eide/
@@ -33,10 +34,23 @@ content_paths:
     content_types: [desmos]
   - path: praxeis/
     content_types: [praxis]
-  - path: entities/
-    content_types: [render-spec, reflex]
+  - path: reflexes/
+    content_types: [reflex]
+  - path: surfaces/
+    content_types: [surface]
+  - path: typos/
+    content_types: [typos]
+  - path: principles/
+    content_types: [principle]
+  - path: patterns/
+    content_types: [pattern]
+  - path: journeys/
+    content_types: [journey]
   - path: theoria/
     content_types: [theoria]
+  # THYRA-OIKOS Phase 2: Domain render-specs for nous eide
+  - path: render-specs/
+    content_types: [render-spec]
 
 requires_dynamis:
   # Tier 2 stoicheia: find, bind, update, compose, index
@@ -59,10 +73,17 @@ provides:
     - waypoint
     - inquiry
     - synthesis
+    # Knowledge Ladder eide
+    - axiom         # Foundational truth
+    - principle     # Normative guidance
+    - pattern       # Recurring structure
 
   reflexes:
     - reflex/nous/theoria-created
-    - reflex/nous/expression-created
+    - reflex/nous/phasis-created
+    # Pattern emergence reflexes
+    - reflex/nous/suggest-pattern
+    - reflex/nous/announce-pattern
 
   # Oikos-centric rendering: nous owns presentation for its eide
   renderable:
@@ -72,9 +93,16 @@ provides:
       description: "Teleological navigation cards"
     - eidos: inquiry
       description: "Open question cards"
+    - eidos: axiom
+      description: "Foundational truth cards (constitutional)"
+    - eidos: principle
+      description: "Normative guidance cards"
+    - eidos: pattern
+      description: "Recurring structure cards with recognition triggers"
 
   attainments:
-    - crystallize           # Create and manage theoria (understanding lifecycle)
+    - crystallize           # Create and manage theoria, patterns, principles (understanding lifecycle)
+    - constitute            # Create and manage axioms (rare, constitutional oikoi)
     - inquire               # Open inquiries and create syntheses
     - journey               # Create and manage journeys (teleological navigation)
     - invoke                # Activate nous via invocation (LLM integration)
@@ -95,19 +123,35 @@ provides:
     - contradicts
     - evidences
     - journeys-toward
+    # Knowledge Ladder bonds
+    - grounds            # Axiom/principle grounds principle/pattern
+    - grounded-in        # Pattern/principle grounded in higher-level knowledge
+    - rises-to           # Knowledge rises up the ladder
+    - exemplifies        # Theoria exemplifies pattern
 
   praxeis:
     - nous/surface-journeys
     - nous/surface
+    - nous/surface-for-context   # Ambient intelligence contextual surfacing
     - nous/gather
     - nous/find
     - nous/index
     - nous/index-functions
     - nous/traverse
     - nous/crystallize-theoria
+    - nous/crystallize-from-phasis  # Voice session → theoria flow
     - nous/confirm-theoria
     - nous/supersede-theoria
     - nous/list-theoria
+    # Pattern emergence (knowledge ladder)
+    - nous/detect-patterns
+    - nous/crystallize-pattern
+    - nous/crystallize-principle
+    - nous/crystallize-axiom
+    - nous/establish-axiom
+    - nous/elevate-to-pattern
+    - nous/elevate-to-principle
+    - nous/elevate-to-axiom
     - nous/open-inquiry
     - nous/answer-inquiry
     - nous/synthesize
@@ -128,5 +172,5 @@ stoicheia_form:
 
 depends_on:
   - manteia              # Uses governed-inference in invoke praxis
-  - politeia             # crystallized-in bond targets circle (politeia eidos)
+  - politeia             # crystallized-in bond targets oikos (politeia eidos)
   # Note: synthesis is a nous eidos, not an oikos dependency

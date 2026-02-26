@@ -1,26 +1,27 @@
-# Oikos Manifest: Propylon
+# Topos Manifest: Propylon
 # πρόπυλον — the gateway, the entrance before the entrance.
 #
 # The narrow passage through which beings enter the kosmos.
 # Authenticate, exchange, hand off, forget.
 #
-# Manifest v2.1 — oikos metadata for entity composition
+# Manifest v2.1 — topos metadata for entity composition
 
 format_version: "2.1"
-oikos_id: propylon
+topos_id: propylon
 version: "0.1.0"
 
-# Oikos metadata (v2.1)
-oikos_name: Propylon
-oikos_description: |
+# Topos metadata (v2.1)
+topos_name: Propylon
+topos_description: |
   The gateway, the entrance before the entrance. The narrow passage
   through which beings enter the kosmos. Authenticate, exchange, hand off, forget.
-oikos_scale: cross-scale
+topos_scale: cross-scale
 
 # Development experience metadata
-oikos_category: infrastructure
+topos_category: infrastructure
 surfaces_provided: []   # Gateway is an operation, not a surface
-surfaces_consumed: []   # Foundational entry/authentication layer
+surfaces_consumed:
+  - reactivity          # Reflexes for authentication mutation response
 
 content_paths:
   - path: eide/
@@ -29,10 +30,16 @@ content_paths:
     content_types: [desmos]
   - path: praxeis/
     content_types: [praxis]
+  - path: typos/
+    content_types: [typos]
+  - path: reflexes/
+    content_types: [reflex]
   - path: seeds/
     content_types: [seed]
-  - path: entities/
+  - path: render-specs/
     content_types: [render-spec]
+  - path: modes/
+    content_types: [mode]
 
 dependencies:
   - soma         # For dwelling context (create-self-link)
@@ -56,7 +63,11 @@ provides:
     - propylon-relay
     - session-token
 
-  # Oikos-centric rendering: propylon owns presentation for gateway entities
+  reflexes:
+    - reflex/propylon/notify-entry-request
+    - reflex/propylon/announce-entry-approved
+
+  # Topos-centric rendering: propylon owns presentation for gateway entities
   renderable:
     - eidos: propylon-link
       description: "Invitation link cards and management"
@@ -68,7 +79,7 @@ provides:
       description: "Infrastructure status cards"
 
   attainments:
-    - invite          # Create/manage invitation links
+    - manage-links    # Create/manage invitation links
     - enter           # Use links to attempt entry (global)
     - approve         # Resolve pending entry requests
     - audit           # View entry history

@@ -31,7 +31,7 @@ Buffer state for stream content awaiting commitment. Tracks raw transcripts, cla
 | `clarified_at` | timestamp |  |  |
 | `committed_at` | timestamp |  |  |
 | `content` | string | ✓ | Clarified content — after disfluency removal, ready for edit/commit |
-| `expression_id` | string |  | Expression ID if committed |
+| `phasis_id` | string |  | Phasis ID if committed |
 | `last_fragment_at` | timestamp |  |  |
 | `raw_content` | string |  | Concatenated raw transcripts — verbatim STT output |
 | `raw_fragments` | array |  | Individual raw transcript fragments [{text, utterance_id, timestamp}] |
@@ -57,22 +57,22 @@ Application configuration for Thyra. Makes tauri.conf.json settings
 | `window_title` | string | ✓ | Default window title |
 | `window_width` | number | ✓ | Default window width in pixels |
 
-### expression
+### phasis
 
 Intentional contribution — the commitment boundary. When ephemeral becomes durable.
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `circle_id` | string | ✓ | Circle ID where this was expressed |
+| `oikos_id` | string | ✓ | Oikos ID where this was expressed |
 | `content` | string | ✓ | The content being expressed |
 | `content_type` | string |  | MIME type of the content |
 | `expressed_at` | timestamp | ✓ |  |
-| `expressed_by` | string | ✓ | Persona ID of who expressed this |
-| `in_reply_to` | string |  | Expression ID this replies to, if any |
+| `expressed_by` | string | ✓ | Prosopon ID of who expressed this |
+| `in_reply_to` | string |  | Phasis ID this replies to, if any |
 | `metadata` | object |  |  |
-| `mode` | enum |  | Expression mode — how the expression should be received |
+| `stance` | enum |  | Phasis stance — how the phasis should be received |
 | `source_artifact_id` | string |  | Artifact ID if originated from composition |
-| `source_kind` | enum |  | How this expression originated |
+| `source_kind` | enum |  | How this phasis originated |
 | `source_stream_id` | string |  | Terminal stream ID if source_kind is stream |
 
 ### release
@@ -118,7 +118,7 @@ Declarative rendering specification — defines how to render entities
 | `layout_template` | string | ✓ | Structural template using simple markup. Supports: |
 | `name` | string | ✓ | Render spec identifier |
 | `style_bindings` | object |  | CSS class or style mappings by element |
-| `target_eidos` | string | ✓ | The eidos this spec renders (e.g., 'expression', 'theoria') |
+| `target_eidos` | string | ✓ | The eidos this spec renders (e.g., 'phasis', 'theoria') |
 
 ### render-type
 
@@ -130,7 +130,7 @@ How an eidos should render — makes display configuration traversable. Bonds to
 | `description` | string |  |  |
 | `filters` | array |  | Available filter options [{field, label, options}] |
 | `grouping` | string |  | How to group instances (e.g., 'in-reply-to-chains', 'by-date') |
-| `name` | string | ✓ | Render type identifier (e.g., 'expression-thread', 'entity-list') |
+| `name` | string | ✓ | Render type identifier (e.g., 'phasis-thread', 'entity-list') |
 | `sort_by` | string |  | Default sort field |
 | `sort_order` | enum |  |  |
 | `source_eidos` | string |  | The eidos this render type applies to (optional for input-only render types) |
@@ -179,7 +179,7 @@ VAD-bounded speech segment — atomic unit of voice perception.
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `audio_hash` | string |  | Hash of audio segment if captured |
-| `contributed_to` | string |  | Expression ID this utterance contributed to |
+| `contributed_to` | string |  | Phasis ID this utterance contributed to |
 | `duration_ms` | number |  |  |
 | `ended_at` | timestamp |  | VAD speech end |
 | `started_at` | timestamp | ✓ | VAD speech start |
@@ -204,7 +204,7 @@ Abandon an accumulation — discard without committing.
 
 ### activate-layout 🔧
 
-Activate a layout for the current circle.
+Activate a layout for the current oikos.
 
 **Tier:** 2 | **ID:** `praxis/thyra/activate-layout`
 
@@ -214,7 +214,7 @@ Activate a layout for the current circle.
 
 ### activate-theme 🔧
 
-Activate a style theme for the current circle.
+Activate a style theme for the current oikos.
 
 **Tier:** 2 | **ID:** `praxis/thyra/activate-theme`
 
@@ -288,16 +288,16 @@ Close a stream — set intent to closed and reconcile.
 |-----------|------|----------|-------------|
 | `stream_id` | string | ✓ | The stream to close |
 
-### commit-accumulation 🔧
+### commit-phasis 🔧
 
-Commit an accumulation — create expression from buffer.
+Commit a phasis — cross the commitment boundary.
 
-**Tier:** 3 | **ID:** `praxis/thyra/commit-accumulation`
+**Tier:** 3 | **ID:** `praxis/thyra/commit-phasis`
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `accumulation_id` | string | ✓ | The accumulation to commit |
-| `mode` | string |  | Expression mode (default: declaration) |
+| `stance` | string |  | Phasis stance (default: declaration) |
 
 ### create-panel 🔧
 
@@ -308,7 +308,7 @@ Create a panel for rendering content in a region.
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `name` | string | ✓ | Panel identifier |
-| `render_type` | string | ✓ | How this panel renders (expression-thread, presence-list, etc.) |
+| `render_type` | string | ✓ | How this panel renders (phasis-thread, presence-list, etc.) |
 | `region_id` | string | ✓ | The region this panel renders in |
 | `priority` | number |  | Rendering priority (default 0) |
 | `config` | object |  | Panel-specific configuration |
@@ -333,7 +333,7 @@ Use reconcile-record to actualize.
 
 ### create-zone 🔧
 
-Create a DNS zone managed by the dwelling circle.
+Create a DNS zone managed by the dwelling oikos.
 
 **Tier:** 2 | **ID:** `praxis/dns/create-zone`
 
@@ -377,17 +377,17 @@ Emit render commands to substrate.
 | `region_id` | string | ✓ | The region to render |
 | `intent` | object | ✓ | The render intent from gather-render-intent |
 
-### express 🔧
+### emit-phasis 🔧
 
-Create an expression — the commitment boundary.
+Create a phasis — the commitment boundary.
 
-**Tier:** 2 | **ID:** `praxis/thyra/express`
+**Tier:** 2 | **ID:** `praxis/logos/emit-phasis`
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `content` | string | ✓ | The content being expressed |
-| `mode` | string |  | Expression mode: declaration, inquiry, suggestion, request, proposal (default: declaration) |
-| `in_reply_to` | string |  | Expression ID this replies to |
+| `stance` | string |  | Phasis stance: declaration, inquiry, suggestion, request, proposal (default: declaration) |
+| `in_reply_to` | string |  | Phasis ID this replies to |
 | `source_kind` | string |  | How this originated: stream, compose, direct (default: direct) |
 | `content_type` | string |  | MIME type (default: text/plain) |
 
@@ -424,7 +424,7 @@ Get the current state of an accumulation.
 
 ### get-active-layout 🔧
 
-Get the active layout for the current circle.
+Get the active layout for the current oikos.
 
 **Tier:** 1 | **ID:** `praxis/thyra/get-active-layout`
 
@@ -432,7 +432,7 @@ Get the active layout for the current circle.
 
 ### get-active-theme 🔧
 
-Get the active theme for the current circle.
+Get the active theme for the current oikos.
 
 **Tier:** 1 | **ID:** `praxis/thyra/get-active-theme`
 
@@ -440,13 +440,13 @@ Get the active theme for the current circle.
 
 ### get-thread 🔧
 
-Get a conversation thread from an expression.
+Get a conversation thread from a phasis.
 
-**Tier:** 2 | **ID:** `praxis/thyra/get-thread`
+**Tier:** 2 | **ID:** `praxis/logos/get-thread`
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `expression_id` | string | ✓ | The expression to get thread for |
+| `phasis_id` | string | ✓ | The phasis to get thread for |
 | `direction` | string |  | Direction: ancestors (default), descendants, or both |
 
 ### get-workspace 🔧
@@ -469,18 +469,18 @@ List accumulations, optionally filtered by status.
 | `stream_id` | string |  | Filter by source stream |
 | `limit` | number |  | Maximum results (default: 50) |
 
-### list-expressions 🔧
+### list-phaseis 🔧
 
-List expressions in a circle.
+List phaseis in an oikos.
 
-**Tier:** 2 | **ID:** `praxis/thyra/list-expressions`
+**Tier:** 2 | **ID:** `praxis/logos/list-phaseis`
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `circle_id` | string |  | Circle to list from (defaults to current circle) |
-| `expressed_by` | string |  | Filter by persona ID |
-| `mode` | string |  | Filter by expression mode |
-| `limit` | number |  | Maximum expressions to return (default: 50) |
+| `oikos_id` | string |  | Oikos to list from (defaults to current oikos) |
+| `expressed_by` | string |  | Filter by prosopon ID |
+| `stance` | string |  | Filter by phasis stance |
+| `limit` | number |  | Maximum phaseis to return (default: 50) |
 
 ### list-panels 🔧
 
@@ -521,13 +521,13 @@ List streams, optionally filtered by kind, direction, or status.
 
 ### list-zones 🔧
 
-List DNS zones, optionally filtered by circle management.
+List DNS zones, optionally filtered by oikos management.
 
 **Tier:** 1 | **ID:** `praxis/dns/list-zones`
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `circle_id` | string |  | Filter to zones managed by this circle |
+| `oikos_id` | string |  | Filter to zones managed by this oikos |
 | `limit` | number |  | Maximum results |
 
 ### open-artifact 🔧
@@ -615,15 +615,15 @@ Reconcile all regions in the active layout.
 
 ### reply-to 🔧
 
-Reply to an expression.
+Reply to a phasis.
 
-**Tier:** 2 | **ID:** `praxis/thyra/reply-to`
+**Tier:** 2 | **ID:** `praxis/logos/reply-to`
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `expression_id` | string | ✓ | The expression to reply to |
+| `phasis_id` | string | ✓ | The phasis to reply to |
 | `content` | string | ✓ | The reply content |
-| `mode` | string |  | Expression mode (default: declaration) |
+| `stance` | string |  | Phasis stance (default: declaration) |
 
 ### resume-stream 🔧
 
@@ -672,10 +672,10 @@ Useful for detecting drift.
 | Desmos | From → To | Description |
 |--------|-----------|-------------|
 | `consumes` | daemon → stream | Daemon consumes stream content. |
-| `contributes-to` | utterance → expression | Utterance contributes to expression. |
-| `derives-from` | expression → any | Expression derives from stream or artifact. Provenance. |
-| `expressed-in` | expression → circle | Expression expressed in circle. The dwelling context. |
-| `in-reply-to` | expression → expression | Expression threading — conversation structure. |
+| `contributes-to` | utterance → phasis | Utterance contributes to phasis. |
+| `derives-from` | phasis → any | Phasis derives from stream or artifact. Provenance. |
+| `phasis-in` | phasis → oikos | Phasis expressed in oikos. The dwelling context. |
+| `in-reply-to` | phasis → phasis | Phasis threading — conversation structure. |
 | `produces` | daemon → stream | Daemon produces stream content. |
 | `transforms-to` | stream → stream | Stream transformation relationship. Audio → transcription → clarified. |
 

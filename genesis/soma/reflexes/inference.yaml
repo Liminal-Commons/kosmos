@@ -1,0 +1,69 @@
+# Inference Reflexes
+# Resolve model tiers when a provider credential is added.
+# Each provider gets its own trigger/reflex pair.
+#
+# Traces to: PROMPT-INFERENCE-SUBSTRATE.md
+
+entities:
+
+  # =============================================================================
+  # TRIGGERS
+  # =============================================================================
+
+  # Fires when a credential entity is created with service == "anthropic"
+  - eidos: trigger
+    id: trigger/soma/anthropic-credential-added
+    data:
+      name: anthropic-credential-added
+      condition: '$entity.data.service == "anthropic"'
+      enabled: true
+    bonds:
+      - { desmos: matches-event, to: entity-mutation/created }
+      - { desmos: filters-eidos, to: eidos/credential }
+
+  # Fires when a credential entity is created with service == "openai"
+  - eidos: trigger
+    id: trigger/soma/openai-credential-added
+    data:
+      name: openai-credential-added
+      condition: '$entity.data.service == "openai"'
+      enabled: true
+    bonds:
+      - { desmos: matches-event, to: entity-mutation/created }
+      - { desmos: filters-eidos, to: eidos/credential }
+
+  # =============================================================================
+  # REFLEXES
+  # =============================================================================
+
+  # When an Anthropic credential is added, resolve model tiers
+  - eidos: reflex
+    id: reflex/soma/resolve-anthropic-tiers
+    data:
+      name: resolve-anthropic-tiers
+      description: |
+        When an Anthropic API credential is added, automatically
+        resolve model tiers by querying the models API.
+      enabled: true
+      scope: global
+      response_params:
+        provider: "anthropic"
+    bonds:
+      - { desmos: triggered-by, to: trigger/soma/anthropic-credential-added }
+      - { desmos: responds-with, to: praxis/soma/resolve-model-tiers }
+
+  # When an OpenAI credential is added, resolve model tiers
+  - eidos: reflex
+    id: reflex/soma/resolve-openai-tiers
+    data:
+      name: resolve-openai-tiers
+      description: |
+        When an OpenAI API credential is added, automatically
+        resolve model tiers by querying the models API.
+      enabled: true
+      scope: global
+      response_params:
+        provider: "openai"
+    bonds:
+      - { desmos: triggered-by, to: trigger/soma/openai-credential-added }
+      - { desmos: responds-with, to: praxis/soma/resolve-model-tiers }

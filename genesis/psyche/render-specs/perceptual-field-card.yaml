@@ -1,0 +1,105 @@
+# Perceptual Field Card Render-Spec
+# Portal awareness status card — the parousia's view of its interface
+#
+# Perceptual-field fields:
+#   - name (string): Field name
+#   - kind (enum): cli | web | api | ambient
+#   - visibility_scope (array): What oikoi can be perceived
+#   - capabilities (array): What this field enables
+#   - status (enum): open | closed | suspended
+#
+# Renamed from thyra-card to resolve psyche/thyra boundary collision.
+# Psyche's perceptual-field = subjective portal awareness.
+# Thyra topos = objective portal infrastructure (streams, accumulation).
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/perceptual-field-card
+    data:
+      name: perceptual-field-card
+      description: |
+        Portal awareness card showing the interface through which
+        experience flows. Indicates interface kind and status.
+      target_eidos: perceptual-field
+      variant: card
+
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+          children:
+            - widget: stack
+              props:
+                gap: sm
+              children:
+                # Header with interface type icon
+                - widget: row
+                  props:
+                    justify: between
+                    align: center
+                  children:
+                    - widget: row
+                      props:
+                        gap: sm
+                        align: center
+                      children:
+                        # Kind-specific icons
+                        - widget: icon
+                          when: "kind == 'cli'"
+                          props:
+                            name: terminal
+                            size: md
+                        - widget: icon
+                          when: "kind == 'web'"
+                          props:
+                            name: globe
+                            size: md
+                        - widget: icon
+                          when: "kind == 'api'"
+                          props:
+                            name: server
+                            size: md
+                        - widget: icon
+                          when: "kind == 'ambient'"
+                          props:
+                            name: cloud
+                            size: md
+
+                        - widget: text
+                          props:
+                            content: "{name}"
+                            variant: emphasis
+
+                    # Status badge
+                    - widget: badge
+                      when: "status == 'open'"
+                      props:
+                        content: "Open"
+                        variant: success
+                    - widget: badge
+                      when: "status == 'closed'"
+                      props:
+                        content: "Closed"
+                        variant: default
+                    - widget: badge
+                      when: "status == 'suspended'"
+                      props:
+                        content: "Suspended"
+                        variant: warning
+
+                # Kind indicator
+                - widget: badge
+                  props:
+                    content: "{kind}"
+                    variant: info
+
+                # Visibility scope
+                - widget: text
+                  when: "visibility_scope"
+                  props:
+                    content: "{visibility_scope}"
+                    variant: caption
+
+      created_at: "2026-02-09T00:00:00Z"

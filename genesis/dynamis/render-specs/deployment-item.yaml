@@ -1,0 +1,45 @@
+# Dynamis Render Specifications — deployment item
+# Compact status item for deployment
+#
+# Deployment fields:
+#   - name (string): Deployment name
+#   - actual_state (enum): Current state
+#
+# Migrated from: genesis/dynamis/entities/rendering.yaml
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/deployment-item
+    data:
+      name: deployment-item
+      description: |
+        Compact list item for deployment entities.
+        Shows status indicator dot, name, and actual state label.
+      target_eidos: deployment
+      variant: item
+
+      layout:
+        - widget: card
+          props:
+            variant: compact
+            padding: sm
+          children:
+            - widget: row
+              props:
+                gap: sm
+                align: center
+              children:
+                - widget: status-indicator
+                  props:
+                    status: "{actual_state}"
+                - widget: text
+                  props:
+                    content: "{name}"
+                    variant: body
+                - widget: text
+                  props:
+                    content: "{actual_state}"
+                    variant: label
+
+      created_at: "2026-02-09T00:00:00Z"

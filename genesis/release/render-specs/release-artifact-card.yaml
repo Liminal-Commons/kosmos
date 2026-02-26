@@ -1,0 +1,112 @@
+# Release Artifact Card Render-Spec
+# Individual file within a release
+#
+# Release-artifact fields:
+#   - filename (string): Artifact filename
+#   - artifact_type (enum): binary | checksum | signature | archive | installer | metadata
+#   - platform (string): Target platform
+#   - size_bytes (integer): File size
+#   - uploaded (boolean): Whether uploaded
+#   - content_hash (string): BLAKE3 hash
+#
+# Traces to: genesis/demiurge/THYRA-EVOLUTION.md
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/release-artifact-card
+    data:
+      name: release-artifact-card
+      description: |
+        Individual artifact file card showing filename, type,
+        platform, and upload status.
+      target_eidos: release-artifact
+      variant: card
+
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: sm
+          children:
+            - widget: stack
+              props:
+                gap: xs
+              children:
+                # Header with type icon
+                - widget: row
+                  props:
+                    justify: between
+                    align: center
+                  children:
+                    - widget: row
+                      props:
+                        gap: sm
+                        align: center
+                      children:
+                        # Type-specific icons
+                        - widget: icon
+                          when: "artifact_type == 'binary'"
+                          props:
+                            name: file
+                            size: sm
+                        - widget: icon
+                          when: "artifact_type == 'checksum'"
+                          props:
+                            name: hash
+                            size: sm
+                        - widget: icon
+                          when: "artifact_type == 'signature'"
+                          props:
+                            name: shield-check
+                            size: sm
+                        - widget: icon
+                          when: "artifact_type == 'archive'"
+                          props:
+                            name: folder
+                            size: sm
+                        - widget: icon
+                          when: "artifact_type == 'installer'"
+                          props:
+                            name: monitor
+                            size: sm
+                        - widget: icon
+                          when: "artifact_type == 'metadata'"
+                          props:
+                            name: file-text
+                            size: sm
+
+                        - widget: text
+                          props:
+                            content: "{filename}"
+                            variant: body
+
+                    # Upload status
+                    - widget: icon
+                      when: "uploaded"
+                      props:
+                        name: check
+                        size: sm
+                        color: success
+                    - widget: icon
+                      when: "!uploaded"
+                      props:
+                        name: clock
+                        size: sm
+
+                # Platform and size
+                - widget: row
+                  props:
+                    gap: sm
+                  children:
+                    - widget: badge
+                      when: "platform"
+                      props:
+                        content: "{platform}"
+                        variant: info
+                    - widget: badge
+                      props:
+                        content: "{artifact_type}"
+                        variant: default
+
+      created_at: "2026-02-03T00:00:00Z"

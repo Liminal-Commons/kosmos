@@ -80,7 +80,7 @@ Mark an intention as fulfilled.
 
 ### list-intentions 🔧
 
-List intentions of the animus.
+List intentions of the parousia.
 
 **Tier:** 2 | **ID:** `praxis/psyche/list-intentions`
 

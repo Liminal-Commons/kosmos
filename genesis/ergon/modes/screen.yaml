@@ -1,0 +1,29 @@
+# Ergon Screen Mode — Pragma board
+# Browse pragmata (things to be done) through thyra.
+
+entities:
+
+  - eidos: mode
+    id: mode/pragma-board
+    data:
+      name: pragma-board
+      topos: ergon
+      substrate: screen
+      description: |
+        Pragma board — open, in-progress, and blocked pragmata
+        across topoi. Center panel.
+      item_spec_id: render-spec/pragma-card
+      arrangement: scroll
+      empty_message: "No pragmata"
+      spatial:
+        position: center
+        height: fill
+      source_query: "gather(eidos: pragma, sort: created_at, order: desc, limit: 100)"
+      config:
+        watch_eidos: pragma
+      created_at: "2026-02-22T00:00:00Z"
+
+bonds:
+  - from_id: mode/pragma-board
+    to_id: render-spec/pragma-card
+    desmos: uses-render-spec

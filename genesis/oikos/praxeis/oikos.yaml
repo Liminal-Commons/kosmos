@@ -12,24 +12,27 @@ entities:
 
 - eidos: praxis
   id: praxis/oikos/open-session
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/dwell
   data:
-    oikos: oikos
+    topos: oikos
     name: open-session
     visible: true
     description: |
-      Open a new session. Requires dwelling context (animus in circle).
+      Open a new session. Requires dwelling context (parousia in oikos).
 
-      Creates a session entity and bonds to animus and circle.
+      Creates a session entity and bonds to parousia and oikos.
     params: []
     steps:
       # Assert we have dwelling context
       - step: assert
-        condition: "$_animus"
-        message: "Cannot open session without dwelling animus"
+        condition: "$_parousia"
+        message: "Cannot open session without dwelling parousia"
 
       - step: assert
-        condition: "$_circle"
-        message: "Cannot open session without dwelling circle"
+        condition: "$_oikos"
+        message: "Cannot open session without dwelling oikos"
 
       # Generate session ID
       - step: set
@@ -46,10 +49,10 @@ entities:
           status: "active"
         bind_to: session_entity
 
-      # Bond session to circle
+      # Bond session to oikos
       - step: bind
         from_id: "$session_id"
-        to_id: "$_circle.id"
+        to_id: "$_oikos.id"
         desmos: "belongs-to"
 
       - step: return
@@ -59,8 +62,11 @@ entities:
 
 - eidos: praxis
   id: praxis/oikos/close-session
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/dwell
   data:
-    oikos: oikos
+    topos: oikos
     name: close-session
     visible: true
     description: |
@@ -100,8 +106,11 @@ entities:
 
 - eidos: praxis
   id: praxis/oikos/open-conversation
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/dwell
   data:
-    oikos: oikos
+    topos: oikos
     name: open-conversation
     visible: true
     description: |
@@ -154,8 +163,11 @@ entities:
 
 - eidos: praxis
   id: praxis/oikos/add-segment
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/dwell
   data:
-    oikos: oikos
+    topos: oikos
     name: add-segment
     visible: true
     description: |
@@ -233,14 +245,14 @@ entities:
         to_id: "$conversation_id"
         desmos: "within"
 
-      # Bond to persona if available
+      # Bond to prosopon if available
       - step: switch
         cases:
-          - when: "$_persona"
+          - when: "$_prosopon"
             then:
               - step: bind
                 from_id: "$segment_id"
-                to_id: "$_persona.id"
+                to_id: "$_prosopon.id"
                 desmos: "authored-by"
 
       - step: return
@@ -255,8 +267,11 @@ entities:
 
 - eidos: praxis
   id: praxis/oikos/take-note
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/reflect
   data:
-    oikos: oikos
+    topos: oikos
     name: take-note
     visible: true
     description: |
@@ -312,24 +327,24 @@ entities:
           created_at: "$created_at"
         bind_to: note_entity
 
-      # Bond to circle if available
+      # Bond to oikos if available
       - step: switch
         cases:
-          - when: "$_circle"
+          - when: "$_oikos"
             then:
               - step: bind
                 from_id: "$note_id"
-                to_id: "$_circle.id"
+                to_id: "$_oikos.id"
                 desmos: "belongs-to"
 
-      # Bond to persona as author if available
+      # Bond to prosopon as author if available
       - step: switch
         cases:
-          - when: "$_persona"
+          - when: "$_prosopon"
             then:
               - step: bind
                 from_id: "$note_id"
-                to_id: "$_persona.id"
+                to_id: "$_prosopon.id"
                 desmos: "authored-by"
 
       # Bond to target if about something
@@ -350,8 +365,11 @@ entities:
 
 - eidos: praxis
   id: praxis/oikos/list-notes
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/reflect
   data:
-    oikos: oikos
+    topos: oikos
     name: list-notes
     visible: true
     description: |
@@ -401,8 +419,11 @@ entities:
 
 - eidos: praxis
   id: praxis/oikos/surface-insight
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/reflect
   data:
-    oikos: oikos
+    topos: oikos
     name: surface-insight
     visible: true
     description: |
@@ -444,14 +465,14 @@ entities:
           surfaced_at: "$surfaced_at"
         bind_to: insight_entity
 
-      # Bond to circle if available
+      # Bond to oikos if available
       - step: switch
         cases:
-          - when: "$_circle"
+          - when: "$_oikos"
             then:
               - step: bind
                 from_id: "$insight_id"
-                to_id: "$_circle.id"
+                to_id: "$_oikos.id"
                 desmos: "surfaced-in"
 
       # Bond to contributing notes if provided
@@ -468,6 +489,17 @@ entities:
                     to_id: "$insight_id"
                     desmos: "surfaces"
 
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Insight surfaced: $content"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: insight
+            source_id: "$insight_id"
+
       - step: return
         value:
           insight_id: "$insight_id"
@@ -476,8 +508,11 @@ entities:
 
 - eidos: praxis
   id: praxis/oikos/crystallize-insight
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/reflect
   data:
-    oikos: oikos
+    topos: oikos
     name: crystallize-insight
     visible: true
     description: |
@@ -520,6 +555,17 @@ entities:
         to_id: "$theoria_result.theoria_id"
         desmos: "crystallizes"
 
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Insight crystallized: $insight.data.content"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: insight
+            source_id: "$insight_id"
+
       - step: return
         value:
           theoria_id: "$theoria_result.theoria_id"
@@ -533,7 +579,7 @@ entities:
 - eidos: praxis
   id: praxis/oikos/compare-semver
   data:
-    oikos: oikos
+    topos: oikos
     name: compare-semver
     visible: true
     description: |

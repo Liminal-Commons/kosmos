@@ -1,0 +1,97 @@
+# Kairos Card Render-Spec
+# Opportune moment alert
+#
+# Kairos fields:
+#   - description (string): What the opportunity is
+#   - for_intention (string): Which intention this serves
+#   - conditions (string): What conditions enable this moment
+#   - recognized_at (datetime): When kairos was recognized
+#   - expires_at (datetime): When the moment passes
+#
+# Traces to: genesis/demiurge/THYRA-EVOLUTION.md
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/kairos-card
+    data:
+      name: kairos-card
+      description: |
+        Opportune moment alert showing when conditions align
+        for action. Time-sensitive display with urgency.
+      target_eidos: kairos
+      variant: card
+
+      layout:
+        - widget: card
+          props:
+            variant: elevated
+            padding: md
+          children:
+            - widget: stack
+              props:
+                gap: sm
+              children:
+                # Header with urgency
+                - widget: row
+                  props:
+                    justify: between
+                    align: center
+                  children:
+                    - widget: row
+                      props:
+                        gap: sm
+                        align: center
+                      children:
+                        - widget: icon
+                          props:
+                            name: zap
+                            size: md
+                            color: warning
+                        - widget: text
+                          props:
+                            content: "Kairos"
+                            variant: emphasis
+
+                    - widget: badge
+                      props:
+                        content: "Now"
+                        variant: warning
+
+                # Description
+                - widget: text
+                  props:
+                    content: "{description}"
+                    variant: body
+
+                # For which intention
+                - widget: row
+                  when: "for_intention"
+                  props:
+                    gap: sm
+                    align: center
+                  children:
+                    - widget: icon
+                      props:
+                        name: target
+                        size: sm
+                    - widget: text
+                      props:
+                        content: "{for_intention}"
+                        variant: caption
+
+                # Conditions
+                - widget: text
+                  when: "conditions"
+                  props:
+                    content: "{conditions}"
+                    variant: caption
+
+                # Expiration warning
+                - widget: badge
+                  when: "expires_at"
+                  props:
+                    content: "Expires: {expires_at}"
+                    variant: error
+
+      created_at: "2026-02-03T00:00:00Z"

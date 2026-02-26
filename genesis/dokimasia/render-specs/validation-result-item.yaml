@@ -1,0 +1,58 @@
+# Dokimasia Render Specifications — validation-result item
+# Compact list item for validation results
+#
+# Validation-result fields:
+#   - generation_id (string): The generation that was validated
+#   - passed (boolean): Whether all validation passed
+#
+# Traces to: genesis/dokimasia/DESIGN.md
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/validation-result-item
+    data:
+      name: validation-result-item
+      description: |
+        Compact list item for validation-result entities.
+        Shows generation ID and passed/failed badge.
+      target_eidos: validation-result
+      variant: item
+
+      layout:
+        - widget: card
+          props:
+            variant: compact
+            padding: sm
+          children:
+            - widget: row
+              props:
+                gap: sm
+                align: center
+                justify: between
+              children:
+                - widget: row
+                  props:
+                    gap: sm
+                    align: center
+                  children:
+                    - widget: status-indicator
+                      props:
+                        status: "{passed}"
+                    - widget: code
+                      props:
+                        content: "{generation_id}"
+
+                # Passed/failed badge
+                - widget: badge
+                  when: "passed"
+                  props:
+                    content: "Passed"
+                    variant: success
+                - widget: badge
+                  when: "!passed"
+                  props:
+                    content: "Failed"
+                    variant: error
+
+      created_at: "2026-02-09T00:00:00Z"

@@ -1,0 +1,95 @@
+# Propylon Render Specifications — propylon-link card
+#
+# Card view for shareable invitation links.
+# Shows status, target oikos, usage counts, approval requirement, and expiry.
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/propylon-link-card
+    data:
+      name: propylon-link-card
+      description: "Card view for propylon-link — shareable invitation"
+      target_eidos: propylon-link
+      variant: card
+
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+          children:
+            - widget: stack
+              props:
+                gap: sm
+              children:
+                # Header: link icon + status badge
+                - widget: row
+                  props:
+                    gap: sm
+                    align: center
+                    justify: between
+                  children:
+                    - widget: icon
+                      props:
+                        name: link
+                    - widget: badge
+                      props:
+                        content: "{status}"
+                        variant: "{status}"
+
+                # Target oikos
+                - widget: row
+                  props:
+                    gap: sm
+                    align: center
+                  children:
+                    - widget: text
+                      props:
+                        content: "Oikos:"
+                        variant: label
+                    - widget: text
+                      props:
+                        content: "{oikos_id}"
+                        variant: emphasis
+
+                # Usage count
+                - widget: row
+                  props:
+                    gap: sm
+                    align: center
+                  children:
+                    - widget: text
+                      props:
+                        content: "{use_count}"
+                        variant: emphasis
+                    - widget: text
+                      props:
+                        content: "/"
+                        variant: body
+                      when: "{max_uses}"
+                    - widget: text
+                      props:
+                        content: "{max_uses}"
+                        variant: body
+                      when: "{max_uses}"
+                    - widget: text
+                      props:
+                        content: "uses"
+                        variant: label
+
+                # Approval required badge
+                - widget: badge
+                  props:
+                    content: "approval required"
+                    variant: warning
+                  when: "{require_approval}"
+
+                # Expiry
+                - widget: text
+                  props:
+                    content: "Expires {expires_at}"
+                    variant: caption
+                  when: "{expires_at}"
+
+      created_at: "2026-02-09T00:00:00Z"

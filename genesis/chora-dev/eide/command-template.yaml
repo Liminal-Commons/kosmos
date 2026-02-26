@@ -1,0 +1,68 @@
+# Command Template Eidos
+# Commands as data in the graph, not code in Rust
+#
+# Design principle: Generic primitives + command templates = homoiconic tool integration
+# Adding new tools (npm, go, make) requires only new YAML entities, not new Rust code.
+
+entities:
+
+  - eidos: eidos
+    id: eidos/command-template
+    data:
+      name: command-template
+      description: |
+        A template for shell command execution. Commands become data in the graph.
+
+        Templates are rendered with context variables ($crate_name, $profile, etc.)
+        and executed via the shell-execute stoicheion. Output is parsed via
+        the parse-output stoicheion using the specified format.
+
+        This pattern enables:
+        - Homoiconic tool integration (commands are entities)
+        - Customization without recompilation
+        - Extension to new tools via YAML
+      fields:
+        name:
+          type: string
+          required: true
+          description: "Template name (e.g., 'cargo-build')"
+
+        command:
+          type: string
+          required: true
+          description: "Executable name (e.g., 'cargo', 'npm')"
+
+        args:
+          type: array
+          required: true
+          description: |
+            Structured argument list. Each entry is either:
+            - A string (always included, supports {{ variable }} substitution)
+            - An object with 'value' and 'when' condition
+            The interpreter evaluates conditions and filters to produce final args.
+            This follows the same 'when' pattern as render-spec widgets.
+
+        output_format:
+          type: string
+          required: false
+          description: "parse-output format for stdout (json, cargo-test, etc.)"
+
+        success_check:
+          type: string
+          required: false
+          description: "Expression to determine success (default: exit_code == 0)"
+
+        artifact_path_template:
+          type: string
+          required: false
+          description: "Template for artifact path (for build commands)"
+
+        working_dir_template:
+          type: string
+          required: false
+          description: "Template for working directory"
+
+        timeout_ms:
+          type: integer
+          required: false
+          description: "Command timeout in milliseconds"

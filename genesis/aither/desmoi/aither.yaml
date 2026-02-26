@@ -18,16 +18,17 @@ entities:
       cardinality: many-to-one
       symmetric: false
 
-  # present-in — presence record in circle
+  # present-in-oikos — presence record in oikos
   - eidos: desmos
-    id: desmos/present-in
+    id: desmos/present-in-oikos
     data:
-      name: present-in
+      name: present-in-oikos
       description: |
-        Persona presence in a circle or room.
+        Prosopon presence in an oikos or room.
         Ephemeral — expired records are cleaned up.
+        (Renamed from present-in to disambiguate from agora/present-in: presence→territory)
       from_eidos: presence-record
-      to_eidos: circle
+      to_eidos: oikos
       cardinality: many-to-one
       symmetric: false
 
@@ -44,26 +45,26 @@ entities:
       cardinality: one-to-one
       symmetric: false
 
-  # belongs-to-persona — presence record belongs to persona
+  # belongs-to-prosopon — presence record belongs to prosopon
   - eidos: desmos
     id: desmos/presence-of
     data:
       name: presence-of
       description: |
-        This presence record represents the presence of this persona.
+        This presence record represents the presence of this prosopon.
       from_eidos: presence-record
-      to_eidos: persona
+      to_eidos: prosopon
       cardinality: many-to-one
       symmetric: false
 
-  # targets-peer — syndesmos targets a remote persona
+  # targets-peer — syndesmos targets a remote prosopon
   - eidos: desmos
     id: desmos/targets-peer
     data:
       name: targets-peer
       description: |
-        This syndesmos is trying to connect to this remote persona.
+        This syndesmos is trying to connect to this remote prosopon.
       from_eidos: syndesmos
-      to_eidos: persona
+      to_eidos: prosopon
       cardinality: many-to-one
       symmetric: false

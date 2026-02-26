@@ -1,0 +1,55 @@
+# Thyra Reflexes — Clarify on Transcript (DISABLED)
+#
+# Automatic clarification when transcript arrives. Disabled — manual
+# clarification via button is the first step. Re-enable when the manual
+# pattern is proven and automatic refinement is desired.
+#
+# Pipeline (when re-enabled):
+#   transcriber.transcript updates via sense
+#   → composition reconciliation fires (compose-dependents)
+#   → accumulation.content recomposes
+#   → this reflex fires
+#   → thyra/clarify-accumulation runs governed generation
+#   → accumulation.content updates with clarified text
+
+entities:
+
+  # =============================================================================
+  # TRIGGERS
+  # =============================================================================
+
+  - eidos: trigger
+    id: trigger/thyra/clarify-on-transcript
+    data:
+      name: clarify-on-transcript
+      condition: "$entity.data.raw_content != '' and $entity.data.clarification_status != 'manual'"
+      enabled: false
+    bonds:
+      - desmos: matches-event
+        to: entity-mutation/updated
+      - desmos: filters-eidos
+        to: eidos/accumulation
+
+  # =============================================================================
+  # REFLEXES
+  # =============================================================================
+
+  - eidos: reflex
+    id: reflex/clarify-on-transcript
+    data:
+      name: clarify-on-transcript
+      description: |
+        When raw_content on an accumulation entity changes,
+        trigger clarification via thyra/clarify-accumulation.
+        Result writes clarified text back to accumulation.content.
+        DISABLED — manual clarification first, re-enable for automatic.
+      enabled: false
+      scope: global
+      response_params:
+        accumulation_id: "$entity.id"
+        raw_content: "$entity.data.raw_content"
+    bonds:
+      - desmos: triggered-by
+        to: trigger/thyra/clarify-on-transcript
+      - desmos: responds-with
+        to: praxis/thyra/clarify-accumulation

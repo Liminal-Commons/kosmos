@@ -58,7 +58,7 @@ entities:
       description: |
         Generation was informed by this context entity.
 
-        Tracks what shaped the generation — theoria, artifacts, expressions.
+        Tracks what shaped the generation — theoria, artifacts, phaseis.
         This enables:
         - Provenance: understanding what influenced an artifact
         - Re-generation: repeating with different context
@@ -72,21 +72,21 @@ entities:
       to_eidos:
         - theoria
         - artifact
-        - expression
+        - phasis
       cardinality: many-to-many
       symmetric: false
 
-  # discusses-about — expression targets artifact for discussion
+  # discusses-about — phasis targets artifact for discussion
   - eidos: desmos
     id: desmos/discusses-about
     data:
       name: discusses-about
       description: |
-        Expression targets an artifact for discussion.
+        Phasis targets an artifact for discussion.
 
         In voice-authoring mode, when a human speaks about the focused
-        artifact, the expression may bond to it via discusses-about.
-        This is optional — expressions are valuable standalone — but
+        artifact, the phasis may bond to it via discusses-about.
+        This is optional — phaseis are valuable standalone — but
         enables:
         - Finding discussions about an artifact
         - Understanding what drove artifact changes
@@ -95,7 +95,7 @@ entities:
         Note: the artifact doesn't need all discusses-about bonds to
         update. The artifact at any moment is self-sufficient. This
         bond is for provenance and retrieval, not structural necessity.
-      from_eidos: expression
+      from_eidos: phasis
       to_eidos: artifact
       cardinality: many-to-many
       symmetric: false

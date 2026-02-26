@@ -1,0 +1,53 @@
+# Journey Progress Render-Spec
+# Journey navigation view — waypoints, progress, and controls
+#
+# Traces to: genesis/hodos/DESIGN.md
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/journey-progress
+    data:
+      name: journey-progress
+      target_eidos: journey
+      variant: progress
+      description: |
+        Journey progress view showing current waypoint,
+        step indicators, and navigation controls.
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+          children:
+            - widget: stack
+              props:
+                gap: md
+              children:
+                - widget: text
+                  props:
+                    content: "{desire}"
+                    variant: title
+                - widget: steps
+                  props:
+                    current: "{current_waypoint}"
+                    orientation: horizontal
+                    items: "{waypoints}"
+                - widget: divider
+                - widget: text
+                  props:
+                    content: "{current_description}"
+                    variant: body
+                - widget: row
+                  props:
+                    justify: end
+                    gap: sm
+                  children:
+                    - widget: button
+                      when: "can_advance"
+                      props:
+                        label: "Continue"
+                        variant: primary
+                        on_click: hodos/advance-waypoint
+                        on_click_params:
+                          journey_id: "{id}"

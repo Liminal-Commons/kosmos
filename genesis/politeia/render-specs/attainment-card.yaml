@@ -1,0 +1,81 @@
+# Attainment Card Render-Spec
+# Shows a capability marker with name, scope, and description
+#
+# Uses widget vocabulary from thyra/eide/widget.yaml
+# Displays what a dweller can do within their oikos
+#
+# Attainment fields:
+#   - name (string): Human-readable name (e.g., "compose", "invite")
+#   - description (string): What this attainment enables
+#   - scope (enum: oikos, topos, global): Where it applies
+#   - grants (array): Praxis IDs this attainment unlocks
+#
+# Traces to: genesis/demiurge/THYRA-AWARENESS.md
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/attainment-card
+    data:
+      name: attainment-card
+      description: |
+        Card view for attainment capabilities.
+        Shows name, scope badge, and description.
+      target_eidos: attainment
+      variant: card
+
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+          children:
+            - widget: stack
+              props:
+                gap: sm
+              children:
+                # Header: name + scope badge
+                - widget: row
+                  props:
+                    justify: between
+                    align: center
+                  children:
+                    - widget: row
+                      props:
+                        gap: sm
+                        align: center
+                      children:
+                        - widget: icon
+                          props:
+                            name: key
+                            size: sm
+                        - widget: text
+                          props:
+                            content: "{name}"
+                            variant: emphasis
+
+                    # Scope badges
+                    - widget: badge
+                      when: "scope == 'oikos'"
+                      props:
+                        content: "Oikos"
+                        variant: info
+                    - widget: badge
+                      when: "scope == 'topos'"
+                      props:
+                        content: "Topos"
+                        variant: success
+                    - widget: badge
+                      when: "scope == 'global'"
+                      props:
+                        content: "Global"
+                        variant: warning
+
+                # Description
+                - widget: text
+                  when: "description"
+                  props:
+                    content: "{description}"
+                    variant: body
+
+      created_at: "2026-02-03T00:00:00Z"

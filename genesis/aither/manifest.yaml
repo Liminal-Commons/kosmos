@@ -1,28 +1,31 @@
-# Oikos Manifest: Aither
+# Topos Manifest: Aither
 # αἰθήρ — the upper air, the pure element. Network transport.
 #
 # P2P connections via WebRTC. The transport layer that doesn't
-# know about circles or governance (that's syndesmos).
+# know about oikoi or governance (that's syndesmos).
 #
-# Manifest v2.1 — oikos metadata for entity composition
+# Manifest v2.1 — topos metadata for entity composition
 
 format_version: "2.1"
-oikos_id: aither
+topos_id: aither
 version: "0.1.0"
 
-# Oikos metadata (v2.1)
-oikos_name: Aither
-oikos_description: |
+# Topos metadata (v2.1)
+topos_name: Aither
+topos_description: |
   The upper air, the pure element. Network transport via P2P WebRTC
-  connections. The transport layer that doesn't know about circles
+  connections. The transport layer that doesn't know about oikoi
   or governance (that's syndesmos).
-oikos_scale: physis
+topos_scale: physis
 
 # Development experience metadata
-oikos_category: interface
+topos_category: interface
 surfaces_provided:
   - transport           # P2P WebRTC connectivity
-surfaces_consumed: []   # Pure transport layer
+surfaces_consumed:
+  - reconciliation      # Uses dynamis/reconcile for connection drift
+  - reactivity          # Reflexes for connection state mutation response
+  - sensing             # Daemon: sense-syndesmos (30s interval)
 
 content_paths:
   - path: eide/
@@ -31,8 +34,20 @@ content_paths:
     content_types: [desmos]
   - path: praxeis/
     content_types: [praxis]
-  - path: entities/
-    content_types: [render-spec, reflex]
+  - path: typos/
+    content_types: [typos]
+  - path: reflexes/
+    content_types: [reflex]
+  - path: surfaces/
+    content_types: [surface]
+  - path: daemons/
+    content_types: [daemon]
+  - path: reconcilers/
+    content_types: [reconciler]
+  - path: render-specs/
+    content_types: [render-spec]
+  - path: modes/
+    content_types: [mode]
 
 requires_dynamis:
   - db.arise
@@ -57,7 +72,7 @@ provides:
   reflexes:
     - reflex/aither/sync-message-received
 
-  # Oikos-centric rendering: aither owns presentation for network entities
+  # Topos-centric rendering: aither owns presentation for network entities
   renderable:
     - eidos: syndesmos
       description: "Connection state cards and indicators"
@@ -71,14 +86,14 @@ provides:
   attainments:
     - connect          # Establish and manage network connections
     - message          # Send/receive through channels
-    - presence         # Track who is here (circle-scoped)
-    - sync             # P2P entity replication (circle-scoped)
+    - presence         # Track who is here (oikos-scoped)
+    - sync             # P2P entity replication (oikos-scoped)
     - sense            # Read connection state
 
   desmoi:
     - bootstrapped-by
     - queued-for
-    - present-in
+    - present-in-oikos
     - connected-via
     - presence-of
     - targets-peer
@@ -117,27 +132,13 @@ provides:
     # Sync operations (C8.4/C8.5)
     - aither/broadcast-sync
     - aither/receive-sync
-    - aither/apply-expression-sync
+    - aither/apply-phasis-sync
     - aither/request-catch-up
     - aither/respond-catch-up
     - aither/apply-catch-up
     # Reflex response praxeis (internal)
     - aither/process-sync-message
     - aither/apply-entity-sync
-
-stoicheia_form:
-  manifest: arche       # Routes to webrtc dynamis
-  sense_actuality: arche
-  unmanifest: arche
-  signal: arche
-
-actuality_modes:
-  webrtc:
-    manifest: create_peer_connection
-    sense: connection_state
-    unmanifest: close_connection
-    signal: sdp_exchange
-
 
 depends_on:
   - syndesmos            # Connection state and sync (extracted from aither)

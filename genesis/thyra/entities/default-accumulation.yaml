@@ -1,0 +1,25 @@
+# Default Accumulation Entity
+# Singleton accumulation — always exists, reused for compose bar.
+# On commit, content is sent as phasis and the accumulation is cleared.
+#
+# This is a composed entity: _composition_inputs stores the typos reference
+# and literal inputs. Praxeis update inputs.content, then re-compose.
+# No depends-on bond — content flows via praxis (flush/sync), not cascade.
+
+entities:
+
+  - eidos: accumulation
+    id: accumulation/default
+    data:
+      content: ""
+      status: active
+      started_at: "2026-02-06T00:00:00Z"
+      _composition_inputs:
+        typos_id: typos-def-accumulation
+        inputs:
+          content: ""
+    bonds:
+      - desmos: fed-by-audio
+        to: audio-source/default
+      - desmos: fed-by-transcriber
+        to: transcriber/default

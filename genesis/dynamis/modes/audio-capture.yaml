@@ -1,0 +1,31 @@
+# Audio Capture Mode (media substrate)
+# Dumb device — opens microphone, produces PCM.
+# Knows nothing about speech, language, or transcription.
+# Shared by voice composing, WebRTC calls, recording, live captions.
+#
+# Traces to: PROMPT-VOICE-DECOMPOSITION.md
+
+entities:
+
+  - eidos: mode
+    id: mode/audio-capture
+    data:
+      name: audio-capture
+      topos: dynamis
+      substrate: media
+      provider: local
+      description: |
+        Audio capture substrate — opens microphone, produces PCM.
+        Dumb device. Knows nothing about speech, language, or transcription.
+        Shared by voice composing, WebRTC calls, recording, live captions.
+        Ontologically: a perception channel (soma) with modality: audio.
+      operations:
+        manifest:
+          stoicheion: audio-capture-start
+          description: "Open audio input device, start PCM stream"
+        sense:
+          stoicheion: audio-capture-sense
+          description: "Check audio device health"
+        unmanifest:
+          stoicheion: audio-capture-stop
+          description: "Close audio input device"

@@ -1,25 +1,25 @@
-# Oikos Manifest: Stoicheia Portable
+# Topos Manifest: Stoicheia Portable
 # στοιχεῖον — elements, the atomic operations that praxeis compose
 #
 # Contains the step vocabulary (stoicheion eide) for constrained praxis generation.
 # The stoicheion eide define the interpreter step vocabulary with full field schemas.
 #
-# Manifest v2.1 — oikos metadata for entity composition
+# Manifest v2.1 — topos metadata for entity composition
 
 format_version: "2.1"
-oikos_id: stoicheia-portable
+topos_id: stoicheia-portable
 version: "0.1.0"
 
-# Oikos metadata (v2.1)
-oikos_name: Stoicheia Portable
-oikos_description: |
+# Topos metadata (v2.1)
+topos_name: Stoicheia Portable
+topos_description: |
   The atomic operations that praxeis compose. Contains the step vocabulary
   (stoicheion eide) for constrained praxis generation and portable WASM
   implementations of tier-2 stoicheia.
-oikos_scale: cross-scale
+topos_scale: cross-scale
 
 # Development experience metadata
-oikos_category: infrastructure
+topos_category: infrastructure
 surfaces_provided: []   # Foundational step definitions
 surfaces_consumed:
   - reasoning           # Step eide enable constrained generation via manteia
@@ -27,6 +27,8 @@ surfaces_consumed:
 content_paths:
   - path: eide/
     content_types: [eidos, stoicheion]
+  - path: typos/
+    content_types: [typos]
   # NOTE: Tier 3 attainment gating bonds (stoicheion → requires-attainment →
   # attainment) are defined in genesis/spora/spora.yaml stage-3-politeia.
   # See: crates/kosmos/src/interpreter/steps.rs get_required_attainment()
@@ -34,7 +36,7 @@ content_paths:
 description: |
   Portable stoicheia — the atomic operations that praxeis compose.
 
-  This oikos contains:
+  This topos contains:
   - Step eide: Schema definitions for all interpreter steps (set, return, find, etc.)
   - WASM modules: Portable implementations of tier-2 stoicheia
 
@@ -44,3 +46,76 @@ description: |
 
 klimax_level: 2
 depends_on: []
+
+# Stoicheia provided via WASM modules
+stoicheia_form:
+  portable: true
+  tier: 2  # Maximum tier of stoicheia in this package
+  default_mode: wasm  # WASM is the default execution mode for all Tier 0-2
+  modules:
+    - name: tier2-db-find
+      path: wasm/tier2-db-find.wat
+      tier: 2
+      requires_dynamis: [db.find]
+      provides: [find]
+
+    - name: tier2-db-arise
+      path: wasm/tier2-db-arise.wat
+      tier: 2
+      requires_dynamis: [db.arise]
+      provides: [arise]
+
+    - name: tier2-db-bind
+      path: wasm/tier2-db-bind.wat
+      tier: 2
+      requires_dynamis: [db.bind]
+      provides: [bind]
+
+    - name: tier2-db-update
+      path: wasm/tier2-db-update.wat
+      tier: 2
+      requires_dynamis: [db.update]
+      provides: [update]
+
+    - name: tier2-db-delete
+      path: wasm/tier2-db-delete.wat
+      tier: 2
+      requires_dynamis: [db.delete]
+      provides: [delete]
+
+    - name: tier2-db-loose
+      path: wasm/tier2-db-loose.wat
+      tier: 2
+      requires_dynamis: [db.loose]
+      provides: [loose]
+
+    - name: tier1-db-gather
+      path: wasm/tier1-db-gather.wat
+      tier: 1
+      requires_dynamis: [db.gather]
+      provides: [gather]
+
+    - name: tier1-db-trace
+      path: wasm/tier1-db-trace.wat
+      tier: 1
+      requires_dynamis: [db.trace]
+      provides: [trace]
+
+    - name: tier1-db-surface
+      path: wasm/tier1-db-surface.wat
+      tier: 1
+      requires_dynamis: [db.surface]
+      provides: [surface]
+
+    - name: tier2-db-index
+      path: wasm/tier2-db-index.wat
+      tier: 2
+      requires_dynamis: [db.index]
+      provides: [index]
+
+# WASM runtime configuration
+wasm_runtime:
+  wasm:
+    compile_at: bootstrap
+    runtime: wasmtime
+    fuel_limit: 10000000

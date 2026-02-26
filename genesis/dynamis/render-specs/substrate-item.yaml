@@ -1,0 +1,47 @@
+# Dynamis Render Specifications — substrate item
+# Compact list item for substrate
+#
+# Substrate fields:
+#   - name (string): Substrate name
+#   - kind (enum): Substrate kind
+#   - active (boolean): Whether substrate is active
+#
+# Migrated from: genesis/dynamis/entities/rendering.yaml
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/substrate-item
+    data:
+      name: substrate-item
+      description: |
+        Compact list item for substrate entities.
+        Shows icon, name, and kind badge.
+      target_eidos: substrate
+      variant: item
+
+      layout:
+        - widget: card
+          props:
+            variant: compact
+            padding: sm
+          children:
+            - widget: row
+              props:
+                gap: sm
+                align: center
+              children:
+                - widget: icon
+                  props:
+                    name: server
+                    size: sm
+                - widget: text
+                  props:
+                    content: "{name}"
+                    variant: body
+                - widget: badge
+                  props:
+                    content: "{kind}"
+                    variant: info
+
+      created_at: "2026-02-09T00:00:00Z"

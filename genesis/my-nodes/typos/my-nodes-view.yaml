@@ -1,0 +1,32 @@
+# My Nodes View Typos
+# Composition template for infrastructure dashboard
+#
+# Uses demiurge/compose-cached for cache + composition
+# Slots are queried fill patterns; template assembles pre-computed values.
+#
+# NOTE: The dashboard rendering has migrated to render-specs (widget trees)
+# in my-nodes/render-specs/. This typos is retained only for data composition
+# (querying nodes, services, instances). The UI is handled by render-specs.
+
+entities:
+
+  - eidos: typos
+    id: typos/my-nodes-view
+    data:
+      name: my-nodes-view
+      description: |
+        Infrastructure status data for the dashboard.
+        Composed artifact with automatic cache invalidation on entity changes.
+        UI rendering handled by mode/my-nodes-dashboard (compound mode with sections).
+      output_type: object
+
+      slots:
+        nodes:
+          fill: queried
+          query: "gather(eidos: node)"
+        services:
+          fill: queried
+          query: "gather(eidos: service-instance)"
+        instances:
+          fill: queried
+          query: "gather(eidos: kosmos-instance)"

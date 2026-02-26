@@ -14,7 +14,7 @@ entities:
   id: eidos/attainment
   data:
     name: attainment
-    description: "Capability marker — what an animus can do. Derived from membership via bond graph traversal."
+    description: "Capability marker — what a parousia can do. Derived from membership via bond graph traversal."
     fields:
       name:
         type: string
@@ -25,20 +25,14 @@ entities:
         required: false
       scope:
         type: enum
-        values: [circle, oikos, global]
+        values: [oikos, topos, global]
         required: true
-        default: circle
+        default: oikos
         description: "Where this attainment applies"
       constraints:
         type: object
         required: false
         description: "Optional constraints (e.g., rate limits, resource quotas)"
-      grants:
-        type: array
-        required: false
-        description: |
-          List of praxis IDs this attainment grants access to.
-          Used by MCP bridge for runtime-configurable tool visibility.
       created_at:
         type: timestamp
         required: true
@@ -61,10 +55,6 @@ entities:
         type: string
         required: true
         description: "The praxis this affordance invokes"
-      required_attainments:
-        type: array
-        required: false
-        description: "Attainment names required to see/use this affordance"
       context_filter:
         type: object
         required: false
@@ -78,65 +68,25 @@ entities:
         type: timestamp
         required: true
 
-# hud-region — UI surface
-- eidos: eidos
-  id: eidos/hud-region
-  data:
-    name: hud-region
-    description: "HUD region — UI surface where affordances render. Kosmos produces data, substrate renders."
-    fields:
-      name:
-        type: string
-        required: true
-      kind:
-        type: enum
-        values: [toolbar, sidebar, contextual, modal, toast, ambient]
-        required: true
-        description: "Region type — determines rendering behavior"
-      parent_id:
-        type: string
-        required: false
-        description: "Parent region ID for nesting"
-      position:
-        type: object
-        required: false
-        description: "Position hints (e.g., {slot: 'top', order: 1})"
-      visibility:
-        type: enum
-        values: [always, contextual, on_demand]
-        required: true
-        default: contextual
-      required_attainment:
-        type: string
-        required: false
-        description: "Attainment needed to see this region"
-      affordances:
-        type: array
-        required: false
-        description: "Affordance IDs that render in this region"
-      created_at:
-        type: timestamp
-        required: true
-
 # invitation — pending membership
 - eidos: eidos
   id: eidos/invitation
   data:
     name: invitation
-    description: "Invitation to join a circle. Creates potential for membership bond."
+    description: "Invitation to join an oikos. Creates potential for membership bond."
     fields:
-      circle_id:
+      oikos_id:
         type: string
         required: true
-        description: "Circle being invited to"
+        description: "Oikos being invited to"
       invitee_id:
         type: string
         required: false
-        description: "Specific persona invited (optional for open invites)"
+        description: "Specific prosopon invited (optional for open invites)"
       inviter_id:
         type: string
         required: true
-        description: "Persona who created the invite"
+        description: "Prosopon who created the invite"
       role:
         type: string
         required: false
@@ -177,22 +127,22 @@ entities:
   id: eidos/membership-event
   data:
     name: membership-event
-    description: "Record of membership change — when someone joins, leaves, or is removed from a circle. Provides audit trail."
+    description: "Record of membership change — when someone joins, leaves, or is removed from an oikos. Provides audit trail."
     fields:
       event_type:
         type: enum
         values: [joined, left, removed, invited]
         required: true
         description: "Type of membership event"
-      circle_id:
+      oikos_id:
         type: string
         required: true
-        description: "Circle where the event occurred"
-      persona_id:
+        description: "Oikos where the event occurred"
+      prosopon_id:
         type: string
         required: true
-        description: "Persona affected by the event"
-      persona_name:
+        description: "Prosopon affected by the event"
+      prosopon_name:
         type: string
         required: false
         description: "Display name at time of event (for historical display)"
@@ -235,14 +185,14 @@ entities:
         type: string
         required: true
         description: "ID of the federates-with bond this cursor tracks"
-      local_circle_id:
+      local_oikos_id:
         type: string
         required: true
-        description: "Local circle in the federation"
-      remote_circle_id:
+        description: "Local oikos in the federation"
+      remote_oikos_id:
         type: string
         required: true
-        description: "Remote circle in the federation"
+        description: "Remote oikos in the federation"
       local_version:
         type: integer
         required: true
@@ -325,7 +275,7 @@ entities:
       resolved_by:
         type: string
         required: false
-        description: "Persona ID who resolved the conflict"
+        description: "Prosopon ID who resolved the conflict"
       detected_at:
         type: timestamp
         required: true
@@ -342,56 +292,71 @@ entities:
   data:
     name: govern
     description: |
-      Capability to create circles and manage attainments.
+      Capability to create oikoi and manage attainments.
       Required for establishing governance structures and defining
-      what capabilities circles grant to their members.
-    oikos: politeia
-    scope: circle
-    grants:
-      - praxis/politeia/create-circle
-      - praxis/politeia/create-attainment
-      - praxis/politeia/grant-attainment
-      - praxis/politeia/revoke-attainment
+      what capabilities oikoi grant to their members.
+    topos: politeia
+    scope: oikos
+  bonds:
+    - { desmos: grants-praxis, to: praxis/politeia/create-oikos }
+    - { desmos: grants-praxis, to: praxis/politeia/create-attainment }
+    - { desmos: grants-praxis, to: praxis/politeia/grant-attainment }
+    - { desmos: grants-praxis, to: praxis/politeia/revoke-attainment }
 
 - eidos: attainment
   id: attainment/invite
   data:
     name: invite
     description: |
-      Capability to invite others to join circles.
-      Required for growing circle membership. Caller must
-      also be sovereign to the target circle.
-    oikos: politeia
-    scope: circle
-    grants:
-      - praxis/politeia/invite-to-circle
+      Capability to invite others to join oikoi.
+      Required for growing oikos membership. Caller must
+      also be sovereign to the target oikos.
+    topos: politeia
+    scope: oikos
+  bonds:
+    - { desmos: grants-praxis, to: praxis/politeia/invite-to-oikos }
+
+- eidos: attainment
+  id: attainment/sovereign
+  data:
+    name: sovereign
+    description: |
+      Sovereign authority over an oikos. Required for governance
+      operations like inviting members, granting/revoking attainments,
+      and establishing federation bonds. Derived from sovereign-to bond.
+    topos: politeia
+    scope: oikos
+  bonds:
+    - { desmos: grants-praxis, to: praxis/politeia/invite-to-oikos }
+    - { desmos: grants-praxis, to: praxis/politeia/grant-attainment }
+    - { desmos: grants-praxis, to: praxis/politeia/revoke-attainment }
+    - { desmos: grants-praxis, to: praxis/politeia/federate-oikoi }
 
 - eidos: attainment
   id: attainment/distribute
   data:
     name: distribute
     description: |
-      Capability to distribute oikoi through circles.
-      Required for publishing oikoi to members via
-      distribution circles.
-    oikos: politeia
-    scope: circle
-    grants:
-      - praxis/politeia/create-distribution-circle
-      - praxis/politeia/distribute-oikos
+      Capability to distribute topoi through oikoi.
+      Required for publishing topoi to members via
+      distribution oikoi.
+    topos: politeia
+    scope: oikos
+  bonds:
+    - { desmos: grants-praxis, to: praxis/politeia/create-distribution-oikos }
+    - { desmos: grants-praxis, to: praxis/politeia/distribute-topos }
 
 - eidos: attainment
   id: attainment/hud
   data:
     name: hud
     description: |
-      Capability to create and manage HUD regions and affordances.
+      Capability to create and manage affordances.
       Required for defining how capabilities surface in the interface.
-    oikos: politeia
-    scope: circle
-    grants:
-      - praxis/politeia/create-affordance
-      - praxis/politeia/create-hud-region
+    topos: politeia
+    scope: oikos
+  bonds:
+    - { desmos: grants-praxis, to: praxis/politeia/create-affordance }
 
 - eidos: attainment
   id: attainment/admin
@@ -401,24 +366,24 @@ entities:
       Administrative capability to bypass normal governance checks.
       Use for bootstrap and repair operations. Global scope.
       WARNING: Use with care — does not verify permissions.
-    oikos: politeia
+    topos: politeia
     scope: global
-    grants:
-      - praxis/politeia/admin-bind
-      - praxis/politeia/admin-loose
+  bonds:
+    - { desmos: grants-praxis, to: praxis/politeia/admin-bind }
+    - { desmos: grants-praxis, to: praxis/politeia/admin-loose }
 
 - eidos: attainment
   id: attainment/federate
   data:
     name: federate
     description: |
-      Capability to establish federation with other circles.
+      Capability to establish federation with other oikoi.
       Required for creating federates-with bonds and managing
-      sync across kosmoi. Caller must be sovereign to the local circle.
-    oikos: politeia
-    scope: circle
-    grants:
-      - praxis/politeia/federate-circles
-      - praxis/politeia/unfederate-circles
-      - praxis/politeia/list-federations
-      - praxis/politeia/resolve-conflict
+      sync across kosmoi. Caller must be sovereign to the local oikos.
+    topos: politeia
+    scope: oikos
+  bonds:
+    - { desmos: grants-praxis, to: praxis/politeia/federate-oikoi }
+    - { desmos: grants-praxis, to: praxis/politeia/unfederate-oikoi }
+    - { desmos: grants-praxis, to: praxis/politeia/list-federations }
+    - { desmos: grants-praxis, to: praxis/politeia/resolve-conflict }

@@ -1,0 +1,37 @@
+# Dokimasia Reconciler Entities — Graph Integrity
+# Continuously validates graph integrity by sensing validation state.
+#
+# Validation-result entities track whether validated content remains valid.
+# When content drifts (schema changes, provenance breaks), the reconciler
+# triggers re-validation.
+#
+# Traces to: genesis/dokimasia/DESIGN.md
+
+entities:
+
+  - eidos: reconciler
+    id: reconciler/graph-integrity
+    data:
+      target_eidos: validation-result
+      intent_field: expected_outcome
+      actuality_field: outcome
+      transitions:
+        # Expect valid, but found invalid → re-validate (manifest)
+        - intent: valid
+          actual: [invalid, stale]
+          action: manifest
+
+        # Expect valid, and is valid → no action
+        - intent: valid
+          actual: valid
+          action: none
+
+        # Expect valid, but unknown → validate (manifest)
+        - intent: valid
+          actual: unknown
+          action: manifest
+
+        # Marked as ignored → no action regardless of actual
+        - intent: ignored
+          actual: [valid, invalid, stale, unknown]
+          action: none

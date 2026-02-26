@@ -20,9 +20,9 @@ With release:
 
 The central concept is **the artifact journey** — from git commit to user installation.
 
-## Circle Context
+## Oikos Context
 
-### Self Circle
+### Self Oikos
 
 A solo developer uses release to:
 - Create releases from local builds
@@ -32,7 +32,7 @@ A solo developer uses release to:
 
 Personal releases are controlled experiments.
 
-### Peer Circle
+### Peer Oikos
 
 Collaborators use release to:
 - Coordinate release schedules
@@ -42,7 +42,7 @@ Collaborators use release to:
 
 Peer releases are coordinated shipping.
 
-### Commons Circle
+### Commons Oikos
 
 A commons uses release to:
 - Define release processes
@@ -117,8 +117,6 @@ Release distributed through channel.
 
 ## Operations (Praxeis)
 
-*Praxeis remain in dynamis namespace as parent.*
-
 ### create-release
 
 Create a new release entity.
@@ -163,28 +161,20 @@ Compare release intent with actuality.
 
 ## Attainments
 
-### attainment/release (defined in dynamis)
+### attainment/release
 
 Release management capability — creating and tracking releases.
 
-- **Grants:** create-release, register-artifact, mark-release-built, list-releases
-- **Scope:** circle
-- **Rationale:** Releases are shared resources of a development circle
+- **Grants:** create-release, register-artifact, mark-built, list-releases, get-release
+- **Scope:** oikos
+- **Rationale:** Releases are shared resources of a development oikos
 
-### attainment/channel (defined in dynamis)
+### attainment/publish-release
 
-Distribution channel management — defining distribution pathways.
+Release distribution capability — uploading to channels.
 
-- **Grants:** create-distribution-channel, list-distribution-channels
-- **Scope:** circle
-- **Rationale:** Channels require infrastructure access and coordination
-
-### attainment/distribute (defined in dynamis)
-
-Distribution actuality capability — uploading to channels.
-
-- **Grants:** distribute-release, sense-release, reconcile-release
-- **Scope:** circle
+- **Grants:** distribute, sense-release, reconcile-release
+- **Scope:** oikos
 - **Rationale:** Distribution affects external systems; requires authorization
 
 ## Embodiment
@@ -193,7 +183,7 @@ Distribution actuality capability — uploading to channels.
 
 | Level | Status |
 |-------|--------|
-| Defined | 3 eide, 2 desmoi, 3 attainments via dynamis |
+| Defined | 3 eide, 2 desmoi, 2 attainments, 8 praxeis |
 | Loaded | Bootstrap loads all definitions |
 | Projected | Praxeis visible as MCP tools |
 | Embodied | Partial — R2 upload implemented |

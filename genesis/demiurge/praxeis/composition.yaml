@@ -1,0 +1,39 @@
+# Composition Reconciliation Praxis
+# Entry point for the fourth reconciliation loop.
+#
+# When any entity is updated and has inbound depends-on bonds,
+# compose each dependent again. Compose is idempotent — same
+# inputs → same hash → no update → cascade terminates.
+#
+# Provenance: PROMPT-COMPOSITION-RECONCILIATION.md
+
+entities:
+
+  - eidos: praxis
+    id: praxis/demiurge/compose-dependents
+    data:
+      name: compose-dependents
+      description: |
+        Find all entities that depend on the changed entity and compose
+        them again. Compose is idempotent: same inputs → same hash → no
+        update → cascade terminates.
+      topos: demiurge
+      params:
+        - name: changed_entity_id
+          type: string
+          required: true
+      steps:
+        - step: trace
+          to_id: "{{ changed_entity_id }}"
+          desmos: depends-on
+          bind_to: dependents
+
+        - step: for_each
+          items: "$dependents"
+          item_var: dependent
+          steps:
+            - step: compose
+              entity_id: "{{ dependent.from_id }}"
+              # No typos_id or inputs — compose reads _composition_inputs
+              # from the existing entity and composes again.
+              # Idempotent: if hash unchanged, no-op.

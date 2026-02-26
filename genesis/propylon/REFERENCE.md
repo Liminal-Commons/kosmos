@@ -26,12 +26,12 @@ Shareable invitation link. Encodes everything needed to attempt entry.
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `bootstrap` | string | ✓ | Gateway URL (e.g., wss://propylon.liminalcommons.com) |
-| `circle_id` | string | ✓ | Target circle for entry |
+| `oikos_id` | string | ✓ | Target oikos for entry |
 | `created_at` | timestamp | ✓ |  |
 | `display` | object |  | Human-readable metadata for link previews |
 | `expires_at` | timestamp |  |  |
 | `invitation_id` | string | ✓ | Reference to the invitation entity |
-| `inviter_id` | string | ✓ | Persona ID of the inviter |
+| `inviter_id` | string | ✓ | Prosopon ID of the inviter |
 | `inviter_pubkey` | string | ✓ | Ed25519 public key for signature verification |
 | `max_uses` | number |  |  |
 | `require_approval` | boolean |  |  |
@@ -60,17 +60,17 @@ Authentication session. Tracks challenge-response flow.
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `animus_id` | string |  | Created animus ID after successful auth |
+| `parousia_id` | string |  | Created parousia ID after successful auth |
 | `approved_at` | timestamp |  |  |
 | `approved_by` | string |  |  |
 | `authenticated_at` | timestamp |  |  |
 | `challenge_expires` | timestamp | ✓ |  |
-| `circle_id` | string | ✓ | Target circle |
+| `oikos_id` | string | ✓ | Target oikos |
 | `created_at` | timestamp | ✓ |  |
 | `entrant_pubkey` | string |  | Public key of the entrant (known for returning entry) |
 | `invitation_id` | string | ✓ | Which invitation is being used |
 | `nonce` | string | ✓ | Challenge nonce to sign |
-| `persona_name` | string |  | Display name for new persona |
+| `prosopon_name` | string |  | Display name for new prosopon |
 | `rejected_at` | timestamp |  |  |
 | `rejected_by` | string |  |  |
 | `rejection_reason` | string |  |  |
@@ -104,13 +104,13 @@ Issue an authentication challenge for entry.
 
 ### create-link 🔧
 
-Create a shareable invitation link for a circle.
+Create a shareable invitation link for an oikos.
 
 **Tier:** 2 | **ID:** `praxis/propylon/create-link`
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `circle_id` | string | ✓ | Circle to invite to |
+| `oikos_id` | string | ✓ | Oikos to invite to |
 | `message` | string |  | Optional message to include |
 | `expires_in_days` | number |  | Days until expiration (default 7) |
 | `max_uses` | number |  | Maximum uses (omit for unlimited) |
@@ -124,7 +124,7 @@ Create a self-invite link for device synchronization.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `circle_id` | string | ✓ | Circle to sync (typically home circle) |
+| `oikos_id` | string | ✓ | Oikos to sync (typically home oikos) |
 | `expires_in_days` | number |  | Days until expiration (default 30) |
 | `label` | string |  | Optional label for this link (e.g., "laptop", "phone backup") |
 
@@ -150,13 +150,13 @@ Encode a propylon-link entity to URL-safe string.
 
 ### list-entry-audit 🔧
 
-Query entry history for a circle.
+Query entry history for an oikos.
 
 **Tier:** 1 | **ID:** `praxis/propylon/list-entry-audit`
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `circle_id` | string | ✓ | Circle to query |
+| `oikos_id` | string | ✓ | Oikos to query |
 | `status` | string |  | Filter by status (challenged, authenticated, failed, pending_approval) |
 | `limit` | number |  | Maximum results (default 50) |
 
@@ -202,16 +202,16 @@ Verify entry response and complete authentication.
 | `session_id` | string | ✓ | The propylon-session ID |
 | `signed_nonce` | string | ✓ | Signature of the nonce |
 | `entrant_pubkey` | string | ✓ | Public key that signed the nonce |
-| `persona_name` | string |  | Display name for new persona (first-time entry) |
+| `prosopon_name` | string |  | Display name for new prosopon (first-time entry) |
 
 ## Desmoi (Bond Types)
 
 | Desmos | From → To | Description |
 |--------|-----------|-------------|
-| `authenticated-via` | animus → propylon-session | Animus authenticated through a propylon-session |
+| `authenticated-via` | parousia → propylon-session | Parousia authenticated through a propylon-session |
 | `connects-via` | propylon-session → propylon-relay | A propylon-session connected through a propylon-relay |
-| `grants-entry-to` | propylon-link → circle | A propylon-link grants entry to a circle |
-| `operates-relay` | circle → propylon-relay | A circle operates a propylon-relay. The relay is commons infrastructure |
+| `grants-entry-to` | propylon-link → oikos | A propylon-link grants entry to an oikos |
+| `operates-relay` | oikos → propylon-relay | An oikos operates a propylon-relay. The relay is commons infrastructure |
 | `used-link` | propylon-session → propylon-link | A propylon-session used a propylon-link for entry |
 
 ---

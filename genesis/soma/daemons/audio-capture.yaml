@@ -1,0 +1,20 @@
+# Audio Source Sensing Daemon
+# Periodically sense audio-source entities to detect drift.
+#
+# Traces to: PROMPT-VOICE-DECOMPOSITION.md
+
+entities:
+
+  - eidos: daemon
+    id: daemon/sense-audio-sources
+    data:
+      name: sense-audio-sources
+      description: |
+        Periodically sense all audio-source entities to detect drift.
+        When a mic dies (device disconnect, permission revoked), sensing
+        updates status, which triggers the drift reflex → reconciliation.
+      praxis: soma/sense-audio-source-states
+      interval: 10
+      enabled: true
+      scope: dwelling
+      backoff_max: 60

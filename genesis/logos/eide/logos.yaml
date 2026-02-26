@@ -1,0 +1,85 @@
+# Logos Eide
+# λόγος — word, reason, discourse
+#
+# The phasis surface — how kosmos entities communicate intentionally.
+#
+# Traces to: genesis/logos/DESIGN.md
+# Authorized by: phasis/genesis-root
+
+entities:
+
+  # =============================================================================
+  # PHASIS — Intentional contribution
+  # =============================================================================
+
+  - eidos: eidos
+    id: eidos/phasis
+    data:
+      name: phasis
+      description: "Intentional contribution — the commitment boundary. When ephemeral becomes durable. How kosmos speaks."
+      fields:
+        content:
+          type: string
+          required: true
+          description: "The content being expressed"
+        content_type:
+          type: string
+          required: false
+          default: text/plain
+          description: "MIME type of the content"
+        authored_by:
+          type: string
+          required: true
+          description: "Prosopon ID or topos ID of who authored this"
+        oikos_id:
+          type: string
+          required: true
+          description: "Oikos ID where this was expressed"
+        expressed_at:
+          type: timestamp
+          required: true
+        source_kind:
+          type: enum
+          values: [compose, direct, topos]
+          required: false
+          description: "How this phasis originated (topos = system announcement)"
+        source_artifact_id:
+          type: string
+          required: false
+          description: "Artifact ID if originated from composition"
+        source_topos_id:
+          type: string
+          required: false
+          description: "Topos ID if source_kind is topos"
+        stance:
+          type: enum
+          values: [declaration, inquiry, suggestion, invitation, request, proposal]
+          required: false
+          description: "Phasis stance — how the speaker is positioned toward the content"
+        in_reply_to:
+          type: string
+          required: false
+          description: "Phasis ID this replies to, if any"
+        metadata:
+          type: object
+          required: false
+
+  # =============================================================================
+  # ATTAINMENTS
+  # =============================================================================
+
+  - eidos: attainment
+    id: attainment/express
+    data:
+      name: express
+      description: |
+        Phasis capability — creating durable contributions.
+        The discourse surface — how entities speak into shared conversation.
+        Phaseis belong to oikoi and require membership.
+      topos: logos
+      scope: oikos
+    bonds:
+      - { desmos: grants-praxis, to: praxis/logos/emit-phasis }
+      - { desmos: grants-praxis, to: praxis/logos/reply-to }
+      - { desmos: grants-praxis, to: praxis/logos/list-phaseis }
+      - { desmos: grants-praxis, to: praxis/logos/get-thread }

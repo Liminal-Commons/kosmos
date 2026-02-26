@@ -1,0 +1,16 @@
+# Settings Panel Entity + Bonds
+# Singleton settings-panel entity, bonded to audio-source and transcriber
+# for render-spec @bond-name resolution.
+#
+# Traces to: PROMPT-SETTINGS-PANEL-ONTOLOGY.md
+
+entities:
+
+  - eidos: settings-panel
+    id: settings-panel/default
+    data:
+      open: false
+      active_tab: audio
+    bonds:
+      - { desmos: fed-by-audio, to: audio-source/default }
+      - { desmos: fed-by-transcriber, to: transcriber/default }

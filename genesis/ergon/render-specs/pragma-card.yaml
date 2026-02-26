@@ -1,0 +1,152 @@
+# Pragma Card Render-Spec
+# Work item showing gap or task
+#
+# Pragma fields:
+#   - title (string): Short description of the gap
+#   - description (string): Full context
+#   - context (string): Situation when gap was encountered
+#   - status (enum): open | accepted | in_progress | resolved | declined | blocked
+#   - priority (enum): critical | high | normal | low
+#   - resolution (string): How it was resolved
+#   - created_at, resolved_at (datetime)
+#
+# Traces to: genesis/demiurge/THYRA-EVOLUTION.md
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/pragma-card
+    data:
+      name: pragma-card
+      description: |
+        Work item card showing a gap or task that signals between oikoi.
+        Displays status, priority, and supports click to view details.
+      target_eidos: pragma
+      variant: card
+
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+            # on_click: ergon/view-pragma — praxis not yet implemented
+          children:
+            - widget: stack
+              props:
+                gap: sm
+              children:
+                # Header with status and priority
+                - widget: row
+                  props:
+                    justify: between
+                    align: center
+                  children:
+                    - widget: row
+                      props:
+                        gap: sm
+                        align: center
+                      children:
+                        # Status-specific icons
+                        - widget: icon
+                          when: "status == 'open'"
+                          props:
+                            name: circle-dot
+                            size: md
+                        - widget: icon
+                          when: "status == 'accepted'"
+                          props:
+                            name: user-check
+                            size: md
+                            color: info
+                        - widget: icon
+                          when: "status == 'in_progress'"
+                          props:
+                            name: loader
+                            size: md
+                            color: warning
+                        - widget: icon
+                          when: "status == 'resolved'"
+                          props:
+                            name: check
+                            size: md
+                            color: success
+                        - widget: icon
+                          when: "status == 'declined'"
+                          props:
+                            name: x-circle
+                            size: md
+                            color: error
+                        - widget: icon
+                          when: "status == 'blocked'"
+                          props:
+                            name: alert-circle
+                            size: md
+                            color: error
+
+                        - widget: text
+                          props:
+                            content: "{title}"
+                            variant: emphasis
+
+                    # Priority badge (only for critical/high)
+                    - widget: badge
+                      when: "priority == 'critical'"
+                      props:
+                        content: "Critical"
+                        variant: error
+                    - widget: badge
+                      when: "priority == 'high'"
+                      props:
+                        content: "High"
+                        variant: warning
+
+                # Status badge row
+                - widget: row
+                  props:
+                    gap: sm
+                  children:
+                    - widget: badge
+                      when: "status == 'open'"
+                      props:
+                        content: "Open"
+                        variant: default
+                    - widget: badge
+                      when: "status == 'accepted'"
+                      props:
+                        content: "Accepted"
+                        variant: info
+                    - widget: badge
+                      when: "status == 'in_progress'"
+                      props:
+                        content: "In Progress"
+                        variant: warning
+                    - widget: badge
+                      when: "status == 'resolved'"
+                      props:
+                        content: "Resolved"
+                        variant: success
+                    - widget: badge
+                      when: "status == 'declined'"
+                      props:
+                        content: "Declined"
+                        variant: error
+                    - widget: badge
+                      when: "status == 'blocked'"
+                      props:
+                        content: "Blocked"
+                        variant: error
+
+                # Description (truncated)
+                - widget: text
+                  props:
+                    content: "{description}"
+                    variant: body
+
+                # Resolution (when resolved)
+                - widget: text
+                  when: "resolution"
+                  props:
+                    content: "Resolution: {resolution}"
+                    variant: caption
+
+      created_at: "2026-02-03T00:00:00Z"

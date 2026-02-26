@@ -1,0 +1,413 @@
+# Voice Praxeis
+# Toggle praxeis for audio-source and transcriber desired_state.
+# Sense praxeis for daemon-driven drift detection.
+#
+# Toggle: accept accumulation, trace bond, flip desired_state.
+# Sense: gather all entities of eidos, sense_actuality each.
+
+entities:
+
+# =============================================================================
+# AUDIO SOURCE TOGGLE
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/soma/toggle-audio-intent
+  data:
+    topos: soma
+    name: toggle-audio-intent
+    visible: true
+    tier: 2
+    description: |
+      Toggle audio-source desired_state between active and closed.
+
+      Traces the fed-by-audio bond from the accumulation to find
+      the audio-source entity, then flips its desired_state field.
+      The reconciler/audio-capture observes the change and drives
+      actual capture start/stop.
+    params:
+      - name: accumulation_id
+        type: string
+        required: true
+        description: The accumulation entity whose audio-source to toggle
+    steps:
+      # Trace the bond to find the audio-source
+      - step: trace
+        from_id: "$accumulation_id"
+        desmos: "fed-by-audio"
+        resolve: "to"
+        bind_to: audio_sources
+
+      - step: assert
+        condition: "length($audio_sources) > 0"
+        message: "No audio-source bonded to accumulation: $accumulation_id"
+
+      - step: set
+        bindings:
+          audio_source: "$audio_sources.0"
+
+      # Compute toggled desired_state
+      - step: set
+        bindings:
+          current_state: "$audio_source.data.desired_state"
+          entity_id: "$audio_source.id"
+
+      - step: switch
+        cases:
+          - when: '$current_state == "active"'
+            then:
+              - step: set
+                bindings:
+                  new_state: "closed"
+          - when: '$current_state == "closed"'
+            then:
+              - step: set
+                bindings:
+                  new_state: "active"
+        default:
+          - step: set
+            bindings:
+              new_state: "active"
+
+      # Update desired_state
+      - step: update
+        id: "$entity_id"
+        data:
+          desired_state: "$new_state"
+
+      # When muting, also stop transcription (transcriber needs audio)
+      - step: switch
+        cases:
+          - when: '$new_state == "closed"'
+            then:
+              - step: trace
+                from_id: "$accumulation_id"
+                desmos: "fed-by-transcriber"
+                resolve: "to"
+                bind_to: transcribers
+              - step: switch
+                cases:
+                  - when: "$transcribers.0"
+                    then:
+                      - step: set
+                        bindings:
+                          transcriber_state: "$transcribers.0.data.desired_state"
+                      - step: switch
+                        cases:
+                          - when: '$transcriber_state == "active"'
+                            then:
+                              - step: update
+                                id: "$transcribers.0.id"
+                                data:
+                                  desired_state: "closed"
+
+      - step: return
+        value:
+          entity_id: "$entity_id"
+          desired_state: "$new_state"
+          previous_state: "$current_state"
+
+# =============================================================================
+# TRANSCRIBER TOGGLE
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/soma/toggle-transcriber-intent
+  data:
+    topos: soma
+    name: toggle-transcriber-intent
+    visible: true
+    tier: 2
+    description: |
+      Toggle transcriber desired_state between active and closed.
+
+      Traces the fed-by-transcriber bond from the accumulation to find
+      the transcriber entity, then flips its desired_state field.
+      The reconciler/transcription observes the change and drives
+      actual transcription start/stop.
+    params:
+      - name: accumulation_id
+        type: string
+        required: true
+        description: The accumulation entity whose transcriber to toggle
+    steps:
+      - step: trace
+        from_id: "$accumulation_id"
+        desmos: "fed-by-transcriber"
+        resolve: "to"
+        bind_to: transcribers
+
+      - step: assert
+        condition: "length($transcribers) > 0"
+        message: "No transcriber bonded to accumulation: $accumulation_id"
+
+      - step: set
+        bindings:
+          transcriber: "$transcribers.0"
+
+      - step: set
+        bindings:
+          current_state: "$transcriber.data.desired_state"
+          entity_id: "$transcriber.id"
+
+      - step: switch
+        cases:
+          - when: '$current_state == "active"'
+            then:
+              - step: set
+                bindings:
+                  new_state: "closed"
+          - when: '$current_state == "closed"'
+            then:
+              - step: set
+                bindings:
+                  new_state: "active"
+        default:
+          - step: set
+            bindings:
+              new_state: "active"
+
+      - step: update
+        id: "$entity_id"
+        data:
+          desired_state: "$new_state"
+
+      - step: return
+        value:
+          entity_id: "$entity_id"
+          desired_state: "$new_state"
+          previous_state: "$current_state"
+
+# =============================================================================
+# DEVICE ENUMERATION
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/soma/list-audio-devices
+  data:
+    topos: soma
+    name: list-audio-devices
+    visible: true
+    tier: 2
+    description: |
+      Enumerate available audio input devices via cpal.
+      Returns a list of devices with id, name, and is_default fields.
+    params: []
+    steps:
+      - step: invoke
+        dynamis: voice
+        operation: list-audio-devices
+        bind_to: result
+
+      - step: return
+        value: "$result"
+
+# =============================================================================
+# CONFIG CHANGE PRAXEIS — update + drift cycle
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/soma/update-audio-device
+  data:
+    topos: soma
+    name: update-audio-device
+    visible: true
+    tier: 2
+    description: |
+      Change audio input device. Sets actual_state to closed while
+      desired_state remains active, triggering the drift reflex
+      which re-manifests capture on the new device.
+    params:
+      - name: entity_id
+        type: string
+        required: true
+        description: The audio-source entity to update
+      - name: device_id
+        type: string
+        required: true
+        description: New device identifier
+    steps:
+      - step: update
+        id: "$entity_id"
+        data:
+          device_id: "$device_id"
+          actual_state: "closed"
+
+      - step: return
+        value:
+          entity_id: "$entity_id"
+          device_id: "$device_id"
+          action: "config-change-drift"
+
+- eidos: praxis
+  id: praxis/soma/switch-transcriber-provider
+  data:
+    topos: soma
+    name: switch-transcriber-provider
+    visible: true
+    tier: 2
+    description: |
+      Switch transcription provider. Updates provider field and triggers
+      drift for immediate re-manifestation with the new inference backend.
+    params:
+      - name: entity_id
+        type: string
+        required: true
+        description: The transcriber entity to update
+      - name: provider
+        type: string
+        required: true
+        description: "New provider (whisper-local or parakeet-lan)"
+    steps:
+      - step: update
+        id: "$entity_id"
+        data:
+          provider: "$provider"
+          actual_state: "closed"
+
+      - step: return
+        value:
+          entity_id: "$entity_id"
+          provider: "$provider"
+          action: "config-change-drift"
+
+- eidos: praxis
+  id: praxis/soma/save-transcriber-language
+  data:
+    topos: soma
+    name: save-transcriber-language
+    visible: true
+    tier: 2
+    description: "Save language setting. Takes effect on next transcription start."
+    params:
+      - name: entity_id
+        type: string
+        required: true
+      - name: language
+        type: string
+        required: true
+    steps:
+      - step: update
+        id: "$entity_id"
+        data:
+          language: "$language"
+
+      - step: return
+        value:
+          entity_id: "$entity_id"
+
+- eidos: praxis
+  id: praxis/soma/save-whisper-threads
+  data:
+    topos: soma
+    name: save-whisper-threads
+    visible: true
+    tier: 2
+    description: "Save whisper thread count. Takes effect on next transcription start."
+    params:
+      - name: entity_id
+        type: string
+        required: true
+      - name: whisper_threads
+        type: integer
+        required: true
+    steps:
+      - step: update
+        id: "$entity_id"
+        data:
+          whisper_threads: "$whisper_threads"
+
+      - step: return
+        value:
+          entity_id: "$entity_id"
+
+- eidos: praxis
+  id: praxis/soma/save-vad-config
+  data:
+    topos: soma
+    name: save-vad-config
+    visible: true
+    tier: 2
+    description: "Save VAD tuning parameters. Takes effect on next transcription start."
+    params:
+      - name: entity_id
+        type: string
+        required: true
+      - name: vad_onset_prob
+        type: number
+        required: true
+      - name: vad_offset_prob
+        type: number
+        required: true
+      - name: vad_min_segment_secs
+        type: number
+        required: true
+    steps:
+      - step: update
+        id: "$entity_id"
+        data:
+          vad_onset_prob: "$vad_onset_prob"
+          vad_offset_prob: "$vad_offset_prob"
+          vad_min_segment_secs: "$vad_min_segment_secs"
+
+      - step: return
+        value:
+          entity_id: "$entity_id"
+
+# =============================================================================
+# SENSE PRAXEIS — daemon-driven drift detection
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/soma/sense-audio-source-states
+  data:
+    topos: soma
+    name: sense-audio-source-states
+    visible: false
+    description: |
+      Sense actuality for all audio-source entities.
+      Invoked by daemon/sense-audio-sources on a periodic schedule.
+      Updates trigger entity_updated events which drift-detection reflexes observe.
+    params: []
+    steps:
+      - step: gather
+        eidos: audio-source
+        bind_to: sources
+
+      - step: for_each
+        items: "$sources"
+        as: source
+        do:
+          - step: sense_actuality
+            entity_id: "$source.id"
+
+      - step: return
+        value:
+          sources_sensed: "{{ $sources | length }}"
+
+- eidos: praxis
+  id: praxis/soma/sense-transcriber-states
+  data:
+    topos: soma
+    name: sense-transcriber-states
+    visible: false
+    description: |
+      Sense actuality for all transcriber entities.
+      Invoked by daemon/sense-transcribers on a periodic schedule.
+      Updates trigger entity_updated events which drift-detection reflexes observe.
+    params: []
+    steps:
+      - step: gather
+        eidos: transcriber
+        bind_to: transcribers
+
+      - step: for_each
+        items: "$transcribers"
+        as: transcriber
+        do:
+          - step: sense_actuality
+            entity_id: "$transcriber.id"
+
+      - step: return
+        value:
+          transcribers_sensed: "{{ $transcribers | length }}"

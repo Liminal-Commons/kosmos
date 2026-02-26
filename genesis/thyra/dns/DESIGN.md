@@ -11,7 +11,7 @@ DNS addresses **the gap between existence and addressability** — making kosmos
 Without DNS:
 - Propylons have no addresses
 - Thyra instances cannot be found
-- Circle infrastructure is unreachable
+- Oikos infrastructure is unreachable
 - The kosmos is isolated
 
 With DNS:
@@ -22,9 +22,9 @@ With DNS:
 
 The central concept is **dual existence** — a dns-record entity exists in the kosmos (intent), and the actual record exists at the provider (actuality). The reconciler aligns them using the phylax pattern.
 
-## Circle Context
+## Oikos Context
 
-### Self Circle
+### Self Oikos
 
 A solitary dweller uses DNS to:
 - Point a personal domain to their propylon
@@ -34,21 +34,21 @@ A solitary dweller uses DNS to:
 
 Personal DNS enables self-sovereign addressing.
 
-### Peer Circle
+### Peer Oikos
 
 Collaborators use DNS to:
-- Share zones between circles (subdomain delegation)
+- Share zones between oikoi (subdomain delegation)
 - Coordinate record management
 - Route traffic to shared infrastructure
 - Maintain addressing for collaborative services
 
 Peer DNS enables shared infrastructure.
 
-### Commons Circle
+### Commons Oikos
 
 A commons uses DNS to:
 - Manage multiple zones for the community
-- Delegate subdomains to member circles
+- Delegate subdomains to member oikoi
 - Provide central DNS infrastructure
 - Audit addressing across the organization
 
@@ -70,7 +70,7 @@ A managed DNS zone — a sovereignty boundary for naming.
 
 **Lifecycle:**
 - Arise: create-zone composes zone entity
-- Bond: manages-zone links to circle, provided-by links to credentials
+- Bond: manages-zone links to oikos, provided-by links to credentials
 - Change: status transitions, sync timestamps update
 
 ### dns-record
@@ -111,12 +111,12 @@ Connection to DNS provider with credential reference.
 
 ### manages-zone
 
-Circle has sovereignty over this DNS zone.
+Oikos has sovereignty over this DNS zone.
 
-- **From:** circle
+- **From:** oikos
 - **To:** dns-zone
-- **Cardinality:** many-to-many (multiple circles can co-manage)
-- **Traversal:** Find zones a circle manages
+- **Cardinality:** many-to-many (multiple oikoi can co-manage)
+- **Traversal:** Find zones an oikos manages
 
 ### in-zone
 
@@ -149,9 +149,9 @@ Record points to this entity.
 
 ### Zone Operations
 
-- **create-zone**: Create DNS zone managed by dwelling circle
+- **create-zone**: Create DNS zone managed by dwelling oikos
 - **bind-zone-provider**: Connect zone to provider with credentials
-- **list-zones**: List zones managed by circle
+- **list-zones**: List zones managed by oikos
 
 ### Record Operations
 
@@ -172,23 +172,23 @@ Record points to this entity.
 Read-only DNS capability — can list and sense.
 
 - **Grants:** list-zones, list-dns-records, sense-dns-record
-- **Scope:** circle
-- **Rationale:** Observing DNS state is safe for any circle member
+- **Scope:** oikos
+- **Rationale:** Observing DNS state is safe for any oikos member
 
 ### attainment/dns-write
 
 Record management — can create and delete records.
 
 - **Grants:** create-dns-record, delete-dns-record
-- **Scope:** circle
-- **Rationale:** Modifying records requires trust within the circle
+- **Scope:** oikos
+- **Rationale:** Modifying records requires trust within the oikos
 
 ### attainment/dns-admin
 
 Zone and infrastructure management.
 
 - **Grants:** create-zone, bind-zone-provider, reconcile-dns-record, reconcile-zone
-- **Scope:** circle
+- **Scope:** oikos
 - **Rationale:** Zone management and reconciliation require administrative authority
 
 ## Embodiment
@@ -243,7 +243,7 @@ DNS follows the dynamis reconciliation pattern (sense/compare/act). Provider act
 
 ### amplifies politeia
 
-Zone management bonds to circles via manages-zone. DNS sovereignty is circle governance in network form.
+Zone management bonds to oikoi via manages-zone. DNS sovereignty is oikos governance in network form.
 
 ## The Phylax Pattern
 
@@ -272,11 +272,11 @@ Without DNS, the kosmos is isolated — entities exist but cannot be reached fro
 
 ### T68: Infrastructure sovereignty extends to naming
 
-Just as circles govern their members and attainments, they govern their naming. Zone management is sovereignty. Subdomain delegation is federation. The manages-zone bond makes this explicit.
+Just as oikoi govern their members and attainments, they govern their naming. Zone management is sovereignty. Subdomain delegation is federation. The manages-zone bond makes this explicit.
 
-### T69: Zone management is circle governance in network form
+### T69: Zone management is oikos governance in network form
 
-The pattern is identical: a circle manages-zone as it manages-membership. Zone delegation between circles mirrors circle federation. Network topology follows governance topology.
+The pattern is identical: an oikos manages-zone as it manages-membership. Zone delegation between oikoi mirrors oikos federation. Network topology follows governance topology.
 
 ## Security Considerations
 
@@ -312,7 +312,7 @@ Webhook-based detection of provider changes outside kosmos (mark as diverged).
 
 ### Zone Transfer
 
-Multi-party consent protocol for transferring zone management between circles.
+Multi-party consent protocol for transferring zone management between oikoi.
 
 ### DNSSEC
 

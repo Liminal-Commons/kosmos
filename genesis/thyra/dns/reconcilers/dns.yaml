@@ -1,0 +1,43 @@
+# DNS Record Reconciler — Transition-Table Reconciliation
+#
+# Maps (desired_state, actual_state) pairs to actions.
+# The generic reconciler engine interprets this table.
+#
+# The phylax (guardian) pattern: sense actuality, compare with intent, converge.
+#
+# Traces to: genesis/thyra/dns/DESIGN.md
+
+entities:
+
+  - eidos: reconciler
+    id: reconciler/dns-record
+    data:
+      name: dns-record
+      target_eidos: dns-record
+      intent_field: desired_state
+      actuality_field: actual_state
+      transitions:
+        # Want present, but absent or unknown -> manifest (create at provider)
+        - intent: present
+          actual: [absent, unknown]
+          action: manifest
+
+        # Want present, but diverged -> manifest (update at provider)
+        - intent: present
+          actual: diverged
+          action: manifest
+
+        # Want present, already present -> sense (verify still correct)
+        - intent: present
+          actual: present
+          action: sense
+
+        # Want absent, but present or diverged -> unmanifest (delete from provider)
+        - intent: absent
+          actual: [present, diverged]
+          action: unmanifest
+
+        # Want absent, already absent or unknown -> nothing to do
+        - intent: absent
+          actual: [absent, unknown]
+          action: none

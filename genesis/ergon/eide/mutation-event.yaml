@@ -1,0 +1,103 @@
+# Mutation Event Eide
+# Abstract types representing graph mutations that can trigger reflexes
+
+entities:
+
+  # =========================================================================
+  # mutation-event — abstract base for graph mutations
+  # =========================================================================
+
+  - eidos: eidos
+    id: eidos/mutation-event
+    data:
+      name: mutation-event
+      description: |
+        Abstract type for graph mutations that can trigger reflexes.
+
+        Concrete subtypes: entity-mutation, bond-mutation.
+
+        These are type definitions, not event records. The seed instances
+        (entity-mutation/created, etc.) represent the kinds of mutations
+        that can occur. Triggers bond to these instances via matches-event
+        to declare what mutations they respond to.
+      abstract: true
+      constitutional: false
+
+  # =========================================================================
+  # entity-mutation — entity lifecycle events
+  # =========================================================================
+
+  - eidos: eidos
+    id: eidos/entity-mutation
+    data:
+      name: entity-mutation
+      extends: mutation-event
+      description: |
+        Mutation affecting an entity lifecycle.
+
+        Seed instances:
+        - entity-mutation/created — entity came into existence
+        - entity-mutation/updated — entity data changed
+        - entity-mutation/deleted — entity dissolved
+
+        Context variables available when this event fires:
+        - $entity — the mutated entity
+        - $previous — entity state before mutation (for updates)
+      constitutional: false
+      fields:
+        operation:
+          type: enum
+          values: [created, updated, deleted]
+          required: true
+
+  # =========================================================================
+  # bond-mutation — bond lifecycle events
+  # =========================================================================
+
+  - eidos: eidos
+    id: eidos/bond-mutation
+    data:
+      name: bond-mutation
+      extends: mutation-event
+      description: |
+        Mutation affecting a bond lifecycle.
+
+        Seed instances:
+        - bond-mutation/created — bond established
+        - bond-mutation/updated — bond data changed
+        - bond-mutation/deleted — bond dissolved
+
+        Context variables available when this event fires:
+        - $bond — the bond
+        - $from — source entity
+        - $to — target entity
+      constitutional: false
+      fields:
+        operation:
+          type: enum
+          values: [created, updated, deleted]
+          required: true
+
+  # =========================================================================
+  # file-mutation — file system change events
+  # =========================================================================
+
+  - eidos: eidos
+    id: eidos/file-mutation
+    data:
+      name: file-mutation
+      extends: mutation-event
+      description: |
+        Mutation affecting a file in the substrate.
+
+        Seed instances:
+        - file-mutation/changed — file content changed
+
+        Context variables available when this event fires:
+        - $trigger.path — the file path that changed
+      constitutional: false
+      fields:
+        operation:
+          type: enum
+          values: [changed]
+          required: true

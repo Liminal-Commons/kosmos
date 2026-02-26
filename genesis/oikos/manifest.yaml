@@ -1,24 +1,25 @@
-# Oikos Manifest: Oikos
+# Topos Manifest: Oikos
 # οἶκος — the intimate — sessions, conversations, notes, insights.
 #
-# Manifest v2.1 — oikos metadata for entity composition
+# Manifest v2.1 — topos metadata for entity composition
 
 format_version: "2.1"
-oikos_id: oikos
+topos_id: oikos
 version: "0.1.0"
 
-# Oikos metadata (v2.1)
-oikos_name: Oikos
-oikos_description: |
+# Topos metadata (v2.1)
+topos_name: Oikos
+topos_description: |
   The intimate scale — sessions, conversations, notes, insights.
   Where personal knowledge work happens within a dwelling.
-oikos_scale: oikos
+topos_scale: oikos
 
 # Development experience metadata
-oikos_category: domain
+topos_category: domain
 surfaces_provided: []   # Personal knowledge work domain
 surfaces_consumed:
   - understanding       # Uses nous for insight crystallization
+  - reactivity          # Reflexes for oikos mutation response
 
 content_paths:
   - path: eide/
@@ -27,8 +28,14 @@ content_paths:
     content_types: [desmos]
   - path: praxeis/
     content_types: [praxis]
-  - path: entities/
+  - path: typos/
+    content_types: [typos]
+  - path: reflexes/
+    content_types: [reflex]
+  - path: render-specs/
     content_types: [render-spec]
+  - path: modes/
+    content_types: [mode]
 
 requires_dynamis:
   - db.arise
@@ -46,12 +53,16 @@ provides:
     - segment
     - note
     - insight
-    - oikos-manifest
-    - oikos-dev
-    - oikos-prod
+    - topos-manifest
+    - topos-dev
+    - topos-prod
     - publish-attestation
 
-  # Oikos-centric rendering: oikos owns presentation for intimate dwelling entities
+  reflexes:
+    - reflex/oikos/announce-insight
+    - reflex/oikos/note-to-insight
+
+  # Topos-centric rendering: oikos topos owns presentation for intimate dwelling entities
   renderable:
     - eidos: session
       description: "Dwelling activity period cards"
@@ -76,13 +87,11 @@ provides:
     - about
     - crystallizes
     - surfaces
-    # Oikos ecosystem bonds (K3-K4)
-    - published-by
-    - baked-from
-    - attests-to
-    - distributes
-    - oikos-derives-from
-    - uses-oikos
+    # Topos ecosystem bonds (K3-K4)
+    # NOTE: published-by, baked-from, attests-to canonical in demiurge/desmoi
+    # NOTE: distributes canonical in politeia/desmoi
+    - topos-derives-from
+    - uses-topos
 
   praxeis:
     - oikos/open-session

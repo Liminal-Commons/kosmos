@@ -23,9 +23,32 @@ With dynamis:
 
 The phylax pattern (sense → compare → act) is the fundamental rhythm of dynamis.
 
-## Circle Context
+## Actuation via Emission
 
-### Self Circle
+Per KOSMOGONIA's **Actuation = Reconciliation** pillar, dynamis never directly manipulates substrate. All actuation flows through reconciliation and emission:
+
+```
+Intent (deployment.desired_state)
+    ↓
+Reconciler (sense actuality, compare, decide)
+    ↓
+Thyra Emit (write configuration to chora)
+    ↓
+Substrate Actualization (nixos-rebuild, systemctl, etc.)
+```
+
+**What "manifest-deployment" actually means:**
+1. Update `deployment.desired_state` to `running`
+2. Reconciler detects desired ≠ actual
+3. Emit deployment configuration (NixOS module, systemd unit, etc.)
+4. Substrate watches emitted files and actualizes
+5. Sense actuality, update `deployment.actual_state`
+
+Kosmos expresses intent. Thyra emits configuration. Substrate actualizes. This separation is constitutional.
+
+## Oikos Context
+
+### Self Oikos
 
 A solitary dweller uses dynamis to:
 - Create releases for personal projects
@@ -35,7 +58,7 @@ A solitary dweller uses dynamis to:
 
 Personal infrastructure becomes visible and manageable.
 
-### Peer Circle
+### Peer Oikos
 
 Collaborators use dynamis to:
 - Coordinate release schedules
@@ -45,52 +68,20 @@ Collaborators use dynamis to:
 
 The provenance chain shows who actualized what.
 
-### Commons Circle
+### Commons Oikos
 
-A commons circle uses dynamis to:
+A commons oikos uses dynamis to:
 - Publish official releases to public channels
 - Maintain community infrastructure
 - Define canonical substrates for the ecosystem
 - Audit distribution integrity
 
-Dynamis serves as the infrastructure layer for oikos distribution.
+Dynamis serves as the infrastructure layer for topos distribution.
 
 ## Core Entities (Eide)
 
-### release
-
-A versioned build artifact — what will be distributed.
-
-**Fields:**
-- `name` — Release name (e.g., 'thyra')
-- `version` — Semantic version
-- `status` — Lifecycle state (draft, building, built, distributing, distributed, failed, deprecated)
-- `description`, `changelog` — Documentation
-- `build_commit`, `build_timestamp`, `build_command` — Build provenance
-- `distributed_at`, `distribution_channels` — Distribution tracking
-
-**Lifecycle:**
-- Arise: create-release in draft state
-- Change: register-artifact adds files, mark-release-built readies for distribution
-- Actualize: distribute-release uploads to channels
-- Depart: Deprecated when superseded
-
-### release-artifact
-
-Individual file within a release — a platform-specific binary.
-
-**Fields:**
-- `filename` — Artifact filename
-- `artifact_type` — binary, checksum, signature, archive, installer, metadata
-- `platform` — Target platform
-- `size_bytes`, `content_hash`, `mime_type` — File metadata
-- `uploaded`, `uploaded_at`, `upload_url` — Actuality tracking
-- `local_path`, `built_at` — Build origin
-
-**Lifecycle:**
-- Arise: register-artifact creates linked to release
-- Actualize: distribute-release uploads via energeia
-- Sense: sense-release checks if artifact exists in channel
+> Release eide (release, release-artifact, distribution-channel) are defined in the [release topos](../release/DESIGN.md).
+> Dynamis consumes release entities via the `deploys-release` bond.
 
 ### substrate
 
@@ -109,22 +100,6 @@ Target platform or environment — where software runs.
 - Arise: create-substrate defines target
 - Change: May be deactivated
 - No actuality: Substrates are conceptual categories
-
-### distribution-channel
-
-Pathway for releases to reach users — the "where" of distribution.
-
-**Fields:**
-- `name` — Channel identifier
-- `provider` — r2, github, homebrew, npm, crates, direct
-- `config` — Provider-specific configuration
-- `base_url` — Download URL
-- `status` — active, paused, deprecated
-
-**Lifecycle:**
-- Arise: create-distribution-channel with provider config
-- Actualize: Provider-specific (R2 uses object-storage mode)
-- Change: May be paused or deprecated
 
 ### deployment
 
@@ -169,14 +144,7 @@ Snapshot of sensed state — audit trail for reconciliation.
 
 ## Bonds (Desmoi)
 
-### contains-artifact
-
-Release contains this artifact.
-
-- **From:** release
-- **To:** release-artifact
-- **Cardinality:** one-to-many
-- **Traversal:** Find all artifacts in a release
+> Release-domain bonds (contains-artifact, distributed-via) are defined in the [release topos](../release/DESIGN.md).
 
 ### targets-substrate / targets
 
@@ -186,15 +154,6 @@ Release or deployment targets this substrate.
 - **To:** substrate
 - **Cardinality:** many-to-many
 - **Traversal:** Find what targets a substrate
-
-### distributed-via
-
-Release is distributed through this channel.
-
-- **From:** release
-- **To:** distribution-channel
-- **Cardinality:** many-to-many
-- **Traversal:** Find distribution channels for a release
 
 ### deploys-release
 
@@ -267,63 +226,17 @@ Deployment manifested as a service-instance.
 
 #### steward-of
 
-Circle stewards (governs) a commons node.
+Oikos stewards (governs) a commons node.
 
-- **From:** circle
+- **From:** oikos
 - **To:** node
 - **Cardinality:** one-to-many
-- **Traversal:** From circle, find stewarded nodes; from node, find steward circle
-- **Note:** Replaces embedded `node.steward_circle_id` field with a proper bond. The steward circle has authority over node configuration.
+- **Traversal:** From oikos, find stewarded nodes; from node, find steward oikos
+- **Note:** Replaces embedded `node.steward_oikos_id` field with a proper bond. The steward oikos has authority over node configuration.
 
 ## Operations (Praxeis)
 
-### create-release
-
-Create a new release in draft state.
-
-- **When:** Starting a release cycle
-- **Requires:** release attainment
-- **Provides:** Release entity with provenance
-
-### register-artifact
-
-Register a build artifact with a release.
-
-- **When:** Build produces artifacts
-- **Requires:** release attainment
-- **Provides:** Artifact entity bonded to release
-
-### mark-release-built
-
-Mark a release as ready for distribution.
-
-- **When:** All artifacts are registered
-- **Requires:** release attainment
-- **Provides:** Status update to 'built'
-
-### distribute-release
-
-Distribute a release through a channel (actualize).
-
-- **When:** Release is built and ready
-- **Requires:** distribute attainment
-- **Provides:** Uploaded artifacts with URLs
-
-### sense-release
-
-Sense actual state of release in channels.
-
-- **When:** Checking distribution status
-- **Requires:** distribute attainment
-- **Provides:** Actuality records with drift detection
-
-### reconcile-release
-
-Reconcile release intent with actuality.
-
-- **When:** Drift detected or on schedule
-- **Requires:** distribute attainment
-- **Provides:** Reconciled state, actions taken
+> Release lifecycle praxeis (create-release, register-artifact, mark-built, distribute, sense-release, reconcile-release) are defined in the [release topos](../release/DESIGN.md).
 
 ### create-substrate
 
@@ -332,14 +245,6 @@ Create a substrate definition.
 - **When:** Defining target platforms
 - **Requires:** substrate attainment
 - **Provides:** Substrate entity
-
-### create-distribution-channel
-
-Create a distribution channel.
-
-- **When:** Setting up distribution pathways
-- **Requires:** channel attainment
-- **Provides:** Channel entity with provider config
 
 ### create-deployment
 
@@ -373,13 +278,13 @@ Reconcile deployment intent with actuality.
 - **Requires:** deploy attainment
 - **Provides:** Reconciled state, actions taken
 
-### list-releases / list-substrates / list-distribution-channels
+### list-substrates
 
-Query operations for dynamis entities.
+Query substrates, optionally filtered by kind.
 
-- **When:** Exploring what exists
-- **Requires:** Respective attainments
-- **Provides:** Filtered entity lists
+- **When:** Exploring what substrates exist
+- **Requires:** substrate attainment
+- **Provides:** Filtered substrate list
 
 ### reconcile (generic)
 
@@ -391,44 +296,22 @@ Generic reconciliation using declarative reconciler definition.
 
 ## Attainments
 
-### attainment/release
-
-Release management capability — creating and tracking releases.
-
-- **Grants:** create-release, register-artifact, mark-release-built, list-releases
-- **Scope:** circle
-- **Rationale:** Release creation is a development act; distribution is separate
+> Release-domain attainments (attainment/release, attainment/channel, attainment/distribute) are defined in the [release topos](../release/DESIGN.md).
 
 ### attainment/substrate
 
 Substrate management capability — defining target platforms.
 
 - **Grants:** create-substrate, list-substrates
-- **Scope:** circle
+- **Scope:** oikos
 - **Rationale:** Substrate definitions are infrastructure configuration
-
-### attainment/channel
-
-Distribution channel management — defining distribution pathways.
-
-- **Grants:** create-distribution-channel, list-distribution-channels
-- **Scope:** circle
-- **Rationale:** Channel configuration requires provider credentials
-
-### attainment/distribute
-
-Distribution actuality capability — uploading releases to channels.
-
-- **Grants:** distribute-release, sense-release, reconcile-release
-- **Scope:** circle
-- **Rationale:** Tier-3 actuality operations require explicit authorization
 
 ### attainment/deploy
 
 Deployment management capability — running services.
 
 - **Grants:** create-deployment, manifest-deployment, sense-deployment, reconcile-deployment
-- **Scope:** circle
+- **Scope:** oikos
 - **Rationale:** Deployments affect external systems; requires authorization
 
 ### attainment/reconcile
@@ -436,7 +319,7 @@ Deployment management capability — running services.
 Generic reconciliation capability — the phylax pattern.
 
 - **Grants:** reconcile
-- **Scope:** circle
+- **Scope:** oikos
 - **Rationale:** Reconciliation is a powerful actuality operation
 
 ## Embodiment
@@ -445,7 +328,7 @@ Generic reconciliation capability — the phylax pattern.
 
 | Level | Status |
 |-------|--------|
-| Defined | ✅ 6 eide, 11 desmoi, 16 praxeis |
+| Defined | ✅ 4 eide, 9 desmoi, 10 praxeis |
 | Loaded | ✅ Bootstrap loads all definitions |
 | Projected | ✅ All praxeis visible as MCP tools |
 | Embodied | ⏳ Body-schema contribution pending |
@@ -487,7 +370,7 @@ A dynamis reconciler would surface:
 
 ### amplifies demiurge
 
-Oikos-prod packages flow through distribution channels. Baked packages become distributable releases.
+Topos-prod packages flow through distribution channels. Baked packages become distributable releases.
 
 ### amplifies ekdosis
 
@@ -495,7 +378,7 @@ Content publication uses dynamis patterns for object-storage actuality.
 
 ### amplifies politeia
 
-Distribution channels may be circle-scoped. Who can distribute requires governance.
+Distribution channels may be oikos-scoped. Who can distribute requires governance.
 
 ### amplifies hypostasis
 

@@ -4,28 +4,28 @@
 # Extracted from spora.yaml stage-1-desmoi
 
 entities:
-  # secures-key-for — keyring secures keys for persona
+  # secures-key-for — keyring secures keys for prosopon
   - eidos: desmos
     id: desmos/secures-key-for
     data:
       name: secures-key-for
       description: |
-        This kleidoura secures cryptographic keys for this persona.
-        One-to-one: each persona has at most one keyring.
-        The keyring contains the encrypted master seed from which all circle keys are derived.
+        This kleidoura secures cryptographic keys for this prosopon.
+        One-to-one: each prosopon has at most one keyring.
+        The keyring contains the encrypted master seed from which all oikos keys are derived.
       from_eidos: kleidoura
-      to_eidos: persona
+      to_eidos: prosopon
       cardinality: one-to-one
       symmetric: false
 
-  # signed-by — entity signed by persona keypair
+  # signed-by — entity signed by prosopon keypair
   - eidos: desmos
     id: desmos/signed-by
     data:
       name: signed-by
-      description: "Entity signed by persona keypair — cryptographic attribution"
+      description: "Entity signed by prosopon keypair — cryptographic attribution"
       from_eidos: any
-      to_eidos: persona
+      to_eidos: prosopon
       cardinality: many-to-one
       symmetric: false
 
@@ -55,30 +55,30 @@ entities:
   # Credential Desmoi — ownership, sharing, and capability grants
   # =========================================================================
 
-  # credential-of — credential belongs to persona
+  # credential-of — credential belongs to prosopon
   - eidos: desmos
     id: desmos/credential-of
     data:
       name: credential-of
       description: |
-        Credential belongs to persona — ownership relationship.
-        Only the owning persona can unlock and use this credential.
+        Credential belongs to prosopon — ownership relationship.
+        Only the owning prosopon can unlock and use this credential.
       from_eidos: credential
-      to_eidos: persona
+      to_eidos: prosopon
       cardinality: many-to-one
       symmetric: false
 
-  # shared-with — credential shared with circle
+  # shared-with — credential shared with oikos
   - eidos: desmos
     id: desmos/shared-with
     data:
       name: shared-with
       description: |
-        Credential shared with circle — collective access.
-        Circle members can use this credential when unlocked.
-        Scope must be 'circle' for this bond to apply.
+        Credential shared with oikos — collective access.
+        Oikos members can use this credential when unlocked.
+        Scope must be 'oikos' for this bond to apply.
       from_eidos: credential
-      to_eidos: circle
+      to_eidos: oikos
       cardinality: many-to-one
       symmetric: false
 

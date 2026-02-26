@@ -1,28 +1,28 @@
 # Soma Desmoi
-# Embodiment bonds — connecting animus to channels and perceptions
+# Embodiment bonds — connecting parousia to channels and perceptions
 #
 # Extracted from spora.yaml stage-1-desmoi
 
 entities:
-  # instantiates — animus instantiates persona
+  # instantiates — parousia instantiates prosopon
   - eidos: desmos
     id: desmos/instantiates
     data:
       name: instantiates
-      description: "Animus instantiates persona"
-      from_eidos: animus
-      to_eidos: persona
+      description: "Parousia instantiates prosopon"
+      from_eidos: parousia
+      to_eidos: prosopon
       cardinality: many-to-one
       symmetric: false
 
-  # channel-of — channel belongs to animus
+  # channel-of — channel belongs to parousia
   - eidos: desmos
     id: desmos/channel-of
     data:
       name: channel-of
-      description: "Channel belongs to animus"
+      description: "Channel belongs to parousia"
       from_eidos: channel
-      to_eidos: animus
+      to_eidos: parousia
       cardinality: many-to-one
       symmetric: false
 
@@ -37,25 +37,25 @@ entities:
       cardinality: many-to-one
       symmetric: false
 
-  # emitted-through — signal emitted through channel
+  # emitted-through — body-signal emitted through channel
   - eidos: desmos
     id: desmos/emitted-through
     data:
       name: emitted-through
-      description: "Signal emitted through channel"
-      from_eidos: signal
+      description: "Body-signal emitted through channel"
+      from_eidos: body-signal
       to_eidos: channel
       cardinality: many-to-one
       symmetric: false
 
-  # schema-of — body schema belongs to animus
+  # schema-of — body schema belongs to parousia
   - eidos: desmos
     id: desmos/schema-of
     data:
       name: schema-of
-      description: "Body schema belongs to animus"
+      description: "Body schema belongs to parousia"
       from_eidos: body-schema
-      to_eidos: animus
+      to_eidos: parousia
       cardinality: one-to-one
       symmetric: false
 
@@ -76,27 +76,27 @@ entities:
       cardinality: one-to-many
       symmetric: false
 
-  # provides-to — service instance provides capability to a circle
+  # provides-to — service instance provides capability to an oikos
   - eidos: desmos
     id: desmos/provides-to
     data:
       name: provides-to
-      description: "A service instance provides capability to a circle"
+      description: "A service instance provides capability to an oikos"
       from_eidos:
         - service-instance
       to_eidos:
-        - circle
+        - oikos
       cardinality: many-to-many
       symmetric: false
       data_fields:
         quota:
           type: object
           required: false
-          description: "Resource limits for this circle"
+          description: "Resource limits for this oikos"
         config:
           type: object
           required: false
-          description: "Circle-specific service configuration"
+          description: "Oikos-specific service configuration"
 
   # runs-on — kosmos instance runs on a node
   - eidos: desmos

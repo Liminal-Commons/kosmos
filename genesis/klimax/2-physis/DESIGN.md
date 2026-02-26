@@ -124,4 +124,4 @@ With physis, kosmos has natural law. Higher scales add social structure (polis) 
 ---
 
 *Composed in service of the kosmogonia.*
-*Traces to: expression/genesis-root*
+*Traces to: phasis/genesis-root*

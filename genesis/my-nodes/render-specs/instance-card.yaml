@@ -1,0 +1,30 @@
+# Instance/Connection Card Render-Spec
+# Card for a kosmos instance / connection.
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/my-nodes-instance-card
+    data:
+      name: my-nodes-instance-card
+      description: Card for a kosmos instance / connection.
+      target_eidos: kosmos-instance
+      variant: card
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: sm
+          children:
+            - widget: row
+              props:
+                gap: sm
+                align: center
+              children:
+                - widget: status-indicator
+                  props:
+                    status: "{status}"
+                - widget: text
+                  props:
+                    content: "{name}"
+                    variant: emphasis

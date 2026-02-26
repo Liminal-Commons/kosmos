@@ -1,0 +1,133 @@
+# Dokimasia Render Specifications — validation-result card
+# Full card view for validation outcomes
+#
+# Validation-result fields:
+#   - generation_id (string): The generation that was validated
+#   - passed (boolean): Whether all validation passed
+#   - provenance_valid (boolean): Authorization chain traces to genesis?
+#   - schema_valid (boolean): Content matches target eidos schema?
+#   - semantic_valid (boolean): All references resolve?
+#   - validated_at (timestamp): When validation occurred
+#
+# Traces to: genesis/dokimasia/DESIGN.md
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/validation-result-card
+    data:
+      name: validation-result-card
+      description: |
+        Card view for validation-result entities.
+        Shows passed/failed status, generation ID, and the three
+        validation checks (provenance, schema, semantic) as badges.
+      target_eidos: validation-result
+      variant: card
+
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+          children:
+            - widget: stack
+              props:
+                gap: sm
+              children:
+                # Header with status indicator
+                - widget: row
+                  props:
+                    justify: between
+                    align: center
+                  children:
+                    - widget: row
+                      props:
+                        gap: sm
+                        align: center
+                      children:
+                        - widget: icon
+                          props:
+                            name: shield-check
+                            size: md
+                        - widget: text
+                          props:
+                            content: "Validation Result"
+                            variant: emphasis
+
+                    # Passed/failed status indicator
+                    - widget: status-indicator
+                      props:
+                        status: "{passed}"
+
+                # Generation ID
+                - widget: row
+                  props:
+                    gap: sm
+                    align: center
+                  children:
+                    - widget: text
+                      props:
+                        content: "Generation:"
+                        variant: label
+                    - widget: code
+                      props:
+                        content: "{generation_id}"
+
+                # Validation checks row
+                - widget: row
+                  props:
+                    gap: sm
+                    align: center
+                  children:
+                    # Provenance check
+                    - widget: badge
+                      when: "provenance_valid"
+                      props:
+                        content: "Provenance"
+                        variant: success
+                    - widget: badge
+                      when: "!provenance_valid"
+                      props:
+                        content: "Provenance"
+                        variant: error
+
+                    # Schema check
+                    - widget: badge
+                      when: "schema_valid"
+                      props:
+                        content: "Schema"
+                        variant: success
+                    - widget: badge
+                      when: "!schema_valid"
+                      props:
+                        content: "Schema"
+                        variant: error
+
+                    # Semantic check
+                    - widget: badge
+                      when: "semantic_valid"
+                      props:
+                        content: "Semantic"
+                        variant: success
+                    - widget: badge
+                      when: "!semantic_valid"
+                      props:
+                        content: "Semantic"
+                        variant: error
+
+                # Timestamp
+                - widget: row
+                  props:
+                    gap: xs
+                    align: center
+                  children:
+                    - widget: icon
+                      props:
+                        name: calendar
+                        size: sm
+                    - widget: text
+                      props:
+                        content: "{validated_at}"
+                        variant: caption
+
+      created_at: "2026-02-09T00:00:00Z"

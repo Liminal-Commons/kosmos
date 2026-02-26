@@ -4,7 +4,7 @@
 # One verb. One tool. The compositor is simple.
 # Complexity lives in the definition.
 
-oikos:
+topos:
   id: demiurge
   scale: kosmos
   description: |
@@ -110,7 +110,7 @@ desmoi:
 
   - id: authorized-by
     description: |
-      This composition was authorized by that expression/entity.
+      This composition was authorized by that phasis/entity.
       The provenance chain. All chains terminate at genesis-root.
     from_eidos: [any]
     to_eidos: [any]
@@ -124,7 +124,7 @@ praxeis:
 
   - id: praxis/demiurge/compose
     name: compose
-    oikos: demiurge
+    topos: demiurge
     tier: 2
     visible: true
     description: |
@@ -150,7 +150,7 @@ praxeis:
       authorized_by:
         type: string
         required: false
-        description: Expression ID that authorizes this composition (provenance root)
+        description: Phasis ID that authorizes this composition (provenance root)
     steps:
       # Find the definition
       - type: find
@@ -219,7 +219,7 @@ praxeis:
 
   - id: praxis/demiurge/compose-entity
     name: compose-entity
-    oikos: demiurge
+    topos: demiurge
     tier: 2
     visible: false
     description: |
@@ -289,7 +289,7 @@ praxeis:
 
   - id: praxis/demiurge/compose-graph
     name: compose-graph
-    oikos: demiurge
+    topos: demiurge
     tier: 2
     visible: false
     description: |
@@ -338,7 +338,7 @@ praxeis:
 
   - id: praxis/demiurge/compose-template
     name: compose-template
-    oikos: demiurge
+    topos: demiurge
     tier: 2
     visible: false
     description: |
@@ -392,7 +392,7 @@ praxeis:
 
   - id: praxis/demiurge/create-bond
     name: create-bond
-    oikos: demiurge
+    topos: demiurge
     tier: 2
     visible: false
     description: |

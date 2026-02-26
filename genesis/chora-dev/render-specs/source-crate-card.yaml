@@ -1,0 +1,86 @@
+# Source Crate Card - Widget Layout
+# Displays a workspace crate with build status, actions
+#
+# Generated via demiurge thyra-awareness pattern
+
+entities:
+  - eidos: render-spec
+    id: render-spec/chora-dev/source-crate-card
+    data:
+      name: source-crate-card
+      description: "Workspace crate card with build status and actions"
+      target_eidos: source-crate
+      variant: card
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+            on_click: ui/set-selection
+            on_click_params:
+              selection_type: selected-crate
+              entity_id: "{id}"
+          children:
+            - widget: row
+              props:
+                gap: md
+                align: center
+              children:
+                # Status indicator (left)
+                - widget: badge
+                  props:
+                    content: "{build_status}"
+                    variant: "{build_status}"
+
+                # Main content
+                - widget: stack
+                  props:
+                    gap: xs
+                  children:
+                    # Crate name
+                    - widget: text
+                      props:
+                        content: "{name}"
+                        variant: emphasis
+
+                    # Crate path (muted)
+                    - widget: text
+                      props:
+                        content: "{path}"
+                        variant: caption
+
+                # Crate type badge (right)
+                - widget: badge
+                  props:
+                    content: "{crate_type}"
+                    variant: info
+
+            # Actions row
+            - widget: row
+              props:
+                gap: sm
+                align: center
+              children:
+                - widget: button
+                  props:
+                    label: "Build"
+                    variant: ghost
+                    on_click: chora-dev/build
+                    on_click_params:
+                      crate_name: "{name}"
+
+                - widget: button
+                  props:
+                    label: "Test"
+                    variant: ghost
+                    on_click: chora-dev/test
+                    on_click_params:
+                      crate_name: "{name}"
+
+                - widget: button
+                  props:
+                    label: "Lint"
+                    variant: ghost
+                    on_click: chora-dev/lint
+                    on_click_params:
+                      crate_name: "{name}"

@@ -1,0 +1,113 @@
+# Session Card Render-Spec
+# Card view for session — a period of dwelling activity
+#
+# Session fields (from oikos/eide/oikos.yaml):
+#   - parousia_id (string, required): The parousia in this session
+#   - started_at (timestamp, required): When session began
+#   - closed_at (timestamp, optional): When session ended
+#   - status (enum: active, closed): Session lifecycle status
+#
+# Replaces HTML template in oikos/entities/rendering.yaml
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/session-card
+    data:
+      name: session-card
+      description: |
+        Card rendering for session entities.
+        Shows parousia identity, status indicator, and time range.
+      target_eidos: session
+      variant: card
+
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+          children:
+            - widget: stack
+              props:
+                gap: sm
+              children:
+                # Header: label and status
+                - widget: row
+                  props:
+                    justify: between
+                    align: center
+                  children:
+                    - widget: row
+                      props:
+                        gap: sm
+                        align: center
+                      children:
+                        - widget: status-indicator
+                          props:
+                            status: "{status}"
+                        - widget: text
+                          props:
+                            content: "Session"
+                            variant: emphasis
+
+                    # Status badge: active
+                    - widget: badge
+                      when: "status == 'active'"
+                      props:
+                        content: "Active"
+                        variant: success
+
+                    # Status badge: closed
+                    - widget: badge
+                      when: "status == 'closed'"
+                      props:
+                        content: "Closed"
+                        variant: default
+
+                # Parousia row
+                - widget: row
+                  props:
+                    gap: xs
+                    align: center
+                  children:
+                    - widget: icon
+                      props:
+                        name: user
+                        size: sm
+                    - widget: text
+                      props:
+                        content: "{parousia_id}"
+                        variant: body
+
+                # Started at
+                - widget: row
+                  props:
+                    gap: xs
+                    align: center
+                  children:
+                    - widget: icon
+                      props:
+                        name: clock
+                        size: sm
+                    - widget: text
+                      props:
+                        content: "Started {started_at}"
+                        variant: caption
+
+                # Closed at (conditional)
+                - widget: row
+                  when: "closed_at"
+                  props:
+                    gap: xs
+                    align: center
+                  children:
+                    - widget: icon
+                      props:
+                        name: calendar
+                        size: sm
+                    - widget: text
+                      props:
+                        content: "Closed {closed_at}"
+                        variant: caption
+
+      created_at: "2026-02-09T00:00:00Z"

@@ -1,27 +1,27 @@
-# Oikos Manifest: Hodos
+# Topos Manifest: Hodos
 # ὁδός — the way, the path
 #
 # How we move through journeys. Navigation through waypoints.
 #
-# Manifest v2.1 — oikos metadata for entity composition
+# Manifest v2.1 — topos metadata for entity composition
 
 format_version: "2.1"
-oikos_id: hodos
+topos_id: hodos
 version: "0.1.0"
 
-# Oikos metadata (v2.1)
-oikos_name: Hodos
-oikos_description: |
+# Topos metadata (v2.1)
+topos_name: Hodos
+topos_description: |
   The way, the path. Navigation through journeys and waypoints.
 
   While nous defines what journeys and waypoints ARE (ontology),
   hodos defines how we MOVE through them (kinetics). It provides
   the mechanics of navigation: position sensing, advancement,
   branching, and form validation along the way.
-oikos_scale: soma  # Navigation operates at embodied level
+topos_scale: soma  # Navigation operates at embodied level
 
 # Development experience metadata
-oikos_category: domain
+topos_category: domain
 surfaces_provided: []   # Navigation is kinetics, not a surface
 surfaces_consumed:
   - rendering           # Uses thyra for panel rendering
@@ -32,6 +32,10 @@ content_paths:
     content_types: [attainment]
   - path: praxeis/
     content_types: [praxis]
+  - path: render-specs/
+    content_types: [render-spec]
+  - path: modes/
+    content_types: [mode]
 
 requires_dynamis:
   - db.find
@@ -46,13 +50,17 @@ provides:
   # No eide — journey/waypoint are defined in nous
   # Hodos provides navigation praxeis, not entity types
 
+  # Topos-centric rendering: hodos owns journey progress presentation
+  renderable:
+    - eidos: journey
+      description: "Journey progress views with waypoint navigation"
+
   attainments:
-    - navigate        # Journey navigation (animus scope)
+    - navigate        # Journey navigation (parousia scope)
 
   praxeis:
     - hodos/get-current-waypoint
     - hodos/advance-waypoint
     - hodos/branch-waypoint
-    - hodos/get-panel-render-data
     - hodos/validate-form
     - hodos/start-onboarding

@@ -75,6 +75,14 @@ entities:
           type: integer
           required: false
           description: "Maximum entities to return"
+        sort:
+          type: string
+          required: false
+          description: "Sort by data field name"
+        order:
+          type: string
+          required: false
+          description: "Sort order: asc or desc (default asc)"
         bind_to:
           type: string
           required: false
@@ -177,17 +185,17 @@ entities:
     id: eidos/stoicheion/get_cursor
     data:
       name: get_cursor
-      description: "Get observation cursor for a persona's view of a circle"
+      description: "Get observation cursor for a prosopon's view of an oikos"
       tier: 1
       fields:
-        persona_id:
+        prosopon_id:
           type: string
           required: true
-          description: "Persona ID"
-        circle_id:
+          description: "Prosopon ID"
+        oikos_id:
           type: string
           required: true
-          description: "Circle ID"
+          description: "Oikos ID"
         bind_to:
           type: string
           required: false
@@ -197,13 +205,13 @@ entities:
     id: eidos/stoicheion/get_notifications
     data:
       name: get_notifications
-      description: "Get notification counts for all circles a persona can see"
+      description: "Get notification counts for all oikoi a prosopon can see"
       tier: 1
       fields:
-        persona_id:
+        prosopon_id:
           type: string
           required: true
-          description: "Persona ID"
+          description: "Prosopon ID"
         bind_to:
           type: string
           required: false
@@ -213,13 +221,13 @@ entities:
     id: eidos/stoicheion/gather_since
     data:
       name: gather_since
-      description: "Gather entities in a circle that changed since a version"
+      description: "Gather entities in an oikos that changed since a version"
       tier: 1
       fields:
-        circle_id:
+        oikos_id:
           type: string
           required: true
-          description: "Circle ID"
+          description: "Oikos ID"
         since_version:
           type: integer
           required: true
@@ -416,6 +424,10 @@ entities:
           type: object
           required: false
           description: "Entity data"
+        internal:
+          type: boolean
+          required: false
+          description: "Bypass gating when true (for documented exceptions only)"
         bind_to:
           type: string
           required: false
@@ -448,14 +460,14 @@ entities:
       description: "Update observation cursor to current version"
       tier: 2
       fields:
-        persona_id:
+        prosopon_id:
           type: string
           required: true
-          description: "Persona ID"
-        circle_id:
+          description: "Prosopon ID"
+        oikos_id:
           type: string
           required: true
-          description: "Circle ID"
+          description: "Oikos ID"
         bind_to:
           type: string
           required: false
@@ -525,13 +537,17 @@ entities:
     id: eidos/stoicheion/compose
     data:
       name: compose
-      description: "Compose an entity from a typos"
+      description: "Compose an entity from a typos (idempotent — handles genesis and change)"
       tier: 2
       fields:
         typos_id:
           type: string
-          required: true
-          description: "Typos ID to compose from"
+          required: false
+          description: "Typos ID to compose from (optional when entity_id provides stored inputs)"
+        entity_id:
+          type: string
+          required: false
+          description: "Entity ID to compose again (reads stored _composition_inputs)"
         inputs:
           type: object
           required: false
@@ -660,10 +676,10 @@ entities:
           type: string
           required: false
           description: "BIP-39 mnemonic (for derive_key, sign)"
-        circle_id:
+        oikos_id:
           type: string
           required: false
-          description: "Circle ID for scoped key derivation"
+          description: "Oikos ID for scoped key derivation"
         data:
           type: string
           required: false
@@ -861,6 +877,10 @@ entities:
           type: string
           required: true
           description: "Text to embed"
+        provider:
+          type: string
+          required: false
+          description: "Provider name: openai (default openai)"
         bind_to:
           type: string
           required: false
@@ -885,8 +905,15 @@ entities:
         model:
           type: string
           required: false
-          description: "Model to use (default claude-opus-4-5)"
-          default: "claude-opus-4-5"
+          description: "Explicit model ID — overrides tier resolution"
+        tier:
+          type: string
+          required: false
+          description: "Capability tier: capable, balanced, or fast (default fast)"
+        provider:
+          type: string
+          required: false
+          description: "Provider name: anthropic, openai (default anthropic)"
         temperature:
           type: number
           required: false
@@ -908,6 +935,10 @@ entities:
           type: string
           required: false
           description: "Variable to bind response to (JSON if structured, string if plain)"
+        internal:
+          type: boolean
+          required: false
+          description: "Bypass gating when true (for documented exceptions only)"
 
   - eidos: eidos
     id: eidos/stoicheion/manifest
@@ -1012,19 +1043,19 @@ entities:
           description: "Variable to bind result to"
 
   - eidos: eidos
-    id: eidos/stoicheion/fetch_oikos
+    id: eidos/stoicheion/fetch_topos
     data:
-      name: fetch_oikos
+      name: fetch_topos
       description: |
-        Fetch and install an oikos-prod from a remote source.
+        Fetch and install a topos distribution from a remote source.
         Verifies signature against publisher pubkey, then installs content.
-        Used by circle distribution to install oikoi on join.
+        Used by oikos distribution to install topoi on join.
       tier: 3
       fields:
-        oikos_prod_id:
+        topos_prod_id:
           type: string
           required: true
-          description: "Entity ID of the oikos-prod to fetch (e.g., 'oikos-prod/nous-1.0.0')"
+          description: "Entity ID of the topos distribution to fetch (e.g., 'topos-prod/nous-1.0.0')"
         verify_signature:
           type: boolean
           required: false
@@ -1125,7 +1156,7 @@ entities:
       description: |
         Dynamically register a praxis as an MCP tool.
 
-        Used by oikos development for testing praxeis without emission.
+        Used by topos development for testing praxeis without emission.
         Enables live development workflow where praxeis appear as
         MCP tools immediately upon composition.
       fields:
@@ -1169,7 +1200,7 @@ entities:
         config:
           type: object
           required: true
-          description: "Service configuration (host, port, circle_id, etc.)"
+          description: "Service configuration (host, port, oikos_id, etc.)"
         bind_to:
           type: string
           required: false
@@ -1221,7 +1252,7 @@ entities:
         unit_name:
           type: string
           required: true
-          description: "Unit name to enable (e.g., kosmos-server@circle-id)"
+          description: "Unit name to enable (e.g., kosmos-server@oikos-id)"
         unit_content:
           type: string
           required: true
@@ -1279,3 +1310,121 @@ entities:
           type: string
           required: false
           description: "Variable to bind result to (running, active_state, sub_state, main_pid)"
+
+  # =============================================================================
+  # Tier 3: Generic Shell/Build Operations (chora-dev)
+  # =============================================================================
+
+  - eidos: eidos
+    id: eidos/stoicheion/shell-execute
+    data:
+      name: shell-execute
+      tier: 3
+      description: |
+        Execute any shell command. The foundation for all tool integrations.
+
+        This is the single primitive that bridges kosmos intent to substrate
+        actuality for command execution. All tool-specific behavior is defined
+        in command templates (graph entities), not here.
+      fields:
+        command:
+          type: string
+          required: true
+          description: "Executable name (e.g., 'cargo', 'npm', 'go')"
+        args:
+          type: array
+          required: true
+          description: "Command arguments as array of strings"
+        working_dir:
+          type: string
+          required: false
+          description: "Working directory (defaults to workspace root)"
+        env:
+          type: object
+          required: false
+          description: "Environment variables to set"
+        timeout_ms:
+          type: integer
+          required: false
+          description: "Timeout in milliseconds (default: 300000 = 5 min)"
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind result to (stdout, stderr, exit_code, duration_ms, success)"
+
+  - eidos: eidos
+    id: eidos/stoicheion/hash-path
+    data:
+      name: hash-path
+      tier: 3
+      description: |
+        Compute BLAKE3 hash of files matching a glob pattern.
+        Used for staleness detection and content verification.
+      fields:
+        path:
+          type: string
+          required: true
+          description: "Base directory to hash"
+        pattern:
+          type: string
+          required: false
+          description: "Glob pattern (default: '**/*')"
+        include_names:
+          type: boolean
+          required: false
+          description: "Include filenames in hash (default: true)"
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind result to (hash, file_count)"
+
+  - eidos: eidos
+    id: eidos/stoicheion/parse-output
+    data:
+      name: parse-output
+      tier: 3
+      description: |
+        Parse command output using format-specific handlers or regex.
+
+        Built-in formats:
+        - json: Parse as JSON
+        - lines: Split into lines
+        - regex: Extract using regex pattern
+        - cargo-test: Parse cargo test summary
+        - cargo-clippy: Parse clippy JSON output
+        - cargo-metadata: Parse cargo metadata JSON
+      fields:
+        content:
+          type: string
+          required: true
+          description: "Content to parse"
+        format:
+          type: string
+          required: true
+          description: "Format: json, lines, regex, cargo-test, cargo-clippy, cargo-metadata"
+        schema:
+          type: object
+          required: false
+          description: "Extraction rules for regex format (requires 'pattern' field)"
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind parsed result to"
+
+  - eidos: eidos
+    id: eidos/stoicheion/file-exists
+    data:
+      name: file-exists
+      tier: 3
+      description: |
+        Check if a file or directory exists.
+        Simple but essential for sense operations.
+      fields:
+        path:
+          type: string
+          required: true
+          description: "Path to check"
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind result to (exists, is_file, is_dir, size, modified_at)"

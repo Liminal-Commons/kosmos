@@ -1,0 +1,122 @@
+# Release Card Render-Spec
+# Versioned build artifact display
+#
+# Release fields:
+#   - name (string): Release name
+#   - version (string): Semantic version
+#   - status (enum): draft | building | built | distributing | distributed | failed | deprecated
+#   - description (string): Release notes
+#   - changelog (string): What changed
+#   - build_commit (string): Git SHA
+#   - distributed_at (datetime)
+#
+# Traces to: genesis/demiurge/THYRA-EVOLUTION.md
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/release-card
+    data:
+      name: release-card
+      description: |
+        Versioned release card showing name, version, status,
+        and build information. Click to view full details.
+      target_eidos: release
+      variant: card
+
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+            # on_click: release/view-release — praxis not yet implemented
+          children:
+            - widget: stack
+              props:
+                gap: sm
+              children:
+                # Header with name and version
+                - widget: row
+                  props:
+                    justify: between
+                    align: center
+                  children:
+                    - widget: row
+                      props:
+                        gap: sm
+                        align: center
+                      children:
+                        - widget: icon
+                          props:
+                            name: tag
+                            size: md
+                        - widget: text
+                          props:
+                            content: "{name}"
+                            variant: emphasis
+                        - widget: badge
+                          props:
+                            content: "v{version}"
+                            variant: info
+
+                    # Status badges
+                    - widget: badge
+                      when: "status == 'draft'"
+                      props:
+                        content: "Draft"
+                        variant: default
+                    - widget: badge
+                      when: "status == 'building'"
+                      props:
+                        content: "Building"
+                        variant: warning
+                    - widget: badge
+                      when: "status == 'built'"
+                      props:
+                        content: "Built"
+                        variant: info
+                    - widget: badge
+                      when: "status == 'distributing'"
+                      props:
+                        content: "Distributing"
+                        variant: warning
+                    - widget: badge
+                      when: "status == 'distributed'"
+                      props:
+                        content: "Distributed"
+                        variant: success
+                    - widget: badge
+                      when: "status == 'failed'"
+                      props:
+                        content: "Failed"
+                        variant: error
+                    - widget: badge
+                      when: "status == 'deprecated'"
+                      props:
+                        content: "Deprecated"
+                        variant: default
+
+                # Description
+                - widget: text
+                  when: "description"
+                  props:
+                    content: "{description}"
+                    variant: body
+
+                # Build info
+                - widget: row
+                  when: "build_commit"
+                  props:
+                    gap: sm
+                    align: center
+                  children:
+                    - widget: icon
+                      props:
+                        name: git-commit
+                        size: sm
+                    - widget: text
+                      props:
+                        content: "{build_commit}"
+                        variant: caption
+
+      created_at: "2026-02-03T00:00:00Z"

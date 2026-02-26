@@ -1,0 +1,78 @@
+# Oikos Reflexes — Homoiconic Form
+# Autonomic responses for the intimate dwelling layer
+#
+# Bonds are inline on their parent entities:
+#   trigger.bonds: matches-event, filters-eidos
+#   reflex.bonds: triggered-by
+#   reflex.data.response_params: params from responds-with bond
+
+entities:
+
+  # =============================================================================
+  # TRIGGERS
+  # =============================================================================
+
+  - eidos: trigger
+    id: trigger/oikos/announce-insight
+    data:
+      name: announce-insight
+      enabled: true
+    bonds:
+      - desmos: matches-event
+        to: entity-mutation/created
+      - desmos: filters-eidos
+        to: eidos/insight
+
+  - eidos: trigger
+    id: trigger/oikos/note-to-insight
+    data:
+      name: note-to-insight
+      enabled: true
+    bonds:
+      - desmos: matches-event
+        to: entity-mutation/created
+      - desmos: filters-eidos
+        to: eidos/note
+
+  # =============================================================================
+  # REFLEXES
+  # =============================================================================
+
+  - eidos: reflex
+    id: reflex/oikos/announce-insight
+    data:
+      name: announce-insight
+      description: |
+        When an insight is surfaced, emit a phasis into the oikos discourse
+        so all dwellers see the crystallization.
+      enabled: true
+      scope: oikos
+      response_params:
+        content: "$entity.data.content"
+        stance: declaration
+        source_kind: topos
+        metadata:
+          source_eidos: insight
+          source_id: "$entity.id"
+    bonds:
+      - desmos: triggered-by
+        to: trigger/oikos/announce-insight
+      - desmos: responds-with
+        to: praxis/logos/emit-phasis
+
+  - eidos: reflex
+    id: reflex/oikos/note-to-insight
+    data:
+      name: note-to-insight
+      description: |
+        When multiple notes accumulate in a domain, suggest surfacing
+        an insight via manteia analysis.
+      enabled: true
+      scope: oikos
+      response_params:
+        note_id: "$entity.id"
+    bonds:
+      - desmos: triggered-by
+        to: trigger/oikos/note-to-insight
+      - desmos: responds-with
+        to: praxis/oikos/surface-insight

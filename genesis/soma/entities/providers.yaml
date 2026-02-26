@@ -1,0 +1,78 @@
+# Provider Entities
+# External services providing inference and embedding capabilities.
+#
+# Adding a provider = adding a genesis entity. No code changes.
+# The generic inference engine reads these entities at runtime.
+#
+# Traces to: PROMPT-INFERENCE-SUBSTRATE.md
+
+entities:
+
+  - eidos: provider
+    id: provider/anthropic
+    data:
+      name: Anthropic
+      description: "AI inference provider — Claude model family"
+      capabilities:
+        - inference
+      credential_config:
+        service: anthropic
+        auth_header: x-api-key
+        grants_attainment: use-anthropic-api
+        placeholder: "sk-ant-..."
+      inference_config:
+        endpoint: https://api.anthropic.com/v1/messages
+        request_format: anthropic
+        extra_headers:
+          anthropic-version: "2023-06-01"
+        streaming:
+          format: sse
+      models_config:
+        endpoint: https://api.anthropic.com/v1/models
+        request_format: anthropic
+
+  - eidos: provider
+    id: provider/openai
+    data:
+      name: OpenAI
+      description: "AI inference and embedding provider — GPT and embedding models"
+      capabilities:
+        - inference
+        - embedding
+      credential_config:
+        service: openai
+        auth_header: Authorization
+        auth_prefix: "Bearer "
+        grants_attainment: use-openai-api
+        placeholder: "sk-..."
+      inference_config:
+        endpoint: https://api.openai.com/v1/chat/completions
+        request_format: openai
+        streaming:
+          format: sse
+      embedding_config:
+        endpoint: https://api.openai.com/v1/embeddings
+        request_format: openai
+        default_model: text-embedding-3-small
+        dimensions: 1536
+      models_config:
+        endpoint: https://api.openai.com/v1/models
+        request_format: openai
+        chat_prefix: "gpt-"
+
+  - eidos: provider
+    id: provider/chora-node
+    data:
+      name: chora-node
+      description: "LAN transcription — Parakeet TDT 0.6B v3 on DirectML"
+      capabilities:
+        - transcription
+      credential_config:
+        auth_type: none
+      transcription_config:
+        endpoint: "http://chora-node.local:8767/v1/audio/transcriptions"
+        health_endpoint: "http://chora-node.local:8767/health"
+        model: parakeet-tdt-0.6b-v3
+
+  # NOTE: provided-by bonds are declared inline on model-tier entities
+  # in inference-defaults.yaml (SourceFile doesn't parse top-level bonds:)

@@ -1,0 +1,54 @@
+# Oikos Card Render-Spec
+# Card view for oikos entities in navigation sidebar
+#
+# Uses widget vocabulary from thyra/eide/widget.yaml
+#
+# Oikos fields:
+#   - name (string, required): Display name
+#   - description (string, optional): Human-readable description
+#
+# Note: Oikos topology (personal, shared, commons-like) emerges from
+# bond arrangement (stewards + member-of), not from a kind field.
+#
+# Traces to: genesis/politeia/DESIGN.md
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/oikos-card
+    data:
+      name: oikos-card
+      description: |
+        Card view for oikos entities.
+        Shows name and optional description.
+      target_eidos: oikos
+      variant: card
+
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+            on_click: ui/set-selection
+            on_click_params:
+              selection_type: active-oikos
+              entity_id: "{id}"
+          children:
+            - widget: stack
+              props:
+                gap: sm
+              children:
+                # Oikos name
+                - widget: text
+                  props:
+                    content: "{name}"
+                    variant: emphasis
+
+                # Description (when present)
+                - widget: text
+                  when: "description"
+                  props:
+                    content: "{description}"
+                    variant: body
+
+      created_at: "2025-02-03T00:00:00Z"

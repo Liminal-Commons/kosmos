@@ -1,23 +1,24 @@
 format_version: "2.1"
-oikos_id: ergon
+topos_id: ergon
 version: "0.1.0"
 
-oikos_name: Work Coordination
-oikos_description: |
+topos_name: Work Coordination
+topos_description: |
   Ergon — work coordination across discipline boundaries.
 
-  Pragma entities signal gaps discovered in one circle to another
-  circle with the capability to resolve them. This enables the
+  Pragma entities signal gaps discovered in one oikos to another
+  oikos with the capability to resolve them. This enables the
   two-repo workflow (kosmos/chora) where gaps discovered during
   dwelling flow as trackable entities rather than disappearing
   into conversation.
-oikos_scale: cross-scale
+topos_scale: cross-scale
 
 # Development experience metadata
-oikos_category: infrastructure
+topos_category: infrastructure
 surfaces_provided:
-  - coordination        # Cross-circle work coordination via pragma
-surfaces_consumed: []   # Foundational coordination layer
+  - coordination        # Cross-oikos work coordination via pragma
+surfaces_consumed:
+  - reactivity          # Reflexes for pragma/task mutation response
 
 content_paths:
   - path: eide/
@@ -28,8 +29,18 @@ content_paths:
     content_types: [praxis]
   - path: pragma/
     content_types: [pragma]
+  - path: typos/
+    content_types: [typos]
   - path: entities/
-    content_types: [render-spec, reflex]
+    content_types: [trigger, entity-mutation, bond-mutation]
+  - path: reflexes/
+    content_types: [reflex]
+  - path: surfaces/
+    content_types: [surface]
+  - path: render-specs/
+    content_types: [render-spec]
+  - path: modes/
+    content_types: [mode]
 
 depends_on:
   - politeia
@@ -46,26 +57,38 @@ provides:
   eide:
     - pragma
     - reflex
+    - trigger
+    - mutation-event
+    - entity-mutation
+    - bond-mutation
+    - daemon
 
   reflexes:
     - reflex/ergon/pragma-signaled
     - reflex/ergon/pragma-resolved
 
-  # Oikos-centric rendering: ergon owns presentation for pragma
+  # Topos-centric rendering: ergon owns presentation for pragma and reflex
   renderable:
     - eidos: pragma
       description: "Work item cards and detail views"
+    - eidos: reflex
+      description: "Autonomic response configuration cards"
 
   attainments:
-    - signal             # Create pragma for other circles
+    - signal             # Create pragma for other oikoi
     - work               # Manage pragma lifecycle
-    - configure-reflex   # Create and manage reflexes
 
   desmoi:
     - signals-to
     - evidenced-by
     - blocks
     - resolves
+    # Homoiconic reactive system
+    - matches-event
+    - filters-eidos
+    - filters-desmos
+    - triggered-by
+    - responds-with
 
   praxeis:
     # Pragma lifecycle
@@ -73,9 +96,6 @@ provides:
     - ergon/list-pragma
     - ergon/accept-pragma
     - ergon/resolve-pragma
-    # Reflex management
-    - ergon/create-reflex
-    - ergon/disable-reflex
-    - ergon/list-reflexes
+    - ergon/sense-pragma
 
 stoicheia_form: {}

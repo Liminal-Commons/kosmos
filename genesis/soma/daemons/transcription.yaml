@@ -1,0 +1,20 @@
+# Transcriber Sensing Daemon
+# Periodically sense transcriber entities to detect drift.
+#
+# Traces to: PROMPT-VOICE-DECOMPOSITION.md
+
+entities:
+
+  - eidos: daemon
+    id: daemon/sense-transcribers
+    data:
+      name: sense-transcribers
+      description: |
+        Periodically sense all transcriber entities to detect drift.
+        When whisper crashes or WebSocket disconnects, sensing updates
+        status, which triggers the drift reflex → reconciliation.
+      praxis: soma/sense-transcriber-states
+      interval: 1
+      enabled: true
+      scope: dwelling
+      backoff_max: 60

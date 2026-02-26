@@ -20,7 +20,7 @@ entities:
 - eidos: praxis
   id: praxis/hypostasis/compute-hash
   data:
-    oikos: hypostasis
+    topos: hypostasis
     name: compute-hash
     visible: true
     tier: 1
@@ -81,7 +81,7 @@ entities:
 - eidos: praxis
   id: praxis/hypostasis/verify-chain
   data:
-    oikos: hypostasis
+    topos: hypostasis
     name: verify-chain
     visible: true
     tier: 2
@@ -94,7 +94,7 @@ entities:
       Returns:
         valid: boolean
         chain: array of entity IDs
-        terminus: where chain ends (should be expression/genesis-root)
+        terminus: where chain ends (should be phasis/genesis-root)
         error: if invalid, what went wrong
     params:
       - name: entity_id
@@ -138,7 +138,7 @@ entities:
 - eidos: praxis
   id: praxis/hypostasis/verify-genesis
   data:
-    oikos: hypostasis
+    topos: hypostasis
     name: verify-genesis
     visible: true
     tier: 2
@@ -160,7 +160,7 @@ entities:
       - name: genesis_id
         type: string
         required: false
-        description: Genesis record to verify (defaults to expression/genesis-root)
+        description: Genesis record to verify (defaults to phasis/genesis-root)
     steps:
       - step: set
         bindings:
@@ -173,7 +173,7 @@ entities:
         default:
           - step: set
             bindings:
-              target_id: "expression/genesis-root"
+              target_id: "phasis/genesis-root"
 
       - step: find
         id: "$target_id"
@@ -218,8 +218,11 @@ entities:
 
 - eidos: praxis
   id: praxis/hypostasis/export-phoreta
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/export
   data:
-    oikos: hypostasis
+    topos: hypostasis
     name: export-phoreta
     visible: true
     tier: 3
@@ -229,14 +232,14 @@ entities:
       Phoreta are the universal transport format:
       - Backup (export to file)
       - Recovery (import from file)
-      - Federation (sync between circles)
+      - Federation (sync between oikoi)
       - Archive (cold storage)
 
       The bundle includes:
       - Selected entities
       - Associated bonds
       - Composition chains
-      - Signature by creating persona
+      - Signature by creating prosopon
     params:
       - name: entity_ids
         type: array
@@ -329,6 +332,17 @@ entities:
             exported_at: "{{ now() }}"
             note: "Signature pending Rust crypto implementation"
 
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Exported phoreta bundle ($phoreta.entity_count entities)"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: phoreta
+            source_id: "phoreta/export"
+
       - step: return
         value: "$phoreta"
 
@@ -339,7 +353,7 @@ entities:
 - eidos: praxis
   id: praxis/hypostasis/import-phoreta
   data:
-    oikos: hypostasis
+    topos: hypostasis
     name: import-phoreta
     visible: true
     tier: 3
@@ -405,12 +419,12 @@ entities:
           - step: switch
             cases:
               # No local entity - import directly
-              # NOTE: This arise is intentional for phoreta import (CE4 exception)
-              # The eidos is dynamic from the incoming bundle - we can't use a static
-              # artifact definition because the entity type varies at runtime.
+              # Exception: dynamic-eidos import from phoreta bundle.
+              # Cannot use step: compose because target_eidos varies at runtime.
               - when: "not $local_entity"
                 then:
                   - step: arise
+                    internal: true
                     eidos: "$incoming.eidos"
                     id: "$incoming.id"
                     data: "$incoming.data"
@@ -453,6 +467,17 @@ entities:
                         bindings:
                           skipped: "$skipped + [$incoming.id]"
 
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Imported phoreta bundle ($imported.length entities)"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: phoreta
+            source_id: "phoreta/import"
+
       - step: return
         value:
           imported_count: "$imported.length"
@@ -468,30 +493,33 @@ entities:
 
 - eidos: praxis
   id: praxis/hypostasis/create-snapshot
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/export
   data:
-    oikos: hypostasis
+    topos: hypostasis
     name: create-snapshot
     visible: true
     tier: 3
     description: |
-      Create a full state snapshot of a circle.
+      Create a full state snapshot of an oikos.
 
       This is a convenience wrapper around export-phoreta that:
-      1. Gathers all entities visible in the circle
+      1. Gathers all entities visible in the oikos
       2. Includes all bonds
       3. Packages as a timestamped snapshot
     params:
-      - name: circle_id
+      - name: oikos_id
         type: string
         required: false
-        description: Circle to snapshot (defaults to current dwelling circle)
+        description: Oikos to snapshot (defaults to current dwelling oikos)
       - name: include_embeddings
         type: boolean
         required: false
         description: Include embedding vectors (default false, they're large)
     steps:
-      # Gather all entities in circle
-      # For now, gather all entities (circle scoping pending)
+      # Gather all entities in oikos
+      # For now, gather all entities (oikos scoping pending)
       - step: gather
         eidos: "*"
         limit: 10000
@@ -516,11 +544,22 @@ entities:
         bindings:
           snapshot:
             type: "full-snapshot"
-            circle_id: "$circle_id"
+            oikos_id: "$oikos_id"
             created_at: "{{ now() }}"
             entity_count: "$phoreta.entity_count"
             bond_count: "$phoreta.bond_count"
             phoreta: "$phoreta"
+
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Created snapshot of oikos ($snapshot.entity_count entities)"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: snapshot
+            source_id: "snapshot/$oikos_id"
 
       - step: return
         value: "$snapshot"
@@ -528,7 +567,7 @@ entities:
 - eidos: praxis
   id: praxis/hypostasis/restore-snapshot
   data:
-    oikos: hypostasis
+    topos: hypostasis
     name: restore-snapshot
     visible: true
     tier: 3
@@ -571,7 +610,7 @@ entities:
 - eidos: praxis
   id: praxis/hypostasis/sync-delta
   data:
-    oikos: hypostasis
+    topos: hypostasis
     name: sync-delta
     visible: true
     tier: 2
@@ -633,13 +672,13 @@ entities:
           phoreta: "$delta"
 
 # =============================================================================
-# KEY DERIVATION (CIRCLE-SCOPED)
+# KEY DERIVATION (OIKOS-SCOPED)
 # =============================================================================
 
 - eidos: praxis
   id: praxis/hypostasis/generate-mnemonic
   data:
-    oikos: hypostasis
+    topos: hypostasis
     name: generate-mnemonic
     visible: true
     tier: 2
@@ -647,7 +686,7 @@ entities:
       Generate a new BIP-39 mnemonic phrase.
 
       Returns a 24-word mnemonic that can be used to derive
-      circle-scoped cryptographic keys. This mnemonic should
+      oikos-scoped cryptographic keys. This mnemonic should
       be stored securely — it is the root of all derived keys.
 
       IMPORTANT: The mnemonic is the master secret. If lost,
@@ -666,19 +705,19 @@ entities:
           warning: "Store this mnemonic securely. It cannot be recovered if lost."
 
 - eidos: praxis
-  id: praxis/hypostasis/derive-circle-key
+  id: praxis/hypostasis/derive-oikos-key
   data:
-    oikos: hypostasis
-    name: derive-circle-key
+    topos: hypostasis
+    name: derive-oikos-key
     visible: true
     tier: 2
     description: |
-      Derive a circle-scoped Ed25519 keypair.
+      Derive an oikos-scoped Ed25519 keypair.
 
       Uses HKDF-SHA256 to derive deterministic keys from the
-      mnemonic seed + circle_id. Each circle gets a unique
-      keypair, so compromise of one circle's key doesn't
-      affect other circles.
+      mnemonic seed + oikos_id. Each oikos gets a unique
+      keypair, so compromise of one oikos's key doesn't
+      affect other oikoi.
 
       Returns the public key (safe to share) but NOT the
       private key material.
@@ -687,33 +726,36 @@ entities:
         type: string
         required: true
         description: BIP-39 mnemonic phrase (24 words)
-      - name: circle_id
+      - name: oikos_id
         type: string
         required: true
-        description: Circle to derive key for
+        description: Oikos to derive key for
     steps:
       - step: keyring
         operation: derive_key
         mnemonic: "$mnemonic"
-        circle_id: "$circle_id"
+        oikos_id: "$oikos_id"
         bind_to: result
 
       - step: return
         value:
-          circle_id: "$result.circle_id"
+          oikos_id: "$result.oikos_id"
           public_key: "$result.public_key"
           algorithm: "$result.algorithm"
           derivation: "$result.derivation"
 
 - eidos: praxis
   id: praxis/hypostasis/sign-content
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/sign
   data:
-    oikos: hypostasis
+    topos: hypostasis
     name: sign-content
     visible: true
     tier: 2
     description: |
-      Sign content with circle-scoped key.
+      Sign content with oikos-scoped key.
 
       The signature can be verified by anyone with the public key.
       This establishes cryptographic attribution — proof that the
@@ -728,10 +770,10 @@ entities:
         type: string
         required: true
         description: BIP-39 mnemonic phrase
-      - name: circle_id
+      - name: oikos_id
         type: string
         required: true
-        description: Circle whose key to use for signing
+        description: Oikos whose key to use for signing
       - name: content
         type: string
         required: true
@@ -740,7 +782,7 @@ entities:
       - step: keyring
         operation: sign
         mnemonic: "$mnemonic"
-        circle_id: "$circle_id"
+        oikos_id: "$oikos_id"
         data: "$content"
         bind_to: result
 
@@ -754,7 +796,7 @@ entities:
 - eidos: praxis
   id: praxis/hypostasis/verify-signature
   data:
-    oikos: hypostasis
+    topos: hypostasis
     name: verify-signature
     visible: true
     tier: 1
@@ -800,13 +842,16 @@ entities:
 
 - eidos: praxis
   id: praxis/hypostasis/create-keyring
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/manage-keyring
   data:
-    oikos: hypostasis
+    topos: hypostasis
     name: create-keyring
     visible: true
     tier: 3
     description: |
-      Create an encrypted keyring for a persona.
+      Create an encrypted keyring for a prosopon.
 
       Encrypts the master seed derived from the mnemonic using a password.
       The mnemonic is NOT stored — only the encrypted seed.
@@ -825,10 +870,10 @@ entities:
       IMPORTANT: The mnemonic cannot be recovered from the keyring.
       Users must keep their mnemonic backed up separately.
     params:
-      - name: persona_id
+      - name: prosopon_id
         type: string
         required: true
-        description: Persona this keyring secures keys for
+        description: Prosopon this keyring secures keys for
       - name: mnemonic
         type: string
         required: true
@@ -847,24 +892,24 @@ entities:
         condition: "$mnemonic"
         message: "Mnemonic is required"
 
-      # Check if persona exists
+      # Check if prosopon exists
       - step: find
-        id: "$persona_id"
-        bind_to: persona
+        id: "$prosopon_id"
+        bind_to: prosopon
 
       - step: assert
-        condition: "$persona"
-        message: "Persona not found: $persona_id"
+        condition: "$prosopon"
+        message: "Prosopon not found: $prosopon_id"
 
-      # Check if keyring already exists for this persona
+      # Check if keyring already exists for this prosopon
       - step: trace
-        to_id: "$persona_id"
+        to_id: "$prosopon_id"
         desmoi: ["secures-key-for"]
         bind_to: existing_keyrings
 
       - step: assert
         condition: "$existing_keyrings.length == 0"
-        message: "Keyring already exists for this persona"
+        message: "Keyring already exists for this prosopon"
 
       # Encrypt the seed using keyring stoicheion
       - step: keyring
@@ -876,7 +921,7 @@ entities:
       # Generate keyring ID
       - step: set
         bindings:
-          keyring_id: "kleidoura/$persona_id"
+          keyring_id: "kleidoura/$prosopon_id"
 
       # Create the kleidoura entity (CE4: compose instead of arise)
       - step: compose
@@ -893,16 +938,16 @@ entities:
           password_hint: "$password_hint"
         bind_to: keyring
 
-      # Create bond: kleidoura secures-key-for persona
+      # Create bond: kleidoura secures-key-for prosopon
       - step: bind
         desmos: secures-key-for
         from_id: "$keyring_id"
-        to_id: "$persona_id"
+        to_id: "$prosopon_id"
 
       - step: return
         value:
           keyring_id: "$keyring_id"
-          persona_id: "$persona_id"
+          prosopon_id: "$prosopon_id"
           public_key: "$encryption_result.public_key"
           created_at: "{{ now() }}"
           status: "created"
@@ -910,7 +955,7 @@ entities:
 - eidos: praxis
   id: praxis/hypostasis/unlock-keyring
   data:
-    oikos: hypostasis
+    topos: hypostasis
     name: unlock-keyring
     visible: true
     tier: 2
@@ -984,7 +1029,7 @@ entities:
 - eidos: praxis
   id: praxis/hypostasis/lock-keyring
   data:
-    oikos: hypostasis
+    topos: hypostasis
     name: lock-keyring
     visible: true
     tier: 2
@@ -1011,7 +1056,7 @@ entities:
 - eidos: praxis
   id: praxis/hypostasis/check-keyring-status
   data:
-    oikos: hypostasis
+    topos: hypostasis
     name: check-keyring-status
     visible: true
     tier: 1
@@ -1020,23 +1065,23 @@ entities:
 
       Returns session status without exposing any key material.
     params:
-      - name: persona_id
+      - name: prosopon_id
         type: string
         required: false
-        description: Check keyring for specific persona
+        description: Check keyring for specific prosopon
     steps:
       # Check session status
       - step: keyring
         operation: is_unlocked
         bind_to: session_status
 
-      # If persona specified, find their keyring
+      # If prosopon specified, find their keyring
       - step: switch
         cases:
-          - when: "$persona_id"
+          - when: "$prosopon_id"
             then:
               - step: trace
-                to_id: "$persona_id"
+                to_id: "$prosopon_id"
                 desmoi: ["secures-key-for"]
                 bind_to: keyrings
 
@@ -1058,7 +1103,7 @@ entities:
                   unlocked: "$session_status.unlocked"
                   keyring_exists: "$keyring_exists"
                   keyring_id: "$keyring_id"
-                  persona_id: "$persona_id"
+                  prosopon_id: "$prosopon_id"
 
       - step: return
         value:
@@ -1066,8 +1111,11 @@ entities:
 
 - eidos: praxis
   id: praxis/hypostasis/change-keyring-password
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/manage-keyring
   data:
-    oikos: hypostasis
+    topos: hypostasis
     name: change-keyring-password
     visible: true
     tier: 3
@@ -1141,8 +1189,11 @@ entities:
 
 - eidos: praxis
   id: praxis/hypostasis/sign-with-session
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/sign
   data:
-    oikos: hypostasis
+    topos: hypostasis
     name: sign-with-session
     visible: true
     tier: 2
@@ -1150,14 +1201,14 @@ entities:
       Sign content using the unlocked session key.
 
       This is the primary signing method when the keyring is unlocked.
-      It derives the circle-specific key from the session seed and signs.
+      It derives the oikos-specific key from the session seed and signs.
 
       Requires the keyring to be unlocked first.
     params:
-      - name: circle_id
+      - name: oikos_id
         type: string
         required: true
-        description: Circle context for key derivation
+        description: Oikos context for key derivation
       - name: content
         type: string
         required: true
@@ -1175,7 +1226,7 @@ entities:
       # Sign using session key
       - step: keyring
         operation: sign_with_session
-        circle_id: "$circle_id"
+        oikos_id: "$oikos_id"
         data: "$content"
         bind_to: signature_result
 
@@ -1189,22 +1240,22 @@ entities:
 - eidos: praxis
   id: praxis/hypostasis/derive-key-from-session
   data:
-    oikos: hypostasis
+    topos: hypostasis
     name: derive-key-from-session
     visible: true
     tier: 1
     description: |
-      Derive a circle-scoped public key from the unlocked session.
+      Derive an oikos-scoped public key from the unlocked session.
 
-      This is the session-based equivalent of derive-circle-key.
+      This is the session-based equivalent of derive-oikos-key.
       Returns the public key only — private key stays in session memory.
 
       Requires the keyring to be unlocked.
     params:
-      - name: circle_id
+      - name: oikos_id
         type: string
         required: true
-        description: Circle to derive key for
+        description: Oikos to derive key for
     steps:
       # Check session is unlocked
       - step: keyring
@@ -1218,85 +1269,88 @@ entities:
       # Derive key from session
       - step: keyring
         operation: derive_from_session
-        circle_id: "$circle_id"
+        oikos_id: "$oikos_id"
         bind_to: derive_result
 
       - step: return
         value:
-          circle_id: "$circle_id"
+          oikos_id: "$oikos_id"
           public_key: "$derive_result.public_key"
           algorithm: "$derive_result.algorithm"
 
 # =============================================================================
-# SELF-FEDERATION (MULTI-DEVICE PERSONA)
+# SELF-FEDERATION (MULTI-DEVICE PROSOPON)
 # =============================================================================
 
 - eidos: praxis
-  id: praxis/hypostasis/export-persona
+  id: praxis/hypostasis/export-prosopon
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/export
   data:
-    oikos: hypostasis
-    name: export-persona
+    topos: hypostasis
+    name: export-prosopon
     visible: true
     tier: 3
     description: |
-      Export a persona for federation to another device.
+      Export a prosopon for federation to another device.
 
       Creates a signed phoreta bundle containing:
-      - Persona entity
-      - All circles the persona is member of
+      - Prosopon entity
+      - All oikoi the prosopon is member of
       - All theoria, principles, patterns
       - Session history (optional)
 
-      The bundle is signed with the persona's key so the
+      The bundle is signed with the prosopon's key so the
       receiving device can verify authenticity.
 
       IMPORTANT: The mnemonic is NOT included in the export.
       It must be entered on the receiving device separately.
     params:
-      - name: persona_id
+      - name: prosopon_id
         type: string
         required: true
-        description: Persona to export
+        description: Prosopon to export
       - name: mnemonic
         type: string
         required: true
         description: Mnemonic to sign the export
-      - name: circle_id
+      - name: oikos_id
         type: string
         required: true
-        description: Circle context for signing key
+        description: Oikos context for signing key
       - name: include_sessions
         type: boolean
         required: false
         description: Include session/conversation history (default false)
     steps:
-      # Find persona
+      # Find prosopon
       - step: find
-        id: "$persona_id"
-        bind_to: persona
+        id: "$prosopon_id"
+        bind_to: prosopon
 
       - step: assert
-        condition: "$persona"
-        message: "Persona not found: $persona_id"
+        condition: "$prosopon"
+        message: "Prosopon not found: $prosopon_id"
 
-      # Gather persona's circles (member-of bonds)
+      # Gather prosopon's oikoi (member-of bonds)
       - step: traverse
-        root_id: "$persona_id"
+        root_id: "$prosopon_id"
         desmoi: ["member-of"]
         depth: 1
-        bind_to: circles
+        bind_to: oikoi
 
-      # Gather persona's theoria
+      # Gather prosopon's theoria
       - step: gather
         eidos: theoria
         limit: 1000
         bind_to: all_theoria
 
-      # Filter to persona's theoria (authored-by bond)
+      # Filter to prosopon's theoria (authored-by bond)
       - step: filter
         items: "$all_theoria"
         condition: "true"  # TODO: filter by authored-by
-        bind_to: persona_theoria
+        bind_to: prosopon_theoria
 
       # Gather principles and patterns
       - step: gather
@@ -1313,20 +1367,20 @@ entities:
       - step: set
         bindings:
           entity_ids:
-            - "$persona_id"
+            - "$prosopon_id"
 
-      # Add circle IDs
+      # Add oikos IDs
       - step: for_each
-        in: "$circles"
-        as: circle
+        in: "$oikoi"
+        as: oik
         do:
           - step: set
             bindings:
-              entity_ids: "$entity_ids + [$circle.id]"
+              entity_ids: "$entity_ids + [$oik.id]"
 
       # Add theoria IDs
       - step: for_each
-        in: "$persona_theoria"
+        in: "$prosopon_theoria"
         as: t
         do:
           - step: set
@@ -1350,14 +1404,14 @@ entities:
       - step: keyring
         operation: sign
         mnemonic: "$mnemonic"
-        circle_id: "$circle_id"
+        oikos_id: "$oikos_id"
         data: "$phoreta_hash"
         bind_to: signature_result
 
       - step: return
         value:
-          type: "persona-export"
-          persona_id: "$persona_id"
+          type: "prosopon-export"
+          prosopon_id: "$prosopon_id"
           entity_count: "$phoreta.entity_count"
           bond_count: "$phoreta.bond_count"
           phoreta: "$phoreta"
@@ -1367,21 +1421,21 @@ entities:
           exported_at: "{{ now() }}"
 
 - eidos: praxis
-  id: praxis/hypostasis/import-persona
+  id: praxis/hypostasis/import-prosopon
   data:
-    oikos: hypostasis
-    name: import-persona
+    topos: hypostasis
+    name: import-prosopon
     visible: true
     tier: 3
     description: |
-      Import a persona from another device.
+      Import a prosopon from another device.
 
       Verifies the export signature using the provided mnemonic
       (which should derive the same public key), then imports
       all entities and bonds.
 
       Steps:
-      1. Derive key from mnemonic + circle_id
+      1. Derive key from mnemonic + oikos_id
       2. Verify public key matches export
       3. Verify signature on phoreta
       4. Import entities using merge strategy
@@ -1389,15 +1443,15 @@ entities:
       - name: export_bundle
         type: object
         required: true
-        description: The persona export bundle
+        description: The prosopon export bundle
       - name: mnemonic
         type: string
         required: true
         description: Mnemonic (should match original)
-      - name: circle_id
+      - name: oikos_id
         type: string
         required: true
-        description: Circle context for key verification
+        description: Oikos context for key verification
       - name: merge_strategy
         type: string
         required: false
@@ -1407,7 +1461,7 @@ entities:
       - step: keyring
         operation: derive_key
         mnemonic: "$mnemonic"
-        circle_id: "$circle_id"
+        oikos_id: "$oikos_id"
         bind_to: derived_key
 
       # Verify public key matches
@@ -1450,19 +1504,19 @@ entities:
       - step: return
         value:
           success: true
-          persona_id: "$export_bundle.persona_id"
+          prosopon_id: "$export_bundle.prosopon_id"
           import_result: "$import_result"
           verified_with_key: "$derived_key.public_key"
 
 - eidos: praxis
   id: praxis/hypostasis/sync-devices
   data:
-    oikos: hypostasis
+    topos: hypostasis
     name: sync-devices
     visible: true
     tier: 3
     description: |
-      Sync state between two devices with same persona.
+      Sync state between two devices with same prosopon.
 
       This is bidirectional sync using version vectors:
       1. Export delta from local since last sync
@@ -1476,10 +1530,10 @@ entities:
         type: string
         required: true
         description: Shared mnemonic for signing/verification
-      - name: circle_id
+      - name: oikos_id
         type: string
         required: true
-        description: Circle context
+        description: Oikos context
       - name: local_version
         type: number
         required: true
@@ -1504,7 +1558,7 @@ entities:
       - step: keyring
         operation: sign
         mnemonic: "$mnemonic"
-        circle_id: "$circle_id"
+        oikos_id: "$oikos_id"
         data: "$delta_hash"
         bind_to: signature
 
@@ -1548,8 +1602,11 @@ entities:
 
 - eidos: praxis
   id: praxis/hypostasis/begin-genesis-ceremony
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/genesis-signer
   data:
-    oikos: hypostasis
+    topos: hypostasis
     name: begin-genesis-ceremony
     visible: true
     tier: 3
@@ -1609,6 +1666,17 @@ entities:
           created_at: "{{ now() }}"
         bind_to: genesis
 
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Genesis ceremony begun for $genesis_id (threshold: $threshold_val)"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: genesis-record
+            source_id: "$genesis_id"
+
       - step: return
         value:
           genesis_id: "$genesis_id"
@@ -1619,8 +1687,11 @@ entities:
 
 - eidos: praxis
   id: praxis/hypostasis/add-genesis-signature
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/genesis-signer
   data:
-    oikos: hypostasis
+    topos: hypostasis
     name: add-genesis-signature
     visible: true
     tier: 3
@@ -1643,10 +1714,10 @@ entities:
         type: string
         required: true
         description: Signer's mnemonic
-      - name: circle_id
+      - name: oikos_id
         type: string
         required: true
-        description: Circle context for key derivation
+        description: Oikos context for key derivation
       - name: attestation
         type: string
         required: true
@@ -1669,7 +1740,7 @@ entities:
       - step: keyring
         operation: derive_key
         mnemonic: "$mnemonic"
-        circle_id: "$circle_id"
+        oikos_id: "$oikos_id"
         bind_to: signer_key
 
       # Check for duplicate signer
@@ -1697,7 +1768,7 @@ entities:
       - step: keyring
         operation: sign
         mnemonic: "$mnemonic"
-        circle_id: "$circle_id"
+        oikos_id: "$oikos_id"
         data: "$genesis.data.content_hash"
         bind_to: signature
 
@@ -1721,6 +1792,17 @@ entities:
           signatures: "$updated_signatures"
         bind_to: updated_genesis
 
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Signature added to genesis $genesis_id ($updated_signatures.length of $genesis.data.threshold)"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: genesis-record
+            source_id: "$genesis_id"
+
       - step: return
         value:
           genesis_id: "$genesis_id"
@@ -1733,7 +1815,7 @@ entities:
 - eidos: praxis
   id: praxis/hypostasis/finalize-genesis
   data:
-    oikos: hypostasis
+    topos: hypostasis
     name: finalize-genesis
     visible: true
     tier: 3
@@ -1817,6 +1899,17 @@ entities:
           verified_at: "{{ now() }}"
         bind_to: finalized_genesis
 
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Genesis $genesis_id finalized with $sig_count signatures"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: genesis-record
+            source_id: "$genesis_id"
+
       - step: return
         value:
           genesis_id: "$genesis_id"
@@ -1831,7 +1924,7 @@ entities:
 - eidos: praxis
   id: praxis/hypostasis/get-genesis-status
   data:
-    oikos: hypostasis
+    topos: hypostasis
     name: get-genesis-status
     visible: true
     tier: 1
@@ -1890,7 +1983,7 @@ entities:
 - eidos: praxis
   id: praxis/hypostasis/add-credential
   data:
-    oikos: hypostasis
+    topos: hypostasis
     name: add-credential
     visible: true
     tier: 3
@@ -1904,7 +1997,7 @@ entities:
       Flow:
       1. Encrypt credential value with session-derived key
       2. Create credential entity
-      3. Bond to persona (ownership)
+      3. Bond to prosopon (ownership)
       4. Create attainment entity if it doesn't exist
       5. Bond credential to attainment (unlocks-attainment)
 
@@ -1933,15 +2026,15 @@ entities:
       - name: scope
         type: string
         required: false
-        description: "Scope of access (persona or circle)"
-      - name: persona_id
+        description: "Scope of access (prosopon or oikos)"
+      - name: prosopon_id
         type: string
         required: true
-        description: "Persona who owns this credential"
-      - name: circle_id
+        description: "Prosopon who owns this credential"
+      - name: oikos_id
         type: string
         required: false
-        description: "Circle to share with (if scope is circle)"
+        description: "Oikos to share with (if scope is oikos)"
     steps:
       # Check keyring is unlocked
       - step: keyring
@@ -1956,7 +2049,7 @@ entities:
       - step: set
         bindings:
           cred_type: "api-key"
-          cred_scope: "persona"
+          cred_scope: "prosopon"
 
       - step: switch
         cases:
@@ -1974,14 +2067,14 @@ entities:
                 bindings:
                   cred_scope: "$scope"
 
-      # Check persona exists
+      # Check prosopon exists
       - step: find
-        id: "$persona_id"
-        bind_to: persona
+        id: "$prosopon_id"
+        bind_to: prosopon
 
       - step: assert
-        condition: "$persona"
-        message: "Persona not found: $persona_id"
+        condition: "$prosopon"
+        message: "Prosopon not found: $prosopon_id"
 
       # Encrypt the credential value using session key
       - step: keyring
@@ -1992,7 +2085,7 @@ entities:
       # Generate credential ID
       - step: set
         bindings:
-          credential_id: "credential/$persona_id/$service"
+          credential_id: "credential/$prosopon_id/$service"
 
       # Create the credential entity (CE4: compose instead of arise)
       - step: compose
@@ -2010,29 +2103,29 @@ entities:
           created_at: "{{ now() }}"
         bind_to: credential
 
-      # Bond credential to persona
+      # Bond credential to prosopon
       - step: bind
         desmos: credential-of
         from_id: "$credential_id"
-        to_id: "$persona_id"
+        to_id: "$prosopon_id"
 
-      # If circle scope, bond to circle
+      # If oikos scope, bond to oikos
       - step: switch
         cases:
-          - when: "$cred_scope == 'circle' and $circle_id"
+          - when: "$cred_scope == 'oikos' and $oikos_id"
             then:
               - step: find
-                id: "$circle_id"
-                bind_to: circle
+                id: "$oikos_id"
+                bind_to: oikos_entity
 
               - step: assert
-                condition: "$circle"
-                message: "Circle not found: $circle_id"
+                condition: "$oikos_entity"
+                message: "Oikos not found: $oikos_id"
 
               - step: bind
                 desmos: shared-with
                 from_id: "$credential_id"
-                to_id: "$circle_id"
+                to_id: "$oikos_id"
 
       # Find or create the attainment
       - step: set
@@ -2063,6 +2156,17 @@ entities:
         from_id: "$credential_id"
         to_id: "$attainment_id"
 
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Added credential for $service"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: credential
+            source_id: "$credential_id"
+
       - step: return
         value:
           credential_id: "$credential_id"
@@ -2074,7 +2178,7 @@ entities:
 - eidos: praxis
   id: praxis/hypostasis/unlock-credentials
   data:
-    oikos: hypostasis
+    topos: hypostasis
     name: unlock-credentials
     visible: true
     tier: 2
@@ -2089,15 +2193,15 @@ entities:
       not in kosmos. They are cleared when the session locks.
 
       Flow:
-      1. Gather all credentials for persona
+      1. Gather all credentials for prosopon
       2. Decrypt each credential using session key
       3. Store decrypted values in session state
       4. Grant attainments to session
     params:
-      - name: persona_id
+      - name: prosopon_id
         type: string
         required: true
-        description: "Persona whose credentials to unlock"
+        description: "Prosopon whose credentials to unlock"
     steps:
       # Check keyring is unlocked
       - step: keyring
@@ -2108,9 +2212,9 @@ entities:
         condition: "$session_status.unlocked"
         message: "Keyring must be unlocked first"
 
-      # Gather credentials for this persona
+      # Gather credentials for this prosopon
       - step: trace
-        from_id: "$persona_id"
+        from_id: "$prosopon_id"
         desmoi: ["credential-of"]
         direction: inbound
         bind_to: credentials
@@ -2166,7 +2270,7 @@ entities:
 - eidos: praxis
   id: praxis/hypostasis/get-credential-value
   data:
-    oikos: hypostasis
+    topos: hypostasis
     name: get-credential-value
     visible: false  # Internal use only
     tier: 1
@@ -2249,24 +2353,24 @@ entities:
 - eidos: praxis
   id: praxis/hypostasis/list-credentials
   data:
-    oikos: hypostasis
+    topos: hypostasis
     name: list-credentials
     visible: true
     tier: 1
     description: |
-      List credentials for a persona.
+      List credentials for a prosopon.
 
       Returns metadata about credentials without exposing the encrypted values.
       Shows which services have credentials, their scope, and granted attainments.
     params:
-      - name: persona_id
+      - name: prosopon_id
         type: string
         required: true
-        description: "Persona to list credentials for"
+        description: "Prosopon to list credentials for"
     steps:
-      # Gather credentials for this persona
+      # Gather credentials for this prosopon
       - step: trace
-        from_id: "$persona_id"
+        from_id: "$prosopon_id"
         desmoi: ["credential-of"]
         direction: inbound
         bind_to: credentials
@@ -2298,14 +2402,14 @@ entities:
 
       - step: return
         value:
-          persona_id: "$persona_id"
+          prosopon_id: "$prosopon_id"
           credentials: "$credential_list"
           count: "$credential_list.length"
 
 - eidos: praxis
   id: praxis/hypostasis/remove-credential
   data:
-    oikos: hypostasis
+    topos: hypostasis
     name: remove-credential
     visible: true
     tier: 3
@@ -2343,6 +2447,17 @@ entities:
         service: "$credential.data.service"
         attainment: "$credential.data.grants_attainment"
 
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Removed credential for $credential.data.service"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: credential
+            source_id: "$credential_id"
+
       - step: return
         value:
           credential_id: "$credential_id"
@@ -2352,7 +2467,7 @@ entities:
 - eidos: praxis
   id: praxis/hypostasis/check-session-attainment
   data:
-    oikos: hypostasis
+    topos: hypostasis
     name: check-session-attainment
     visible: true
     tier: 1
@@ -2364,7 +2479,7 @@ entities:
 
       Attainments can come from:
       1. Credentials (unlocked credentials grant attainments)
-      2. Circle membership (circles grant attainments to members)
+      2. Oikos membership (oikoi grant attainments to members)
       3. Direct grants (explicit attainment assignment)
     params:
       - name: attainment

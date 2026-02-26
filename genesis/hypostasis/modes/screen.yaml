@@ -1,0 +1,29 @@
+# Hypostasis Screen Mode — Prosopa sidebar
+# Browse identities through thyra.
+
+entities:
+
+  - eidos: mode
+    id: mode/prosopa-sidebar
+    data:
+      name: prosopa-sidebar
+      topos: hypostasis
+      substrate: screen
+      description: |
+        Identity browser — prosopa with their cryptographic status
+        and key information. Left sidebar panel.
+      item_spec_id: render-spec/prosopon-card
+      arrangement: scroll
+      empty_message: "No prosopa found"
+      spatial:
+        position: left
+        height: fill
+      source_query: "gather(eidos: prosopon, sort: name, order: asc)"
+      config:
+        watch_eidos: prosopon
+      created_at: "2026-02-22T00:00:00Z"
+
+bonds:
+  - from_id: mode/prosopa-sidebar
+    to_id: render-spec/prosopon-card
+    desmos: uses-render-spec

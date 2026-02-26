@@ -12,7 +12,7 @@
 |------|------|--------|
 | [K1-K2](#k1-oikos-entity-composition) | Oikos entity composition, manifest v2.1 | ✅ Complete |
 | [K3](#k3-oikos-packaging-pipeline) | Packaging pipeline | ✅ Complete |
-| [K4](#k4-oikos-distribution) | Distribution circles, install-oikos | ✅ Complete |
+| [K4](#k4-oikos-distribution) | Distribution oikoi, install-oikos | ✅ Complete |
 
 **Recently completed:**
 - K4 (Oikos distribution) ✅ — install-oikos, uses-oikos desmos
@@ -29,7 +29,7 @@ See [Phase K details](#phase-k-oikos-packaging) for implementation guidance.
 
 A kosmos that:
 1. Actualizes in multiple substrates (desktop, mobile, web)
-2. Federates between circles via P2P
+2. Federates between oikoi via P2P
 3. Maintains cryptographic provenance to genesis
 4. Self-documents and self-validates
 
@@ -53,12 +53,12 @@ For completed phases, see [archive/ROADMAP-completed.md](../../archive/ROADMAP-c
 | **F** | **Format Consolidation** | **Single-stream genesis (emit = source format)** | **✅ F1-F3 Complete** |
 | **CE** | **Constitutional Enforcement** | **Gate arise/infer, enforce compose/governed-inference** | **✅ CE1-CE4 Complete** |
 | K | Kosmos | Oikos packaging and distribution | ✅ K0-K5 Complete, ⏳ K6 Planned |
-| S | Commons | Self-sovereign infrastructure for circles | ⏳ Post-MVP |
+| S | Commons | Self-sovereign infrastructure for oikoi | ⏳ Post-MVP |
 | I | Infrastructure | Cloudflare, documentation | ✅ I1 Complete |
 
 **Current Focus:** K0-K5 complete (content roots, oikos packaging, two-repo workflow). K6 (Ekdosis) ontology complete — content publication system. S1 kosmos ontology complete (Agora eide/desmoi/praxeis/attainments). Next: K6 implementation (bake/sign/upload/publish) or S1 chora implementation (LiveKit, Phaser.js).
 
-**MVP Definition:** A friend can join a circle via invitation link. ✅ **MVP ACHIEVED** (Phase T, C7 complete).
+**MVP Definition:** A friend can join an oikos via invitation link. ✅ **MVP ACHIEVED** (Phase T, C7 complete).
 
 ---
 
@@ -78,17 +78,17 @@ Distribution → Bootstrap → Identity → Invitation → Landing → Entry →
 |-------|--------------|--------|
 | 1. Distribution | User downloads Thyra from website | ✅ |
 | 2. Bootstrap | First launch creates kosmos.db from embedded spora (754 entities) | ✅ C1 |
-| 3. Identity | Generate mnemonic, create persona, home circle | ✅ C2 |
+| 3. Identity | Generate mnemonic, create prosopon, home oikos | ✅ C2 |
 | 4. Invitation | Create propylon link, share via any channel | ✅ C3 |
 | 5. Landing | Friend clicks link → deep link or download prompt | ✅ R2 |
 | 6. Entry | Friend opens link, enters name, waits for inviter | ✅ C5 |
 | 7. Signaling | Both devices connect via relay, establish P2P | ✅ C4 |
 | 8. Verification | Video call — "the call IS the verification" | ✅ C6 |
 | 9. Phoreta | On approval, membership bundle exchanged | ✅ C7 |
-| 10. Federation | Circle content syncs (post-MVP) | ⏳ C8 |
+| 10. Federation | Oikos content syncs (post-MVP) | ⏳ C8 |
 
 **The Sovereignty Promise:**
-> Your circle is YOURS. You decide who enters, what they can do, and what syncs. Your sovereignty rests on your mnemonic — guard it.
+> Your oikos is YOURS. You decide who enters, what they can do, and what syncs. Your sovereignty rests on your mnemonic — guard it.
 
 ---
 
@@ -334,20 +334,20 @@ substrate-instance/macbook
 
 | Task | Description | Status |
 |------|-------------|--------|
-| K4.1 | Create distribution circles for oikos-prod | ✅ |
+| K4.1 | Create distribution oikoi for oikos-prod | ✅ |
 | K4.2 | Implement `politeia/distribute-oikos` | ✅ |
-| K4.3 | Grant `oikos-use` attainment to circle members | ✅ |
-| K4.4 | Enable oikos installation from distribution circle | ✅ |
+| K4.3 | Grant `oikos-use` attainment to oikos members | ✅ |
+| K4.4 | Enable oikos installation from distribution oikos | ✅ |
 
 **Implementation:**
-- `politeia/create-distribution-circle` — creates distribution circle (commons or premium)
-- `politeia/distribute-oikos` — adds oikos-prod to existing circle
-- `politeia/install-oikos` — installs oikos for a circle (creates uses-oikos bond)
-- `politeia/uninstall-oikos` — removes oikos from circle
-- `politeia/list-installed-oikoi` — lists oikoi installed for a circle
-- `politeia/list-distributed-oikoi` — lists oikoi distributed by a circle
-- `politeia/list-oikos-distributors` — lists circles that distribute an oikos
-- New desmos: `uses-oikos` (circle → oikos-prod)
+- `politeia/create-distribution-oikos` — creates distribution oikos (commons or premium)
+- `politeia/distribute-oikos` — adds oikos-prod to existing oikos
+- `politeia/install-oikos` — installs oikos for an oikos (creates uses-oikos bond)
+- `politeia/uninstall-oikos` — removes oikos from oikos
+- `politeia/list-installed-oikoi` — lists oikoi installed for an oikos
+- `politeia/list-distributed-oikoi` — lists oikoi distributed by an oikos
+- `politeia/list-oikos-distributors` — lists oikoi that distribute an oikos
+- New desmos: `uses-oikos` (oikos → oikos-prod)
 
 **NOTE:** Dynamic oikos content loading (loading new eide/praxeis at runtime) is a future capability. Currently installation tracks intent; genesis oikoi are loaded at bootstrap.
 
@@ -399,7 +399,7 @@ Ekdosis (ἔκδοσις — the giving out, publication) is the content release
 | K6.2 | Implement bake-oikos praxis (oikos-dev → oikos-prod) | ⏳ |
 | K6.3 | Implement sign-oikos praxis (keyring integration) | ⏳ |
 | K6.4 | Implement upload-oikos praxis (R2 dynamis integration) | ⏳ |
-| K6.5 | Implement publish-release praxis (circle distribution) | ⏳ |
+| K6.5 | Implement publish-release praxis (oikos distribution) | ⏳ |
 | K6.6 | Implement list-releases, verify-release, rollback-release | ⏳ |
 | K6.7 | End-to-end test: compose → bake → sign → upload → publish → receive | ⏳ |
 
@@ -408,7 +408,7 @@ Ekdosis (ἔκδοσις — the giving out, publication) is the content release
 | Territory | What | Where | How |
 |-----------|------|-------|-----|
 | **Dynamis** | Binary artifacts (Thyra app) | GitHub Releases, R2 | GitHub Actions, release-please |
-| **Ekdosis** | Content packages (oikoi) | R2, circle distribution | Kosmos praxeis, baking |
+| **Ekdosis** | Content packages (oikoi) | R2, oikos distribution | Kosmos praxeis, baking |
 
 **The Developer Journey:**
 
@@ -416,7 +416,7 @@ Ekdosis (ἔκδοσις — the giving out, publication) is the content release
 Consumer → Developer → Publisher
    │           │            │
    │ Join      │ Create     │ Bake, sign,
-   │ circle    │ oikos-dev  │ distribute
+   │ oikos     │ oikos-dev  │ distribute
    │ Receive   │            │
    │ oikoi     │            │
 ```
@@ -426,7 +426,7 @@ Consumer → Developer → Publisher
 - `ekdosis/bake-oikos` — transforms oikos-dev → oikos-prod (resolves generation specs)
 - `ekdosis/sign-oikos` — signs content hash with Ed25519, creates build-attestation
 - `ekdosis/upload-oikos` — uploads to R2 via dynamis, sets fetch_url
-- `ekdosis/publish-release` — creates release entity, distributes to circles
+- `ekdosis/publish-release` — creates release entity, distributes to oikoi
 - `ekdosis/rollback-release` — reverts to previous release via succeeds chain
 
 **Key Insight:** Ekdosis enables OTHER developers to release oikoi — it's the path from consumer to creator within the kosmos ontology.
@@ -435,25 +435,25 @@ Consumer → Developer → Publisher
 
 ## Phase S: Commons Infrastructure ⏳ Post-MVP
 
-**Objective:** Enable circles to own and operate self-sovereign infrastructure through kosmos.
+**Objective:** Enable oikoi to own and operate self-sovereign infrastructure through kosmos.
 
 **Key Insight:** The path to infrastructure is through kosmos, not chora. We don't SSH into servers; we compose infrastructure entities and let reconciliation actualize them.
 
 ### The Generative Stack
 
 ```
-Core Dev Circle
+Core Dev Oikos
     │  ← develops oikoi, most generative fills
     │  ← owns genesis/, crates/, app/
     ▼
-Core Prod Circle
+Core Prod Oikos
     │  ← bakes to literal, signs oikos-prod
     │  ← emits base kosmos
     ▼
 Base Kosmos (754 entities)
     │  ← what users bootstrap from
     ▼
-Commons Circle (e.g., Liminal Commons)
+Commons Oikos (e.g., Liminal Commons)
     │  ← installs oikoi (gathering-space, manteia)
     │  ← owns infrastructure entities
     │  ← grants attainments to members
@@ -462,7 +462,7 @@ Infrastructure (NixOS Server: 96GB RAM, 4TB NVMe, NPU)
     │  ← reconciliation actualizes services
     │  ← LiveKit, local LLM, transcription
     ▼
-Circle Members
+Oikos Members
     ← enter gathering spaces, use AI features
     ← all through kosmos, never direct server access
 ```
@@ -514,22 +514,22 @@ Run inference locally on commons hardware.
 
 ### S4: Commons Distribution ⏳ Future
 
-Package commons capabilities for other circles.
+Package commons capabilities for other oikoi.
 
 | Task | Description | Status |
 |------|-------------|--------|
 | S4.1 | Commons oikos bundle (gathering-space + local-ai) | ⏳ |
-| S4.2 | Distribution circle for commons software | ⏳ |
+| S4.2 | Distribution oikos for commons software | ⏳ |
 | S4.3 | Installation workflow for other municipalities | ⏳ |
-| S4.4 | Federation between commons circles | ⏳ |
+| S4.4 | Federation between commons oikoi | ⏳ |
 
 ### Vision: Municipal Sovereignty
 
 ```
-Circle = Household (oikos scale)
+Oikos = Household (oikos scale)
     │
     ▼
-Federation of Circles = Municipality (polis scale)
+Federation of Oikoi = Municipality (polis scale)
     │
     ▼
 Network of Municipalities = Region (county scale)
@@ -543,7 +543,7 @@ Civilization's Information Layer
 
 **The kosmos architecture enables this because:**
 - No central authority — mnemonic is identity, federation is voluntary
-- Infrastructure is replaceable — circles run their own servers
+- Infrastructure is replaceable — oikoi run their own servers
 - Content is verifiable — full-circle genesis proves integrity
 - Capabilities are composable — oikoi package anything
 
@@ -599,7 +599,7 @@ act()       → Manifest, update, or unmanifest to align
 ### Three Reconciliation Loops (T1)
 
 1. **Actuality loop** (dynamis): kosmos ↔ chora (R2, DNS, processes)
-2. **Generation loop** (manteia): expression → LLM → artifact
+2. **Generation loop** (manteia): phasis → LLM → artifact
 3. **Schema loop**: authored content ↔ interpreter expectations
 
 ---
@@ -677,7 +677,7 @@ Commons │       │       │       │       │       │       │       �
 ### Success Criteria (MVP Complete ✅)
 
 - [x] C1: App launches, shows entity count (754) ✅
-- [x] C2: New user has mnemonic + persona ✅
+- [x] C2: New user has mnemonic + prosopon ✅
 - [x] C3: Link created and copied to clipboard ✅
 - [x] C4: Two apps connect via relay ✅
 - [x] C5: Entrant waiting screen shows ✅
@@ -717,7 +717,7 @@ Full-circle genesis is self-verifying coherence: the kosmos can emit itself, re-
 │       ▼                                                              │
 │   chora-output/                                                      │
 │   ├── arche/          (eidos, desmos, stoicheion — constitutional)   │
-│   ├── spora/          (personas, circles, definitions, praxeis)     │
+│   ├── spora/          (prosopa, oikoi, definitions, praxeis)       │
 │   ├── oikoi/          (dev, prod packages if any)                   │
 │   └── MANIFEST.yaml   (hash, file list, entity counts)              │
 │       │                                                              │
@@ -744,7 +744,7 @@ Not all content is equal. The distinction that enables full-circle verification:
 
 | Content Type | Caller Pattern | Can Re-derive? | Examples |
 |-------------|----------------|----------------|----------|
-| **Constitutional** | `literal` only | No — foundational | arche (eidos, desmos, stoicheion), seed expressions |
+| **Constitutional** | `literal` only | No — foundational | arche (eidos, desmos, stoicheion), seed phaseis |
 | **Derivable** | `generated`, `queried`, `computed` | Yes | Reference docs, indexes, status reports |
 
 Constitutional content uses `literal` caller because it cannot be derived from anything else.
@@ -774,7 +774,7 @@ The `demiurge/bake-oikos` praxis resolves generation specs to literals. Publishe
 | eidos (58) | **WAT files** — stoicheia-portable/*.wat |
 | desmos (105) | **Oikos manifests** — manifest.yaml files |
 | stoicheion (0 - defined in oikoi) | **Patterns/Principles** — spora strategic knowledge |
-| persona (2), circle (2) | **Theoria** — crystallized understanding |
+| prosopon (2), oikos (2) | **Theoria** — crystallized understanding |
 | typos (50) | **Journeys/Waypoints** — onboarding entities |
 | praxis (239) | **Klimax hierarchy** — scale definitions |
 | ✅ **Bonds (733)** | |
@@ -826,7 +826,7 @@ The `demiurge/bake-oikos` praxis resolves generation specs to literals. Publishe
 # arche/bonds.yaml
 - from: typos-def-file-header
   desmos: authored-by
-  to: persona/claude
+  to: prosopon/claude
 - from: eidos/praxis
   desmos: typed-by
   to: eidos/eidos
@@ -878,20 +878,19 @@ The `demiurge/bake-oikos` praxis resolves generation specs to literals. Publishe
 | E5.1 | Identify missing entity types (dynamis, politeia, soma) | ✅ |
 | E5.2 | Add dynamis-function, dynamis-domain to emission | ✅ |
 | E5.3 | Add attainment, affordance to emission | ✅ |
-| E5.4 | Add hud-region, genesis-marker, animus to emission | ✅ |
+| E5.4 | Add genesis-marker, parousia to emission | ✅ |
 | E5.5 | Verify full-circle with expanded types | ✅ |
 
-**Entities emitted (541 total, 17 types):**
+**Entities emitted (531 total, 15 types):**
 - Arche: eidos (58), desmos (105), stoicheion (0)
-- Spora: persona (2), circle (2), typos (50), praxis (239), journey (1), waypoint (6), genesis-marker (1)
+- Spora: prosopon (2), oikos (2), typos (50), praxis (239), journey (1), waypoint (6), genesis-marker (1)
 - Dynamis: function (37), domain (10)
 - Politeia: attainment (15), affordance (4)
-- Thyra: panel (6), hud-region (4)
-- Soma: animus (1)
+- Soma: parousia (1)
 
-**Verified:** Full-circle hash identical (blake3:77890584b77adaf0c02310fb8401a11b0117b8f3321fbcf3a864221fd989fac6).
+**Note:** panel and hud-region types were retired (mode architecture). Original hash no longer valid.
 
-**Note:** ~17 entities remain unemitted (specialized types like expression). These can be added in future E iterations.
+**Note:** ~17 entities remain unemitted (specialized types like phasis). These can be added in future E iterations.
 
 ### E6: Klimax Hierarchy Emission ⏳ Future
 
@@ -945,9 +944,9 @@ The `demiurge/bake-oikos` praxis resolves generation specs to literals. Publishe
 **Pattern:**
 ```typescript
 // GENERATED FILE - DO NOT EDIT DIRECTLY
-// Source: eidos/circle
+// Source: eidos/oikos
 
-export interface Circle {
+export interface Oikos {
   id: string;
   name: string;
   description?: string;
@@ -1077,16 +1076,16 @@ pub fn dispatch_dynamis(
 **Pattern:**
 ```markdown
 <!-- GENERATED FILE - DO NOT EDIT DIRECTLY -->
-<!-- Source: eidos/circle, eidos/persona, ... -->
+<!-- Source: eidos/oikos, eidos/prosopon, ... -->
 
 # Politeia Reference
 
 ## Eide
 
-### circle
+### oikos
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| name | string | ✓ | Circle name |
+| name | string | ✓ | Oikos name |
 | description | string | | Optional description |
 ```
 
@@ -1288,7 +1287,7 @@ blake3:e185be8c61569666f51b7aa064cc211c9a768dfe0051e1bf93f0746f67f3b0fe
 
 **T3 (2026-01-24):** Full-circle genesis is self-verifying coherence — emit → bootstrap → emit = identical output. This proves the kosmos can reconstitute itself.
 
-**T4 (2026-01-24):** The path to infrastructure is through kosmos, not chora. We don't SSH into servers; we compose infrastructure entities and let reconciliation actualize them. Circles own their infrastructure as entities.
+**T4 (2026-01-24):** The path to infrastructure is through kosmos, not chora. We don't SSH into servers; we compose infrastructure entities and let reconciliation actualize them. Oikoi own their infrastructure as entities.
 
 **T5 (2026-01-24):** Content roots embody "where things come from" as entities, not configuration. Graph-driven content sourcing: sources-content-from bonds make provenance traversable. This enables multi-source composition while maintaining the graph-driven pillar.
 
@@ -1310,7 +1309,7 @@ blake3:e185be8c61569666f51b7aa064cc211c9a768dfe0051e1bf93f0746f67f3b0fe
 | [hypostasis/DESIGN.md](./hypostasis/DESIGN.md) | Phoreta, cryptographic identity, kleidoura |
 | [aither/DESIGN.md](./aither/DESIGN.md) | Network transport, syndesmos, presence |
 | [propylon/DESIGN.md](./propylon/DESIGN.md) | Invitation link philosophy |
-| [politeia/DESIGN.md](./politeia/DESIGN.md) | Circles and governance |
+| [politeia/DESIGN.md](./politeia/DESIGN.md) | Oikoi and governance |
 | [soma/DESIGN.md](./soma/DESIGN.md) | Embodiment and channels |
 | [thyra/DESIGN.md](./thyra/DESIGN.md) | Application architecture |
 | [thyra/ALIGNMENT.md](./thyra/ALIGNMENT.md) | Design review (6 lenses) |
@@ -1322,7 +1321,7 @@ blake3:e185be8c61569666f51b7aa064cc211c9a768dfe0051e1bf93f0746f67f3b0fe
 ---
 
 *χώρα receives. The roadmap is how we navigate toward that receiving.*
-*Traces to: expression/genesis-root*
+*Traces to: phasis/genesis-root*
 *Created: 2026-01-23*
 *Consolidated: 2026-01-24*
 *Updated: 2026-01-25 — Phase E: E1-E5 complete (541 entities, 17 types, hash blake3:77890584b77adaf0c02310fb8401a11b0117b8f3321fbcf3a864221fd989fac6)*

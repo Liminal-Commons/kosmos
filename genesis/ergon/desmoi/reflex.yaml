@@ -1,0 +1,56 @@
+# Reflex Desmoi
+# Bonds connecting reflexes to triggers and response praxeis
+
+entities:
+
+  # =========================================================================
+  # triggered-by — what trigger activates this reflex
+  # =========================================================================
+
+  - eidos: desmos
+    id: desmos/triggered-by
+    data:
+      name: triggered-by
+      description: |
+        What trigger activates this reflex.
+        A reflex bonds to exactly one trigger pattern.
+
+        Example:
+          reflex/ergon/pragma-signaled --[triggered-by]--> trigger/pragma-signaled
+
+        Multiple reflexes can share the same trigger (many-to-one).
+        This enables reusable trigger patterns.
+      from_eidos: reflex
+      to_eidos: trigger
+      cardinality: many-to-one
+      symmetric: false
+
+  # =========================================================================
+  # responds-with — what praxis to invoke when reflex fires
+  # =========================================================================
+
+  - eidos: desmos
+    id: desmos/responds-with
+    data:
+      name: responds-with
+      description: |
+        What praxis to invoke when the reflex fires.
+        A reflex bonds to exactly one response praxis.
+
+        The bond carries response parameters as data:
+          data:
+            params:
+              type: pragma_received
+              oikos_id: "$to.id"
+              pragma_id: "$from.id"
+
+        Context variables available in params:
+        - $entity, $previous (for entity events)
+        - $bond, $from, $to (for bond events)
+
+        Example:
+          reflex/ergon/pragma-signaled --[responds-with]--> praxis/soma/add-notification
+      from_eidos: reflex
+      to_eidos: praxis
+      cardinality: many-to-one
+      symmetric: false

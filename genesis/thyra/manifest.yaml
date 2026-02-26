@@ -1,29 +1,31 @@
-# Oikos Manifest: Thyra
+# Topos Manifest: Thyra
 # θύρα — the door, the boundary membrane.
 #
 # Where ephemeral becomes durable. Where human enters kosmos.
-# The commitment boundary: streams → expressions.
+# Accumulates content, commits to logos.
 #
-# Manifest v2.1 — oikos metadata for entity composition
+# Manifest v2.1 — topos metadata for entity composition
 
 format_version: "2.1"
-oikos_id: thyra
+topos_id: thyra
 version: "0.1.0"
 
-# Oikos metadata (v2.1)
-oikos_name: Thyra
-oikos_description: |
+# Topos metadata (v2.1)
+topos_name: Thyra
+topos_description: |
   The door, the boundary membrane. Where ephemeral becomes durable.
-  Where human enters kosmos. The commitment boundary: streams → expressions.
-  Also provides emission to chora (filesystem) and journey navigation (hodos).
-oikos_scale: soma
+  Where human enters kosmos. Accumulates content and commits to
+  the logos phasis surface. Provides emission to chora (filesystem)
+  and journey navigation (hodos).
+topos_scale: soma
 
 # Development experience metadata
-oikos_category: interface
+topos_category: interface
 surfaces_provided:
   - emission            # Provides filesystem emission (thyra/emit)
+  - rendering           # Provides visual rendering (THYRA-OIKOS Phase 1)
 surfaces_consumed:
-  - rendering           # Depends on opsis for visual rendering
+  - reactivity          # Reflexes for presentation mutation response
 
 content_paths:
   - path: eide/
@@ -32,8 +34,22 @@ content_paths:
     content_types: [desmos]
   - path: praxeis/
     content_types: [praxis]
+  - path: typos/
+    content_types: [typos]
+  - path: render-specs/
+    content_types: [render-spec]  # Widget-tree format (THYRA-OIKOS Phase 3)
+  - path: modes/
+    content_types: [mode]  # Screen modes — spatial presentation
+  - path: reflexes/
+    content_types: [reflex]
+  - path: surfaces/
+    content_types: [surface]
+  - path: daemons/
+    content_types: [daemon]
+  - path: definitions/
+    content_types: [form]
   - path: entities/
-    content_types: [render-type, renderer, panel, waypoint, journey, render-spec]
+    content_types: [mode, thyra-config, accumulation, settings-panel]
 
 requires_dynamis:
   - db.arise
@@ -47,72 +63,71 @@ requires_dynamis:
 
 provides:
   eide:
-    - stream
-    - expression
+    # NOTE: phasis moved to logos topos (THYRA-OIKOS Phase 3)
     - accumulation
     - utterance
-    # NOTE: layout, panel, style-theme, render-intent, workspace,
-    # render-type, renderer, render-spec, widget moved to opsis oikos
     - content-root
-    - voice-pipeline-config
-    # NOTE: release, release-artifact moved to release oikos
     - app-config
+    # THYRA-OIKOS Phase 2: Widget vocabulary for render-specs
+    - widget
+    # Mode system: unified UI + substrate concept
+    - mode
+    - thyra-config
+    - settings-panel
 
-  # Oikos-centric rendering: thyra owns presentation for portal entities
+  # Topos-centric rendering: thyra owns presentation for portal entities
+  # NOTE: phasis renderable moved to logos topos (THYRA-OIKOS Phase 3)
   renderable:
-    - eidos: expression
-      description: "Conversation contribution cards and threads"
-    - eidos: stream
-      description: "Media flow status cards"
+    - eidos: accumulation
+      description: "Composition buffer UI bound to accumulation entity"
+
+  typos:
+    # Emission templates per Actuation = Emission pillar
+    - typos/emit-deployment-nixos
+    - typos/emit-deployment-systemd
+    - typos/emit-deployment-docker-compose
 
   attainments:
-    - perceive        # Stream capture and accumulation (soma)
-    - express         # Create durable expressions (circle)
-    # NOTE: render attainment moved to opsis oikos
-    - emit            # Filesystem emission (soma)
+    - perceive        # Accumulation management (soma)
+    # NOTE: express attainment moved to logos topos (THYRA-OIKOS Phase 3)
+    # NOTE: render attainment is in spora (opsis dissolved, rendering now in thyra)
+    - actuate         # Filesystem actuation (soma)
 
   desmoi:
-    - expressed-in
-    - transforms-to
-    - produces
-    - consumes
-    - in-reply-to
-    - derives-from
-    - contributes-to
+    # NOTE: phasis-in, in-reply-to, derives-from, contributes-to moved to logos topos
     - artifact-of       # release-artifact → release
+    # Mode system bonds
+    - belongs-to-mode   # panel → mode
+    - requires-mode     # mode → mode (cross-substrate dependencies)
+    # Voice composition bonds
+    - fed-by-audio      # accumulation → audio-source
+    - fed-by-transcriber  # accumulation → transcriber
 
   praxeis:
-    # Expression operations
-    - thyra/express
-    - thyra/list-expressions
-    - thyra/reply-to
-    - thyra/get-thread
-    # Stream operations
-    - thyra/open-stream
-    - thyra/close-stream
-    - thyra/sense-stream
-    - thyra/reconcile-stream
-    - thyra/list-streams
-    - thyra/pause-stream
-    - thyra/resume-stream
+    # Emission
+    - thyra/emit
     # Accumulation operations
     - thyra/begin-accumulation
-    - thyra/append-fragment
-    - thyra/commit-accumulation
+    - thyra/commit-phasis
     - thyra/abandon-accumulation
     - thyra/clear-accumulation
     - thyra/get-accumulation
     - thyra/list-accumulations
-    # Emission
-    - thyra/emit
-    # Release operations
-    - thyra/get-current-release
-    - thyra/list-releases
-
-stoicheia_form:
-  # Stream actuality via process mode
-  # emit via fs dynamis
+    - thyra/update-accumulation-content
+    - thyra/update-accumulation-stance
+    # Mode switching
+    - thyra/switch-mode
+    - thyra/switch-config
+    # Composition
+    - thyra/compose-artifact
+    # Voice composition
+    - thyra/clarify-accumulation
+    # Settings overlay
+    - thyra/toggle-settings
+    - thyra/close-settings
 
 depends_on:
-  - opsis            # Visual rendering (extracted from thyra)
   - hodos            # Journey navigation (extracted from thyra)
+  - logos            # Phasis surface (THYRA-OIKOS Phase 3)
+  # NOTE: opsis dependency removed — render-spec and renderer eide now in spora
+  # per THYRA-OIKOS.md Phase 4 (opsis dissolution)

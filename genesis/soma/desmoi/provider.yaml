@@ -1,0 +1,24 @@
+# Provider Desmoi
+# Bonds connecting credentials to providers.
+#
+# Note: `provided-by` already exists in thyra/desmoi/dns.yaml for DNS zones.
+# Model-tier → provider bonds reuse the same desmos name (the bond system
+# does not enforce eidos constraints at the DB level).
+#
+# Traces to: PROMPT-INFERENCE-SUBSTRATE.md
+
+entities:
+
+  # authenticates — credential authenticates access to provider
+  - eidos: desmos
+    id: desmos/authenticates
+    data:
+      name: authenticates
+      description: |
+        Credential authenticates access to this provider.
+        When a credential is stored with a matching service name,
+        it enables the provider's capabilities.
+      from_eidos: credential
+      to_eidos: provider
+      cardinality: many-to-one
+      symmetric: false

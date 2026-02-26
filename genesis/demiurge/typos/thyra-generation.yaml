@@ -1,0 +1,232 @@
+# Render-Spec Generation Definitions
+# ====================================
+#
+# Inference-context-aware typos for generating render-specs.
+# Extends the generative spiral to thyra presentation: eidos → render-spec.
+#
+# The pattern: inference-context → governed-inference → validate → actualize
+#
+# Traces to: genesis/demiurge/THYRA-AWARENESS.md
+# Traces to: genesis/demiurge/RENDER-SPEC-GUIDE.md
+
+entities:
+
+# =============================================================================
+# RENDER-SPEC GENERATION
+# =============================================================================
+
+- eidos: typos
+  id: typos-inference-render-spec
+  data:
+    name: inference-render-spec
+    description: |
+      Generate a render-spec for an eidos using inference-context.
+
+      The whole render-spec (layout, bindings, conditionals) is generated as a
+      coherent unit. Widget vocabulary and existing exemplars inform the
+      generation for consistency with established patterns.
+
+      Usage:
+        compose(typos-inference-render-spec, {
+          eidos_name: "note",
+          variant: "card",
+          purpose: "Display a note with kind badge, content, and timestamp",
+          eidos_fields: "<yaml of note field definitions>",
+          example_specs: "<yaml of similar render-specs>"
+        })
+    extends: typos-def-inference-context
+    slots:
+      # ─────────────────────────────────────────────────────────────────────
+      # INPUTS (caller provides)
+      # ─────────────────────────────────────────────────────────────────────
+
+      eidos_name:
+        type: string
+        required: true
+        description: "The eidos to create a render-spec for"
+
+      variant:
+        type: string
+        required: true
+        description: "Render variant: card, list-item, detail, panel"
+
+      purpose:
+        type: string
+        required: true
+        description: "What this render-spec should accomplish"
+
+      interactive:
+        type: boolean
+        default: false
+        description: "Whether to include click handlers for actions"
+
+      # ─────────────────────────────────────────────────────────────────────
+      # CONTEXT (praxis gathers, passes to compose)
+      # ─────────────────────────────────────────────────────────────────────
+
+      eidos_fields:
+        type: string
+        required: true
+        description: "YAML of target eidos field definitions"
+
+      example_specs:
+        type: string
+        default: ""
+        description: "Existing render-specs of same variant, YAML-encoded"
+
+      # ─────────────────────────────────────────────────────────────────────
+      # INFERENCE CONTEXT (inherited, with defaults)
+      # ─────────────────────────────────────────────────────────────────────
+
+      role:
+        type: string
+        default: |
+          You are a UI designer for the kosmos system. You design declarative
+          widget trees called render-specs. Each render-spec targets an eidos
+          (entity type) and defines how entities of that type appear visually.
+          You understand the widget vocabulary, binding syntax, conditional
+          rendering, and composition patterns. You produce clean, minimal
+          render-specs that display the most important information.
+
+      constraints:
+        type: array
+        default:
+          - "Use ONLY widgets from the provided vocabulary"
+          - "Entity data bindings use braces: {field_name}, {nested.path}"
+          - "Form state uses dollar WITHOUT braces: $form.field_name"
+          - "WRONG: {$form.field} — this is the #1 mistake. CORRECT: $form.field"
+          - "Conditional: when: \"field\" (truthy) or when: \"field == 'value'\""
+          - "Every button needs on_click (praxis id string) and label (not content)"
+          - "Card variant: concise, root is 'card' with children stack"
+          - "Detail variant: expanded sections with headings, root is 'stack'"
+          - "List-item variant: single compact row"
+          - "Entity lists are handled by modes with item_spec_id, NOT by render-specs"
+          - "Field-level iteration uses 'each' property on a widget node: each: '{array_field}', children repeat per item"
+          - "each_empty: string shown when array is empty"
+          - "In each iteration, {.} binds to the item itself (for primitives), entity fields bind normally for entity items"
+          - "Widgets that support children: card, stack, row, scroll, modal, tooltip, list, list-item"
+          - "Widgets that do NOT have children: text, heading, badge, icon, image, code, button, link, input, textarea, select, checkbox, toggle, divider, spacer, progress, avatar, spinner"
+
+      output_schema:
+        type: object
+        default:
+          type: object
+          required: [eidos, id, data]
+          properties:
+            eidos:
+              type: string
+              const: render-spec
+            id:
+              type: string
+              pattern: "^render-spec/"
+            data:
+              type: object
+              required: [name, target_eidos, variant, layout]
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                target_eidos:
+                  type: string
+                variant:
+                  type: string
+                  enum: [card, list-item, detail, panel]
+                layout:
+                  type: array
+                  items:
+                    $ref: "#/$defs/widget_node"
+          $defs:
+            widget_node:
+              type: object
+              required: [widget]
+              properties:
+                widget:
+                  type: string
+                props:
+                  type: object
+                when:
+                  type: string
+                children:
+                  type: array
+                  items:
+                    $ref: "#/$defs/widget_node"
+
+      request:
+        type: string
+        default: |
+          Generate a render-spec for the '{{ eidos_name }}' eidos.
+
+          **Variant:** {{ variant }}
+          **Purpose:** {{ purpose }}
+          **Interactive:** {{ interactive }}
+
+          ## Target Eidos Fields
+
+          These are the fields defined on the target eidos. Your render-spec
+          should display the most important fields for this variant.
+
+          ```yaml
+          {{ eidos_fields }}
+          ```
+
+          ## Widget Vocabulary
+
+          ### Layout (support children)
+          - card: { variant: bordered|elevated|flat, padding: xs|sm|md|lg, on_click, on_click_params }
+          - stack: { gap: none|xs|sm|md|lg|xl, align: start|center|end|stretch }
+          - row: { gap, align, justify: start|center|end|between|around }
+          - scroll: { auto_scroll_bottom, max_height }
+          - list: { ordered, gap }
+          - list-item: { bullet }
+
+          ### Display (no children)
+          - text: { content, variant: body|caption|emphasis|code }
+          - heading: { content, level: 1-6 }
+          - badge: { content, variant: default|success|warning|error|info }
+          - icon: { name, size: sm|md|lg, color }
+          - image: { src, alt, fit: cover|contain }
+          - code: { content, language, wrap }
+
+          ### Interactive (no children)
+          - button: { label, variant: primary|secondary|ghost|danger, on_click, on_click_params, disabled, loading }
+          - link: { content, href, on_click, external }
+
+          ### Form (no children)
+          - input: { field, placeholder, type: text|number|email|password }
+          - textarea: { field, placeholder, rows }
+          - select: { field, options: [{value, label}], placeholder }
+          - checkbox: { field, label }
+          - toggle: { field, label }
+
+          ### Utility (no children)
+          - divider: { orientation: horizontal|vertical, spacing }
+          - spacer: { size: xs|sm|md|lg|xl|flex }
+
+          ### Feedback
+          - progress: { value, variant: bar|circle, color }
+          - avatar: { name, src, size: sm|md|lg }
+          - spinner: { size, label }
+
+          ### Node Properties (not widgets)
+          - each: "{array_field}" — children repeat per item in array (widget renders once)
+          - each_empty: string — shown when array is empty
+          - when: "expression" — conditional rendering
+
+          ## Binding Syntax
+
+          - Entity data: `{field_name}`, `{nested.path}`, `{id}`, `{eidos}`
+          - Form state: `$form.field` (NO braces — `{$form.field}` is WRONG)
+          - Conditional: `when: "field"` (truthy), `when: "status == 'active'"` (equality)
+
+          ## Examples
+
+          {{ example_specs }}
+
+    target_eidos: artifact
+    defaults:
+      kind: definition
+    bonds:
+      - desmos: belongs-to
+        from_self: true
+        to_literal: topos/demiurge

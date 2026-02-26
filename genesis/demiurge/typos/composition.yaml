@@ -1,0 +1,205 @@
+# Demiurge Typos — Template Compositions & Code Generation
+#
+# Utility typos for template composition and code generation.
+# Greeting, summary, rust-struct, yaml-entity, test definitions.
+
+entities:
+
+# =============================================================================
+# TEMPLATE COMPOSITIONS
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-greeting
+  data:
+    name: greeting
+    description: |
+      Simple greeting template for testing.
+    template: "Hello, {{ $name }}! Welcome to the kosmos."
+    defaults:
+      name: friend
+
+- eidos: typos
+  id: typos-def-summary
+  data:
+    name: summary
+    description: |
+      Generate a summary from content.
+    template: |
+      # Summary: {{ $title }}
+
+      {{ $content }}
+
+      ---
+      *Generated {{ $timestamp }}*
+    defaults:
+      title: Untitled
+      timestamp: now
+
+# =============================================================================
+# GRAPH COMPOSITIONS (CODE GENERATION)
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-rust-struct
+  data:
+    name: rust-struct
+    description: |
+      Generate a Rust struct definition.
+    slots:
+      name:
+        type: string
+        required: true
+        description: The struct name
+      fields:
+        type: array
+        required: true
+        description: "Array of {name, type} objects"
+      derives:
+        type: array
+        required: false
+        default: ["Debug", "Clone"]
+        description: Derive macros
+    output_type: text
+
+- eidos: typos
+  id: typos-def-yaml-entity
+  data:
+    name: yaml-entity
+    description: |
+      Generate a YAML entity definition.
+    slots:
+      eidos:
+        type: string
+        required: true
+      id:
+        type: string
+        required: true
+      data:
+        type: object
+        required: true
+    output_type: object
+
+# =============================================================================
+# TEST DEFINITIONS (V4.1.5 SCHEMA-CONSTRAINED GENERATION)
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-test-generated-schema
+  data:
+    name: test-generated-schema
+    description: |
+      Test definition for schema-constrained generated slots.
+
+      Used to verify V4.1.4/V4.1.5 implementation:
+      - Generated slots call LLM inference
+      - Schema sources (output_schema, target_eidos, stoicheion_id) constrain output
+    slots:
+      # Slot with explicit output_schema
+      greeting:
+        pattern: generated
+        prompt: "Generate a friendly greeting for $name"
+        output_schema:
+          type: object
+          properties:
+            message:
+              type: string
+              description: "The greeting message"
+            language:
+              type: string
+              enum: ["en", "es", "fr"]
+          required: ["message", "language"]
+
+      # Slot with target_eidos schema source
+      theoria_data:
+        pattern: generated
+        prompt: "Generate theoria data about $topic"
+        target_eidos: eidos/theoria
+
+      # Plain generated slot (no schema, plain text)
+      summary:
+        pattern: generated
+        prompt: "Write a one-sentence summary of: $topic"
+
+      # Literal slot for comparison
+      timestamp:
+        pattern: literal
+        default: "now"
+    output_type: object
+
+# =============================================================================
+# META-CIRCULAR & CONSTITUTIONAL TYPOS
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-typos
+  data:
+    name: typos
+    description: "Compose a typos entity (meta-circular)"
+    target_eidos: typos
+
+- eidos: typos
+  id: typos-def-artifact
+  data:
+    name: artifact
+    description: "Compose an artifact entity (composed content)"
+    target_eidos: artifact
+
+# -----------------------------------------------------------------------------
+# Constitutional Typos — How to compose the archai themselves
+# These enable topos development: composing eide, praxeis, desmoi, and topoi.
+# -----------------------------------------------------------------------------
+
+- eidos: typos
+  id: typos-def-eidos
+  data:
+    name: eidos
+    description: |
+      Compose an eidos (entity type definition).
+
+      Eide define what kind of things can exist. When developing a topos,
+      compose eide for your domain's entity types.
+    target_eidos: eidos
+    defaults:
+      constitutional: false
+
+- eidos: typos
+  id: typos-def-praxis
+  data:
+    name: praxis
+    description: |
+      Compose a praxis (action definition).
+
+      Praxeis are executable sequences of stoicheia. When developing a topos,
+      compose praxeis for your domain's operations.
+    target_eidos: praxis
+    defaults:
+      visible: true
+      tier: 2
+
+- eidos: typos
+  id: typos-def-desmos
+  data:
+    name: desmos
+    description: |
+      Compose a desmos (bond type definition).
+
+      Desmoi define relationships between entities. When developing a topos,
+      compose desmoi for your domain's relationships.
+    target_eidos: desmos
+    defaults:
+      cardinality: many-to-many
+
+- eidos: typos
+  id: typos-def-topos
+  data:
+    name: topos
+    description: |
+      Compose a topos (capability domain).
+
+      Topoi are containers for eide, praxeis, and desmoi. Begin topos
+      development by composing a topos entity, then add definitions to it.
+    target_eidos: topos
+    defaults:
+      status: composing
+      version: "0.1.0"

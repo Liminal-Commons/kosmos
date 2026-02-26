@@ -20,9 +20,9 @@ With oikos:
 
 The household is where you dwell. Oikos makes dwelling traceable.
 
-## Circle Context
+## Oikos Context
 
-### Self Circle
+### Self Oikos
 
 A solitary dweller uses oikos to:
 - Open sessions marking work periods
@@ -33,7 +33,7 @@ A solitary dweller uses oikos to:
 
 Personal knowledge management happens in the intimate dwelling.
 
-### Peer Circle
+### Peer Oikos
 
 Collaborators use oikos to:
 - Share conversation contexts
@@ -43,14 +43,14 @@ Collaborators use oikos to:
 
 The household expands to include peers while maintaining intimacy.
 
-### Commons Circle
+### Commons Oikos
 
-A commons circle uses oikos to:
-- Aggregate insights from member circles
+A commons oikos uses oikos to:
+- Aggregate insights from member oikoi
 - Surface community-level understanding
 - Provide templates for common note-taking patterns
 
-Commons circles rarely use oikos directly — it's the intimate scale.
+Commons oikoi rarely use oikos directly — it's the intimate scale.
 
 ## Core Entities (Eide)
 
@@ -59,7 +59,7 @@ Commons circles rarely use oikos directly — it's the intimate scale.
 Current presence instance — a period of dwelling activity.
 
 **Fields:**
-- `animus_id` — The animus (embodied persona) in this session
+- `parousia_id` — The parousia (embodied prosopon) in this session
 - `started_at` — When the session began
 - `status` — Active or closed
 
@@ -129,16 +129,16 @@ Emerging understanding — not yet theoria, but surfaced from notes.
 - Change: Confidence may update
 - Depart: Crystallizes into theoria via crystallize-insight
 
-## Package Eide (Also Defined Here)
+## Topos Package Eide (Also Defined Here)
 
 The following eide are defined in oikos but manipulated by demiurge praxeis:
 
-- **oikos-manifest** — Package declaration (requires/provides)
-- **oikos-dev** — Development package (mutable, may have generation specs)
-- **oikos-prod** — Production package (frozen, signed)
+- **topos-manifest** — Topos package declaration (requires/provides)
+- **topos-dev** — Development topos package (mutable, may have generation specs)
+- **topos-prod** — Production topos package (frozen, signed)
 - **publish-attestation** — Publication audit trail
 
-These serve the oikos ecosystem but are not managed by oikos praxeis.
+These serve the topos ecosystem but are not managed by oikos praxeis.
 
 ## Bonds (Desmoi)
 
@@ -153,21 +153,21 @@ Containment within session/conversation.
 
 ### authored-by
 
-Persona authored this segment/note.
+Prosopon authored this segment/note.
 
 - **From:** segment, note
-- **To:** persona
+- **To:** prosopon
 - **Cardinality:** many-to-one
-- **Traversal:** Find what a persona has authored
+- **Traversal:** Find what a prosopon has authored
 
 ### surfaced-in
 
-Insight surfaced in a circle.
+Insight surfaced in an oikos.
 
 - **From:** insight
-- **To:** circle
+- **To:** oikos
 - **Cardinality:** many-to-one
-- **Traversal:** Find insights surfaced in this circle
+- **Traversal:** Find insights surfaced in this oikos
 
 ### about
 
@@ -269,7 +269,7 @@ Crystallize an insight into theoria.
 Dwelling capability — session and conversation management.
 
 - **Grants:** open-session, close-session, open-conversation, add-segment
-- **Scope:** circle
+- **Scope:** oikos
 - **Rationale:** Session/conversation management is fundamental dwelling activity
 
 ### attainment/reflect
@@ -277,7 +277,7 @@ Dwelling capability — session and conversation management.
 Reflection capability — notes and insight surfacing.
 
 - **Grants:** take-note, list-notes, surface-insight, crystallize-insight
-- **Scope:** circle
+- **Scope:** oikos
 - **Rationale:** Reflection transforms experience into understanding
 
 ## Embodiment
@@ -329,7 +329,7 @@ Insights crystallize into theoria through nous/crystallize-theoria. Notes feed t
 
 ### amplifies politeia
 
-Sessions exist within circles. Dwelling requires governance context.
+Sessions exist within oikoi. Dwelling requires governance context.
 
 ### amplifies soma
 

@@ -14,39 +14,39 @@ Without thyra:
 
 With thyra:
 - **Perception (aisthesis)**: Inward flow of streams, utterances, accumulations
-- **Expression**: The commitment boundary — ephemeral becomes durable
+- **Phasis**: The commitment boundary — ephemeral becomes durable
 - **Emission (ekthesis)**: Outward flow of renders, layouts, visual state
 - **Streams follow the reconciler pattern**: Intent → sense → reconcile → actualize
 
-The central concept is the **commitment boundary** — the moment when ephemeral stream content becomes durable expression. This is the "send moment."
+The central concept is the **commitment boundary** — the moment when ephemeral stream content becomes durable phasis. This is the "send moment."
 
-## Circle Context
+## Oikos Context
 
-### Self Circle
+### Self Oikos
 
 A solitary dweller uses thyra to:
-- Capture voice input, clarify it, commit as expressions
+- Capture voice input, clarify it, commit as phaseis
 - Configure voice pipeline (VAD, transcription, clarification)
 - Render their personal workspace with open artifacts
 - Emit entities to filesystem for persistence
 
-Self circle expressions are notes to oneself.
+Self oikos phaseis are notes to oneself.
 
-### Peer Circle
+### Peer Oikos
 
 Collaborators use thyra to:
-- Exchange expressions in conversation threads
+- Exchange phaseis in conversation threads
 - Share workspaces showing what each is working on
 - See presence via rendered panels
 - Follow in-reply-to chains for context
 
-Expression modes signal stance: declaration, inquiry, suggestion, request, proposal.
+Phasis stances signal intent: declaration, inquiry, suggestion, request, proposal.
 
-### Commons Circle
+### Commons Oikos
 
 A commons uses thyra to:
-- Distribute layouts and themes to members
-- Provide render-types and renderers for custom eide
+- Distribute thyra-configs and themes to members
+- Provide modes and render-specs for custom eide
 - Configure voice pipelines for accessibility
 - Manage content-roots for where content lives
 
@@ -71,23 +71,23 @@ Bounded media flow — voice, video, text, or document.
 - Reconcile: Sense actuality, manifest if needed, unmanifest when closed
 - Depart: close-stream sets intent=closed, reconciler terminates
 
-### expression
+### phasis
 
 Intentional contribution — the commitment boundary.
 
 **Fields:**
 - `content` — the expressed content
-- `expressed_by` — persona ID
-- `circle_id` — where expressed
+- `expressed_by` — prosopon ID
+- `oikos_id` — where expressed
 - `expressed_at` — timestamp
 - `source_kind` — stream, compose, direct
-- `mode` — declaration, inquiry, suggestion, request, proposal
+- `stance` — declaration, inquiry, suggestion, request, proposal
 - `in_reply_to` — for threading
 
 **Lifecycle:**
-- Arise: express or commit-accumulation creates it
-- Change: Expressions are immutable after creation
-- Depart: Expressions persist (archive, don't delete)
+- Arise: emit-phasis or commit-phasis creates it
+- Change: Phaseis are immutable after creation
+- Depart: Phaseis persist (archive, don't delete)
 
 ### accumulation
 
@@ -104,7 +104,7 @@ Buffer state awaiting commitment — the voice bar.
 **Lifecycle:**
 - Arise: begin-accumulation creates buffer
 - Change: append-fragment adds content, clarification updates it
-- Depart: commit-accumulation creates expression, or abandon
+- Depart: commit-phasis creates phasis, or abandon
 
 ### utterance
 
@@ -114,27 +114,34 @@ VAD-bounded speech segment — atomic unit of voice perception.
 - `stream_id` — source audio stream
 - `started_at`, `ended_at`, `duration_ms` — timing
 - `transcription` — speech-to-text result
-- `contributed_to` — expression ID if committed
+- `contributed_to` — phasis ID if committed
 
-### layout
+### mode
 
-Top-level HUD structure — defines arrangement of regions.
-
-**Fields:**
-- `name` — layout identifier
-- `regions` — array of region specifications
-- `active` — whether currently active for circle
-
-### panel
-
-Renderable content area — surfaces entities within a region.
+Topos presence in a spatial position — how a topos becomes visible.
 
 **Fields:**
-- `name` — panel identifier
-- `render_type` — entity-list, expression-thread, workspace-view, etc.
-- `source_query` — how to gather entities
-- `region_id` — which region to render in
-- `visible` — whether currently shown
+- `name` — mode identifier
+- `render_spec_id` — which render-spec defines the widget tree
+- `spatial` — position and sizing (`position`: top/left/center/right/bottom; `height`: fill/auto)
+- `source_entity_id` — for entity-bound modes (e.g., accumulation/default)
+- `source_query` — for collection modes (e.g., `gather(eidos: phasis, sort: expressed_at, order: asc)`)
+- `requires` — modes (compute, etc.) that must be manifested
+- `config` — mode-specific configuration (typos_id, watch_eidos)
+
+**Three mode patterns:**
+- **Singleton** (`render_spec_id`): Renders one entity or static layout via a render-spec
+- **Collection** (`item_spec_id` + `source_query` + `arrangement`): Gathers entities, renders each through `item_spec_id`, optional `chrome_spec_id` wrapper
+- **Compound** (`sections[]`): Multiple sub-sections in one mode
+
+### thyra-config
+
+Active mode set — which modes are rendered and window behavior.
+
+**Fields:**
+- `name` — config identifier (workspace, hud, compact)
+- `active_modes` — array of mode IDs to render
+- `window` — window behavior (size, always_on_top)
 
 ### style-theme
 
@@ -149,21 +156,19 @@ Visual styling — palette, density, typography.
 
 ### workspace
 
-Open artifacts and focus state — what the animus is working on.
+Open artifacts and focus state — what the parousia is working on.
 
 **Fields:**
 - `name` — workspace identifier
 - `open_artifact_ids` — tab order
 - `focused_artifact_id` — active tab
-- `animus_id` — ownership
+- `parousia_id` — ownership
 
-### render-type / renderer / render-spec
+### render-spec
 
-Homoiconic rendering configuration — makes display traversable.
+Declarative widget tree — defines how a mode renders its content.
 
-- **render-type**: How an eidos should render (grouping, sorting, filters)
-- **renderer**: Component that implements a render-type (strategies: core, declarative, web-component, wasm)
-- **render-spec**: Declarative rendering template for graph-driven display
+Render-specs are domain-agnostic. They compose widgets (text, card, stack, form, etc.) with data bindings. The widget interpreter dispatches all widget names through `getWidget()` -- zero hardcoded widget names. Field-level iteration uses the `each` property on any widget node (with `each_empty` for empty arrays). Entity-level iteration is handled by collection modes (`item_spec_id` + `source_query` + `arrangement`). 29 widget types available.
 
 ### voice-pipeline-config
 
@@ -176,21 +181,21 @@ Configuration for voice capture and clarification — homoiconic settings.
 
 ## Bonds (Desmoi)
 
-### expressed-in
+### phasis-in
 
-Expression belongs to a circle.
+Phasis belongs to an oikos.
 
-- **From:** expression
-- **To:** circle
+- **From:** phasis
+- **To:** oikos
 - **Cardinality:** many-to-one
-- **Traversal:** Find expressions in a circle, or which circle an expression belongs to
+- **Traversal:** Find phaseis in an oikos, or which oikos a phasis belongs to
 
 ### in-reply-to
 
-Expression replies to another expression — conversation threading.
+Phasis replies to another phasis — conversation threading.
 
-- **From:** expression
-- **To:** expression
+- **From:** phasis
+- **To:** phasis
 - **Cardinality:** many-to-one
 - **Traversal:** Build conversation threads
 
@@ -213,25 +218,39 @@ Daemon produces or consumes a stream.
 
 ### derives-from
 
-Expression derives from stream or artifact — provenance.
+Phasis derives from stream or artifact — provenance.
 
-- **From:** expression
+- **From:** phasis
 - **To:** stream, artifact
 - **Cardinality:** many-to-many
-- **Traversal:** Trace expression origin
+- **Traversal:** Trace phasis origin
 
 ### contributes-to
 
-Utterance contributes to expression.
+Utterance contributes to phasis.
 
 - **From:** utterance
-- **To:** expression
+- **To:** phasis
 - **Cardinality:** many-to-one
-- **Traversal:** See which utterances formed an expression
+- **Traversal:** See which utterances formed a phasis
 
-### renders-in / styled-by / shows
+### uses-render-spec
 
-Panel renders in region, styled by theme, shows entities.
+Mode uses a render-spec for its widget tree.
+
+- **From:** mode
+- **To:** render-spec
+- **Cardinality:** many-to-one
+- **Traversal:** Find which render-spec a mode uses, or which modes use a render-spec
+
+### requires-mode
+
+Mode depends on another mode being active (cross-substrate).
+
+- **From:** mode
+- **To:** mode
+- **Cardinality:** one-to-many
+- **Traversal:** Find substrate requirements for a mode
 
 ### workspace-of / has-open / focused-on
 
@@ -239,11 +258,11 @@ Workspace ownership and tab state.
 
 ## Operations (Praxeis)
 
-### Expression Operations
+### Phasis Operations
 
-- **express**: Create expression (the commitment boundary)
-- **reply-to**: Reply to an expression (sets in-reply-to)
-- **list-expressions**: Query expressions in circle
+- **emit-phasis**: Create phasis (the commitment boundary)
+- **reply-to**: Reply to a phasis (sets in-reply-to)
+- **list-phaseis**: Query phaseis in oikos
 - **get-thread**: Follow in-reply-to bonds for threading
 
 ### Stream Operations (Reconciler Pattern)
@@ -259,21 +278,17 @@ Workspace ownership and tab state.
 
 - **begin-accumulation**: Start buffer for stream
 - **append-fragment**: Add content to buffer
-- **commit-accumulation**: Cross commitment boundary → expression
+- **commit-phasis**: Cross commitment boundary → phasis
 - **abandon-accumulation**: Discard without committing
 - **clear-accumulation**: Reset content, keep active
 - **get-accumulation** / **list-accumulations**: Query buffer state
 
-### Rendering Operations (Opsis)
+### Mode Operations
 
-- **gather-render-intent**: Collect entities visible from dwelling
-- **reconcile-region**: Align region with intent
-- **emit-render**: Send render commands to substrate
-- **render-all**: Full render cycle
-- **activate-layout** / **get-active-layout**: Layout management
+- **switch-mode**: Replace one mode with another in a thyra-config's active_modes
+- **switch-config**: Switch the active thyra-config (e.g., workspace → hud)
 - **activate-theme** / **get-active-theme**: Theme management
 - **open-artifact** / **close-artifact** / **focus-artifact**: Tab management
-- **create-panel** / **list-panels**: Panel management
 
 ### Emission Operations
 
@@ -284,7 +299,6 @@ Workspace ownership and tab state.
 - **get-current-waypoint**: Where am I in a journey
 - **advance-waypoint**: Move forward
 - **branch-waypoint**: Take alternate path
-- **get-panel-render-data**: What to render for current step
 - **validate-form**: Check form input
 - **start-onboarding**: Begin onboarding journey
 
@@ -294,29 +308,29 @@ Workspace ownership and tab state.
 
 Perception capability — capturing streams and managing accumulation.
 
-- **Grants:** open-stream, close-stream, sense-stream, reconcile-stream, list-streams, pause-stream, resume-stream, begin-accumulation, append-fragment, commit-accumulation, abandon-accumulation, clear-accumulation, get-accumulation, list-accumulations
+- **Grants:** open-stream, close-stream, sense-stream, reconcile-stream, list-streams, pause-stream, resume-stream, begin-accumulation, append-fragment, commit-phasis, abandon-accumulation, clear-accumulation, get-accumulation, list-accumulations
 - **Scope:** soma (local substrate)
 - **Rationale:** Perception requires substrate access (media capture)
 
 ### attainment/express
 
-Expression capability — creating durable contributions.
+Phasis capability — creating durable contributions.
 
-- **Grants:** express, reply-to, list-expressions, get-thread
-- **Scope:** circle
-- **Rationale:** Expressions belong to circles; requires membership
+- **Grants:** emit-phasis, reply-to, list-phaseis, get-thread
+- **Scope:** oikos
+- **Rationale:** Phaseis belong to oikoi; requires membership
 
 ### attainment/render
 
-Rendering capability — visual emission and workspace management.
+Rendering capability — mode switching and workspace management.
 
-- **Grants:** gather-render-intent, reconcile-region, emit-render, render-all, activate-layout, get-active-layout, activate-theme, get-active-theme, open-artifact, close-artifact, focus-artifact, get-workspace, create-panel, list-panels
+- **Grants:** switch-mode, switch-config, activate-theme, get-active-theme, open-artifact, close-artifact, focus-artifact, get-workspace
 - **Scope:** soma (local substrate)
 - **Rationale:** Rendering is substrate-local
 
-### attainment/emit
+### attainment/actuate
 
-Filesystem emission capability — writing to chora.
+Filesystem actuation capability — writing to chora.
 
 - **Grants:** emit
 - **Scope:** soma
@@ -326,9 +340,9 @@ Filesystem emission capability — writing to chora.
 
 Journey navigation capability — following waypoints.
 
-- **Grants:** get-current-waypoint, advance-waypoint, branch-waypoint, get-panel-render-data, validate-form, start-onboarding
-- **Scope:** animus (personal navigation)
-- **Rationale:** Navigation is per-animus state
+- **Grants:** get-current-waypoint, advance-waypoint, branch-waypoint, validate-form, start-onboarding
+- **Scope:** parousia (personal navigation)
+- **Rationale:** Navigation is per-parousia state
 
 ## Embodiment
 
@@ -336,12 +350,12 @@ Journey navigation capability — following waypoints.
 
 | Level | Status |
 |-------|--------|
-| Defined | ~20 eide, 12+ desmoi, 30+ praxeis |
+| Defined | ~15 eide, 10+ desmoi, 30+ praxeis |
 | Loaded | Bootstrap loads all definitions |
 | Projected | All visible praxeis available as MCP tools |
 | Embodied | Partial — accumulation affects body-schema |
-| Surfaced | Partial — render intent from dwelling |
-| Afforded | Partial — expression thread, voice bar |
+| Surfaced | 5 modes across 4 spatial positions |
+| Afforded | Phasis feed, voice bar, text compose, theoria sidebar, oikos nav |
 
 ### Body-Schema Contribution
 
@@ -355,10 +369,9 @@ perception:
   capture_state: listening
 
 emission:
-  current_layout: chora-default
+  active_config: thyra-config/workspace
+  active_modes: [mode/oikos-nav, mode/phasis-feed, mode/theoria-sidebar, mode/compose-full]
   current_theme: dark
-  workspace_tabs: 3
-  focused_artifact: artifact/xyz
 ```
 
 This reveals what's being captured and what's being shown.
@@ -369,22 +382,22 @@ A thyra reconciler would surface:
 
 - **Pending commitment** — "Voice buffer has content, ready to send?"
 - **Stream failures** — "Audio capture stopped unexpectedly"
-- **Stale renders** — "Layout changed, regions need refresh"
-- **Draft expressions** — "Uncommitted accumulation from earlier"
+- **Mode drift** — "Actuality-mode manifested but mode deactivated"
+- **Draft phaseis** — "Uncommitted accumulation from earlier"
 
 ## Compound Leverage
 
 ### amplifies soma
 
-Streams manifest via soma/arise-animus pattern. Perception requires embodiment.
+Streams manifest via soma/arise-parousia pattern. Perception requires embodiment.
 
 ### amplifies politeia
 
-Expression scoping enforces circle visibility. Layout/theme are circle-level.
+Phasis scoping enforces oikos visibility. Layout/theme are oikos-level.
 
 ### amplifies nous
 
-Expressions become searchable, indexable. Theoria can surface from conversation.
+Phaseis become searchable, indexable. Theoria can surface from conversation.
 
 ### amplifies manteia
 
@@ -396,29 +409,29 @@ Render state follows reconciler pattern (sense → compare → act).
 
 ### amplifies propylon
 
-Entry creates first expression. Session tokens enable cross-process auth.
+Entry creates first phasis. Session tokens enable cross-process auth.
 
 ## Theoria
 
 ### T50: The commitment boundary is the send moment
 
-Before commitment, content is ephemeral buffer. After commitment, content is durable expression with provenance. The moment between is the commitment boundary — intentional, observable, reversible until crossed.
+Before commitment, content is ephemeral buffer. After commitment, content is durable phasis with provenance. The moment between is the commitment boundary — intentional, observable, reversible until crossed.
 
 ### T51: Streams follow the reconciler pattern
 
 Intent declares what we want. Actuality reflects what substrate reports. Reconciler aligns them. This applies to all actuality modes: media, process, network, signaling.
 
-### T52: Expression modes signal stance
+### T52: Phasis stances signal intent
 
-Declaration states what is understood. Inquiry invites exploration. Suggestion offers possibility. Request asks for action. Proposal co-creates direction. The mode tells the recipient how to receive the content.
+Declaration states what is understood. Inquiry invites exploration. Suggestion offers possibility. Request asks for action. Proposal co-creates direction. The stance tells the recipient how to receive the content.
 
-### T53: Homoiconic rendering makes display traversable
+### T53: Modes make topos presence traversable
 
-Render-types, renderers, and render-specs are entities. Display configuration is data, not code. Adding a new render type = creating an entity. This enables oikoi to bring their own renderers.
+Modes and render-specs are entities with bonds. Display configuration is data, not code. Adding a new view = creating a mode with a render-spec. Each topos contributes modes; thyra-config selects which are active. `uses-render-spec` bonds make the relationship graph-traversable.
 
-### T54: Two paths to render
+### T54: Three mode patterns serve different needs
 
-Structural changes (layout, panels) go through the reconciler. Content changes (expressions, artifacts) go direct via entity subscription. Structural is infrequent, content is frequent. Match the path to the frequency.
+Singleton modes (`render_spec_id`) serve focused editing -- one entity, overlays for optimistic updates. Collection modes (`item_spec_id` + `source_query` + `arrangement`) serve browsing -- gathering entities by type, rendering each through a shared item spec, with optional chrome wrapping. Compound modes (`sections[]`) serve dashboards -- multiple sub-sections in one spatial position. The layout engine dispatches automatically based on which fields are present.
 
 ## Future Extensions
 
@@ -428,15 +441,11 @@ Full media capture/playback beyond process spawn — audio levels, VAD events, r
 
 ### Audio Rendering (Akoe)
 
-Voice synthesis for bidirectional voice interaction. TTS from expression content.
+Voice synthesis for bidirectional voice interaction. TTS from phasis content.
 
 ### Web Extraction
 
 Extract WebView frontend to standalone web app with WebSocket bridge.
-
-### Declarative Renderer
-
-Full render-spec interpretation for graph-driven display without code.
 
 ---
 

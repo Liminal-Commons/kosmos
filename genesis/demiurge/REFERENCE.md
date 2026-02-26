@@ -60,7 +60,7 @@ Bake an oikos-dev into frozen content ready for signing.
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `oikos_dev_id` | string | ✓ | The oikos-dev entity to bake |
-| `authorized_by` | string | ✓ | Expression ID that authorizes this bake (for manteia calls) |
+| `authorized_by` | string | ✓ | Phasis ID that authorizes this bake (for manteia calls) |
 | `target_locale` | string |  | BCP 47 locale code (e.g., "en-US", "zh-CN", "ar-SA"). |
 
 ### bind-dependencies 🔧
@@ -106,7 +106,7 @@ Compose from a definition — the single interface.
 | `definition_id` | string | ✓ | The artifact definition to compose from |
 | `inputs` | object |  | Values to fill (overrides defaults) |
 | `id` | string |  | Entity ID (only for entity composition, generated if not provided) |
-| `authorized_by` | string |  | Expression ID that authorizes this composition (provenance root) |
+| `authorized_by` | string |  | Phasis ID that authorizes this composition (provenance root) |
 
 ### compose-all-oikoi-dev 🔧
 
@@ -128,7 +128,7 @@ Compose with content-addressed caching.
 |-----------|------|----------|-------------|
 | `definition_id` | string | ✓ | The artifact definition to compose from |
 | `inputs` | object |  | Values to fill (overrides defaults) |
-| `authorized_by` | string |  | Expression ID that authorizes this composition |
+| `authorized_by` | string |  | Phasis ID that authorizes this composition |
 | `force_refresh` | boolean |  | Force re-composition even if cached |
 
 ### compose-definition-indexed 🔧
@@ -143,7 +143,7 @@ Generate and index an artifact definition.
 | `purpose` | string | ✓ | What this definition composes (detailed description) |
 | `target_eidos` | string |  | For entity composition - the eidos to compose |
 | `context` | string |  | Additional context (surfaced definitions, etc.) |
-| `authorized_by` | string |  | Expression ID that authorizes this composition |
+| `authorized_by` | string |  | Phasis ID that authorizes this composition |
 
 ### compose-indexed 🔧
 
@@ -157,7 +157,7 @@ Compose an artifact and index it for semantic search.
 | `inputs` | object |  | Values to fill (overrides defaults) |
 | `id` | string |  | Entity ID (generated if not provided) |
 | `index_text` | string |  | Text to index (derived from result if not provided) |
-| `authorized_by` | string |  | Expression ID that authorizes this composition |
+| `authorized_by` | string |  | Phasis ID that authorizes this composition |
 
 ### compose-oikos-dev 🔧
 
@@ -218,7 +218,7 @@ Generate multiple artifact definitions for a domain with surfaced context.
 | `domain` | string | ✓ | Domain name for surfacing context (e.g., "user management", "document editing") |
 | `entity_specs` | array | ✓ | Array of entity specifications to generate definitions for. |
 | `surface_limit` | number |  | How many existing definitions to surface as context (default 10) |
-| `authorized_by` | string |  | Expression ID that authorizes generation |
+| `authorized_by` | string |  | Phasis ID that authorizes generation |
 
 ### invalidate-artifact 🔧
 
@@ -280,8 +280,8 @@ Publish an oikos-dev as oikos-prod.
 |-----------|------|----------|-------------|
 | `oikos_dev_id` | string | ✓ | The oikos-dev to publish |
 | `mnemonic` | string | ✓ | BIP-39 mnemonic for signing |
-| `circle_id` | string | ✓ | Circle context for key derivation |
-| `authorized_by` | string | ✓ | Expression that authorizes this publication |
+| `oikos_id` | string | ✓ | Oikos context for key derivation |
+| `authorized_by` | string | ✓ | Phasis that authorizes this publication |
 | `attestation` | string |  | Optional attestation message from publisher |
 | `target_locale` | string |  | BCP 47 locale code for bake-time i18n (e.g., "en-US", "zh-CN"). |
 
@@ -296,8 +296,8 @@ Publish an oikos-dev to multiple locales in one operation.
 | `oikos_dev_id` | string | ✓ | The oikos-dev to publish |
 | `target_locales` | array | ✓ | Array of BCP 47 locale codes to publish (e.g., ["en-US", "zh-CN", "ar-SA"]). |
 | `mnemonic` | string | ✓ | BIP-39 mnemonic for signing |
-| `circle_id` | string | ✓ | Circle context for key derivation |
-| `authorized_by` | string | ✓ | Expression that authorizes this publication |
+| `oikos_id` | string | ✓ | Oikos context for key derivation |
+| `authorized_by` | string | ✓ | Phasis that authorizes this publication |
 | `attestation` | string |  | Optional attestation message from publisher |
 
 ### refresh-stale 🔧
@@ -351,9 +351,9 @@ Verify an oikos-prod package.
 | `baked-from` | oikos-prod → oikos-dev | Production oikos was baked from a development oikos. |
 | `composed-from` | * → * | Entity was composed from this artifact-definition |
 | `depends-on` | any → any | Artifact depends on entity. Used for cache invalidation. Also used for journey dependencies. |
-| `derives-from` | expression → any | Expression derives from stream or artifact. Provenance. |
+| `forked-from` | topos-dev → topos-dev | A topos-dev was forked from another topos-dev. Fork lineage. |
 | `packages` | oikos-dev → oikos | An oikos-dev packages a source oikos. This bond tracks which |
-| `published-by` | oikos-prod → persona | Production oikos was published by a persona. |
+| `published-by` | oikos-prod → parousia | Production oikos was published by a parousia. |
 
 ---
 

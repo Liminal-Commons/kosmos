@@ -1,0 +1,42 @@
+# Mood Item Render-Spec
+# Compact indicator for current mood
+#
+# Mood fields:
+#   - quality (enum): focused | scattered | anxious | calm | curious
+#
+# Traces to: genesis/demiurge/THYRA-EVOLUTION.md
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/mood-item
+    data:
+      name: mood-item
+      description: |
+        Compact indicator for mood — quality status indicator and label.
+      target_eidos: mood
+      variant: item
+
+      layout:
+        - widget: card
+          props:
+            variant: compact
+            padding: sm
+          children:
+            - widget: row
+              props:
+                gap: sm
+                align: center
+              children:
+                # Mood quality indicator
+                - widget: status-indicator
+                  props:
+                    status: "{quality}"
+
+                # Quality label
+                - widget: text
+                  props:
+                    content: "{quality}"
+                    variant: body
+
+      created_at: "2026-02-09T00:00:00Z"

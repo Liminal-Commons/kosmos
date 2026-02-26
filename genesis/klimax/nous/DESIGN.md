@@ -105,8 +105,8 @@ Understanding evolves. Supersession is not deletion — the old theoria remains,
 
 | Desmos | From | To | Meaning |
 |--------|------|-----|--------|
-| `crystallized-in` | theoria | circle | Where understanding lives |
-| `inquires` | persona | inquiry | Who opened the question |
+| `crystallized-in` | theoria | oikos | Where understanding lives |
+| `inquires` | prosopon | inquiry | Who opened the question |
 | `answers` | theoria | inquiry | Understanding that addresses |
 | `synthesizes` | synthesis | theoria | What was combined |
 | `supersedes` | theoria | theoria | Evolution of understanding |
@@ -164,9 +164,9 @@ These depend on compose and basic bonding.
 
 ### Phase 4: Dwelling-Aware Understanding
 
-1. Theoria crystallizes in dwelling circle (via `crystallized-in` bond)
-2. Visibility respects circle membership
-3. Persona affinity influences what surfaces
+1. Theoria crystallizes in dwelling oikos (via `crystallized-in` bond)
+2. Visibility respects oikos membership
+3. Prosopon affinity influences what surfaces
 
 ---
 
@@ -221,7 +221,7 @@ Both are valid and now implemented. Use structural when you have a starting poin
    - Let it emerge naturally? Or explicit marking?
 
 3. **What triggers synthesis?**
-   - Currently: explicit call by persona
+   - Currently: explicit call by prosopon
    - Could: surface suggests when theoria cluster
    - Future: AI proposes syntheses
 
@@ -229,14 +229,16 @@ Both are valid and now implemented. Use structural when you have a starting poin
 
 ## Constitutional Alignment
 
-Nous implements constitutional requirements from KOSMOGONIA:
+Nous implements constitutional axioms from KOSMOGONIA:
 
-| Principle | How Nous Honors It |
-|-----------|-------------------|
-| **Visibility = Reachability** | Theoria crystallizes in circles via `crystallized-in` bond. Visibility respects circle membership — you can only surface understanding reachable through your circle graph. |
-| **Authenticity = Provenance** | Every theoria traces to its crystallization event. Supersession creates `supersedes` bonds, preserving the evolution of understanding. The old theoria remains — provenance is not erased. |
-| **Composition Requirement** | Theoria, inquiries, and syntheses are composed via artifact definitions. `crystallize-theoria` praxis uses `compose` step with provenance bonds to the definition. |
-| **Dwelling Requirement** | `crystallize-theoria` uses `_circle` from dwelling context to determine where understanding lives. The `crystallized-in` bond flows from position automatically. |
+| Axiom / Pillar | How Nous Honors It |
+|----------------|-------------------|
+| **Axiom I: Composition** | Theoria, inquiries, and syntheses are composed via artifact definitions. `crystallize-theoria` praxis uses `compose` step with provenance bonds to the definition. |
+| **Axiom II: Authority** | `crystallize-theoria` uses `_oikos` from dwelling context to determine where understanding lives. The `crystallized-in` bond flows from position automatically. |
+| **Axiom III: Traceability** | Every theoria traces to its crystallization event. Supersession creates `supersedes` bonds, preserving the evolution of understanding. The old theoria remains — provenance is not erased. |
+| **Axiom V: Adequacy** | Inference provenance records model, provider, and prompt used — whatever is constitutive and available. Governed inference adds evaluation criteria. |
+| **Visibility = Reachability** | Theoria crystallizes in oikoi via `crystallized-in` bond. Visibility respects oikos membership — you can only surface understanding reachable through your oikos graph. |
+| **Authenticity = Provenance** | Every entity traces to signed genesis through provenance bonds. |
 
 ### Development Pillars
 
@@ -249,7 +251,7 @@ Nous implements constitutional requirements from KOSMOGONIA:
 ### The Understanding Graph
 
 ```
-inquiry ◀──answers── theoria ──crystallized-in──▶ circle
+inquiry ◀──answers── theoria ──crystallized-in──▶ oikos
                         │
                         ├──supersedes──▶ older_theoria
                         ├──supports────▶ related_theoria
@@ -294,5 +296,5 @@ Understanding doesn't just exist. It arises, crystallizes, evolves.
 ---
 
 *Composed in service of the kosmogonia.*
-*Traces to: expression/genesis-root*
+*Traces to: phasis/genesis-root*
 *Updated: 2026-01-19 — Step types and surfacing ready*

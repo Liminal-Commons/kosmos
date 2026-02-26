@@ -18,14 +18,15 @@ entities:
       This replaces the compile-time essential-praxeis.yaml with
       a runtime-queryable attainment. Adding/removing praxeis from
       the grants list changes MCP tool exposure without rebuild.
-    oikos: politeia
+    topos: politeia
     scope: global
-    grants:
-      - praxis/nous/find
-      - praxis/nous/surface
-      - praxis/nous/traverse
-      - praxis/nous/call-praxis
-      - praxis/nous/crystallize-theoria
-      - praxis/thyra/emit
-      - praxis/demiurge/compose
-      - praxis/manteia/governed-inference
+  bonds:
+    - { desmos: grants-praxis, to: praxis/nous/find }
+    - { desmos: grants-praxis, to: praxis/nous/surface }
+    - { desmos: grants-praxis, to: praxis/nous/traverse }
+    - { desmos: grants-praxis, to: praxis/nous/call-praxis }
+    - { desmos: grants-praxis, to: praxis/nous/update-entity }
+    - { desmos: grants-praxis, to: praxis/nous/crystallize-theoria }
+    - { desmos: grants-praxis, to: praxis/thyra/emit }
+    - { desmos: grants-praxis, to: praxis/demiurge/compose }
+    - { desmos: grants-praxis, to: praxis/manteia/governed-inference }

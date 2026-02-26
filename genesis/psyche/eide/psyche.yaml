@@ -1,11 +1,11 @@
 # Psyche Eide
-# Inner life eide — attention, intention, mood, thyra, prospect, kairos
+# Inner life eide — attention, intention, mood, perceptual-field, prospect, kairos
 #
 # The experiencing self has these dimensions:
 # - Attention: where focus rests
 # - Intention: what is being pursued
 # - Mood: how the world shows up (attunement)
-# - Thyra: the portal through which experience flows
+# - Perceptual-field: the portal awareness through which experience flows
 # - Prospect: anticipated possibilities
 # - Kairos: opportune moments
 
@@ -87,17 +87,21 @@ entities:
           required: false
           description: Additional context about the mood
 
-  # thyra — the portal
+  # perceptual-field — the parousia's awareness of its portal interface
   - eidos: eidos
-    id: eidos/thyra
+    id: eidos/perceptual-field
     data:
-      name: thyra
-      description: "The portal. Interface through which experience flows. Manages what can be shown and what interactions are possible."
+      name: perceptual-field
+      description: |
+        The parousia's subjective awareness of its portal interface.
+        What kind of interface is available, what can be perceived through it,
+        and what actions are possible. This is the experiencing self's view
+        of its portal — not the portal infrastructure itself (which is thyra topos).
       fields:
         name:
           type: string
           required: true
-          description: Name of the thyra
+          description: Name of the perceptual field
         kind:
           type: enum
           values: [cli, web, api, ambient]
@@ -106,11 +110,11 @@ entities:
         visibility_scope:
           type: array
           required: false
-          description: Circle IDs this thyra can perceive
+          description: Oikos IDs perceivable through this field
         capabilities:
           type: array
           required: true
-          description: What can be done through this thyra
+          description: What can be done through this perceptual field
         status:
           type: enum
           values: [open, closed, suspended]
@@ -119,7 +123,7 @@ entities:
         opened_at:
           type: timestamp
           required: true
-          description: When the thyra was opened
+          description: When this perceptual field was opened
 
   # prospect — anticipated possibility
   - eidos: eidos

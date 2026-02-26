@@ -1,0 +1,113 @@
+# Dynamis Render Specifications — actuality-record card
+# Card view for actuality-record showing sensed state snapshot
+#
+# Actuality-record fields:
+#   - entity_id (string): The entity this record describes
+#   - expected_state (string): What state was expected
+#   - actual_state (string): What state was sensed
+#   - aligned (boolean): Whether expected matches actual
+#   - drift_type (enum: none, missing, extra, different): Type of drift
+#   - sensed_at (timestamp): When the actuality was sensed
+#
+# Migrated from: genesis/dynamis/entities/rendering.yaml
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/actuality-record-card
+    data:
+      name: actuality-record-card
+      description: |
+        Card rendering for actuality-record entities.
+        Shows entity ID, state comparison, alignment status, and drift type.
+      target_eidos: actuality-record
+      variant: card
+
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+          children:
+            - widget: stack
+              props:
+                gap: sm
+              children:
+                # Header: label and aligned badge
+                - widget: row
+                  props:
+                    justify: between
+                    align: center
+                  children:
+                    - widget: text
+                      props:
+                        content: "Actuality Record"
+                        variant: label
+                    - widget: badge
+                      when: "aligned == true"
+                      props:
+                        content: "Aligned"
+                        variant: success
+                    - widget: badge
+                      when: "aligned == false"
+                      props:
+                        content: "Drifted"
+                        variant: warning
+
+                # Entity ID
+                - widget: row
+                  props:
+                    gap: xs
+                    align: center
+                  children:
+                    - widget: text
+                      props:
+                        content: "Entity:"
+                        variant: label
+                    - widget: code
+                      props:
+                        content: "{entity_id}"
+
+                # State comparison: expected -> actual
+                - widget: row
+                  props:
+                    gap: sm
+                    align: center
+                    justify: center
+                  children:
+                    - widget: text
+                      props:
+                        content: "{expected_state}"
+                        variant: body
+                    - widget: icon
+                      props:
+                        name: arrow-right
+                        size: sm
+                    - widget: text
+                      props:
+                        content: "{actual_state}"
+                        variant: emphasis
+
+                # Drift type (only when not aligned)
+                - widget: badge
+                  when: "drift_type != 'none'"
+                  props:
+                    content: "Drift: {drift_type}"
+                    variant: warning
+
+                # Sensed at timestamp
+                - widget: row
+                  props:
+                    gap: xs
+                    align: center
+                  children:
+                    - widget: icon
+                      props:
+                        name: clock
+                        size: sm
+                    - widget: text
+                      props:
+                        content: "Sensed {sensed_at}"
+                        variant: caption
+
+      created_at: "2026-02-09T00:00:00Z"

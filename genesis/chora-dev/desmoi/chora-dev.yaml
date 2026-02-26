@@ -1,0 +1,70 @@
+# Chora-Dev Desmoi
+# Bond types connecting build artifacts to sources and tests
+#
+# Four desmoi:
+# - builds-into: source-crate -> build-target
+# - compiled-from: build-target -> source-crate (inverse)
+# - tests-against: test-run -> build-target
+# - lints: lint-run -> source-crate
+
+entities:
+
+  # =============================================================================
+  # BUILD RELATIONSHIPS
+  # =============================================================================
+
+  - eidos: desmos
+    id: desmos/builds-into
+    data:
+      name: builds-into
+      description: |
+        Source crate builds into a target artifact.
+        One crate can have multiple build targets (different profiles/architectures).
+      from_eidos: source-crate
+      to_eidos: build-target
+      cardinality: one-to-many
+      symmetric: false
+
+  - eidos: desmos
+    id: desmos/compiled-from
+    data:
+      name: compiled-from
+      description: |
+        Build target was compiled from this source crate.
+        Inverse of builds-into for traversal convenience.
+      from_eidos: build-target
+      to_eidos: source-crate
+      cardinality: many-to-one
+      symmetric: false
+
+  # =============================================================================
+  # TEST RELATIONSHIPS
+  # =============================================================================
+
+  - eidos: desmos
+    id: desmos/tests-against
+    data:
+      name: tests-against
+      description: |
+        Test run executed against this build target.
+        Many test runs can target the same build (historical runs).
+      from_eidos: test-run
+      to_eidos: build-target
+      cardinality: many-to-one
+      symmetric: false
+
+  # =============================================================================
+  # LINT RELATIONSHIPS
+  # =============================================================================
+
+  - eidos: desmos
+    id: desmos/lints
+    data:
+      name: lints
+      description: |
+        Lint run checked this source crate.
+        Many lint runs can target the same source (historical runs).
+      from_eidos: lint-run
+      to_eidos: source-crate
+      cardinality: many-to-one
+      symmetric: false

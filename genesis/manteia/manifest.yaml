@@ -1,24 +1,24 @@
-# Oikos Manifest: Manteia
+# Topos Manifest: Manteia
 # μαντεία — divination, prophecy. Governed inference.
 #
-# Manifest v2.1 — oikos metadata for entity composition
+# Manifest v2.1 — topos metadata for entity composition
 
 format_version: "2.1"
-oikos_id: manteia
+topos_id: manteia
 version: "0.1.0"
 
-# Oikos metadata (v2.1)
-oikos_name: Manteia
-oikos_description: |
+# Topos metadata (v2.1)
+topos_name: Manteia
+topos_description: |
   Divination, prophecy. Governed inference through the kosmos.
   Provides constrained LLM generation using JSON schemas derived
   from stoicheion eide.
-oikos_scale: cross-scale
+topos_scale: cross-scale
 
 # Development experience metadata
-oikos_category: interface
+topos_category: interface
 surfaces_provided:
-  - reasoning    # Provides governed-inference for other oikoi
+  - reasoning    # Provides governed-inference for other topoi
 surfaces_consumed: []  # Manteia is the interface, doesn't consume other surfaces
 
 content_paths:
@@ -28,6 +28,12 @@ content_paths:
     content_types: [desmos]
   - path: praxeis/
     content_types: [praxis]
+  - path: typos/
+    content_types: [typos]
+  - path: entities/
+    content_types: [criterion]
+  - path: surfaces/
+    content_types: [surface]
 
 description: |
   Μαντεία (manteia) — divination, prophecy.

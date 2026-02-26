@@ -1,0 +1,22 @@
+# Chora-Dev Surface Contracts
+
+entities:
+
+  - eidos: surface
+    id: surface/substrate-develop
+    data:
+      surface_id: substrate-develop
+      description: |
+        Development substrate tooling: workspace scanning, building,
+        testing, linting, and deployment.
+
+        Consumers of this surface can trigger builds, run tests,
+        lint code, and deploy build artifacts to substrates.
+      praxeis:
+        - praxis/chora-dev/scan-workspace
+        - praxis/chora-dev/build
+        - praxis/chora-dev/sense-build
+        - praxis/chora-dev/test
+        - praxis/chora-dev/lint
+        - praxis/chora-dev/deploy-build
+      version: "1.0"

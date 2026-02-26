@@ -136,7 +136,7 @@ Invoke any praxis by ID.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `praxis_id` | string | ✓ | The praxis to invoke (e.g., "politeia/create-circle" or full "praxis/politeia/create-circle") |
+| `praxis_id` | string | ✓ | The praxis to invoke (e.g., "politeia/create-oikos" or full "praxis/politeia/create-oikos") |
 | `params` | object |  | Parameters to pass to the praxis |
 
 ### complete-journey 🔧
@@ -263,7 +263,7 @@ Activate chora-nous via composed invocation.
 |-----------|------|----------|-------------|
 | `pattern_id` | string | ✓ | The invocation-pattern to use |
 | `utterance` | string | ✓ | The input to process (what triggered activation) |
-| `expression_mode` | string |  | How the yield should be received (suggestion, invitation, inquiry, request, proposal, declaration). Default declaration. |
+| `phasis_stance` | string |  | How the yield should be received (suggestion, invitation, inquiry, request, proposal, declaration). Default declaration. |
 | `additional_context` | object |  | Additional context to include (e.g., goal, iteration) |
 
 ### list-journeys 🔧
@@ -394,9 +394,9 @@ Traverse the graph from a root entity, following specified bond types.
 | `answers` | theoria → inquiry | Theoria answers an inquiry |
 | `contains-waypoint` | journey → waypoint | Journey contains this waypoint |
 | `contradicts` | theoria → theoria | Theoria contradicts another theoria |
-| `crystallized-in` | theoria → circle | Theoria crystallized in a circle |
+| `crystallized-in` | theoria → oikos | Theoria crystallized in an oikos |
 | `evidences` | any → theoria | Entity provides evidence for theoria |
-| `inquires` | persona → inquiry | Persona opened an inquiry |
+| `inquires` | prosopon → inquiry | Prosopon opened an inquiry |
 | `supersedes` | theoria → theoria | Theoria supersedes older understanding |
 | `supports` | theoria → theoria | Theoria supports another theoria |
 | `synthesizes` | synthesis → theoria | Synthesis draws from theoria |

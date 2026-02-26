@@ -1,0 +1,117 @@
+# Ekdosis Render Specifications — build-attestation card
+# Card view for cryptographic build provenance
+#
+# Uses widget vocabulary from thyra/eide/widget.yaml
+# Replaces the HTML template format in ekdosis/entities/rendering.yaml
+#
+# Build-attestation fields (from ekdosis/eide/ekdosis.yaml):
+#   - builder_prosopon (string, required): Builder identity
+#   - build_timestamp (timestamp, required): When it was built
+#   - source_hash (string, required): BLAKE3 hash of oikos-dev content
+#   - output_hash (string, required): BLAKE3 hash of oikos-prod content
+#   - signature (string, required): Ed25519 signature
+#   - builder_pubkey (string, required): Builder public key
+#
+# Traces to: genesis/ekdosis/DESIGN.md
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/build-attestation-card
+    data:
+      name: build-attestation-card
+      description: |
+        Card view for build-attestation — cryptographic provenance.
+        Shows builder identity, source/output hashes, timestamp, and signed badge.
+      target_eidos: build-attestation
+      variant: card
+
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+          children:
+            - widget: stack
+              props:
+                gap: sm
+              children:
+                # Header row: icon + label + signed badge
+                - widget: row
+                  props:
+                    justify: between
+                    align: center
+                  children:
+                    - widget: row
+                      props:
+                        gap: sm
+                        align: center
+                      children:
+                        - widget: icon
+                          props:
+                            name: shield-check
+                        - widget: text
+                          props:
+                            content: "Build Attestation"
+                            variant: emphasis
+
+                    - widget: badge
+                      props:
+                        content: "Signed"
+                        variant: success
+
+                # Builder row
+                - widget: row
+                  props:
+                    gap: xs
+                    align: center
+                  children:
+                    - widget: text
+                      props:
+                        content: "Builder:"
+                        variant: label
+                    - widget: text
+                      props:
+                        content: "{builder_prosopon}"
+                        variant: body
+
+                # Hashes section
+                - widget: stack
+                  props:
+                    gap: xs
+                  children:
+                    - widget: row
+                      props:
+                        gap: xs
+                        align: center
+                      children:
+                        - widget: text
+                          props:
+                            content: "Source:"
+                            variant: label
+                        - widget: code
+                          props:
+                            content: "{source_hash}"
+
+                    - widget: row
+                      props:
+                        gap: xs
+                        align: center
+                      children:
+                        - widget: text
+                          props:
+                            content: "Output:"
+                            variant: label
+                        - widget: code
+                          props:
+                            content: "{output_hash}"
+
+                # Footer: build timestamp
+                - widget: divider
+
+                - widget: text
+                  props:
+                    content: "Built {build_timestamp}"
+                    variant: caption
+
+      created_at: "2025-02-09T00:00:00Z"

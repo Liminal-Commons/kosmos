@@ -1,0 +1,39 @@
+# Oikos Chrome Render-Spec
+# Heading + settings button for the oikos navigation sidebar
+#
+# Rendered once by the layout engine as chrome for mode/oikos-nav.
+# Settings button invokes thyra/toggle-settings to open the settings overlay.
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/oikos-chrome
+    data:
+      name: oikos-chrome
+      description: "Heading chrome with settings trigger for oikos navigation sidebar"
+      variant: chrome
+
+      layout:
+        - widget: row
+          props:
+            align: center
+            gap: sm
+            class: sidebar-chrome
+          children:
+            - widget: heading
+              props:
+                level: 3
+                content: "Oikoi"
+            - widget: spacer
+              props:
+                size: flex
+            - widget: button
+              props:
+                variant: ghost
+                class: settings-trigger
+                on_click: thyra/toggle-settings
+              children:
+                - widget: icon
+                  props:
+                    name: settings
+                    size: sm

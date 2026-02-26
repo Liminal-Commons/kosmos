@@ -1,0 +1,49 @@
+# Service Instance Card Render-Spec
+# Running service display — livekit, kosmos-server, etc.
+#
+# Traces to: genesis/soma/DESIGN.md § Infrastructure Eide
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/service-instance-card
+    data:
+      name: service-instance-card
+      target_eidos: service-instance
+      variant: card
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+          children:
+            - widget: stack
+              props:
+                gap: sm
+              children:
+                - widget: row
+                  props:
+                    justify: between
+                    align: center
+                  children:
+                    - widget: text
+                      props:
+                        content: "{name}"
+                        variant: emphasis
+                    - widget: status-indicator
+                      props:
+                        status: "{status}"
+                - widget: badge
+                  props:
+                    content: "{service_kind}"
+                    variant: info
+                - widget: text
+                  when: "endpoint"
+                  props:
+                    content: "{endpoint}"
+                    variant: caption
+                - widget: text
+                  when: "error_message"
+                  props:
+                    content: "{error_message}"
+                    variant: caption

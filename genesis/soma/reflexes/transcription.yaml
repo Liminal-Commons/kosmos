@@ -1,0 +1,96 @@
+# Transcription Reflexes — Autonomic Triple
+# Intent-changed + drift triggers and reflexes for transcriber entities.
+#
+# Traces to: PROMPT-VOICE-DECOMPOSITION.md
+
+entities:
+
+  # =============================================================================
+  # TRIGGERS
+  # =============================================================================
+
+  # Intent-changed trigger
+  - eidos: trigger
+    id: trigger/soma/transcriber-intent-changed
+    data:
+      name: transcriber-intent-changed
+      condition: '$entity.data.desired_state != $previous.data.desired_state'
+      enabled: true
+    bonds:
+      - { desmos: matches-event, to: entity-mutation/updated }
+      - { desmos: filters-eidos, to: eidos/transcriber }
+
+  # Drift trigger
+  - eidos: trigger
+    id: trigger/soma/transcriber-drift
+    data:
+      name: transcriber-drift
+      condition: '$entity.data.desired_state == "active" and $entity.data.actual_state not in ["active", "manifesting", "pending"]'
+      enabled: true
+    bonds:
+      - { desmos: matches-event, to: entity-mutation/updated }
+      - { desmos: filters-eidos, to: eidos/transcriber }
+
+  # =============================================================================
+  # REFLEXES
+  # =============================================================================
+
+  # Intent-changed reflex
+  - eidos: reflex
+    id: reflex/soma/reconcile-transcription-on-intent
+    data:
+      name: reconcile-transcription-on-intent
+      description: "When transcriber desired_state changes, reconcile."
+      enabled: true
+      scope: global
+      response_params:
+        reconciler_id: "reconciler/transcription"
+        entity_id: "$entity.id"
+    bonds:
+      - { desmos: triggered-by, to: trigger/soma/transcriber-intent-changed }
+      - { desmos: responds-with, to: praxis/dynamis/reconcile }
+
+  # Drift reflex
+  - eidos: reflex
+    id: reflex/soma/reconcile-transcription-on-drift
+    data:
+      name: reconcile-transcription-on-drift
+      description: "When transcriber drifts from desired_state, reconcile."
+      enabled: true
+      scope: global
+      response_params:
+        reconciler_id: "reconciler/transcription"
+        entity_id: "$entity.id"
+    bonds:
+      - { desmos: triggered-by, to: trigger/soma/transcriber-drift }
+      - { desmos: responds-with, to: praxis/dynamis/reconcile }
+
+  # =============================================================================
+  # DEPENDENCY: Audio-source readiness
+  # =============================================================================
+
+  # Audio-ready trigger: fires when audio-source transitions to active
+  - eidos: trigger
+    id: trigger/soma/audio-source-became-active
+    data:
+      name: audio-source-became-active
+      condition: '$entity.data.actual_state == "active" and $previous.data.actual_state != "active"'
+      enabled: true
+    bonds:
+      - { desmos: matches-event, to: entity-mutation/updated }
+      - { desmos: filters-eidos, to: eidos/audio-source }
+
+  # When audio becomes active, retry transcription reconciliation (dependency ready)
+  - eidos: reflex
+    id: reflex/soma/reconcile-transcription-on-audio-ready
+    data:
+      name: reconcile-transcription-on-audio-ready
+      description: "When audio-source becomes active, reconcile transcription."
+      enabled: true
+      scope: global
+      response_params:
+        reconciler_id: "reconciler/transcription"
+        entity_id: "transcriber/default"
+    bonds:
+      - { desmos: triggered-by, to: trigger/soma/audio-source-became-active }
+      - { desmos: responds-with, to: praxis/dynamis/reconcile }

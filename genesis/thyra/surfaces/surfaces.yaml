@@ -1,0 +1,27 @@
+# Thyra Surface Contracts
+
+entities:
+
+  - eidos: surface
+    id: surface/rendering
+    data:
+      surface_id: rendering
+      description: |
+        UI rendering and widget interpretation: layout activation,
+        render-spec resolution, panel management, and artifact display.
+
+        Consumers of this surface can activate layouts, open and focus
+        artifacts, manage panels, and trigger full render passes through
+        the generic interpreter.
+      praxeis:
+        - praxis/thyra/gather-render-intent
+        - praxis/thyra/reconcile-region
+        - praxis/thyra/emit-render
+        - praxis/thyra/activate-layout
+        - praxis/thyra/open-artifact
+        - praxis/thyra/close-artifact
+        - praxis/thyra/focus-artifact
+        - praxis/thyra/create-panel
+        - praxis/thyra/list-panels
+        - praxis/thyra/render-all
+      version: "1.0"

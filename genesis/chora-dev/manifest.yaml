@@ -1,0 +1,164 @@
+# Topos Manifest: chora-dev
+# χώρα-dev — full circle validation — substrate development made homoiconic
+#
+# chora-dev makes substrate development graph-traversable. Build targets,
+# test runs, and source crates become entities with bonds. Kosmos orchestrates
+# cargo builds, tracks artifact freshness via content hashes, and reconciles
+# deployments of itself.
+#
+# The circle closes: kosmos describes builds -> chora executes them ->
+# kosmos deploys the result -> chora runs kosmos -> which orchestrates the next build.
+#
+# Manifest v2.1 — topos metadata for entity composition
+
+format_version: "2.1"
+topos_id: chora-dev
+version: "0.1.0"
+
+# Topos metadata (v2.1)
+topos_name: Chora Development
+topos_description: |
+  Full circle validation — substrate development made homoiconic.
+  Build targets, test runs, and source crates become graph-traversable
+  entities. Kosmos orchestrates its own substrate development.
+topos_scale: oikos  # Development tooling scale
+
+# Development experience metadata
+topos_category: tooling
+surfaces_provided:
+  - substrate-develop    # Build, test, lint operations for Rust crates
+surfaces_consumed:
+  - computation          # Uses dynamis actuality bridging (manifest/sense)
+  - understanding        # Uses nous for semantic search of build artifacts
+  - reactivity           # Reflexes for build/test mutation response
+  - sensing              # Daemon: sense-cargo-builds (periodic build/test/lint sensing)
+
+content_paths:
+  - path: eide/
+    content_types: [eidos]
+  - path: desmoi/
+    content_types: [desmos]
+  - path: praxeis/
+    content_types: [praxis]
+  - path: entities/
+    content_types: [panel, context-menu, command, navigation-item, command-template]
+  - path: reflexes/
+    content_types: [reflex]
+  - path: surfaces/
+    content_types: [surface]
+  - path: render-specs/
+    content_types: [render-spec]
+  - path: stoicheia/
+    content_types: [stoicheion]
+  - path: typos/
+    content_types: [typos]
+  - path: modes/
+    content_types: [mode]
+  - path: daemons/
+    content_types: [daemon]
+
+requires_dynamis:
+  # Tier 2: Entity operations
+  - db.find
+  - db.gather
+  - db.bind
+  - db.trace
+  - db.update
+  # Tier 3: Actuality operations
+  - energeia.manifest
+  - energeia.sense
+  - energeia.unmanifest
+  # Tier 3: Cargo-specific stoicheia (defined in this topos)
+  - cargo.build
+  - cargo.test
+  - cargo.clippy
+  - cargo.metadata
+  - cargo.hash
+
+provides:
+  eide:
+    - source-crate      # Rust crate in workspace
+    - build-target      # Compiled artifact from cargo build
+    - test-run          # Test execution record
+    - lint-run          # Clippy/lint execution record
+
+  typos:
+    - typos-def-source-crate
+    - typos-def-build-target
+    - typos-def-test-run
+    - typos-def-lint-run
+
+  reflexes:
+    - reflex/chora-dev/notify-build-complete
+    - reflex/chora-dev/notify-test-failure
+    - reflex/chora-dev/detect-staleness
+    - reflex/chora-dev/auto-index-build-target
+    - reflex/chora-dev/build-intent-changed
+    - reflex/chora-dev/test-intent-changed
+    - reflex/chora-dev/lint-intent-changed
+    - reflex/chora-dev/build-drift
+    - reflex/chora-dev/test-drift
+    - reflex/chora-dev/lint-drift
+
+  # Topos-centric rendering: chora-dev owns presentation for development entities
+  renderable:
+    - eidos: source-crate
+      description: "Workspace crate cards with build status"
+    - eidos: build-target
+      description: "Build artifact cards with progress and hashes"
+    - eidos: test-run
+      description: "Test execution cards with results and output"
+    - eidos: lint-run
+      description: "Lint result cards with warnings and errors"
+
+  attainments:
+    - substrate-develop  # Full build/test/lint capability
+    - substrate-observe  # Read-only access to build state
+
+  desmoi:
+    - builds-into        # source-crate -> build-target
+    - compiled-from      # build-target -> source-crate (inverse)
+    - tests-against      # test-run -> build-target
+    - lints              # lint-run -> source-crate
+
+  praxeis:
+    # Workspace discovery
+    - chora-dev/scan-workspace
+
+    # Build operations
+    - chora-dev/build
+    - chora-dev/sense-build
+    - chora-dev/mark-stale
+
+    # Test operations
+    - chora-dev/test
+
+    # Lint operations
+    - chora-dev/lint
+
+    # Reconciliation
+    - chora-dev/reconcile-builds
+
+    # Integration with release/deployment
+    - chora-dev/register-for-release
+    - chora-dev/deploy-build
+
+  stoicheia:
+    # Tier 3 stoicheia requiring Rust implementation
+    - cargo-build-run
+    - cargo-build-sense
+    - cargo-clean
+    - cargo-test-run
+    - cargo-test-sense
+    - cargo-clippy-run
+    - cargo-metadata
+    - hash-source
+
+depends_on:
+  - dynamis           # Actuality bridging (manifest/sense/unmanifest)
+  - release           # Version tracking, artifact distribution
+  - dokimasia         # Validation framework
+  - soma              # Node infrastructure for deployment targets
+  - ergon             # Daemons and reconcilers
+  - nous              # Semantic search and indexing
+  - thyra             # Notifications and UI (rendering owned by thyra, opsis dissolved)

@@ -1,0 +1,25 @@
+# Aither Surface Contracts
+
+entities:
+
+  - eidos: surface
+    id: surface/transport
+    data:
+      surface_id: transport
+      description: |
+        Network transport and federation capabilities: signaling,
+        peer-to-peer channels, presence, and synchronization.
+
+        Consumers of this surface can establish connections, send and
+        receive messages, manage presence state, and synchronize
+        entities across federated nodes.
+      praxeis:
+        - praxis/aither/connect-signaling
+        - praxis/aither/create-channel
+        - praxis/aither/send-message
+        - praxis/aither/receive-messages
+        - praxis/aither/update-presence
+        - praxis/aither/list-presence
+        - praxis/aither/broadcast-sync
+        - praxis/aither/receive-sync
+      version: "1.0"

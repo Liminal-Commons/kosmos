@@ -1,0 +1,51 @@
+# Kairos Item Render-Spec
+# Compact alert item for opportune moment
+#
+# Kairos fields:
+#   - description (string): What the opportunity is
+#   - expires_at (datetime): When the moment passes
+#
+# Traces to: genesis/demiurge/THYRA-EVOLUTION.md
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/kairos-item
+    data:
+      name: kairos-item
+      description: |
+        Compact alert item for kairos — icon, description, and expiry badge.
+      target_eidos: kairos
+      variant: item
+
+      layout:
+        - widget: card
+          props:
+            variant: compact
+            padding: sm
+          children:
+            - widget: row
+              props:
+                gap: sm
+                align: center
+              children:
+                # Kairos icon
+                - widget: icon
+                  props:
+                    name: zap
+                    size: sm
+
+                # Description
+                - widget: text
+                  props:
+                    content: "{description}"
+                    variant: body
+
+                # Expires badge
+                - widget: badge
+                  when: "expires_at"
+                  props:
+                    content: "Until {expires_at}"
+                    variant: warning
+
+      created_at: "2026-02-09T00:00:00Z"

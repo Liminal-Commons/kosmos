@@ -29,7 +29,7 @@ entities:
     bonds:
       - desmos: belongs-to
         from_self: true
-        to_literal: oikos/dynamis
+        to_literal: topos/dynamis
 
 - eidos: typos
   id: typos-def-service-instance
@@ -46,7 +46,7 @@ entities:
     bonds:
       - desmos: belongs-to
         from_self: true
-        to_literal: oikos/soma
+        to_literal: topos/soma
 
 - eidos: typos
   id: typos-def-node
@@ -64,4 +64,4 @@ entities:
     bonds:
       - desmos: belongs-to
         from_self: true
-        to_literal: oikos/soma
+        to_literal: topos/soma

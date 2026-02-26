@@ -19,27 +19,27 @@
 
 - id: authorized-by
   description: |
-    Authorization bond. Points to the expression/invocation that
+    Authorization bond. Points to the phasis that
     authorized this entity's creation.
   from_eidos: [any]
-  to_eidos: [expression, invocation]
+  to_eidos: [phasis]
   cardinality: many-to-one
 
 - id: belongs-to
   description: |
-    Containment within an oikos.
+    Containment within a topos.
   from_eidos: [praxis, typos, eidos]
-  to_eidos: [oikos]
+  to_eidos: [topos]
   cardinality: many-to-one
 
 - id: sources-content-from
   description: |
-    Content sourcing. An oikos or manifest sources content from content-roots.
+    Content sourcing. A topos or manifest sources content from content-roots.
     This makes "where content comes from" traversable, not implicit.
 
     Bootstrap queries this bond to discover content paths instead of
     hardcoding directory conventions.
-  from_eidos: [oikos-manifest, oikos]
+  from_eidos: [topos-manifest, topos]
   to_eidos: [content-root]
   cardinality: many-to-many
 
@@ -54,25 +54,25 @@
   cardinality: many-to-one
 
 # =============================================================================
-# OIKOS DESMOI — How capability domains organize
+# TOPOS DESMOI — How capability domains organize
 # =============================================================================
 
 - id: manifest-for
   description: |
-    Links oikos-manifest to its oikos. Each oikos has exactly one manifest
+    Links topos-manifest to its topos. Each topos has exactly one manifest
     that declares what it requires and provides.
-  from_eidos: [oikos-manifest]
-  to_eidos: [oikos]
+  from_eidos: [topos-manifest]
+  to_eidos: [topos]
   cardinality: many-to-one
 
 - id: provides-affordance
   description: |
-    An oikos provides an affordance or attainment. This exposes capabilities
-    that other oikoi can require.
+    A topos provides an affordance or attainment. This exposes capabilities
+    that other topoi can require.
 
-    Affordances are what an oikos CAN DO (praxeis, stoicheia).
-    Attainments are what an oikos HAS ACHIEVED (tier access, permissions).
-  from_eidos: [oikos]
+    Affordances are what a topos CAN DO (praxeis, stoicheia).
+    Attainments are what a topos HAS ACHIEVED (tier access, permissions).
+  from_eidos: [topos]
   to_eidos: [attainment, affordance]
   cardinality: many-to-many
 
@@ -80,40 +80,111 @@
   description: |
     Declares that something requires an attainment to be invoked.
 
-    For oikos: Required attainments must be available in the dwelling context.
+    For topos: Required attainments must be available in the dwelling context.
     For stoicheion: The interpreter queries this bond before executing tier 3 steps.
-    For praxis: Required attainments must be held by the invoking animus.
+    For praxis: Required attainments must be held by the invoking parousia.
 
     This enables graph-queryable permission checking rather than hardcoded gating.
-  from_eidos: [oikos, stoicheion, praxis, affordance]
+  from_eidos: [topos, stoicheion, praxis, affordance]
   to_eidos: [attainment]
+  cardinality: many-to-many
+
+- id: grants-praxis
+  description: |
+    An attainment grants permission to invoke this praxis.
+    The inverse perspective of requires-attainment.
+
+    Traversable: attainment → grants-praxis → praxis reveals
+    all operations an attainment enables.
+
+    Both grants-praxis and requires-attainment exist because each enables
+    a different traversal direction through the authorization graph.
+  from_eidos: [attainment]
+  to_eidos: [praxis]
+  cardinality: many-to-many
+
+# =============================================================================
+# SURFACE DESMOI — How capability contracts bind topoi
+# =============================================================================
+
+- id: provides-surface
+  description: |
+    A topos manifest provides this surface contract. Created during bootstrap
+    from surfaces_provided declarations in manifest.yaml.
+
+    Traversing from a surface entity via provides-surface (reverse) reveals
+    which topoi provide that capability.
+  from_eidos: [topos-manifest]
+  to_eidos: [surface]
+  cardinality: many-to-many
+
+- id: consumes-surface
+  description: |
+    A topos manifest requires this surface contract. Created during bootstrap
+    from surfaces_consumed declarations in manifest.yaml.
+
+    Bootstrap validates that every consumes-surface bond has a corresponding
+    provides-surface bond from at least one other topos. Unsatisfied surface
+    dependencies are errors, not warnings.
+  from_eidos: [topos-manifest]
+  to_eidos: [surface]
   cardinality: many-to-many
 
 # =============================================================================
 # DWELLING DESMOI — How presence is established
 # =============================================================================
 
+- id: exists-in
+  description: |
+    Existence bond. An entity exists in an oikos.
+    This is the primary visibility mechanism — entities are visible
+    to members of the oikos where they exist.
+  from_eidos: [any]
+  to_eidos: [oikos]
+  cardinality: many-to-one
+
 - id: dwells-in
   description: |
-    Active dwelling. An animus dwells in a circle.
-    This bond grants visibility scope.
-  from_eidos: [animus]
-  to_eidos: [circle]
+    Active dwelling. A parousia dwells in an oikos.
+    Exclusively for parousia — entities use exists-in, not dwells-in.
+  from_eidos: [parousia]
+  to_eidos: [oikos]
   cardinality: many-to-one
 
 - id: member-of
   description: |
-    Membership. A persona belongs to a circle.
+    Membership. A prosopon belongs to an oikos.
     Membership enables dwelling.
-  from_eidos: [persona]
-  to_eidos: [circle]
+  from_eidos: [prosopon]
+  to_eidos: [oikos]
   cardinality: many-to-many
 
 - id: instantiates
   description: |
-    An animus instantiates a persona for a session.
-  from_eidos: [animus]
-  to_eidos: [persona]
+    A parousia instantiates a prosopon for a session.
+  from_eidos: [parousia]
+  to_eidos: [prosopon]
+  cardinality: many-to-one
+
+# =============================================================================
+# STRUCTURAL DESMOI — How oikoi and topoi relate
+# =============================================================================
+
+- id: hosts
+  description: |
+    The primordial bond. An oikos hosts topoi to gain capability.
+    Prosopa dwell in oikoi. Praxeis inhabit topoi. The oikos hosts
+    topoi to make capability available to its dwellers.
+  from_eidos: [oikos]
+  to_eidos: [topos]
+  cardinality: many-to-many
+
+- id: inhabits
+  description: |
+    A praxis inhabits a topos. This bond declares which capability
+    domain a praxis belongs to.
+  from_eidos: [praxis]
+  to_eidos: [topos]
   cardinality: many-to-one
 
 # =============================================================================
@@ -157,13 +228,13 @@
   cardinality: many-to-one
 
 # =============================================================================
-# GOVERNANCE DESMOI — How circles organize
+# GOVERNANCE DESMOI — How oikoi organize
 # =============================================================================
 
 - id: adopts
   description: |
-    A circle adopts a principle as binding.
-  from_eidos: [circle]
+    An oikos adopts a principle as binding.
+  from_eidos: [oikos]
   to_eidos: [principle]
   cardinality: many-to-many
 
@@ -176,9 +247,9 @@
 
 - id: stewards
   description: |
-    A persona stewards a circle (governance role).
-  from_eidos: [persona]
-  to_eidos: [circle]
+    A prosopon stewards an oikos (governance role).
+  from_eidos: [prosopon]
+  to_eidos: [oikos]
   cardinality: many-to-many
 
 # =============================================================================
@@ -212,22 +283,22 @@
 
 - id: last-saw
   description: |
-    Persona's observation cursor. Tracks the version at which a persona
-    last observed a circle. Used to compute "what's new" via delta query:
+    Prosopon's observation cursor. Tracks the version at which a prosopon
+    last observed an oikos. Used to compute "what's new" via delta query:
 
-      entities in circle WHERE version > cursor
+      entities in oikos WHERE version > cursor
 
     Changes aren't reified as entities. They're computed from the delta
     between cursor and current state. This implements the cache-driven
     pillar: no explicit change tracking, just version comparison.
-  from_eidos: [persona]
-  to_eidos: [circle]
+  from_eidos: [prosopon]
+  to_eidos: [oikos]
   cardinality: one-to-one
   data_schema:
     version:
       type: integer
       required: true
-      description: The version number when persona last observed this circle
+      description: The version number when prosopon last observed this oikos
 
 # =============================================================================
 # PROVENANCE DESMOI — How authenticity chains
@@ -240,40 +311,6 @@
   to_eidos: [signature]
   cardinality: one-to-many
 
-- id: derives-from
-  description: |
-    Key derivation chain. Child key derives from parent.
-  from_eidos: [keypair]
-  to_eidos: [keypair]
-  cardinality: many-to-one
-
-# =============================================================================
-# RENDERING DESMOI — How content becomes visual form
-# =============================================================================
-
-- id: renders-with
-  description: |
-    A renderer implements a render-type. The UI queries this bond to
-    discover which component renders which semantic category.
-  from_eidos: [renderer]
-  to_eidos: [render-type]
-  cardinality: many-to-one
-
-- id: displays-in
-  description: |
-    A panel displays in a region. Makes panel-to-region assignment
-    traversable rather than embedded in panel.region_id.
-  from_eidos: [panel]
-  to_eidos: [hud-region]
-  cardinality: many-to-one
-
-- id: uses-renderer
-  description: |
-    A panel uses a specific renderer for display. Alternative to
-    embedding render_type in the panel; makes dispatch graph-queryable.
-  from_eidos: [panel]
-  to_eidos: [renderer]
-  cardinality: many-to-one
 
 # =============================================================================
 # TRAVERSAL PROPERTIES

@@ -1,0 +1,400 @@
+# logos.yaml
+# Logos praxeis — the phasis surface
+#
+# How kosmos entities communicate intentionally.
+# Humans, oikoi, daemons, and reconcilers all speak through logos.
+
+entities:
+
+# =============================================================================
+# PHASIS OPERATIONS
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/logos/emit-phasis
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/express
+  data:
+    topos: logos
+    name: emit-phasis
+    visible: true
+    description: |
+      Emit a phasis — the act of speaking.
+
+      This is the moment when intention becomes discourse.
+      All contributions to the oikos become phaseis.
+
+      Can be called by humans (direct), topoi (topos), or from
+      committed voice (stream).
+    params:
+      - name: content
+        type: string
+        required: true
+        description: The content being expressed
+      - name: stance
+        type: string
+        required: false
+        description: "Phasis stance: declaration, inquiry, suggestion, request, proposal (default: declaration)"
+      - name: in_reply_to
+        type: string
+        required: false
+        description: Phasis ID this replies to
+      - name: source_kind
+        type: string
+        required: false
+        description: "How this originated: stream, compose, direct, topos (default: direct)"
+      - name: source_topos_id
+        type: string
+        required: false
+        description: "Topos ID if source_kind is topos"
+      - name: content_type
+        type: string
+        required: false
+        description: "MIME type (default: text/plain)"
+      - name: metadata
+        type: object
+        required: false
+        description: "Additional context (e.g., source_eidos, source_id for topos phaseis)"
+    steps:
+      # Assert we have dwelling context
+      - step: assert
+        condition: "$_prosopon"
+        message: "Cannot express without a prosopon"
+
+      - step: assert
+        condition: "$_oikos"
+        message: "Cannot express without dwelling in an oikos"
+
+      # Set defaults
+      - step: set
+        bindings:
+          expr_stance: "$stance"
+          expr_source: "$source_kind"
+          expr_content_type: "$content_type"
+
+      - step: switch
+        cases:
+          - when: "$expr_stance"
+            then: []
+        default:
+          - step: set
+            bindings:
+              expr_stance: "declaration"
+
+      - step: switch
+        cases:
+          - when: "$expr_source"
+            then: []
+        default:
+          - step: set
+            bindings:
+              expr_source: "direct"
+
+      - step: switch
+        cases:
+          - when: "$expr_content_type"
+            then: []
+        default:
+          - step: set
+            bindings:
+              expr_content_type: "text/plain"
+
+      # Generate phasis ID
+      - step: set
+        bindings:
+          phasis_id: "phasis/{{ now() }}"
+          expressed_at: "{{ now() }}"
+
+      # Determine authored_by based on source_kind
+      # If topos, use the topos ID; otherwise use prosopon
+      - step: set
+        bindings:
+          speaker: "$_prosopon.id"
+
+      - step: switch
+        cases:
+          - when: "$expr_source == 'topos' && $source_topos_id"
+            then:
+              - step: set
+                bindings:
+                  speaker: "$source_topos_id"
+
+      # Create the phasis
+      - step: compose
+        typos_id: "typos-def-phasis"
+        inputs:
+          id: "$phasis_id"
+          content: "$content"
+          content_type: "$expr_content_type"
+          authored_by: "$speaker"
+          oikos_id: "$_oikos.id"
+          expressed_at: "$expressed_at"
+          source_kind: "$expr_source"
+          source_topos_id: "$source_topos_id"
+          stance: "$expr_stance"
+          in_reply_to: "$in_reply_to"
+          metadata: "$metadata"
+        bind_to: phasis_entity
+
+      # Bond phasis to oikos
+      - step: bind
+        from_id: "$phasis_id"
+        to_id: "$_oikos.id"
+        desmos: "phasis-in"
+
+      # Bond to reply target if specified
+      - step: switch
+        cases:
+          - when: "$in_reply_to"
+            then:
+              - step: bind
+                from_id: "$phasis_id"
+                to_id: "$in_reply_to"
+                desmos: "in-reply-to"
+
+      - step: return
+        value:
+          phasis_id: "$phasis_id"
+          authored_by: "$speaker"
+          oikos_id: "$_oikos.id"
+          stance: "$expr_stance"
+          source_kind: "$expr_source"
+
+- eidos: praxis
+  id: praxis/logos/list-phaseis
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/express
+  data:
+    topos: logos
+    name: list-phaseis
+    visible: true
+    description: |
+      List phaseis in an oikos.
+
+      Can filter by authored_by prosopon/topos or mode.
+    params:
+      - name: oikos_id
+        type: string
+        required: false
+        description: Oikos to list from (defaults to current oikos)
+      - name: authored_by
+        type: string
+        required: false
+        description: Filter by prosopon ID or topos ID
+      - name: stance
+        type: string
+        required: false
+        description: Filter by phasis stance
+      - name: limit
+        type: number
+        required: false
+        description: "Maximum phaseis to return (default: 50)"
+    steps:
+      # Use provided oikos or current
+      - step: set
+        bindings:
+          target_oikos: "$oikos_id"
+          max_results: "$limit"
+
+      - step: switch
+        cases:
+          - when: "$target_oikos"
+            then: []
+        default:
+          - step: set
+            bindings:
+              target_oikos: "$_oikos.id"
+
+      - step: switch
+        cases:
+          - when: "$max_results"
+            then: []
+        default:
+          - step: set
+            bindings:
+              max_results: 50
+
+      # Gather phaseis bonded to oikos
+      - step: trace
+        to_id: "$target_oikos"
+        desmos: "phasis-in"
+        resolve: "from"
+        bind_to: phaseis
+
+      # Filter by authored_by if specified
+      - step: switch
+        cases:
+          - when: "$authored_by"
+            then:
+              - step: filter
+                items: "$phaseis"
+                condition: "$item.data.authored_by == '$authored_by'"
+                bind_to: phaseis
+
+      # Filter by stance if specified
+      - step: switch
+        cases:
+          - when: "$stance"
+            then:
+              - step: filter
+                items: "$phaseis"
+                condition: "$item.data.stance == '$stance'"
+                bind_to: phaseis
+
+      # Sort by expressed_at descending
+      - step: sort
+        items: "$phaseis"
+        by: "data.expressed_at"
+        order: "desc"
+        bind_to: phaseis
+
+      # Limit results
+      - step: limit
+        items: "$phaseis"
+        count: "$max_results"
+        bind_to: phaseis
+
+      - step: return
+        value:
+          phaseis: "$phaseis"
+          oikos_id: "$target_oikos"
+          count: "${{ len(phaseis) }}"
+
+- eidos: praxis
+  id: praxis/logos/reply-to
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/express
+  data:
+    topos: logos
+    name: reply-to
+    visible: true
+    description: |
+      Reply to a phasis.
+
+      Convenience wrapper around emit-phasis that sets in_reply_to
+      and validates the target exists.
+    params:
+      - name: phasis_id
+        type: string
+        required: true
+        description: The phasis to reply to
+      - name: content
+        type: string
+        required: true
+        description: The reply content
+      - name: stance
+        type: string
+        required: false
+        description: "Phasis stance (default: declaration)"
+    steps:
+      # Find the target phasis
+      - step: find
+        id: "$phasis_id"
+        bind_to: target
+
+      - step: assert
+        condition: "$target"
+        message: "Phasis not found: $phasis_id"
+
+      # Call emit-phasis with in_reply_to set
+      - step: call
+        praxis: "logos/emit-phasis"
+        params:
+          content: "$content"
+          stance: "$stance"
+          in_reply_to: "$phasis_id"
+          source_kind: "direct"
+        bind_to: reply_result
+
+      - step: return
+        value:
+          phasis_id: "$reply_result.phasis_id"
+          in_reply_to: "$phasis_id"
+          authored_by: "$reply_result.authored_by"
+          stance: "$reply_result.stance"
+
+- eidos: praxis
+  id: praxis/logos/get-thread
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/express
+  data:
+    topos: logos
+    name: get-thread
+    visible: true
+    description: |
+      Get a conversation thread from a phasis.
+
+      Follows in-reply-to bonds to build the thread.
+    params:
+      - name: phasis_id
+        type: string
+        required: true
+        description: The phasis to get thread for
+      - name: direction
+        type: string
+        required: false
+        description: "Direction: ancestors (default), descendants, or both"
+    steps:
+      - step: find
+        id: "$phasis_id"
+        bind_to: root_phasis
+
+      - step: assert
+        condition: "$root_phasis"
+        message: "Phasis not found: $phasis_id"
+
+      # Set default direction
+      - step: set
+        bindings:
+          thread_direction: "$direction"
+
+      - step: switch
+        cases:
+          - when: "$thread_direction"
+            then: []
+        default:
+          - step: set
+            bindings:
+              thread_direction: "ancestors"
+
+      # Build thread based on direction
+      - step: set
+        bindings:
+          ancestors: []
+          descendants: []
+
+      # Get ancestors (what this replies to)
+      - step: switch
+        cases:
+          - when: "$thread_direction == 'ancestors' || $thread_direction == 'both'"
+            then:
+              - step: trace
+                from_id: "$phasis_id"
+                desmos: "in-reply-to"
+                resolve: "to"
+                recursive: true
+                bind_to: ancestors
+
+      # Get descendants (what replies to this)
+      - step: switch
+        cases:
+          - when: "$thread_direction == 'descendants' || $thread_direction == 'both'"
+            then:
+              - step: trace
+                to_id: "$phasis_id"
+                desmos: "in-reply-to"
+                resolve: "from"
+                recursive: true
+                bind_to: descendants
+
+      - step: return
+        value:
+          phasis_id: "$phasis_id"
+          phasis: "$root_phasis"
+          ancestors: "$ancestors"
+          descendants: "$descendants"
+          direction: "$thread_direction"

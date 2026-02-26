@@ -1,0 +1,117 @@
+# Thyra Modes — Spatial presentation
+# How topoi present themselves in spatial positions through the door (thyra).
+# These are not dynamis modes — they have no substrate, no stoicheion dispatch.
+# Thyra mediates between kosmos and perception; dynamis extends kosmos into capability.
+
+entities:
+
+  # ─────────────────────────────────────────────────────────────
+  # COMPOSE BAR MODES — Two modes for the compose bar
+  # Full (default text), transcribing (readonly with live transcript)
+  # ─────────────────────────────────────────────────────────────
+
+  - eidos: mode
+    id: mode/compose-full
+    data:
+      name: compose-full
+      topos: thyra
+      description: |
+        Full compose bar. Control row (audio, transcription, stance badge,
+        clarify, express) above textarea.
+      render_spec_id: render-spec/compose-full
+      spatial:
+        position: bottom
+        height: auto
+      source_entity_id: accumulation/default
+      created_at: "2026-02-12T00:00:00Z"
+
+  - eidos: mode
+    id: mode/compose-transcribing
+    data:
+      name: compose-transcribing
+      topos: thyra
+      description: |
+        Compose bar with active transcription. Same layout as compose-full
+        but textarea is readonly with transcribing placeholder.
+      render_spec_id: render-spec/compose-transcribing
+      spatial:
+        position: bottom
+        height: auto
+      source_entity_id: accumulation/default
+      created_at: "2026-02-12T00:00:00Z"
+
+  - eidos: mode
+    id: mode/oikos-nav
+    data:
+      name: oikos-nav
+      topos: politeia
+      description: "Oikos navigation sidebar"
+      item_spec_id: render-spec/oikos-card
+      arrangement: scroll
+      empty_message: "No oikoi"
+      chrome_spec_id: render-spec/oikos-chrome
+      spatial:
+        position: left
+        height: fill
+      source_query: "gather(eidos: oikos, sort: name, order: asc)"
+      config:
+        watch_eidos: oikos
+      created_at: "2026-02-07T00:00:00Z"
+
+  - eidos: mode
+    id: mode/theoria-sidebar
+    data:
+      name: theoria-sidebar
+      topos: nous
+      description: "Theoria browsing sidebar"
+      item_spec_id: render-spec/theoria-card
+      arrangement: scroll
+      empty_message: "No theoria yet"
+      chrome_spec_id: render-spec/theoria-chrome
+      spatial:
+        position: right
+        height: fill
+      source_query: "gather(eidos: theoria, sort: domain, order: asc)"
+      config:
+        watch_eidos: theoria
+      created_at: "2026-02-07T00:00:00Z"
+
+  - eidos: mode
+    id: mode/phasis-feed
+    data:
+      name: phasis-feed
+      topos: logos
+      description: |
+        Live phasis feed showing discourse from all sources
+        (human phaseis, topos announcements, reflex notifications).
+      item_spec_id: render-spec/phasis-bubble
+      arrangement: scroll-bottom
+      empty_message: "No phaseis yet"
+      spatial:
+        position: center
+        height: fill
+      source_query: "gather(eidos: phasis, sort: expressed_at, order: desc)"
+      config:
+        watch_eidos: phasis
+      created_at: "2026-02-09T00:00:00Z"
+
+bonds:
+  - from_id: mode/compose-full
+    to_id: render-spec/compose-full
+    desmos: uses-render-spec
+    
+  - from_id: mode/compose-transcribing
+    to_id: render-spec/compose-transcribing
+    desmos: uses-render-spec
+
+  - from_id: mode/oikos-nav
+    to_id: render-spec/oikos-card
+    desmos: uses-render-spec
+
+  - from_id: mode/theoria-sidebar
+    to_id: render-spec/theoria-card
+    desmos: uses-render-spec
+
+  - from_id: mode/phasis-feed
+    to_id: render-spec/phasis-bubble
+    desmos: uses-render-spec

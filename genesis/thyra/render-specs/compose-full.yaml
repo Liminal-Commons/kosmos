@@ -1,0 +1,202 @@
+# Compose Full Render-Spec
+# Full compose bar — control row above, textarea below.
+#
+# Control row: mic toggle, transcription toggle, stance badge,
+# spacer, clarify button, express button.
+# Input area: textarea alone (fills resized space).
+#
+# Bound to accumulation entity (singleton).
+# Bond traversal: @fed-by-audio and @fed-by-transcriber
+# read audio-source and transcriber state.
+#
+# Button-driven: textarea is local DOM state,
+# kosmos only hears content at button press via $form bindings.
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/compose-full
+    data:
+      name: compose-full
+      description: |
+        Full compose bar. Control row (audio, transcription, stance badge,
+        clarify, express) above textarea. Textarea fills resized space.
+      target_eidos: accumulation
+      variant: fixture
+
+      layout:
+        - widget: form
+          props:
+            class: compose-bar
+          children:
+            # ── Control row: mic, transcription, stance badge, spacer, clarify, express ──
+            - widget: row
+              props:
+                align: center
+                gap: sm
+                padding: xs
+                class: compose-bar__controls
+              children:
+                # Mic toggle — flip audio-source desired_state
+                - widget: button
+                  props:
+                    variant: ghost
+                    class: compose-bar__mic
+                    data-signal-source: "{@fed-by-audio.id}"
+                    data-state: "{@fed-by-audio.data.desired_state}"
+                    on_click: soma/toggle-audio-intent
+                    on_click_params:
+                      accumulation_id: "{id}"
+                  children:
+                    - widget: icon
+                      when: "@fed-by-audio.data.desired_state == 'active'"
+                      props:
+                        name: mic
+                        size: sm
+                    - widget: icon
+                      when: "@fed-by-audio.data.desired_state != 'active'"
+                      props:
+                        name: mic-off
+                        size: sm
+
+                # Transcription toggle — flip transcriber desired_state
+                - widget: button
+                  props:
+                    variant: ghost
+                    class: compose-bar__transcription
+                    data-signal-source: "{@fed-by-audio.id}"
+                    data-state: "{@fed-by-transcriber.data.desired_state}"
+                    on_click: soma/toggle-transcriber-intent
+                    on_click_params:
+                      accumulation_id: "{id}"
+                  children:
+                    - widget: icon
+                      props:
+                        name: audio-lines
+                        size: sm
+
+                # Stance badge — display-only indicator
+                - widget: badge
+                  when: "stance"
+                  props:
+                    content: "{stance}"
+                    variant: neutral
+                    class: compose-bar__stance
+
+                # Spacer pushes action buttons to the right
+                - widget: spacer
+                  props:
+                    size: flex
+
+                # Clarify button — LLM clarification of content
+                - widget: button
+                  props:
+                    variant: ghost
+                    class: compose-bar__clarify
+                    on_click: thyra/clarify-accumulation
+                    on_click_params:
+                      accumulation_id: "{id}"
+                      content: $form.content
+                  children:
+                    - widget: icon
+                      props:
+                        name: sparkles
+                        size: sm
+
+                # Express button — crosses the commitment boundary (workspace + hud)
+                - widget: button
+                  when: "$dwelling.config != 'topos-dev'"
+                  props:
+                    variant: primary
+                    class: compose-bar__express
+                    on_click: thyra/commit-phasis
+                    on_click_params:
+                      accumulation_id: "{id}"
+                      content: $form.content
+                      stance: "{stance}"
+                    reset_form: true
+                  children:
+                    - widget: icon
+                      props:
+                        name: arrow-up
+                        size: sm
+
+                # Compose entity button — topos-dev context
+                - widget: button
+                  when: "$dwelling.config == 'topos-dev'"
+                  props:
+                    variant: primary
+                    class: compose-bar__express
+                    on_click: thyra/compose-artifact
+                    on_click_params:
+                      prompt: $form.content
+                      selected_eidos: "{$selection.selected-eidos}"
+                      selected_praxis: "{$selection.selected-praxis}"
+                      selected_mode: "{$selection.selected-mode}"
+                    reset_form: true
+                  children:
+                    - widget: icon
+                      props:
+                        name: plus
+                        size: sm
+
+                # Selection indicator — shows which entity type is focused (topos-dev only)
+                - widget: badge
+                  when: "$dwelling.config == 'topos-dev' && $selection.selected-eidos"
+                  props:
+                    content: "eidos"
+                    variant: accent
+                    class: compose-bar__selection-hint
+                - widget: badge
+                  when: "$dwelling.config == 'topos-dev' && $selection.selected-praxis"
+                  props:
+                    content: "praxis"
+                    variant: accent
+                    class: compose-bar__selection-hint
+                - widget: badge
+                  when: "$dwelling.config == 'topos-dev' && $selection.selected-mode"
+                  props:
+                    content: "mode"
+                    variant: accent
+                    class: compose-bar__selection-hint
+
+            # ── Input area: textarea alone (workspace/hud) ──
+            - widget: textarea
+              when: "$dwelling.config != 'topos-dev'"
+              props:
+                name: content
+                value: "{content}"
+                placeholder: "Type a phasis..."
+                rows: 2
+                class: compose-bar__textarea
+                on_submit: thyra/commit-phasis
+                on_submit_params:
+                  accumulation_id: "{id}"
+                  content: $form.content
+                  stance: "{stance}"
+                on_clarify: thyra/clarify-accumulation
+                on_clarify_params:
+                  accumulation_id: "{id}"
+                  content: $form.content
+
+            # ── Input area: textarea alone (topos-dev) ──
+            - widget: textarea
+              when: "$dwelling.config == 'topos-dev'"
+              props:
+                name: content
+                value: "{content}"
+                placeholder: "Describe an entity to compose..."
+                rows: 2
+                class: compose-bar__textarea
+                on_submit: thyra/compose-artifact
+                on_submit_params:
+                  prompt: $form.content
+                  selected_eidos: "{$selection.selected-eidos}"
+                  selected_praxis: "{$selection.selected-praxis}"
+                  selected_mode: "{$selection.selected-mode}"
+                on_clarify: thyra/clarify-accumulation
+                on_clarify_params:
+                  accumulation_id: "{id}"
+                  content: $form.content
+
+      created_at: "2026-02-12T00:00:00Z"

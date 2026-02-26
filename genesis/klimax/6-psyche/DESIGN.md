@@ -30,7 +30,7 @@ This is where aisthesis (sensing) becomes lived experience.
 | Desmoi (attends, intends, mood-of, portal-of, foresees, recognizes) | Complete | psyche.yaml |
 | Praxeis (attention, intention, mood, thyra, prospect, kairos ops) | Complete | psyche.yaml |
 
-**This layer is complete. The animus can attend, intend, and experience.**
+**This layer is complete. The parousia can attend, intend, and experience.**
 
 ---
 
@@ -40,7 +40,7 @@ This is where aisthesis (sensing) becomes lived experience.
 kosmos (1) -> physis (2) -> polis (3) -> oikos (4) -> soma (5) -> PSYCHE (6)
 ```
 
-Psyche is the innermost circle — the narrowest scope but the richest experience. The animus experiences from here, looking outward through all the other scales.
+Psyche is the innermost scale — the narrowest scope but the richest experience. The parousia experiences from here, looking outward through all the other scales.
 
 ---
 
@@ -71,7 +71,7 @@ Intentions are the directedness of will:
 | `fulfilled` | Successfully completed |
 | `abandoned` | No longer pursued |
 
-Intentions shape what the animus attends to and how actions unfold.
+Intentions shape what the parousia attends to and how actions unfold.
 
 ### 3. Mood
 
@@ -131,7 +131,7 @@ These capture the temporal texture of experience — not clock time but lived ti
 | Principle | How Psyche Honors It |
 |-----------|---------------------|
 | **Schema-driven** | Attention, intention, mood have constrained schemas. |
-| **Graph-driven** | `attends`, `intends`, `mood-of`, `portal-of` bonds connect animus to experience. |
+| **Graph-driven** | `attends`, `intends`, `mood-of`, `portal-of` bonds connect parousia to experience. |
 | **Cache-driven** | Experience states can be cached and replayed for understanding. |
 
 ### The Experiencing Pattern
@@ -155,7 +155,7 @@ Psyche provides:
 - **Thyra**: The portal through which experience flows
 - **Prospect/Kairos**: Temporal texture (possibilities and timing)
 
-With psyche, the animus fully experiences. Not just present in kosmos, but attending, intending, attuned, and engaged with time.
+With psyche, the parousia fully experiences. Not just present in kosmos, but attending, intending, attuned, and engaged with time.
 
 ---
 
@@ -169,4 +169,4 @@ With psyche, the animus fully experiences. Not just present in kosmos, but atten
 ---
 
 *Composed in service of the kosmogonia.*
-*Traces to: expression/genesis-root*
+*Traces to: phasis/genesis-root*

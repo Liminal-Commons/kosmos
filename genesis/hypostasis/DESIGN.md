@@ -9,7 +9,7 @@ What gap in being does hypostasis address?
 **The gap of identity and authenticity.** Without hypostasis, entities exist but have no verifiable origin. Actions occur but cannot be attributed. The kosmos would be a sea of anonymous content with no way to know what is authentic, what came from where, or who stands behind any claim.
 
 Hypostasis provides:
-- **Identity** — cryptographic proof of who exists (personas, keys)
+- **Identity** — cryptographic proof of who exists (prosopa, keys)
 - **Authenticity** — verifiable provenance chains to signed genesis
 - **Self-replication** — the kosmos can back itself up and restore across devices
 - **Session security** — fluid operation without sacrificing protection
@@ -18,12 +18,12 @@ Hypostasis provides:
 - Trust without central authority (cryptographic, not institutional)
 - Multi-device sync with verification
 - Backup and recovery with integrity guarantees
-- Federation between circles with proof of origin
+- Federation between oikoi with proof of origin
 - Credentials that grant capabilities when unlocked
 
-## Circle Context
+## Oikos Context
 
-### Self Circle
+### Self Oikos
 
 A solitary dweller uses hypostasis to:
 - Generate and secure their mnemonic (root of all keys)
@@ -32,28 +32,28 @@ A solitary dweller uses hypostasis to:
 - Back up their kosmos to file (phoreta export)
 - Restore on a new device with same identity
 
-The self circle is where hypostasis is most intimate — your keys, your identity, your sovereignty.
+The self oikos is where hypostasis is most intimate — your keys, your identity, your sovereignty.
 
-### Peer Circle
+### Peer Oikos
 
 Collaborators use hypostasis to:
 - Verify each other's signatures on shared content
 - Sync theoria and entities via phoreta exchange
-- Share credentials with circle scope (team API keys)
+- Share credentials with oikos scope (team API keys)
 - Multi-sign genesis for constitutional establishment
-- Export/import circle state for new members
+- Export/import oikos state for new members
 
 Trust between peers is cryptographic — if you can verify the signature, you know who created it.
 
-### Commons Circle
+### Commons Oikos
 
 A community uses hypostasis to:
 - Establish authoritative genesis with threshold signatures (3-of-5)
-- Verify that distributed oikoi trace to signed constitutional root
+- Verify that distributed topoi trace to signed constitutional root
 - Audit provenance chains for any entity
 - Provide transparent key ownership (who can sign for what)
 
-The commons circle is where hypostasis becomes constitutional — the signed genesis that all content traces back to.
+The commons oikos is where hypostasis becomes constitutional — the signed genesis that all content traces back to.
 
 ## Core Entities (Eide)
 
@@ -109,7 +109,7 @@ Encrypted external service credential with attainment grants.
 - `encrypted_value` — AES-256-GCM encrypted credential (base64)
 - `salt` — Per-credential encryption salt (base64)
 - `label` — Human-readable name
-- `scope` — Who can use (persona or circle)
+- `scope` — Who can use (prosopon or oikos)
 - `grants_attainment` — Attainment granted when unlocked
 - `status` — State (active, revoked, expired)
 - `created_at` — Creation timestamp
@@ -126,15 +126,15 @@ Encrypted external service credential with attainment grants.
 
 ### secures-key-for
 - **From:** kleidoura
-- **To:** persona
+- **To:** prosopon
 - **Cardinality:** one-to-one
-- **Traversal:** Find keyring for a persona, or persona for a keyring
+- **Traversal:** Find keyring for a prosopon, or prosopon for a keyring
 
 ### signed-by
 - **From:** any entity
-- **To:** persona
+- **To:** prosopon
 - **Cardinality:** many-to-one
-- **Traversal:** Who signed this? What has this persona signed?
+- **Traversal:** Who signed this? What has this prosopon signed?
 
 ### chains-to
 - **From:** any entity
@@ -150,15 +150,15 @@ Encrypted external service credential with attainment grants.
 
 ### credential-of
 - **From:** credential
-- **To:** persona
+- **To:** prosopon
 - **Cardinality:** many-to-one
-- **Traversal:** Whose credentials? What credentials does this persona own?
+- **Traversal:** Whose credentials? What credentials does this prosopon own?
 
 ### shared-with
 - **From:** credential
-- **To:** circle
+- **To:** oikos
 - **Cardinality:** many-to-one
-- **Traversal:** Which circle can use this credential?
+- **Traversal:** Which oikos can use this credential?
 
 ### unlocks-attainment
 - **From:** credential
@@ -205,9 +205,9 @@ Verify and import a phoreta bundle with merge strategy.
 - **Requires:** Valid phoreta bundle, merge strategy
 
 #### create-snapshot
-Full state export of a circle.
+Full state export of an oikos.
 - **When:** Complete backup before major changes
-- **Requires:** Circle scope
+- **Requires:** Oikos scope
 - **Gated by:** `attainment/export`
 
 #### restore-snapshot
@@ -227,15 +227,15 @@ Generate new BIP-39 24-word phrase.
 - **When:** Creating new identity
 - **Returns:** Mnemonic (store securely!)
 
-#### derive-circle-key
-Derive circle-scoped Ed25519 keypair from mnemonic.
-- **When:** Getting public key for a circle
-- **Requires:** Mnemonic + circle_id
+#### derive-oikos-key
+Derive oikos-scoped Ed25519 keypair from mnemonic.
+- **When:** Getting public key for an oikos
+- **Requires:** Mnemonic + oikos_id
 
 #### sign-content
-Sign content with circle-scoped key.
+Sign content with oikos-scoped key.
 - **When:** Attesting to content
-- **Requires:** Mnemonic + circle_id + content
+- **Requires:** Mnemonic + oikos_id + content
 - **Gated by:** `attainment/sign`
 
 #### verify-signature
@@ -249,7 +249,7 @@ Verify signature against content and public key.
 Encrypt mnemonic with password, create kleidoura.
 - **When:** Setting up identity for first time
 - **Requires:** Mnemonic + password
-- **Gated by:** One per persona (enforced)
+- **Gated by:** One per prosopon (enforced)
 
 #### unlock-keyring
 Decrypt seed into session memory.
@@ -274,24 +274,24 @@ Re-encrypt with new password.
 #### sign-with-session
 Sign using unlocked session key.
 - **When:** Signing while session is active
-- **Requires:** Session unlocked + circle_id
+- **Requires:** Session unlocked + oikos_id
 - **Gated by:** `attainment/sign`
 
 #### derive-key-from-session
-Derive circle public key from session.
+Derive oikos public key from session.
 - **When:** Need public key without re-entering mnemonic
 - **Requires:** Session unlocked
 
-### Persona Operations
+### Prosopon Operations
 
-#### export-persona
-Export persona with circles, theoria for federation.
+#### export-prosopon
+Export prosopon with oikoi, theoria for federation.
 - **When:** Moving to new device
 - **Requires:** Mnemonic for signing
 - **Gated by:** `attainment/export`
 
-#### import-persona
-Import persona from another device.
+#### import-prosopon
+Import prosopon from another device.
 - **When:** Setting up new device
 - **Requires:** Export bundle + matching mnemonic
 
@@ -326,58 +326,35 @@ Check ceremony progress.
 
 ### Credential Operations
 
-#### add-credential
-Encrypt and store API key with attainment grant.
-- **When:** Adding external service access
-- **Requires:** Session unlocked + credential value
-- **Gated by:** `attainment/manage-credentials`
-
-#### unlock-credentials
-Decrypt credentials, grant session attainments.
-- **When:** After keyring unlock
-- **Effect:** Session gains service capabilities
-
-#### list-credentials
-List credentials without exposing values.
-- **When:** Auditing configured services
-- **Returns:** Metadata only
-
-#### remove-credential
-Revoke credential, remove from session.
-- **When:** Key rotation, service removal
-- **Gated by:** `attainment/manage-credentials`
-
-#### check-session-attainment
-Check if session has specific attainment.
-- **When:** Before service calls
-- **Returns:** Has/doesn't have
+> **Note:** Credential eidos and praxeis have moved to the **credentials** topos.
+> See `genesis/credentials/DESIGN.md` for full documentation.
+> Hypostasis provides the cryptographic foundation (keyring, session unlock)
+> that credentials depend on, but credential management is owned by its own topos.
 
 ## Attainments
 
 ### attainment/sign
-**Capability:** Sign content with circle-scoped keys.
+**Capability:** Sign content with oikos-scoped keys.
 **Gates:** `sign-content`, `sign-with-session`
-**Scope:** circle
+**Scope:** oikos
 
 ### attainment/export
 **Capability:** Export phoreta bundles and snapshots.
-**Gates:** `export-phoreta`, `create-snapshot`, `export-persona`
-**Scope:** circle
+**Gates:** `export-phoreta`, `create-snapshot`, `export-prosopon`
+**Scope:** oikos
 
 ### attainment/manage-keyring
 **Capability:** Create and manage keyring.
 **Gates:** `create-keyring`, `change-keyring-password`
-**Scope:** persona
+**Scope:** prosopon
 
 ### attainment/manage-credentials
-**Capability:** Add and remove credentials.
-**Gates:** `add-credential`, `remove-credential`
-**Scope:** persona
+**Moved to credentials topos.** See `genesis/credentials/DESIGN.md`.
 
 ### attainment/genesis-signer
 **Capability:** Participate in genesis signing ceremony.
 **Gates:** `begin-genesis-ceremony`, `add-genesis-signature`
-**Scope:** circle
+**Scope:** oikos
 
 ## Embodiment
 
@@ -405,10 +382,10 @@ body-schema:
   capabilities:
     - name: sign
       available: "$session_unlocked"
-      oikos: hypostasis
+      topos: hypostasis
     - name: export
       available: "$session_unlocked"
-      oikos: hypostasis
+      topos: hypostasis
   credentials:
     - service: openai
       attainment: use-embedding-api
@@ -425,7 +402,7 @@ body-schema:
 reconciler/hypostasis-session:
   trigger: on-dwell
   sense: |
-    - Check if keyring exists for dwelling persona
+    - Check if keyring exists for dwelling prosopon
     - Check if session is locked
     - Check if credentials need refresh
   surface: |
@@ -436,18 +413,19 @@ reconciler/hypostasis-session:
 
 ## Compound Leverage
 
-### Amplifies Other Oikoi
+### Amplifies Other Topoi
 
-| Oikos | How Hypostasis Amplifies |
+| Topos | How Hypostasis Amplifies |
 |-------|-------------------------|
 | **politeia** | Attainments verify identity. Credentials grant capabilities. |
-| **ekdosis** | Signing oikos-prod requires hypostasis keys. |
-| **propylon** | Entry links signed with circle keys. |
+| **ekdosis** | Signing topos-prod requires hypostasis keys. |
+| **propylon** | Entry links signed with oikos keys. |
+
 | **nous** | Semantic search needs API credentials (use-embedding-api). |
 | **manteia** | Generation needs API credentials (use-anthropic-api). |
 | **aither** | Federation phoreta signed by origin. |
 
-### Cross-Oikos Patterns
+### Cross-Topos Patterns
 
 1. **Credential → Attainment → Praxis**
    Credentials unlock attainments. Attainments gate praxeis. Praxeis enable features.
@@ -455,7 +433,7 @@ reconciler/hypostasis-session:
 
 2. **Sign → Verify → Trust**
    Content signed with hypostasis keys. Other parties verify. Trust established structurally.
-   Example: Oikos-prod signed → distributed → installed after verification.
+   Example: Topos-prod signed → distributed → installed after verification.
 
 3. **Export → Transport → Import**
    Phoreta exported with signature. Transported via any channel. Imported with verification.
@@ -467,7 +445,7 @@ New theoria crystallized during this redesign:
 
 ### T21: Identity is the foundation of all capability
 
-Without identity (persona + keys), there can be no signed content, no verified attribution, no trust. Hypostasis must exist before any oikos that requires authentication.
+Without identity (prosopon + keys), there can be no signed content, no verified attribution, no trust. Hypostasis must exist before any topos that requires authentication.
 
 ### T22: Cryptographic bonds create structural trust
 
@@ -492,9 +470,9 @@ mnemonic (BIP-39, 24 words)
     │
     └─► master seed (BIP-39 derivation)
             │
-            ├─► persona key (master identity)
+            ├─► prosopon key (master identity)
             │
-            └─► circle keys (HKDF per circle_id)
+            └─► oikos keys (HKDF per oikos_id)
                     │
                     └─► session keys (ephemeral)
 ```

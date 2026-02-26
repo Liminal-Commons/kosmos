@@ -1,0 +1,68 @@
+# Propylon Render Specifications — entry-request card
+#
+# Card view for incoming entry requests.
+# Shows status, entrant name, target oikos, and timestamp.
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/entry-request-card
+    data:
+      name: entry-request-card
+      description: "Card view for entry-request — incoming authentication request"
+      target_eidos: entry-request
+      variant: card
+
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+          children:
+            - widget: stack
+              props:
+                gap: sm
+              children:
+                # Header: person icon + status badge
+                - widget: row
+                  props:
+                    gap: sm
+                    align: center
+                    justify: between
+                  children:
+                    - widget: icon
+                      props:
+                        name: person
+                    - widget: badge
+                      props:
+                        content: "{status}"
+                        variant: "{status}"
+
+                # Entrant wants to enter oikos
+                - widget: row
+                  props:
+                    gap: sm
+                    align: center
+                  children:
+                    - widget: text
+                      props:
+                        content: "{entrant_name}"
+                        variant: emphasis
+                    - widget: text
+                      props:
+                        content: "wants to enter"
+                        variant: body
+
+                - widget: text
+                  props:
+                    content: "{oikos_name}"
+                    variant: emphasis
+                  when: "{oikos_name}"
+
+                # Timestamp
+                - widget: text
+                  props:
+                    content: "Requested {timestamp}"
+                    variant: caption
+
+      created_at: "2026-02-09T00:00:00Z"

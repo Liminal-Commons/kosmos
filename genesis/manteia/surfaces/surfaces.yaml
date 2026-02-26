@@ -1,0 +1,24 @@
+# Manteia Surface Contracts
+
+entities:
+
+  - eidos: surface
+    id: surface/reasoning
+    data:
+      surface_id: reasoning
+      description: |
+        LLM-powered inference capabilities: schema-constrained generation,
+        governed evaluation, and memoized results.
+
+        Consumers of this surface can request inference with quality gates,
+        generate entities conforming to eidos schemas, and leverage
+        memoization for repeated queries.
+      praxeis:
+        - praxis/manteia/governed-inference
+        - praxis/manteia/generate-entity
+        - praxis/manteia/generate-step
+        - praxis/manteia/generate-praxis
+        - praxis/manteia/generate-typos
+        - praxis/manteia/get-stoicheion-schema
+        - praxis/manteia/list-stoicheia
+      version: "1.0"

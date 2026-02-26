@@ -9,8 +9,11 @@ entities:
 
 - eidos: praxis
   id: praxis/ekdosis/bake-oikos
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/publish
   data:
-    oikos: ekdosis
+    topos: ekdosis
     name: bake-oikos
     visible: true
     description: |
@@ -55,10 +58,10 @@ entities:
           content_hash: "{{ blake3($oikos_dev.data.content) }}"
 
       # Create oikos-prod
-      - step: arise
-        eidos: oikos-prod
+      - step: compose
+        typos_id: typos-def-oikos-prod
         id: "$prod_id"
-        data:
+        inputs:
           oikos_id: "$oikos_dev.data.oikos_id"
           version: "$oikos_dev.data.version"
           locale: "$locale"
@@ -81,8 +84,11 @@ entities:
 
 - eidos: praxis
   id: praxis/ekdosis/sign-oikos
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/publish
   data:
-    oikos: ekdosis
+    topos: ekdosis
     name: sign-oikos
     visible: true
     description: |
@@ -97,8 +103,8 @@ entities:
         description: "ID of the oikos-prod to sign"
     steps:
       - step: assert
-        condition: "$_persona"
-        message: "Cannot sign without authenticated persona"
+        condition: "$_prosopon"
+        message: "Cannot sign without authenticated prosopon"
 
       - step: find
         id: "$oikos_prod_id"
@@ -134,11 +140,11 @@ entities:
         bindings:
           attestation_id: "build-attestation/{{ now() }}"
 
-      - step: arise
-        eidos: build-attestation
+      - step: compose
+        typos_id: typos-def-build-attestation
         id: "$attestation_id"
-        data:
-          builder_persona: "$_persona.id"
+        inputs:
+          builder_prosopon: "$_prosopon.id"
           build_timestamp: "$signed_at"
           source_hash: "{{ blake3($oikos_prod.data.baked_from) }}"
           output_hash: "$oikos_prod.data.content_hash"
@@ -159,8 +165,11 @@ entities:
 
 - eidos: praxis
   id: praxis/ekdosis/upload-oikos
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/publish
   data:
-    oikos: ekdosis
+    topos: ekdosis
     name: upload-oikos
     visible: true
     description: |
@@ -223,14 +232,17 @@ entities:
 
 - eidos: praxis
   id: praxis/ekdosis/publish-release
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/publish
   data:
-    oikos: ekdosis
+    topos: ekdosis
     name: publish-release
     visible: true
     description: |
       Publish a release of an oikos-prod.
 
-      Creates a release entity and optionally distributes to circles.
+      Creates a release entity and optionally distributes to oikoi.
       The oikos-prod must be signed and uploaded before publishing.
     params:
       - name: oikos_prod_id
@@ -249,14 +261,14 @@ entities:
         type: string
         required: false
         description: "Release notes"
-      - name: circles
+      - name: oikoi
         type: array
         required: false
-        description: "Circle IDs to distribute to"
+        description: "Oikos IDs to distribute to"
     steps:
       - step: assert
-        condition: "$_persona"
-        message: "Cannot publish without authenticated persona"
+        condition: "$_prosopon"
+        message: "Cannot publish without authenticated prosopon"
 
       - step: find
         id: "$oikos_prod_id"
@@ -295,16 +307,16 @@ entities:
           published_at: "now()"
 
       # Create oikos-release
-      - step: arise
-        eidos: oikos-release
+      - step: compose
+        typos_id: typos-def-oikos-release
         id: "$release_id"
-        data:
+        inputs:
           version: "$version"
           oikos_prod_id: "$oikos_prod_id"
           channel: "$release_channel"
           notes: "$notes"
           published_at: "$published_at"
-          publisher_persona: "$_persona.id"
+          publisher_prosopon: "$_prosopon.id"
 
       # Bond release to oikos-prod
       - step: bind
@@ -318,9 +330,9 @@ entities:
         to_id: "release-channel/$release_channel"
         desmos: "published-to"
 
-      # Bond persona as publisher
+      # Bond prosopon as publisher
       - step: bind
-        from_id: "$_persona.id"
+        from_id: "$_prosopon.id"
         to_id: "$release_id"
         desmos: "publishes"
 
@@ -342,44 +354,55 @@ entities:
               # Sort by version and take the latest
               - step: set
                 bindings:
-                  previous_release_id: "$previous_releases[previous_releases.length - 1].id"
+                  previous_release_id: "$previous_releases.last.id"
               - step: bind
                 from_id: "$release_id"
                 to_id: "$previous_release_id"
                 desmos: "succeeds"
 
-      # Distribute to circles if specified
+      # Distribute to oikoi if specified
       - step: switch
         cases:
-          - when: "$circles"
+          - when: "$oikoi"
             then:
               - step: for_each
-                items: "$circles"
-                item_var: circle_id
+                items: "$oikoi"
+                item_var: oikos_id
                 steps:
-                  # Bond circle to oikos-prod (for reconciler)
+                  # Bond oikos to oikos-prod (for reconciler)
                   - step: bind
-                    from_id: "$circle_id"
+                    from_id: "$oikos_id"
                     to_id: "$oikos_prod_id"
                     desmos: "distributes"
-                  # Also bond release to circle
+                  # Also bond release to oikos
                   - step: bind
                     from_id: "$release_id"
-                    to_id: "$circle_id"
+                    to_id: "$oikos_id"
                     desmos: "distributed-by"
+
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Topos published: $oikos_prod.data.oikos_id v$version"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: oikos-release
+            source_id: "$release_id"
 
       - step: return
         value:
           release_id: "$release_id"
           version: "$version"
           channel: "$release_channel"
-          distributed_to: "$circles"
+          distributed_to: "$oikoi"
           status: "published"
 
 - eidos: praxis
   id: praxis/ekdosis/list-releases
   data:
-    oikos: ekdosis
+    topos: ekdosis
     name: list-releases
     visible: true
     description: |
@@ -427,7 +450,7 @@ entities:
 - eidos: praxis
   id: praxis/ekdosis/verify-release
   data:
-    oikos: ekdosis
+    topos: ekdosis
     name: verify-release
     visible: true
     description: |
@@ -500,14 +523,14 @@ entities:
 - eidos: praxis
   id: praxis/ekdosis/rollback-release
   data:
-    oikos: ekdosis
+    topos: ekdosis
     name: rollback-release
     visible: true
     description: |
       Rollback to a previous release.
 
       Traverses the succeeds chain to find the previous release
-      and re-distributes it to the same circles.
+      and re-distributes it to the same oikoi.
     params:
       - name: release_id
         type: string
@@ -541,20 +564,20 @@ entities:
         id: "$previous_release_id"
         bind_to: previous_release
 
-      # Get circles the current release is distributed to
+      # Get oikoi the current release is distributed to
       - step: trace
         from_id: "$release_id"
         desmos: "distributed-by"
         resolve: "to"
-        bind_to: circle_bonds
+        bind_to: oikos_bonds
 
-      # Re-distribute previous release to those circles
+      # Re-distribute previous release to those oikoi
       - step: for_each
-        items: "$circle_bonds"
-        item_var: circle_bond
+        items: "$oikos_bonds"
+        item_var: oikos_bond
         steps:
           - step: bind
-            from_id: "$circle_bond.to_id"
+            from_id: "$oikos_bond.to_id"
             to_id: "$previous_release.data.oikos_prod_id"
             desmos: "distributes"
 

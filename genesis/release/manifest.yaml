@@ -1,26 +1,29 @@
-# Oikos Manifest: Release
+# Topos Manifest: Release
 # Artifact lifecycle — the journey from build to user
 #
-# Manifest v2.1 — oikos metadata for entity composition
+# Manifest v2.1 — topos metadata for entity composition
 
 format_version: "2.1"
-oikos_id: release
+topos_id: release
 version: "0.1.0"
 
-# Oikos metadata (v2.1)
-oikos_name: Release
-oikos_description: |
+# Topos metadata (v2.1)
+topos_name: Release
+topos_description: |
   Artifact lifecycle — the journey from build to user. Release addresses
   the gap between built artifact and available download. Versioned artifacts,
   their distribution channels, and the pipeline from git commit to user download.
-oikos_scale: cross-scale
+topos_scale: cross-scale
 
 # Development experience metadata
-oikos_category: infrastructure
+topos_category: infrastructure
 surfaces_provided: []   # Release lifecycle is an operation, not a surface
 surfaces_consumed:
   - computation         # Uses dynamis for substrate capabilities
   - emission            # Uses thyra/emit for artifact distribution
+  - reconciliation      # Uses dynamis/reconcile for release-artifact drift
+  - reactivity          # Reflexes for release lifecycle mutation response
+  - sensing             # Daemon: sense-releases (300s interval)
 
 content_paths:
   - path: eide/
@@ -29,6 +32,18 @@ content_paths:
     content_types: [desmos]
   - path: praxeis/
     content_types: [praxis]
+  - path: seeds/
+    content_types: [distribution-channel]
+  - path: render-specs/
+    content_types: [render-spec]
+  - path: modes/
+    content_types: [mode]
+  - path: reflexes/
+    content_types: [reflex]
+  - path: daemons/
+    content_types: [daemon]
+  - path: reconcilers/
+    content_types: [reconciler]
 
 requires_dynamis:
   - db.arise
@@ -44,9 +59,22 @@ provides:
     - release-artifact
     - distribution-channel
 
+  # Topos-centric rendering: release owns presentation for release entities
+  renderable:
+    - eidos: release
+      description: "Release cards with version and status"
+    - eidos: release-artifact
+      description: "Artifact file cards with upload status"
+    - eidos: distribution-channel
+      description: "Distribution channel cards"
+
   attainments:
     - release           # Create and manage releases
-    - distribute        # Upload to channels
+    - publish-release   # Upload to channels
+
+  seeds:
+    - distribution-channel/thyra-r2
+    - distribution-channel/github-releases
 
   desmoi:
     - contains-artifact  # release → release-artifact

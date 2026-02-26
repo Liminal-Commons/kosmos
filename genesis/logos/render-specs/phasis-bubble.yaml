@@ -1,0 +1,89 @@
+# Phasis Bubble Render-Spec
+# Chat bubble for phasis display in discourse
+#
+# Uses widget vocabulary from thyra/eide/widget.yaml
+# Follows theoria-card pattern for conditional rendering
+#
+# Traces to: genesis/logos/DESIGN.md
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/phasis-bubble
+    data:
+      name: phasis-bubble
+      description: |
+        Chat bubble for phasis display.
+        Shows author, timestamp, content, and optional stance badge.
+      target_eidos: phasis
+      variant: bubble
+
+      layout:
+        - widget: card
+          props:
+            variant: default
+            padding: sm
+          children:
+            - widget: stack
+              props:
+                gap: xs
+              children:
+                # Header row: author + timestamp
+                - widget: row
+                  props:
+                    justify: between
+                    align: center
+                  children:
+                    - widget: text
+                      props:
+                        content: "{authored_by}"
+                        variant: caption
+                    - widget: text
+                      props:
+                        content: "{expressed_at}"
+                        variant: caption
+
+                # Content
+                - widget: text
+                  props:
+                    content: "{content}"
+                    variant: body
+
+                # Stance badge row (when stance is present)
+                - widget: row
+                  when: "stance"
+                  props:
+                    justify: end
+                  children:
+                    - widget: badge
+                      when: "stance == 'declaration'"
+                      props:
+                        content: "Declaration"
+                        variant: info
+                    - widget: badge
+                      when: "stance == 'inquiry'"
+                      props:
+                        content: "Inquiry"
+                        variant: info
+                    - widget: badge
+                      when: "stance == 'suggestion'"
+                      props:
+                        content: "Suggestion"
+                        variant: success
+                    - widget: badge
+                      when: "stance == 'invitation'"
+                      props:
+                        content: "Invitation"
+                        variant: warning
+                    - widget: badge
+                      when: "stance == 'request'"
+                      props:
+                        content: "Request"
+                        variant: error
+                    - widget: badge
+                      when: "stance == 'proposal'"
+                      props:
+                        content: "Proposal"
+                        variant: info
+
+      created_at: "2025-02-03T00:00:00Z"

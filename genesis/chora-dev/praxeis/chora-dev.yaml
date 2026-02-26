@@ -1,0 +1,700 @@
+# Chora-Dev Praxeis
+# Operations for substrate development
+#
+# Core praxeis:
+# - scan-workspace: Discover crates
+# - build: Build a crate
+# - test: Run tests
+# - lint: Run clippy
+# - reconcile-builds: Check staleness and rebuild
+# - register-for-release: Connect to release topos
+# - deploy-build: Connect to dynamis for deployment
+
+entities:
+
+  # =============================================================================
+  # WORKSPACE DISCOVERY
+  # =============================================================================
+
+  - eidos: praxis
+    id: praxis/chora-dev/scan-workspace
+    bonds:
+      - desmos: requires-attainment
+        to: attainment/substrate-develop
+    data:
+      topos: chora-dev
+      name: scan-workspace
+      visible: true
+      description: |
+        Scan the chora workspace and create/update source-crate entities.
+        Uses cargo metadata to discover crates and their dependencies.
+
+        Creates source-crate entities for each discovered crate and computes
+        source hashes for staleness detection.
+      params:
+        - name: workspace_path
+          type: string
+          default: "."
+          required: false
+          description: "Path to Cargo workspace"
+      steps:
+        - step: call
+          praxis: chora-dev/cargo-metadata
+          params:
+            workspace_path: "$workspace_path"
+          bind_to: metadata
+
+        - step: for_each
+          items: "$metadata.crates"
+          as: crate_info
+          steps:
+            - step: call
+              praxis: chora-dev/hash-source
+              params:
+                crate_path: "$crate_info.path"
+              bind_to: source_hash
+
+            - step: compose
+              typos_id: typos/chora-dev/typos-def-source-crate
+              inputs:
+                id: "source-crate/$crate_info.name"
+                name: "$crate_info.name"
+                path: "$crate_info.path"
+                crate_type: "$crate_info.crate_type"
+                workspace_dependencies: "$crate_info.dependencies"
+                source_hash: "$source_hash.hash"
+                last_scanned_at: "{{ now() }}"
+              bind_to: crate_entity
+
+        - step: return
+          value:
+            scanned: "{{ $metadata.crates | length }}"
+            crates: "{{ $metadata.crates | map(.name) }}"
+
+  # =============================================================================
+  # BUILD OPERATIONS
+  # =============================================================================
+
+  - eidos: praxis
+    id: praxis/chora-dev/build
+    bonds:
+      - desmos: requires-attainment
+        to: attainment/substrate-develop
+    data:
+      topos: chora-dev
+      name: build
+      visible: true
+      description: |
+        Build a crate and create/update build-target entity.
+        Tracks source hash for staleness detection.
+
+        Flow: find source -> hash source -> create build-target ->
+              bind relationships -> manifest -> update status
+      params:
+        - name: crate_name
+          type: string
+          required: true
+          description: "Name of crate to build"
+        - name: profile
+          type: enum
+          values: [dev, release]
+          default: dev
+          description: "Build profile"
+      steps:
+        - step: find
+          id: "source-crate/$crate_name"
+          bind_to: source_crate
+
+        - step: assert
+          condition: "$source_crate"
+          message: "Source crate not found. Run scan-workspace first."
+
+        - step: call
+          praxis: chora-dev/hash-source
+          params:
+            crate_path: "$source_crate.data.path"
+          bind_to: source_hash
+
+        - step: compose
+          typos_id: typos/chora-dev/typos-def-build-target
+          inputs:
+            id: "build-target/$crate_name-$profile"
+            crate_name: "$crate_name"
+            profile: "$profile"
+            source_hash: "$source_hash.hash"
+            build_status: "building"
+          bind_to: build_target
+
+        - step: bind
+          from_id: "$source_crate.id"
+          desmos: builds-into
+          to_id: "$build_target.id"
+
+        - step: bind
+          from_id: "$build_target.id"
+          desmos: compiled-from
+          to_id: "$source_crate.id"
+
+        - step: manifest
+          entity_id: "$build_target.id"
+          bind_to: build_result
+
+        - step: update
+          id: "$build_target.id"
+          data:
+            build_status: "{{ $build_result.success ? 'succeeded' : 'failed' }}"
+            artifact_path: "$build_result.artifact_path"
+            content_hash: "$build_result.content_hash"
+            duration_ms: "$build_result.duration_ms"
+            built_at: "{{ now() }}"
+            error_message: "$build_result.error"
+
+        - step: return
+          value:
+            build_target_id: "$build_target.id"
+            success: "$build_result.success"
+            duration_ms: "$build_result.duration_ms"
+
+  - eidos: praxis
+    id: praxis/chora-dev/sense-build
+    bonds:
+      - desmos: requires-attainment
+        to: attainment/substrate-develop
+    data:
+      topos: chora-dev
+      name: sense-build
+      visible: true
+      description: |
+        Check if a build artifact exists and is fresh.
+        Returns staleness information without triggering a build.
+      params:
+        - name: crate_name
+          type: string
+          required: true
+        - name: profile
+          type: enum
+          values: [dev, release]
+          default: dev
+      steps:
+        - step: find
+          id: "build-target/$crate_name-$profile"
+          bind_to: build_target
+
+        - step: switch
+          cases:
+            - when: "!$build_target"
+              then:
+                - step: return
+                  value:
+                    exists: false
+                    is_fresh: false
+                    message: "No build-target entity exists"
+
+        - step: sense_actuality
+          entity_id: "$build_target.id"
+          bind_to: sense_result
+
+        - step: return
+          value:
+            exists: "$sense_result.exists"
+            is_fresh: "$sense_result.is_fresh"
+            build_status: "$build_target.data.build_status"
+            built_at: "$build_target.data.built_at"
+
+  - eidos: praxis
+    id: praxis/chora-dev/mark-stale
+    bonds:
+      - desmos: requires-attainment
+        to: attainment/substrate-develop
+    data:
+      topos: chora-dev
+      name: mark-stale
+      visible: false
+      description: |
+        Mark a build-target as stale.
+        Called by reflex when source files change.
+      params:
+        - name: crate_name
+          type: string
+          required: true
+      steps:
+        - step: gather
+          eidos: build-target
+          filter:
+            crate_name: "$crate_name"
+          bind_to: build_targets
+
+        - step: for_each
+          items: "$build_targets"
+          as: target
+          steps:
+            - step: update
+              id: "$target.id"
+              data:
+                build_status: "stale"
+
+        - step: return
+          value:
+            marked_stale: "{{ $build_targets | length }}"
+
+  # =============================================================================
+  # TEST OPERATIONS
+  # =============================================================================
+
+  - eidos: praxis
+    id: praxis/chora-dev/test
+    bonds:
+      - desmos: requires-attainment
+        to: attainment/substrate-develop
+    data:
+      topos: chora-dev
+      name: test
+      visible: true
+      description: |
+        Run tests for a crate against a build target.
+        Creates test-run entity with results.
+      params:
+        - name: crate_name
+          type: string
+          required: true
+        - name: test_filter
+          type: string
+          required: false
+          description: "Test filter pattern"
+        - name: profile
+          type: enum
+          values: [dev, release]
+          default: dev
+      steps:
+        - step: find
+          id: "build-target/$crate_name-$profile"
+          bind_to: build_target
+
+        - step: assert
+          condition: "$build_target"
+          message: "Build target not found. Run build first."
+
+        - step: assert
+          condition: "$build_target.data.build_status == 'succeeded'"
+          message: "Build target must be in succeeded state to run tests."
+
+        - step: set
+          bindings:
+            test_id: "test-run/$crate_name-{{ now() | timestamp }}"
+
+        - step: compose
+          typos_id: typos/chora-dev/typos-def-test-run
+          inputs:
+            id: "$test_id"
+            test_filter: "$test_filter"
+            status: "running"
+            source_hash: "$build_target.data.source_hash"
+          bind_to: test_run
+
+        - step: bind
+          from_id: "$test_run.id"
+          desmos: tests-against
+          to_id: "$build_target.id"
+
+        - step: manifest
+          entity_id: "$test_run.id"
+          bind_to: test_result
+
+        - step: update
+          id: "$test_run.id"
+          data:
+            status: "$test_result.status"
+            passed_count: "$test_result.passed"
+            failed_count: "$test_result.failed"
+            skipped_count: "$test_result.skipped"
+            duration_ms: "$test_result.duration_ms"
+            output: "$test_result.output"
+            run_at: "{{ now() }}"
+
+        - step: return
+          value:
+            test_run_id: "$test_run.id"
+            passed: "{{ $test_result.status == 'passed' }}"
+            passed_count: "$test_result.passed"
+            failed_count: "$test_result.failed"
+
+  # =============================================================================
+  # LINT OPERATIONS
+  # =============================================================================
+
+  - eidos: praxis
+    id: praxis/chora-dev/lint
+    bonds:
+      - desmos: requires-attainment
+        to: attainment/substrate-develop
+    data:
+      topos: chora-dev
+      name: lint
+      visible: true
+      description: |
+        Run clippy lints for a crate.
+        Creates lint-run entity with results.
+      params:
+        - name: crate_name
+          type: string
+          required: true
+        - name: lint_type
+          type: enum
+          values: [clippy, fmt-check, doc-check]
+          default: clippy
+        - name: deny_warnings
+          type: boolean
+          default: false
+      steps:
+        - step: find
+          id: "source-crate/$crate_name"
+          bind_to: source_crate
+
+        - step: assert
+          condition: "$source_crate"
+          message: "Source crate not found. Run scan-workspace first."
+
+        - step: set
+          bindings:
+            lint_id: "lint-run/$crate_name-$lint_type-{{ now() | timestamp }}"
+
+        - step: compose
+          typos_id: typos/chora-dev/typos-def-lint-run
+          inputs:
+            id: "$lint_id"
+            lint_type: "$lint_type"
+            status: "running"
+          bind_to: lint_run
+
+        - step: bind
+          from_id: "$lint_run.id"
+          desmos: lints
+          to_id: "$source_crate.id"
+
+        - step: manifest
+          entity_id: "$lint_run.id"
+          bind_to: lint_result
+
+        - step: update
+          id: "$lint_run.id"
+          data:
+            status: "$lint_result.status"
+            warning_count: "$lint_result.warnings"
+            error_count: "$lint_result.errors"
+            output: "$lint_result.output"
+            duration_ms: "$lint_result.duration_ms"
+            run_at: "{{ now() }}"
+
+        - step: return
+          value:
+            lint_run_id: "$lint_run.id"
+            status: "$lint_result.status"
+            warnings: "$lint_result.warnings"
+            errors: "$lint_result.errors"
+
+  # =============================================================================
+  # RECONCILIATION
+  # =============================================================================
+
+  - eidos: praxis
+    id: praxis/chora-dev/reconcile-builds
+    bonds:
+      - desmos: requires-attainment
+        to: attainment/substrate-develop
+    data:
+      topos: chora-dev
+      name: reconcile-builds
+      visible: true
+      description: |
+        Check all build targets for staleness and rebuild if needed.
+        Staleness = source_hash changed since last build.
+
+        This is the phylax pattern: sense -> compare -> act.
+      steps:
+        - step: gather
+          eidos: build-target
+          bind_to: build_targets
+
+        - step: set
+          bindings:
+            rebuilt_count: 0
+
+        - step: for_each
+          items: "$build_targets"
+          as: target
+          steps:
+            - step: trace
+              from_id: "$target.id"
+              desmos: compiled-from
+              resolve: to
+              bind_to: sources
+
+            - step: set
+              bindings:
+                source: "{{ $sources | first }}"
+
+            - step: switch
+              cases:
+                - when: "!$source"
+                  then: []
+              default:
+                - step: call
+                  praxis: chora-dev/hash-source
+                  params:
+                    crate_path: "$source.data.path"
+                  bind_to: current_hash
+
+                - step: switch
+                  cases:
+                    - when: "$current_hash.hash != $target.data.source_hash"
+                      then:
+                        - step: call
+                          praxis: chora-dev/build
+                          params:
+                            crate_name: "$target.data.crate_name"
+                            profile: "$target.data.profile"
+
+                        - step: set
+                          bindings:
+                            rebuilt_count: "{{ $rebuilt_count + 1 }}"
+
+        - step: return
+          value:
+            checked: "{{ $build_targets | length }}"
+            rebuilt: "$rebuilt_count"
+
+  # =============================================================================
+  # RELEASE INTEGRATION
+  # =============================================================================
+
+  - eidos: praxis
+    id: praxis/chora-dev/register-for-release
+    bonds:
+      - desmos: requires-attainment
+        to: attainment/substrate-develop
+    data:
+      topos: chora-dev
+      name: register-for-release
+      visible: true
+      description: |
+        Register a build-target as a release artifact.
+        Connects chora-dev to release topos for version tracking.
+      params:
+        - name: build_target_id
+          type: string
+          required: true
+        - name: version
+          type: string
+          required: true
+          description: "Semantic version (e.g., '0.9.0')"
+      steps:
+        - step: find
+          id: "$build_target_id"
+          bind_to: build_target
+
+        - step: assert
+          condition: "$build_target"
+          message: "Build target not found"
+
+        - step: assert
+          condition: "$build_target.data.build_status == 'succeeded'"
+          message: "Build target must be in succeeded state to register"
+
+        - step: call
+          praxis: release/register-artifact
+          params:
+            artifact_type: binary
+            name: "$build_target.data.crate_name"
+            version: "$version"
+            content_hash: "$build_target.data.content_hash"
+            source_entity_id: "$build_target.id"
+          bind_to: artifact
+
+        - step: return
+          value:
+            release_artifact_id: "$artifact.id"
+            version: "$version"
+
+  # =============================================================================
+  # DEPLOYMENT INTEGRATION
+  # =============================================================================
+
+  - eidos: praxis
+    id: praxis/chora-dev/deploy-build
+    bonds:
+      - desmos: requires-attainment
+        to: attainment/substrate-develop
+    data:
+      topos: chora-dev
+      name: deploy-build
+      visible: true
+      description: |
+        Deploy a build-target to a node.
+        Connects chora-dev to dynamis topos for deployment.
+      params:
+        - name: build_target_id
+          type: string
+          required: true
+        - name: node_id
+          type: string
+          required: true
+          description: "Target node (e.g., 'node/personal-mac')"
+        - name: service_name
+          type: string
+          required: false
+          description: "Service name (defaults to crate name)"
+      steps:
+        - step: find
+          id: "$build_target_id"
+          bind_to: build_target
+
+        - step: assert
+          condition: "$build_target"
+          message: "Build target not found"
+
+        - step: assert
+          condition: "$build_target.data.build_status == 'succeeded'"
+          message: "Build target must be in succeeded state to deploy"
+
+        - step: set
+          bindings:
+            service: "{{ $service_name || $build_target.data.crate_name }}"
+
+        - step: call
+          praxis: dynamis/create-deployment
+          params:
+            name: "$service"
+            artifact_path: "$build_target.data.artifact_path"
+            content_hash: "$build_target.data.content_hash"
+            node_id: "$node_id"
+          bind_to: deployment
+
+        - step: call
+          praxis: dynamis/manifest-deployment
+          params:
+            deployment_id: "$deployment.id"
+          bind_to: manifest_result
+
+        - step: return
+          value:
+            deployment_id: "$deployment.id"
+            node_id: "$node_id"
+            manifested: "$manifest_result.success"
+
+  # =============================================================================
+  # HELPER PRAXEIS
+  # =============================================================================
+
+  - eidos: praxis
+    id: praxis/chora-dev/hash-source
+    data:
+      topos: chora-dev
+      name: hash-source
+      visible: false
+      description: |
+        Compute BLAKE3 hash of a crate's source files.
+        Used for staleness detection.
+      params:
+        - name: crate_path
+          type: string
+          required: true
+          description: "Path to crate root"
+      steps:
+        - step: hash_path
+          path: "$crate_path"
+          pattern: "**/*.rs"
+          include_names: true
+          bind_to: hash_result
+
+        - step: return
+          value:
+            hash: "$hash_result.hash"
+            file_count: "$hash_result.file_count"
+
+  - eidos: praxis
+    id: praxis/chora-dev/cargo-metadata
+    data:
+      topos: chora-dev
+      name: cargo-metadata
+      visible: false
+      description: |
+        Run cargo metadata and return workspace crate info.
+      params:
+        - name: workspace_path
+          type: string
+          default: "."
+          required: false
+      steps:
+        - step: shell_execute
+          command: "cargo"
+          args: ["metadata", "--format-version=1", "--no-deps"]
+          working_dir: "$workspace_path"
+          timeout_ms: 30000
+          bind_to: raw_result
+
+        - step: parse_output
+          content: "$raw_result.stdout"
+          format: "cargo-metadata"
+          bind_to: parsed
+
+        - step: return
+          value:
+            crates: "$parsed.parsed.packages"
+
+  # =============================================================================
+  # SENSING — daemon-invoked sensing for autonomic loop
+  # =============================================================================
+
+  - eidos: praxis
+    id: praxis/chora-dev/sense-build-states
+    bonds:
+      - desmos: requires-attainment
+        to: attainment/substrate-develop
+    data:
+      topos: chora-dev
+      name: sense-build-states
+      visible: false
+      description: |
+        Sense actuality for all cargo build/test/lint entities.
+        Invoked by daemon/sense-cargo-builds on a periodic schedule.
+        Updates trigger entity_updated events which drift-detection reflexes observe.
+      params: []
+      steps:
+        - step: gather
+          eidos: build-target
+          bind_to: build_targets
+
+        - step: for_each
+          items: "$build_targets"
+          as: target
+          do:
+            - step: sense_actuality
+              entity_id: "$target.id"
+
+        - step: gather
+          eidos: test-run
+          bind_to: test_runs
+
+        - step: for_each
+          items: "$test_runs"
+          as: run
+          do:
+            - step: sense_actuality
+              entity_id: "$run.id"
+
+        - step: gather
+          eidos: lint-run
+          bind_to: lint_runs
+
+        - step: for_each
+          items: "$lint_runs"
+          as: run
+          do:
+            - step: sense_actuality
+              entity_id: "$run.id"
+
+        - step: return
+          value:
+            build_targets_sensed: "{{ $build_targets | length }}"
+            test_runs_sensed: "{{ $test_runs | length }}"
+            lint_runs_sensed: "{{ $lint_runs | length }}"

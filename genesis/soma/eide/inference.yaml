@@ -1,0 +1,34 @@
+# Inference Eide
+# Model tier mapping — capability tiers resolved from provider APIs
+#
+# Three tiers name the meaningful axis: capability vs speed vs cost.
+# Resolution is provider-specific; the tier name is provider-agnostic.
+#
+# Traces to: T3 (schema+graph+cache are one practice)
+
+entities:
+
+- eidos: eidos
+  id: eidos/model-tier
+  data:
+    name: model-tier
+    description: |
+      Maps a capability tier to a specific model ID for a provider.
+      Resolved at runtime by querying the provider's models API.
+    fields:
+      tier:
+        type: string
+        required: true
+        description: "Capability tier: capable, balanced, or fast"
+      provider:
+        type: string
+        required: true
+        description: "Provider name: anthropic, openai"
+      model_id:
+        type: string
+        required: false
+        description: "Resolved model identifier (e.g., claude-sonnet-4-6-20250514)"
+      resolved_at:
+        type: string
+        required: false
+        description: "ISO 8601 timestamp of last resolution"

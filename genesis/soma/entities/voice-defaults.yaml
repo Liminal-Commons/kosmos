@@ -1,0 +1,32 @@
+# Voice Default Entities
+# Singleton audio-source and transcriber — always exist, bonded to accumulation.
+# Reconcilers drive their actual capture/transcription lifecycle.
+
+entities:
+
+  - eidos: audio-source
+    id: audio-source/default
+    data:
+      device_id: default
+      sample_rate: 16000
+      channels: 1
+      desired_state: closed
+      actual_state: closed
+      mode: audio-capture
+      provider: local
+
+  - eidos: transcriber
+    id: transcriber/default
+    data:
+      whisper_model: "base.en"
+      language: en
+      whisper_threads: 4
+      vad_onset_prob: 0.5
+      vad_offset_prob: 0.35
+      vad_min_segment_secs: 0.5
+      transcript: ""
+      segment_status: idle
+      desired_state: closed
+      actual_state: closed
+      mode: transcription
+      provider: whisper-local

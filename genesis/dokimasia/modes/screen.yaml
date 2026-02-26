@@ -1,0 +1,29 @@
+# Dokimasia Screen Mode — Validation overlay
+# Browse validation results through thyra.
+
+entities:
+
+  - eidos: mode
+    id: mode/validation-overlay
+    data:
+      name: validation-overlay
+      topos: dokimasia
+      substrate: screen
+      description: |
+        Validation results — passed and failed validations
+        with error details. Overlay panel.
+      item_spec_id: render-spec/validation-result-card
+      arrangement: scroll
+      empty_message: "No validation results"
+      spatial:
+        position: overlay
+        height: auto
+      source_query: "gather(eidos: validation-result, sort: validated_at, order: desc, limit: 50)"
+      config:
+        watch_eidos: validation-result
+      created_at: "2026-02-22T00:00:00Z"
+
+bonds:
+  - from_id: mode/validation-overlay
+    to_id: render-spec/validation-result-card
+    desmos: uses-render-spec

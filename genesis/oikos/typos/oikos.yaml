@@ -1,0 +1,69 @@
+# Oikos Typos — Intimate Dwelling
+#
+# Core typos for the oikos (dwelling/sessions/conversations) domain.
+# Notes, insights, sessions, conversations.
+
+entities:
+
+# =============================================================================
+# INTIMATE DWELLING (OIKOS)
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-note
+  data:
+    name: note
+    description: |
+      Take a note - mark something as worthy of attention.
+    target_eidos: note
+    defaults:
+      kind: observation
+    bonds:
+      - desmos: belongs-to
+        from_self: true
+        to_context: _oikos
+        optional: true
+      - desmos: authored-by
+        from_self: true
+        to_context: _prosopon
+        optional: true
+
+- eidos: typos
+  id: typos-def-insight
+  data:
+    name: insight
+    description: |
+      Surface an insight - emerging understanding not yet crystallized.
+    target_eidos: insight
+    bonds:
+      - desmos: surfaced-in
+        from_self: true
+        to_context: _oikos
+        optional: true
+
+- eidos: typos
+  id: typos-def-session
+  data:
+    name: session
+    description: |
+      Open a session - a presence container.
+    target_eidos: session
+    defaults:
+      status: active
+
+- eidos: typos
+  id: typos-def-conversation
+  data:
+    name: conversation
+    description: |
+      Open a conversation within a session.
+    target_eidos: conversation
+    defaults:
+      status: active
+
+- eidos: typos
+  id: typos-def-segment
+  data:
+    name: segment
+    description: "Compose a segment entity"
+    target_eidos: segment

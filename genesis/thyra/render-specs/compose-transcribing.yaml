@@ -1,0 +1,134 @@
+# Compose Transcribing Render-Spec
+# Full compose bar in transcribing mode.
+# Same layout as compose-full but with readonly textarea and transcribing placeholder.
+#
+# Bound to accumulation entity (singleton).
+# Mode switching handles the presentation variation —
+# the reflex switches to this mode when transcriber becomes active.
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/compose-transcribing
+    data:
+      name: compose-transcribing
+      description: |
+        Compose bar in transcribing mode. Same layout as compose-full
+        but textarea is readonly with transcribing placeholder.
+      target_eidos: accumulation
+      variant: fixture
+
+      layout:
+        - widget: form
+          props:
+            class: compose-bar compose-bar--transcribing
+          children:
+            # ── Control row: mic, transcription, stance badge, spacer, clarify, express ──
+            - widget: row
+              props:
+                align: center
+                gap: sm
+                padding: xs
+                class: compose-bar__controls
+              children:
+                # Mic toggle — state-driven color via data-state + signal
+                - widget: button
+                  props:
+                    variant: ghost
+                    class: compose-bar__mic
+                    data-signal-source: "{@fed-by-audio.id}"
+                    data-state: "{@fed-by-audio.data.desired_state}"
+                    on_click: soma/toggle-audio-intent
+                    on_click_params:
+                      accumulation_id: "{id}"
+                  children:
+                    - widget: icon
+                      when: "@fed-by-audio.data.desired_state == 'active'"
+                      props:
+                        name: mic
+                        size: sm
+                    - widget: icon
+                      when: "@fed-by-audio.data.desired_state != 'active'"
+                      props:
+                        name: mic-off
+                        size: sm
+
+                # Transcription toggle — state-driven color via data-state + signal
+                - widget: button
+                  props:
+                    variant: ghost
+                    class: compose-bar__transcription
+                    data-signal-source: "{@fed-by-audio.id}"
+                    data-state: "{@fed-by-transcriber.data.desired_state}"
+                    on_click: soma/toggle-transcriber-intent
+                    on_click_params:
+                      accumulation_id: "{id}"
+                  children:
+                    - widget: icon
+                      props:
+                        name: audio-lines
+                        size: sm
+
+                # Stance badge — display-only indicator
+                - widget: badge
+                  when: "stance"
+                  props:
+                    content: "{stance}"
+                    variant: neutral
+                    class: compose-bar__stance
+
+                # Spacer pushes action buttons to the right
+                - widget: spacer
+                  props:
+                    size: flex
+
+                # Clarify button — LLM clarification of content
+                - widget: button
+                  props:
+                    variant: ghost
+                    class: compose-bar__clarify
+                    on_click: thyra/clarify-accumulation
+                    on_click_params:
+                      accumulation_id: "{id}"
+                  children:
+                    - widget: icon
+                      props:
+                        name: sparkles
+                        size: sm
+
+                # Express button — crosses the commitment boundary
+                - widget: button
+                  props:
+                    variant: primary
+                    class: compose-bar__express
+                    on_click: thyra/commit-phasis
+                    on_click_params:
+                      accumulation_id: "{id}"
+                      content: $form.content
+                      stance: $form.stance
+                    reset_form: true
+                  children:
+                    - widget: icon
+                      props:
+                        name: arrow-up
+                        size: sm
+
+            # ── Input area: readonly textarea alone ──
+            - widget: textarea
+              props:
+                name: content
+                value: "{content}"
+                placeholder: "Transcribing..."
+                rows: 2
+                class: compose-bar__textarea
+                readonly: true
+                on_submit: thyra/commit-phasis
+                on_submit_params:
+                  accumulation_id: "{id}"
+                  content: $form.content
+                  stance: $form.stance
+                on_clarify: thyra/clarify-accumulation
+                on_clarify_params:
+                  accumulation_id: "{id}"
+
+      created_at: "2026-02-12T00:00:00Z"

@@ -9,7 +9,7 @@ entities:
     id: eidos/dns-zone
     data:
       name: dns-zone
-      description: "A DNS zone managed by a circle. Zones are sovereignty boundaries."
+      description: "A DNS zone managed by an oikos. Zones are sovereignty boundaries."
       fields:
         name:
           type: string
@@ -157,42 +157,42 @@ entities:
     id: attainment/dns-read
     data:
       name: dns-read
-      oikos: thyra
-      scope: circle
+      topos: thyra
+      scope: oikos
       description: |
         Read-only DNS capability — can list zones/records and sense state.
-        Observing DNS state is safe for any circle member.
-      grants:
-        - praxis/thyra/list-zones
-        - praxis/thyra/list-dns-records
-        - praxis/thyra/sense-dns-record
+        Observing DNS state is safe for any oikos member.
+    bonds:
+      - { desmos: grants-praxis, to: praxis/thyra/list-zones }
+      - { desmos: grants-praxis, to: praxis/thyra/list-dns-records }
+      - { desmos: grants-praxis, to: praxis/thyra/sense-dns-record }
 
   # dns-write — record management capability
   - eidos: attainment
     id: attainment/dns-write
     data:
       name: dns-write
-      oikos: thyra
-      scope: circle
+      topos: thyra
+      scope: oikos
       description: |
         Record management — can create and delete DNS records.
-        Modifying records requires trust within the circle.
-      grants:
-        - praxis/thyra/create-dns-record
-        - praxis/thyra/delete-dns-record
+        Modifying records requires trust within the oikos.
+    bonds:
+      - { desmos: grants-praxis, to: praxis/thyra/create-dns-record }
+      - { desmos: grants-praxis, to: praxis/thyra/delete-dns-record }
 
   # dns-admin — zone and infrastructure management
   - eidos: attainment
     id: attainment/dns-admin
     data:
       name: dns-admin
-      oikos: thyra
-      scope: circle
+      topos: thyra
+      scope: oikos
       description: |
         Zone and infrastructure management — create zones, bind providers, reconcile.
         Administrative authority required for infrastructure operations.
-      grants:
-        - praxis/thyra/create-zone
-        - praxis/thyra/bind-zone-provider
-        - praxis/thyra/reconcile-dns-record
-        - praxis/thyra/reconcile-zone
+    bonds:
+      - { desmos: grants-praxis, to: praxis/thyra/create-zone }
+      - { desmos: grants-praxis, to: praxis/thyra/bind-zone-provider }
+      - { desmos: grants-praxis, to: praxis/thyra/reconcile-dns-record }
+      - { desmos: grants-praxis, to: praxis/thyra/reconcile-zone }

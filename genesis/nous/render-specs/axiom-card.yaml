@@ -1,0 +1,67 @@
+# Axiom Card Render-Spec
+# Foundational truth (constitutional knowledge)
+#
+# Axiom fields:
+#   - statement (string): The foundational truth
+#   - domain (string): What area this axiom applies to
+#   - rationale (string): Why this is accepted as foundational
+#
+# Traces to: genesis/demiurge/THYRA-EVOLUTION.md
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/axiom-card
+    data:
+      name: axiom-card
+      description: |
+        Foundational truth card. Constitutional knowledge that grounds
+        principles and patterns. Rare and requires special authority.
+      target_eidos: axiom
+      variant: card
+
+      layout:
+        - widget: card
+          props:
+            variant: elevated
+            padding: md
+          children:
+            - widget: stack
+              props:
+                gap: sm
+              children:
+                # Header with constitutional marker
+                - widget: row
+                  props:
+                    gap: sm
+                    align: center
+                  children:
+                    - widget: icon
+                      props:
+                        name: shield
+                        size: md
+                        color: warning
+                    - widget: badge
+                      props:
+                        content: "Axiom"
+                        variant: warning
+                    - widget: badge
+                      when: "domain"
+                      props:
+                        content: "{domain}"
+                        variant: info
+
+                # Statement
+                - widget: text
+                  props:
+                    content: "{statement}"
+                    variant: emphasis
+
+                # Rationale
+                - widget: text
+                  when: "rationale"
+                  props:
+                    content: "{rationale}"
+                    variant: caption
+
+      created_at: "2026-02-03T00:00:00Z"

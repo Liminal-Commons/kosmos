@@ -13,8 +13,11 @@ entities:
 
 - eidos: praxis
   id: praxis/release/create-release
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/release
   data:
-    oikos: release
+    topos: release
     name: create-release
     visible: true
     tier: 2
@@ -61,7 +64,7 @@ entities:
           build_commit: "$build_commit"
           status: "draft"
           created_at: "{{ now() }}"
-          created_by: "$_persona"
+          created_by: "$_prosopon"
         bind_to: release_entity
 
       - step: return
@@ -77,8 +80,11 @@ entities:
 
 - eidos: praxis
   id: praxis/release/register-artifact
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/release
   data:
-    oikos: release
+    topos: release
     name: register-artifact
     visible: true
     tier: 2
@@ -164,8 +170,11 @@ entities:
 
 - eidos: praxis
   id: praxis/release/mark-built
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/release
   data:
-    oikos: release
+    topos: release
     name: mark-built
     visible: true
     tier: 2
@@ -199,6 +208,17 @@ entities:
           status: "built"
           build_timestamp: "{{ now() }}"
 
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Release built: $release.data.name v$release.data.version"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: release
+            source_id: "$release_id"
+
       - step: return
         value:
           release_id: "$release_id"
@@ -211,8 +231,11 @@ entities:
 
 - eidos: praxis
   id: praxis/release/distribute
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/publish-release
   data:
-    oikos: release
+    topos: release
     name: distribute
     visible: true
     tier: 3
@@ -280,6 +303,17 @@ entities:
           distributed_at: "{{ now() }}"
           distribution_channels: "$channel_ids"
 
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Release distributed: $release.data.name v$release.data.version"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: release
+            source_id: "$release_id"
+
       - step: return
         value:
           release_id: "$release_id"
@@ -293,8 +327,11 @@ entities:
 
 - eidos: praxis
   id: praxis/release/sense-release
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/publish-release
   data:
-    oikos: release
+    topos: release
     name: sense-release
     visible: true
     tier: 3
@@ -341,8 +378,11 @@ entities:
 
 - eidos: praxis
   id: praxis/release/reconcile-release
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/publish-release
   data:
-    oikos: release
+    topos: release
     name: reconcile-release
     visible: true
     tier: 3
@@ -385,8 +425,11 @@ entities:
 
 - eidos: praxis
   id: praxis/release/list-releases
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/release
   data:
-    oikos: release
+    topos: release
     name: list-releases
     visible: true
     tier: 1
@@ -433,8 +476,11 @@ entities:
 
 - eidos: praxis
   id: praxis/release/get-release
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/release
   data:
-    oikos: release
+    topos: release
     name: get-release
     visible: true
     tier: 1
@@ -480,7 +526,7 @@ entities:
 - eidos: praxis
   id: praxis/release/sense-releases
   data:
-    oikos: release
+    topos: release
     name: sense-releases
     visible: true
     tier: 1
@@ -532,3 +578,35 @@ entities:
           distributing_count: "{{ $distributing_releases | length }}"
           distributed_count: "{{ $distributed_releases | length }}"
           has_pending_work: "{{ $building_releases | length > 0 || $distributing_releases | length > 0 }}"
+
+# =============================================================================
+# SENSING PRAXEIS — Daemon-Invoked Actuality Sensing
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/release/sense-release-distribution
+  data:
+    topos: release
+    name: sense-release-distribution
+    visible: false
+    tier: 1
+    description: |
+      Sense actuality for all release artifact entities.
+      Invoked by daemon/sense-releases on a periodic schedule.
+      Checks if release artifacts are present in R2 storage.
+    params: []
+    steps:
+      - step: gather
+        eidos: release-artifact
+        bind_to: artifacts
+
+      - step: for_each
+        items: "$artifacts"
+        as: artifact
+        do:
+          - step: sense_actuality
+            entity_id: "$artifact.id"
+
+      - step: return
+        value:
+          sensed_count: "{{ $artifacts | length }}"

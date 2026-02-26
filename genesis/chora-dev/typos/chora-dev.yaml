@@ -1,0 +1,197 @@
+# Chora-Dev Typos
+# Composition templates for substrate development entities
+#
+# These typos enable composition of chora-dev entities via demiurge/compose.
+
+entities:
+
+  # =============================================================================
+  # SOURCE-CRATE TYPOS
+  # =============================================================================
+
+  - eidos: typos
+    id: typos/chora-dev/typos-def-source-crate
+    data:
+      name: typos-def-source-crate
+      description: "Template for composing source-crate entities"
+      target_eidos: source-crate
+      slots:
+        - name: id
+          type: string
+          required: true
+          description: "Entity ID (e.g., 'source-crate/kosmos-mcp')"
+        - name: name
+          type: string
+          required: true
+          description: "Crate name"
+        - name: path
+          type: string
+          required: true
+          description: "Path relative to workspace root"
+        - name: crate_type
+          type: enum
+          values: [bin, lib, proc-macro]
+          required: true
+        - name: workspace_dependencies
+          type: array
+          required: false
+        - name: source_hash
+          type: string
+          required: false
+        - name: last_scanned_at
+          type: timestamp
+          required: false
+
+  # =============================================================================
+  # BUILD-TARGET TYPOS
+  # =============================================================================
+
+  - eidos: typos
+    id: typos/chora-dev/typos-def-build-target
+    data:
+      name: typos-def-build-target
+      description: "Template for composing build-target entities"
+      target_eidos: build-target
+      slots:
+        - name: id
+          type: string
+          required: true
+          description: "Entity ID (e.g., 'build-target/kosmos-mcp-release')"
+        - name: crate_name
+          type: string
+          required: true
+        - name: profile
+          type: enum
+          values: [dev, release, test]
+          default: dev
+          required: true
+        - name: target_triple
+          type: string
+          default: "host"
+          required: false
+        - name: artifact_path
+          type: string
+          required: false
+        - name: content_hash
+          type: string
+          required: false
+        - name: source_hash
+          type: string
+          required: false
+        - name: built_at
+          type: timestamp
+          required: false
+        - name: duration_ms
+          type: integer
+          required: false
+        - name: build_status
+          type: enum
+          values: [pending, building, succeeded, failed, stale]
+          default: pending
+          required: true
+        - name: error_message
+          type: string
+          required: false
+        - name: mode
+          type: string
+          default: "cargo-build"
+        - name: provider
+          type: string
+          default: "local"
+
+  # =============================================================================
+  # TEST-RUN TYPOS
+  # =============================================================================
+
+  - eidos: typos
+    id: typos/chora-dev/typos-def-test-run
+    data:
+      name: typos-def-test-run
+      description: "Template for composing test-run entities"
+      target_eidos: test-run
+      slots:
+        - name: id
+          type: string
+          required: true
+          description: "Entity ID (e.g., 'test-run/kosmos-mcp-2025-01-30T12:00:00Z')"
+        - name: test_filter
+          type: string
+          required: false
+        - name: status
+          type: enum
+          values: [pending, running, passed, failed, skipped]
+          default: pending
+          required: true
+        - name: passed_count
+          type: integer
+          required: false
+        - name: failed_count
+          type: integer
+          required: false
+        - name: skipped_count
+          type: integer
+          required: false
+        - name: duration_ms
+          type: integer
+          required: false
+        - name: output
+          type: string
+          required: false
+        - name: run_at
+          type: timestamp
+          required: false
+        - name: source_hash
+          type: string
+          required: false
+        - name: mode
+          type: string
+          default: "cargo-test"
+        - name: provider
+          type: string
+          default: "local"
+
+  # =============================================================================
+  # LINT-RUN TYPOS
+  # =============================================================================
+
+  - eidos: typos
+    id: typos/chora-dev/typos-def-lint-run
+    data:
+      name: typos-def-lint-run
+      description: "Template for composing lint-run entities"
+      target_eidos: lint-run
+      slots:
+        - name: id
+          type: string
+          required: true
+          description: "Entity ID (e.g., 'lint-run/kosmos-mcp-clippy-2025-01-30T12:00:00Z')"
+        - name: lint_type
+          type: enum
+          values: [clippy, fmt-check, doc-check]
+          required: true
+        - name: status
+          type: enum
+          values: [pending, running, clean, warnings, errors]
+          default: pending
+          required: true
+        - name: warning_count
+          type: integer
+          required: false
+        - name: error_count
+          type: integer
+          required: false
+        - name: output
+          type: string
+          required: false
+        - name: run_at
+          type: timestamp
+          required: false
+        - name: duration_ms
+          type: integer
+          required: false
+        - name: mode
+          type: string
+          default: "cargo-clippy"
+        - name: provider
+          type: string
+          default: "local"

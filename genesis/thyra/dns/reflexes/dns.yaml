@@ -1,0 +1,73 @@
+# DNS Reflexes — Homoiconic Form
+# Autonomic responses for DNS record lifecycle
+#
+# Two reflex pairs:
+# 1. Intent change: when desired_state changes, reconcile
+# 2. Drift: when actual_state diverges from desired_state, reconcile
+#
+# Traces to: genesis/thyra/dns/DESIGN.md
+
+entities:
+
+  # =============================================================================
+  # TRIGGERS
+  # =============================================================================
+
+  - eidos: trigger
+    id: trigger/thyra/dns-record-intent-changed
+    data:
+      name: dns-record-intent-changed
+      condition: '$entity.data.desired_state != $previous.data.desired_state'
+      enabled: true
+    bonds:
+      - { desmos: matches-event, to: entity-mutation/updated }
+      - { desmos: filters-eidos, to: eidos/dns-record }
+
+  - eidos: trigger
+    id: trigger/thyra/dns-record-drift
+    data:
+      name: dns-record-drift
+      condition: '$entity.data.desired_state != $entity.data.actual_state'
+      enabled: true
+    bonds:
+      - { desmos: matches-event, to: entity-mutation/updated }
+      - { desmos: filters-eidos, to: eidos/dns-record }
+
+  # =============================================================================
+  # REFLEXES
+  # =============================================================================
+
+  - eidos: reflex
+    id: reflex/thyra/reconcile-dns-on-intent
+    data:
+      name: reconcile-dns-on-intent
+      description: |
+        Trigger reconciliation when DNS record intent changes.
+        When desired_state changes (e.g., present -> absent),
+        the reconciler senses actuality and converges.
+      enabled: true
+      scope: global
+      response_params:
+        reconciler_id: "reconciler/dns-record"
+        entity_id: "$entity.id"
+    bonds:
+      - { desmos: triggered-by, to: trigger/thyra/dns-record-intent-changed }
+      - { desmos: responds-with, to: praxis/dynamis/reconcile }
+
+  - eidos: reflex
+    id: reflex/thyra/reconcile-dns-on-drift
+    data:
+      name: reconcile-dns-on-drift
+      description: |
+        When a DNS record's sensed actuality diverges from intent,
+        invoke reconciliation to correct. Fires on actual_state
+        changes from external drift (e.g., record modified in
+        Cloudflare dashboard, or record deleted externally).
+      enabled: true
+      scope: global
+      response_params:
+        reconciler_id: "reconciler/dns-record"
+        entity_id: "$entity.id"
+    bonds:
+      - { desmos: triggered-by, to: trigger/thyra/dns-record-drift }
+      - { desmos: responds-with, to: praxis/dynamis/reconcile }

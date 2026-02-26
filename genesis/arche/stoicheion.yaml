@@ -317,6 +317,15 @@
     model:
       type: string
       required: false
+      description: "Explicit model ID — overrides tier resolution"
+    tier:
+      type: string
+      required: false
+      description: "Capability tier: capable, balanced, or fast (default fast)"
+    provider:
+      type: string
+      required: false
+      description: "Provider name: anthropic, openai (default anthropic)"
     temperature:
       type: number
       required: false
@@ -333,6 +342,10 @@
     model:
       type: string
       required: false
+    provider:
+      type: string
+      required: false
+      description: "Provider name: openai (default openai)"
   effects: [external]
 
 - id: http
@@ -404,9 +417,9 @@
 # All stoicheia execute within dwelling context.
 # The interpreter provides ambient bindings:
 #
-#   _animus   — the dwelling animus (if any)
-#   _persona  — the persona behind the animus
-#   _circle   — the circle being dwelled in
+#   _parousia — the dwelling parousia (if any)
+#   _prosopon — the prosopon behind the parousia
+#   _oikos    — the oikos being dwelled in
 #   _session  — the current session
 #   _genesis  — the genesis root
 #

@@ -1,0 +1,67 @@
+# Conversation Item Render-Spec
+# Compact list item for conversation
+#
+# Conversation fields (from oikos/eide/oikos.yaml):
+#   - title (string, optional): Conversation title
+#   - status (enum: active, closed): Conversation lifecycle status
+#
+# Replaces HTML template in oikos/entities/rendering.yaml
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/conversation-item
+    data:
+      name: conversation-item
+      description: |
+        Compact list item for conversation entities.
+        Shows conversation title and status badge.
+      target_eidos: conversation
+      variant: item
+
+      layout:
+        - widget: card
+          props:
+            variant: compact
+            padding: sm
+          children:
+            - widget: row
+              props:
+                gap: sm
+                align: center
+                justify: between
+              children:
+                # Left: icon and title
+                - widget: row
+                  props:
+                    gap: sm
+                    align: center
+                  children:
+                    - widget: icon
+                      props:
+                        name: message-square
+                        size: sm
+                    - widget: text
+                      when: "title"
+                      props:
+                        content: "{title}"
+                        variant: body
+                    - widget: text
+                      when: "!title"
+                      props:
+                        content: "Untitled"
+                        variant: caption
+
+                # Right: status badge
+                - widget: badge
+                  when: "status == 'active'"
+                  props:
+                    content: "Active"
+                    variant: success
+                - widget: badge
+                  when: "status == 'closed'"
+                  props:
+                    content: "Closed"
+                    variant: default
+
+      created_at: "2026-02-09T00:00:00Z"

@@ -5,7 +5,7 @@
 # to WASM modules. WASM stoicheia call these as host imports.
 #
 # Traces to: host.rs (HostContext implementation)
-# Authorized by: expression/genesis-root
+# Authorized by: phasis/genesis-root
 
 version: "9.0.0"
 generated: "2026-01-22"
@@ -70,7 +70,7 @@ capabilities:
     params:
       - name: eidos
         type: string
-        description: "Entity type (e.g., 'persona', 'theoria')"
+        description: "Entity type (e.g., 'prosopon', 'theoria')"
       - name: id
         type: string
         description: "Unique entity identifier"
@@ -378,11 +378,11 @@ capabilities:
     tier: 2
     category: polis
     description: |
-      Check if a persona can see an entity based on circle membership.
+      Check if a prosopon can see an entity based on oikos membership.
     rust_method: "HostContext::visible_to"
     rust_file: "crates/kosmos/src/host.rs:498"
     params:
-      - name: persona_id
+      - name: prosopon_id
         type: string
       - name: entity_id
         type: string

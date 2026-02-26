@@ -1,0 +1,64 @@
+# Affordance Card Render-Spec
+# Interactive action button - clicking invokes the praxis
+#
+# Uses widget vocabulary from thyra/eide/widget.yaml
+# The key interactive element: affordances become clickable actions
+#
+# Affordance fields:
+#   - name (string): What this affordance represents
+#   - description (string): Explanation of the action
+#   - praxis_id (string): The praxis to invoke on click
+#   - required_attainments (array): Attainments needed
+#   - priority (number): Display priority
+#
+# Traces to: genesis/demiurge/THYRA-AWARENESS.md
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/affordance-card
+    data:
+      name: affordance-card
+      description: |
+        Interactive card for affordance actions.
+        Clicking the card invokes the affordance's praxis.
+        This is where governance capabilities become visible actions.
+      target_eidos: affordance
+      variant: card
+
+      layout:
+        - widget: card
+          props:
+            variant: elevated
+            padding: md
+            on_click: "{praxis_id}"
+            on_click_params:
+              affordance_id: "{id}"
+          children:
+            - widget: row
+              props:
+                gap: md
+                align: center
+              children:
+                # Action icon
+                - widget: icon
+                  props:
+                    name: zap
+                    size: md
+
+                # Content
+                - widget: stack
+                  props:
+                    gap: xs
+                  children:
+                    - widget: text
+                      props:
+                        content: "{name}"
+                        variant: emphasis
+                    - widget: text
+                      when: "description"
+                      props:
+                        content: "{description}"
+                        variant: caption
+
+      created_at: "2026-02-03T00:00:00Z"

@@ -21,18 +21,18 @@ With propylon:
 
 The relay forgets. The link is primary. Channels are orthogonal.
 
-## Circle Context
+## Oikos Context
 
-### Self Circle
+### Self Oikos
 
 A solitary dweller uses propylon to:
 - Create self-sync links for device federation
 - Store links in password managers for recovery
 - Restore identity from mnemonic + link combination
 
-Self-federation enables a single persona across multiple devices.
+Self-federation enables a single prosopon across multiple devices.
 
-### Peer Circle
+### Peer Oikos
 
 Collaborators use propylon to:
 - Create invitation links for new members
@@ -42,11 +42,11 @@ Collaborators use propylon to:
 
 The call IS the verification — you see and hear the person.
 
-### Commons Circle
+### Commons Oikos
 
-A commons circle uses propylon to:
+A commons oikos uses propylon to:
 - Operate a signaling relay for their community
-- Define entry policies for public circles
+- Define entry policies for public oikoi
 - Audit entry history for security
 - Distribute self-sync links to established members
 
@@ -61,7 +61,7 @@ Shareable invitation encoding — everything needed to attempt entry.
 **Fields:**
 - `invitation_id` — Reference to invitation entity
 - `bootstrap` — Relay URL for signaling
-- `circle_id` — Target circle
+- `oikos_id` — Target oikos
 - `inviter_id`, `inviter_pubkey` — Inviter identity
 - `signature` — Ed25519 signature over invitation_id
 - `display` — Human-readable metadata
@@ -81,7 +81,7 @@ Incoming entry request from inviter's perspective.
 **Fields:**
 - `peer_id` — WebRTC peer ID of entrant
 - `invitation_id` — Which invitation they're using
-- `circle_name`, `entrant_name`, `entrant_persona_id` — Display info
+- `oikos_name`, `entrant_name`, `entrant_prosopon_id` — Display info
 - `timestamp` — When received
 - `status` — pending, verifying, approved, rejected
 
@@ -95,19 +95,19 @@ Incoming entry request from inviter's perspective.
 Authentication state machine — tracks challenge-response flow.
 
 **Fields:**
-- `invitation_id`, `circle_id` — Context
+- `invitation_id`, `oikos_id` — Context
 - `nonce` — Challenge to sign
 - `entrant_pubkey` — For returning entry
 - `status` — challenged, pending_approval, authenticated, rejected, failed, expired
 - `challenge_expires` — Challenge timeout
 - `require_approval` — Whether inviter must confirm
-- `animus_id` — Created animus after success
-- `persona_name` — Display name for new persona
+- `parousia_id` — Created parousia after success
+- `prosopon_name` — Display name for new prosopon
 
 **Lifecycle:**
 - Arise: challenge-entry creates session with nonce
 - Change: verify-entry advances state
-- Complete: authenticated → animus created
+- Complete: authenticated → parousia created
 - Fail: rejected, failed, or expired
 
 ### propylon-relay
@@ -131,8 +131,8 @@ WebSocket signaling infrastructure.
 JWT for cross-process session sharing.
 
 **Fields:**
-- `persona_id` — Authenticated persona
-- `circles` — Accessible circle IDs
+- `prosopon_id` — Authenticated prosopon
+- `oikoi` — Accessible oikos IDs
 - `attainments` — Unlocked capabilities
 - `issued_at`, `expires_at` — Validity window
 - `signature` — Ed25519 over payload
@@ -146,21 +146,21 @@ JWT for cross-process session sharing.
 
 ### grants-entry-to
 
-Link grants entry to a circle.
+Link grants entry to an oikos.
 
 - **From:** propylon-link
-- **To:** circle
+- **To:** oikos
 - **Cardinality:** many-to-one
-- **Traversal:** Find which circle a link grants access to
+- **Traversal:** Find which oikos a link grants access to
 
 ### authenticated-via
 
-Animus was authenticated via this session.
+Parousia was authenticated via this session.
 
-- **From:** animus
+- **From:** parousia
 - **To:** propylon-session
 - **Cardinality:** many-to-one
-- **Traversal:** Audit how an animus entered
+- **Traversal:** Audit how a parousia entered
 
 ### used-link
 
@@ -173,18 +173,18 @@ Session used this invitation link.
 
 ### operates-relay
 
-Circle operates this relay.
+Oikos operates this relay.
 
-- **From:** circle
+- **From:** oikos
 - **To:** propylon-relay
 - **Cardinality:** one-to-many
 - **Traversal:** Find relays operated by a commons
 
 ### connects-via
 
-Animus connects via this relay.
+Parousia connects via this relay.
 
-- **From:** animus
+- **From:** parousia
 - **To:** propylon-relay
 - **Cardinality:** many-to-one
 - **Traversal:** Track connection infrastructure
@@ -195,7 +195,7 @@ Animus connects via this relay.
 
 Create a shareable invitation link.
 
-- **When:** Inviting someone to a circle
+- **When:** Inviting someone to an oikos
 - **Requires:** invite attainment
 - **Provides:** Encoded URL, shareable link
 
@@ -225,11 +225,11 @@ Issue authentication challenge.
 
 ### verify-entry
 
-Complete authentication, create animus.
+Complete authentication, create parousia.
 
 - **When:** Entrant signs challenge
 - **Requires:** enter attainment
-- **Provides:** Authenticated session, animus, connection info
+- **Provides:** Authenticated session, parousia, connection info
 
 ### approve-entry / reject-entry
 
@@ -249,7 +249,7 @@ Revoke an invitation link.
 
 ### list-entry-audit
 
-Query entry history for a circle.
+Query entry history for an oikos.
 
 - **When:** Auditing who entered when
 - **Requires:** audit attainment
@@ -265,13 +265,13 @@ Cross-process session management.
 
 ## Attainments
 
-### attainment/invite
+### attainment/manage-links
 
-Invitation capability — creating and managing invitation links.
+Link management capability — creating and managing invitation links.
 
 - **Grants:** create-link, create-self-link, revoke-link
-- **Scope:** circle
-- **Rationale:** Creating invitations is a sovereign act within a circle
+- **Scope:** oikos
+- **Rationale:** Creating invitations is a sovereign act within an oikos
 
 ### attainment/enter
 
@@ -286,15 +286,15 @@ Entry capability — using links to attempt entry.
 Approval capability — resolving pending entry requests.
 
 - **Grants:** approve-entry, reject-entry
-- **Scope:** circle
-- **Rationale:** Only circle members can approve/reject
+- **Scope:** oikos
+- **Rationale:** Only oikos members can approve/reject
 
 ### attainment/audit
 
 Audit capability — viewing entry history.
 
 - **Grants:** list-entry-audit
-- **Scope:** circle
+- **Scope:** oikos
 - **Rationale:** Entry history is sensitive; requires authorization
 
 ### attainment/session
@@ -303,7 +303,7 @@ Session management capability — cross-process authentication.
 
 - **Grants:** create-session-token, validate-session-token
 - **Scope:** soma (local substrate)
-- **Rationale:** Session tokens are substrate-local, not circle-scoped
+- **Rationale:** Session tokens are substrate-local, not oikos-scoped
 
 ## Embodiment
 
@@ -349,11 +349,11 @@ Entry requires key derivation and signing. Mnemonic restores identity.
 
 ### amplifies soma
 
-Animus arises through soma/arise-animus after authentication.
+Parousia arises through soma/arise-parousia after authentication.
 
 ### amplifies politeia
 
-Circle membership is created via entry. Governance determines who can invite.
+Oikos membership is created via entry. Governance determines who can invite.
 
 ### amplifies aither
 
@@ -389,7 +389,7 @@ Human-friendly addresses like `victor@liminalcommons.com` resolving to bootstrap
 
 ### Social Recovery
 
-Trusted peers can regenerate invitations. This is a circle governance feature, not infrastructure.
+Trusted peers can regenerate invitations. This is an oikos governance feature, not infrastructure.
 
 ### Relay Federation
 

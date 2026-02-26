@@ -19,8 +19,11 @@ entities:
 
 - eidos: praxis
   id: praxis/hodos/get-current-waypoint
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/navigate
   data:
-    oikos: hodos
+    topos: hodos
     name: get-current-waypoint
     visible: true
     tier: 1
@@ -68,19 +71,6 @@ entities:
             bindings:
               current_waypoint: null
 
-      # Get panel for this waypoint if available
-      - step: switch
-        cases:
-          - when: "$current_waypoint.data.panel_id"
-            then:
-              - step: find
-                id: "$current_waypoint.data.panel_id"
-                bind_to: panel
-        default:
-          - step: set
-            bindings:
-              panel: null
-
       # Get form definition if available
       - step: switch
         cases:
@@ -99,14 +89,16 @@ entities:
           journey_id: "$journey_id"
           current_ordinal: "$journey.data.current_waypoint"
           waypoint: "$current_waypoint"
-          panel: "$panel"
           form_definition: "$form_definition"
           journey_status: "$journey.data.status"
 
 - eidos: praxis
   id: praxis/hodos/advance-waypoint
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/navigate
   data:
-    oikos: hodos
+    topos: hodos
     name: advance-waypoint
     visible: true
     tier: 2
@@ -196,6 +188,17 @@ entities:
             bindings:
               journey_complete: false
 
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Advanced journey to waypoint $next_ordinal"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: journey
+            source_id: "$journey_id"
+
       - step: return
         value:
           advanced: true
@@ -205,8 +208,11 @@ entities:
 
 - eidos: praxis
   id: praxis/hodos/branch-waypoint
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/navigate
   data:
-    oikos: hodos
+    topos: hodos
     name: branch-waypoint
     visible: true
     tier: 2
@@ -272,6 +278,17 @@ entities:
         data:
           current_waypoint: "$target_waypoint.data.ordinal"
 
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Branched journey via '$action' to waypoint $target_waypoint.data.ordinal"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: waypoint
+            source_id: "$target_waypoint.id"
+
       - step: return
         value:
           branched: true
@@ -280,74 +297,13 @@ entities:
           action: "$action"
           target_waypoint: "$target_waypoint.id"
 
-# =============================================================================
-# PANEL RENDERING
-# =============================================================================
-
-- eidos: praxis
-  id: praxis/hodos/get-panel-render-data
-  data:
-    oikos: hodos
-    name: get-panel-render-data
-    visible: true
-    tier: 1
-    description: |
-      Get all data needed to render a panel.
-
-      Assembles:
-      - Panel config (title, description, actions, etc.)
-      - Form definition with slots (if panel uses a form)
-      - Current values (if editing)
-    params:
-      - name: panel_id
-        type: string
-        required: true
-        description: The panel to render
-      - name: current_values
-        type: object
-        required: false
-        description: Current form values (for pre-filling)
-    steps:
-      - step: find
-        id: "$panel_id"
-        bind_to: panel
-
-      - step: assert
-        condition: "$panel"
-        message: "Panel not found: $panel_id"
-
-      # Check if panel uses a form
-      - step: trace
-        from_id: "$panel_id"
-        desmos: "uses-form"
-        resolve: "to"
-        bind_to: form_bonds
-
-      - step: switch
-        cases:
-          - when: "$form_bonds.length > 0"
-            then:
-              - step: find
-                id: "$form_bonds.0.id"
-                bind_to: form_definition
-        default:
-          - step: set
-            bindings:
-              form_definition: null
-
-      - step: return
-        value:
-          panel_id: "$panel_id"
-          name: "$panel.data.name"
-          render_type: "$panel.data.render_type"
-          config: "$panel.data.config"
-          form_definition: "$form_definition"
-          current_values: "$current_values"
-
 - eidos: praxis
   id: praxis/hodos/validate-form
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/navigate
   data:
-    oikos: hodos
+    topos: hodos
     name: validate-form
     visible: true
     tier: 0
@@ -409,8 +365,11 @@ entities:
 
 - eidos: praxis
   id: praxis/hodos/start-onboarding
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/navigate
   data:
-    oikos: hodos
+    topos: hodos
     name: start-onboarding
     visible: true
     tier: 2

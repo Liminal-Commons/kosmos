@@ -1,0 +1,24 @@
+# Chora-Dev Sensing Daemon
+# Periodic actuality sensing for cargo build/test/lint entities
+#
+# Follows the proven pattern from genesis/dynamis/daemons/daemons.yaml.
+# Uses standard `praxis:` field for daemon_loop.rs discovery.
+#
+# Traces to: PROMPT-CARGO-AUTONOMIC-WIRING.md
+
+entities:
+
+  - eidos: daemon
+    id: daemon/sense-cargo-builds
+    data:
+      name: sense-cargo-builds
+      description: |
+        Periodically sense cargo build/test/lint entity actuality.
+        Gathers all build-target, test-run, and lint-run entities
+        and invokes sense on each. Entity updates trigger drift-detection
+        reflexes via the autonomic triple.
+      praxis: chora-dev/sense-build-states
+      interval: 60
+      enabled: true
+      scope: dwelling
+      backoff_max: 300

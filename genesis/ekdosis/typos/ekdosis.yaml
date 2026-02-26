@@ -1,0 +1,128 @@
+# Ekdosis Typos — Publishing Pipeline
+#
+# Typos for the ekdosis (publishing) domain.
+# Baking, signing, releasing oikoi.
+
+entities:
+
+# =============================================================================
+# OIKOS-PROD
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-oikos-prod
+  data:
+    name: oikos-prod
+    description: |
+      Create a production-ready oikos from a baked oikos-dev.
+
+      Contains the baked content, locale, hash, and provenance
+      back to the source oikos-dev.
+    target_eidos: oikos-prod
+    slots:
+      oikos_id:
+        fill: input
+        required: true
+      version:
+        fill: input
+        required: true
+      locale:
+        fill: input
+        required: false
+      description:
+        fill: input
+        required: false
+      manifest:
+        fill: input
+        required: false
+      content:
+        fill: input
+        required: true
+      content_hash:
+        fill: input
+        required: true
+      baked_from:
+        fill: input
+        required: true
+      published_at:
+        fill: input
+        required: true
+      signature:
+        fill: input
+        required: false
+        description: "Set by sign-oikos after baking"
+      publisher_pubkey:
+        fill: input
+        required: false
+        description: "Set by sign-oikos after baking"
+      fetch_url:
+        fill: input
+        required: false
+        description: "Set by upload-oikos after signing"
+
+# =============================================================================
+# BUILD ATTESTATION
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-build-attestation
+  data:
+    name: build-attestation
+    description: |
+      Record a build attestation for a signed oikos-prod.
+
+      Captures builder identity, timestamps, hashes, and signature
+      for verifiable provenance.
+    target_eidos: build-attestation
+    slots:
+      builder_prosopon:
+        fill: input
+        required: true
+      build_timestamp:
+        fill: input
+        required: true
+      source_hash:
+        fill: input
+        required: true
+      output_hash:
+        fill: input
+        required: true
+      signature:
+        fill: input
+        required: true
+      builder_pubkey:
+        fill: input
+        required: true
+
+# =============================================================================
+# OIKOS RELEASE
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-oikos-release
+  data:
+    name: oikos-release
+    description: |
+      Publish a release for a signed oikos-prod.
+
+      Release entries are discoverable by version and channel.
+    target_eidos: oikos-release
+    slots:
+      version:
+        fill: input
+        required: true
+      oikos_prod_id:
+        fill: input
+        required: true
+      channel:
+        fill: input
+        required: true
+      notes:
+        fill: input
+        required: false
+      published_at:
+        fill: input
+        required: true
+      publisher_prosopon:
+        fill: input
+        required: true

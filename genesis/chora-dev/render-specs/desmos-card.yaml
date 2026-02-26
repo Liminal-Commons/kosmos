@@ -1,0 +1,66 @@
+# Desmos Card — Bond type browser
+# Displays a desmos definition with source/target eide and cardinality
+
+entities:
+  - eidos: render-spec
+    id: render-spec/chora-dev/desmos-card
+    data:
+      name: desmos-card
+      description: "Bond type card showing source/target eide and cardinality"
+      target_eidos: desmos
+      variant: card
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+            on_click: ui/set-selection
+            on_click_params:
+              selection_type: selected-desmos
+              entity_id: "{id}"
+          children:
+            # Bond name
+            - widget: text
+              props:
+                content: "{id}"
+                variant: emphasis
+
+            # Description
+            - widget: text
+              when: "description"
+              props:
+                content: "{description}"
+                variant: caption
+
+            # Relationship row: from → to
+            - widget: row
+              props:
+                gap: sm
+                align: center
+              children:
+                - widget: badge
+                  when: "from_eidos"
+                  props:
+                    content: "{from_eidos | join}"
+                    variant: default
+
+                - widget: text
+                  props:
+                    content: "→"
+                    variant: caption
+
+                - widget: badge
+                  when: "to_eidos"
+                  props:
+                    content: "{to_eidos | join}"
+                    variant: default
+
+                - widget: spacer
+                  props:
+                    size: flex
+
+                - widget: badge
+                  when: "cardinality"
+                  props:
+                    content: "{cardinality}"
+                    variant: info

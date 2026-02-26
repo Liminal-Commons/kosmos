@@ -3,7 +3,7 @@
 #
 # Aither is the transport layer — P2P connections via WebRTC.
 # These praxeis wrap the webrtc dynamis. Aither is transport-level;
-# it doesn't know about circles or governance (that's syndesmos).
+# it doesn't know about oikoi or governance (that's syndesmos).
 
 entities:
 
@@ -14,7 +14,7 @@ entities:
 - eidos: praxis
   id: praxis/aither/connect-signaling
   data:
-    oikos: aither
+    topos: aither
     name: connect-signaling
     visible: true
     tier: 3
@@ -69,17 +69,30 @@ entities:
           session_handle: "$manifest_result.session_id"
           connected_at: "{{ now() }}"
 
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Connected to signaling relay for room $room_id as $role"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: signaling-session
+            source_id: "$session_id"
+
       - step: return
         value:
           session_id: "$session_id"
           room_id: "$room_id"
           role: "$role"
           status: "connected"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/connect }
 
 - eidos: praxis
   id: praxis/aither/disconnect-signaling
   data:
-    oikos: aither
+    topos: aither
     name: disconnect-signaling
     visible: true
     tier: 3
@@ -120,11 +133,13 @@ entities:
         value:
           session_id: "$session_id"
           disconnected: true
+  bonds:
+    - { desmos: requires-attainment, to: attainment/connect }
 
 - eidos: praxis
   id: praxis/aither/sense-signaling
   data:
-    oikos: aither
+    topos: aither
     name: sense-signaling
     visible: true
     tier: 1
@@ -157,11 +172,13 @@ entities:
           connected: "$actual.connected"
           room_id: "$session.data.room_id"
           role: "$session.data.role"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/sense }
 
 - eidos: praxis
   id: praxis/aither/poll-signaling
   data:
-    oikos: aither
+    topos: aither
     name: poll-signaling
     visible: true
     tier: 2
@@ -197,11 +214,13 @@ entities:
           ice_candidates: "$messages.ice_candidates"
           peers_joined: "$messages.peers_joined"
           peers_left: "$messages.peers_left"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/sense }
 
 - eidos: praxis
   id: praxis/aither/send-offer
   data:
-    oikos: aither
+    topos: aither
     name: send-offer
     visible: true
     tier: 2
@@ -234,11 +253,13 @@ entities:
         value:
           sent: true
           type: "offer"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/connect }
 
 - eidos: praxis
   id: praxis/aither/send-answer
   data:
-    oikos: aither
+    topos: aither
     name: send-answer
     visible: true
     tier: 2
@@ -271,6 +292,8 @@ entities:
         value:
           sent: true
           type: "answer"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/connect }
 
 # =============================================================================
 # DATA CHANNEL OPERATIONS (WebRTC P2P)
@@ -279,7 +302,7 @@ entities:
 - eidos: praxis
   id: praxis/aither/create-channel
   data:
-    oikos: aither
+    topos: aither
     name: create-channel
     visible: true
     tier: 3
@@ -352,11 +375,13 @@ entities:
           channel_id: "$cid"
           sdp_offer: "$manifest_result.sdp_offer"
           status: "connecting"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/connect }
 
 - eidos: praxis
   id: praxis/aither/accept-answer
   data:
-    oikos: aither
+    topos: aither
     name: accept-answer
     visible: true
     tier: 3
@@ -400,11 +425,13 @@ entities:
         value:
           channel_id: "$channel_id"
           connected: true
+  bonds:
+    - { desmos: requires-attainment, to: attainment/connect }
 
 - eidos: praxis
   id: praxis/aither/answer-channel
   data:
-    oikos: aither
+    topos: aither
     name: answer-channel
     visible: true
     tier: 3
@@ -484,11 +511,13 @@ entities:
           channel_id: "$cid"
           sdp_answer: "$answer_result.sdp_answer"
           status: "connected"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/connect }
 
 - eidos: praxis
   id: praxis/aither/close-channel
   data:
-    oikos: aither
+    topos: aither
     name: close-channel
     visible: true
     tier: 3
@@ -527,11 +556,13 @@ entities:
         value:
           channel_id: "$channel_id"
           closed: true
+  bonds:
+    - { desmos: requires-attainment, to: attainment/connect }
 
 - eidos: praxis
   id: praxis/aither/sense-channel
   data:
-    oikos: aither
+    topos: aither
     name: sense-channel
     visible: true
     tier: 1
@@ -562,11 +593,13 @@ entities:
           status: "$channel.data.status"
           actual_state: "$actual.state"
           connected: '$actual.state == "connected"'
+  bonds:
+    - { desmos: requires-attainment, to: attainment/sense }
 
 - eidos: praxis
   id: praxis/aither/reconcile-channel
   data:
-    oikos: aither
+    topos: aither
     name: reconcile-channel
     visible: true
     tier: 3
@@ -647,11 +680,13 @@ entities:
               action: "none"
               success: true
               message: "Already aligned"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/connect }
 
 - eidos: praxis
   id: praxis/aither/send-message
   data:
-    oikos: aither
+    topos: aither
     name: send-message
     visible: true
     tier: 2
@@ -689,11 +724,13 @@ entities:
         value:
           sent: true
           channel_id: "$channel_id"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/message }
 
 - eidos: praxis
   id: praxis/aither/receive-messages
   data:
-    oikos: aither
+    topos: aither
     name: receive-messages
     visible: true
     tier: 2
@@ -723,11 +760,13 @@ entities:
           channel_id: "$channel_id"
           messages: "$messages"
           count: "$messages | length"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/message }
 
 - eidos: praxis
   id: praxis/aither/list-channels
   data:
-    oikos: aither
+    topos: aither
     name: list-channels
     visible: true
     tier: 1
@@ -765,9 +804,8 @@ entities:
           - when: "$status"
             then:
               - step: filter
-                in: "$channels"
-                as: c
-                where: "$c.data.status == '$status'"
+                items: "$channels"
+                condition: "$item.data.status == '$status'"
                 bind_to: channels
 
       - step: limit
@@ -779,6 +817,8 @@ entities:
         value:
           channels: "$channels"
           count: "$channels | length"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/sense }
 
 # =============================================================================
 # SYNDESMOS OPERATIONS (Persistent Connection State)
@@ -787,7 +827,7 @@ entities:
 - eidos: praxis
   id: praxis/aither/ensure-connection
   data:
-    oikos: aither
+    topos: aither
     name: ensure-connection
     visible: true
     tier: 3
@@ -805,10 +845,10 @@ entities:
         type: string
         required: false
         description: Remote peer identifier if known
-      - name: circle_id
+      - name: oikos_id
         type: string
         required: false
-        description: Circle context for this connection
+        description: Oikos context for this connection
     steps:
       # Check if syndesmos already exists for this room
       - step: gather
@@ -816,9 +856,8 @@ entities:
         bind_to: existing
 
       - step: filter
-        in: "$existing"
-        as: s
-        where: "$s.data.room_id == '$room_id'"
+        items: "$existing"
+        condition: "$item.data.room_id == '$room_id'"
         bind_to: matches
 
       - step: set
@@ -859,7 +898,7 @@ entities:
               id: "$syndesmos_id"
               room_id: "$room_id"
               peer_id: "$peer_id"
-              circle_id: "$circle_id"
+              oikos_id: "$oikos_id"
               intent: "connected"
               status: "connecting"
               retry_count: 0
@@ -874,19 +913,32 @@ entities:
                 then:
                   - step: bind
                     from_id: "$syndesmos_id"
-                    to_id: "persona/$peer_id"
+                    to_id: "prosopon/$peer_id"
                     desmos: "targets-peer"
+
+          # Emit phasis for discourse
+          - step: call
+            praxis: logos/emit-phasis
+            params:
+              content: "Established syndesmos connection for room $room_id"
+              stance: declaration
+              source_kind: topos
+              metadata:
+                source_eidos: syndesmos
+                source_id: "$syndesmos_id"
 
           - step: return
             value:
               syndesmos_id: "$syndesmos_id"
               status: "connecting"
               created: true
+  bonds:
+    - { desmos: requires-attainment, to: attainment/connect }
 
 - eidos: praxis
   id: praxis/aither/attempt-reconnect
   data:
-    oikos: aither
+    topos: aither
     name: attempt-reconnect
     visible: true
     tier: 3
@@ -980,11 +1032,13 @@ entities:
               attempted: true
               connected: false
               next_retry_at: "$next_retry"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/connect }
 
 - eidos: praxis
   id: praxis/aither/disconnect-syndesmos
   data:
-    oikos: aither
+    topos: aither
     name: disconnect-syndesmos
     visible: true
     tier: 3
@@ -1024,11 +1078,13 @@ entities:
         value:
           syndesmos_id: "$syndesmos_id"
           disconnected: true
+  bonds:
+    - { desmos: requires-attainment, to: attainment/connect }
 
 - eidos: praxis
   id: praxis/aither/list-connections
   data:
-    oikos: aither
+    topos: aither
     name: list-connections
     visible: true
     tier: 1
@@ -1039,10 +1095,10 @@ entities:
         type: string
         required: false
         description: Filter by status
-      - name: circle_id
+      - name: oikos_id
         type: string
         required: false
-        description: Filter by circle
+        description: Filter by oikos
       - name: limit
         type: number
         required: false
@@ -1070,19 +1126,17 @@ entities:
           - when: "$status"
             then:
               - step: filter
-                in: "$connections"
-                as: c
-                where: "$c.data.status == '$status'"
+                items: "$connections"
+                condition: "$item.data.status == '$status'"
                 bind_to: connections
 
       - step: switch
         cases:
-          - when: "$circle_id"
+          - when: "$oikos_id"
             then:
               - step: filter
-                in: "$connections"
-                as: c
-                where: "$c.data.circle_id == '$circle_id'"
+                items: "$connections"
+                condition: "$item.data.oikos_id == '$oikos_id'"
                 bind_to: connections
 
       - step: limit
@@ -1094,6 +1148,8 @@ entities:
         value:
           connections: "$connections"
           count: "$connections | length"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/sense }
 
 # =============================================================================
 # OFFLINE MESSAGE QUEUE
@@ -1102,7 +1158,7 @@ entities:
 - eidos: praxis
   id: praxis/aither/queue-message
   data:
-    oikos: aither
+    topos: aither
     name: queue-message
     visible: true
     tier: 2
@@ -1179,11 +1235,13 @@ entities:
           message_id: "$msg_id"
           syndesmos_id: "$syndesmos_id"
           expires_at: "$expires_at"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/message }
 
 - eidos: praxis
   id: praxis/aither/flush-queue
   data:
-    oikos: aither
+    topos: aither
     name: flush-queue
     visible: true
     tier: 2
@@ -1219,22 +1277,21 @@ entities:
 
       # Get queued messages via bond
       - step: trace
-        from_id: "$syndesmos_id"
-        direction: inward
+        to_id: "$syndesmos_id"
         desmos: "queued-for"
+        resolve: "from"
         bind_to: messages
 
       - step: filter
-        in: "$messages"
-        as: m
-        where: '$m.data.status == "pending"'
+        items: "$messages"
+        condition: '$item.data.status == "pending"'
         bind_to: pending
 
       # Sort by created_at
       - step: sort
         items: "$pending"
         by: "data.created_at"
-        direction: "asc"
+        order: "asc"
         bind_to: ordered
 
       - step: set
@@ -1309,6 +1366,8 @@ entities:
           delivered: "$delivered_count"
           failed: "$failed_count"
           remaining: "{{ ordered | length - delivered_count - failed_count }}"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/message }
 
 # =============================================================================
 # PRESENCE OPERATIONS
@@ -1317,21 +1376,21 @@ entities:
 - eidos: praxis
   id: praxis/aither/update-presence
   data:
-    oikos: aither
+    topos: aither
     name: update-presence
     visible: true
     tier: 2
     description: |
-      Update or create presence record in a circle/room.
+      Update or create presence record in an oikos/room.
     params:
-      - name: persona_id
+      - name: prosopon_id
         type: string
         required: true
-        description: The persona whose presence to update
-      - name: circle_id
+        description: The prosopon whose presence to update
+      - name: oikos_id
         type: string
         required: false
-        description: Circle to update presence in
+        description: Oikos to update presence in
       - name: room_id
         type: string
         required: false
@@ -1361,19 +1420,17 @@ entities:
         bind_to: existing
 
       - step: filter
-        in: "$existing"
-        as: p
-        where: "$p.data.persona_id == '$persona_id'"
+        items: "$existing"
+        condition: "$item.data.prosopon_id == '$prosopon_id'"
         bind_to: matches
 
       - step: switch
         cases:
-          - when: "$circle_id"
+          - when: "$oikos_id"
             then:
               - step: filter
-                in: "$matches"
-                as: p
-                where: "$p.data.circle_id == '$circle_id'"
+                items: "$matches"
+                condition: "$item.data.oikos_id == '$oikos_id'"
                 bind_to: matches
 
       - step: set
@@ -1399,47 +1456,49 @@ entities:
           # Create new presence record
           - step: set
             bindings:
-              presence_id: "presence-record/{{ persona_id }}-{{ now() }}"
+              presence_id: "presence-record/{{ prosopon_id }}-{{ now() }}"
 
           # CE4: compose instead of arise
           - step: compose
             typos_id: "typos-def-presence-record"
             inputs:
               id: "$presence_id"
-              persona_id: "$persona_id"
-              circle_id: "$circle_id"
+              prosopon_id: "$prosopon_id"
+              oikos_id: "$oikos_id"
               room_id: "$room_id"
               status: "$presence_status"
               last_heartbeat: "$now_ts"
               connected_at: "$now_ts"
             bind_to: presence
 
-          # Bond to persona
+          # Bond to prosopon
           - step: bind
             from_id: "$presence_id"
-            to_id: "persona/$persona_id"
+            to_id: "prosopon/$prosopon_id"
             desmos: "presence-of"
 
-          # Bond to circle if specified
+          # Bond to oikos if specified
           - step: switch
             cases:
-              - when: "$circle_id"
+              - when: "$oikos_id"
                 then:
                   - step: bind
                     from_id: "$presence_id"
-                    to_id: "$circle_id"
-                    desmos: "present-in"
+                    to_id: "$oikos_id"
+                    desmos: "present-in-oikos"
 
           - step: return
             value:
               presence_id: "$presence_id"
               status: "$presence_status"
               created: true
+  bonds:
+    - { desmos: requires-attainment, to: attainment/presence }
 
 - eidos: praxis
   id: praxis/aither/heartbeat
   data:
-    oikos: aither
+    topos: aither
     name: heartbeat
     visible: true
     tier: 1
@@ -1468,11 +1527,13 @@ entities:
         value:
           presence_id: "$presence_id"
           heartbeat_at: "{{ now() }}"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/presence }
 
 - eidos: praxis
   id: praxis/aither/expire-stale-presence
   data:
-    oikos: aither
+    topos: aither
     name: expire-stale-presence
     visible: true
     tier: 2
@@ -1481,10 +1542,10 @@ entities:
 
       Marks records as offline if heartbeat expired, removes old offline records.
     params:
-      - name: circle_id
+      - name: oikos_id
         type: string
         required: false
-        description: Limit to specific circle
+        description: Limit to specific oikos
     steps:
       - step: gather
         eidos: presence-record
@@ -1492,12 +1553,11 @@ entities:
 
       - step: switch
         cases:
-          - when: "$circle_id"
+          - when: "$oikos_id"
             then:
               - step: filter
-                in: "$records"
-                as: r
-                where: "$r.data.circle_id == '$circle_id'"
+                items: "$records"
+                condition: "$item.data.oikos_id == '$oikos_id'"
                 bind_to: records
 
       - step: set
@@ -1536,21 +1596,23 @@ entities:
         value:
           expired: "$expired_count"
           checked: "$records | length"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/presence }
 
 - eidos: praxis
   id: praxis/aither/list-presence
   data:
-    oikos: aither
+    topos: aither
     name: list-presence
     visible: true
     tier: 1
     description: |
-      List presence records for a circle or room.
+      List presence records for an oikos or room.
     params:
-      - name: circle_id
+      - name: oikos_id
         type: string
         required: false
-        description: Filter by circle
+        description: Filter by oikos
       - name: room_id
         type: string
         required: false
@@ -1570,12 +1632,11 @@ entities:
 
       - step: switch
         cases:
-          - when: "$circle_id"
+          - when: "$oikos_id"
             then:
               - step: filter
-                in: "$records"
-                as: r
-                where: "$r.data.circle_id == '$circle_id'"
+                items: "$records"
+                condition: "$item.data.oikos_id == '$oikos_id'"
                 bind_to: records
 
       - step: switch
@@ -1583,9 +1644,8 @@ entities:
           - when: "$room_id"
             then:
               - step: filter
-                in: "$records"
-                as: r
-                where: "$r.data.room_id == '$room_id'"
+                items: "$records"
+                condition: "$item.data.room_id == '$room_id'"
                 bind_to: records
 
       - step: switch
@@ -1593,9 +1653,8 @@ entities:
           - when: "$status"
             then:
               - step: filter
-                in: "$records"
-                as: r
-                where: "$r.data.status == '$status'"
+                items: "$records"
+                condition: "$item.data.status == '$status'"
                 bind_to: records
 
       # Default: exclude offline
@@ -1616,15 +1675,16 @@ entities:
           - when: "$skip_offline"
             then:
               - step: filter
-                in: "$records"
-                as: r
-                where: '$r.data.status != "offline"'
+                items: "$records"
+                condition: '$item.data.status != "offline"'
                 bind_to: records
 
       - step: return
         value:
           presence: "$records"
           count: "$records | length"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/presence }
 
 # =============================================================================
 # SYNC OPERATIONS (C8.4/C8.5 Real-time P2P Sync)
@@ -1633,7 +1693,7 @@ entities:
 - eidos: praxis
   id: praxis/aither/broadcast-sync
   data:
-    oikos: aither
+    topos: aither
     name: broadcast-sync
     visible: true
     tier: 2
@@ -1646,7 +1706,7 @@ entities:
       - name: message_type
         type: string
         required: true
-        description: "Type: expression, entity, presence"
+        description: "Type: phasis, entity, presence"
       - name: action
         type: string
         required: true
@@ -1655,14 +1715,14 @@ entities:
         type: object
         required: false
         description: "The entity being synced"
-      - name: circle_id
+      - name: oikos_id
         type: string
         required: true
-        description: "Circle context"
+        description: "Oikos context"
       - name: sender_id
         type: string
         required: true
-        description: "Sender's persona ID"
+        description: "Sender's prosopon ID"
     steps:
       - step: set
         bindings:
@@ -1675,7 +1735,7 @@ entities:
           message_type: "$message_type"
           action: "$action"
           entity: "$entity"
-          circle_id: "$circle_id"
+          oikos_id: "$oikos_id"
           timestamp: "$timestamp"
           sender_id: "$sender_id"
         bind_to: sync_message
@@ -1683,17 +1743,16 @@ entities:
       # Serialize to JSON
       - step: set
         bindings:
-          message_json: "{{ sync_message | to_json }}"
+          message_json: "{{ sync_message | json_encode }}"
 
-      # Get all connected channels for this circle
+      # Get all connected channels for this oikos
       - step: gather
         eidos: syndesmos
         bind_to: connections
 
       - step: filter
-        in: "$connections"
-        as: c
-        where: '$c.data.circle_id == "$circle_id" and $c.data.status == "connected"'
+        items: "$connections"
+        condition: '$item.data.oikos_id == "$oikos_id" and $item.data.status == "connected"'
         bind_to: active_connections
 
       # Send to each connected peer
@@ -1710,11 +1769,13 @@ entities:
         value:
           sent_to: "$active_connections | length"
           timestamp: "$timestamp"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/sync }
 
 - eidos: praxis
   id: praxis/aither/receive-sync
   data:
-    oikos: aither
+    topos: aither
     name: receive-sync
     visible: true
     tier: 2
@@ -1722,7 +1783,7 @@ entities:
       Handle an incoming sync message from a peer.
 
       Parses the message, validates it, and applies the sync
-      based on message type (expression, entity, catch-up).
+      based on message type (phasis, entity, catch-up).
     params:
       - name: peer_id
         type: string
@@ -1745,15 +1806,15 @@ entities:
       # Route based on message type
       - step: switch
         cases:
-          # Handle expression sync
-          - when: '$message.message_type == "expression"'
+          # Handle phasis sync
+          - when: '$message.message_type == "phasis"'
             then:
               - step: call
-                praxis: "aither/apply-expression-sync"
+                praxis: "aither/apply-phasis-sync"
                 params:
                   action: "$message.action"
                   entity: "$message.entity"
-                  circle_id: "$message.circle_id"
+                  oikos_id: "$message.oikos_id"
                   sender_id: "$message.sender_id"
                 bind_to: result
 
@@ -1764,7 +1825,7 @@ entities:
                 praxis: "aither/respond-catch-up"
                 params:
                   peer_id: "$peer_id"
-                  circle_id: "$message.circle_id"
+                  oikos_id: "$message.oikos_id"
                   since: "$message.since"
                 bind_to: result
 
@@ -1775,7 +1836,7 @@ entities:
                 praxis: "aither/apply-catch-up"
                 params:
                   entities: "$message.entities"
-                  circle_id: "$message.circle_id"
+                  oikos_id: "$message.oikos_id"
                 bind_to: result
 
         default:
@@ -1790,18 +1851,20 @@ entities:
           peer_id: "$peer_id"
           message_type: "$message.message_type"
           result: "$result"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/sync }
 
 - eidos: praxis
-  id: praxis/aither/apply-expression-sync
+  id: praxis/aither/apply-phasis-sync
   data:
-    oikos: aither
-    name: apply-expression-sync
+    topos: aither
+    name: apply-phasis-sync
     visible: false
     tier: 2
     description: |
-      Apply an incoming expression sync to local kosmos.
+      Apply an incoming phasis sync to local kosmos.
 
-      Creates or updates the expression entity, maintaining
+      Creates or updates the phasis entity, maintaining
       sync state without duplicating existing content.
     params:
       - name: action
@@ -1811,11 +1874,11 @@ entities:
       - name: entity
         type: object
         required: true
-        description: "The expression entity"
-      - name: circle_id
+        description: "The phasis entity"
+      - name: oikos_id
         type: string
         required: true
-        description: "Circle context"
+        description: "Oikos context"
       - name: sender_id
         type: string
         required: true
@@ -1828,17 +1891,17 @@ entities:
 
       - step: switch
         cases:
-          # Create new expression
+          # Create new phasis
           - when: '$action == "create" and not $existing'
             then:
               - step: compose
-                typos_id: "typos-def-expression"
+                typos_id: "typos-def-phasis"
                 inputs:
                   id: "$entity.id"
                   content: "$entity.data.content"
                   mode: "$entity.data.mode"
                   author_id: "$sender_id"
-                  circle_id: "$circle_id"
+                  oikos_id: "$oikos_id"
                   synced_from: "$sender_id"
                   created_at: "$entity.data.created_at"
                 bind_to: created
@@ -1867,7 +1930,7 @@ entities:
 - eidos: praxis
   id: praxis/aither/request-catch-up
   data:
-    oikos: aither
+    topos: aither
     name: request-catch-up
     visible: true
     tier: 2
@@ -1877,10 +1940,10 @@ entities:
       Broadcasts a catch-up-request to all connected peers with
       the timestamp of last successful sync.
     params:
-      - name: circle_id
+      - name: oikos_id
         type: string
         required: true
-        description: "Circle to catch up"
+        description: "Oikos to catch up"
       - name: since
         type: string
         required: false
@@ -1888,7 +1951,7 @@ entities:
       - name: sender_id
         type: string
         required: true
-        description: "Requester's persona ID"
+        description: "Requester's prosopon ID"
     steps:
       # Default to 1 hour ago if not specified
       - step: set
@@ -1909,7 +1972,7 @@ entities:
         inputs:
           message_type: "catch-up-request"
           action: "request"
-          circle_id: "$circle_id"
+          oikos_id: "$oikos_id"
           timestamp: "{{ now() }}"
           sender_id: "$sender_id"
           since: "$since_ts"
@@ -1917,7 +1980,7 @@ entities:
 
       - step: set
         bindings:
-          message_json: "{{ request_message | to_json }}"
+          message_json: "{{ request_message | json_encode }}"
 
       # Get connected peers
       - step: gather
@@ -1925,9 +1988,8 @@ entities:
         bind_to: connections
 
       - step: filter
-        in: "$connections"
-        as: c
-        where: '$c.data.circle_id == "$circle_id" and $c.data.status == "connected"'
+        items: "$connections"
+        condition: '$item.data.oikos_id == "$oikos_id" and $item.data.status == "connected"'
         bind_to: active_connections
 
       # Send to all peers
@@ -1944,44 +2006,45 @@ entities:
         value:
           requested_from: "$active_connections | length"
           since: "$since_ts"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/sync }
 
 - eidos: praxis
   id: praxis/aither/respond-catch-up
   data:
-    oikos: aither
+    topos: aither
     name: respond-catch-up
     visible: false
     tier: 2
     description: |
       Respond to a catch-up request with entities since timestamp.
 
-      Gathers expressions created after the requested timestamp
+      Gathers phaseis created after the requested timestamp
       and sends them back to the requesting peer.
     params:
       - name: peer_id
         type: string
         required: true
         description: "Requesting peer"
-      - name: circle_id
+      - name: oikos_id
         type: string
         required: true
-        description: "Circle to gather from"
+        description: "Oikos to gather from"
       - name: since
         type: string
         required: true
         description: "Timestamp to gather since"
     steps:
-      # Gather expressions from this circle
+      # Gather phaseis from this oikos
       - step: gather
-        eidos: expression
-        bind_to: all_expressions
+        eidos: phasis
+        bind_to: all_phaseis
 
-      # Filter by circle and timestamp
+      # Filter by oikos and timestamp
       - step: filter
-        in: "$all_expressions"
-        as: e
-        where: '$e.data.circle_id == "$circle_id" and $e.data.created_at > "$since"'
-        bind_to: recent_expressions
+        items: "$all_phaseis"
+        condition: '$item.data.oikos_id == "$oikos_id" and $item.data.created_at > "$since"'
+        bind_to: recent_phaseis
 
       # Compose response message
       - step: compose
@@ -1989,15 +2052,15 @@ entities:
         inputs:
           message_type: "catch-up-response"
           action: "response"
-          entities: "$recent_expressions"
-          circle_id: "$circle_id"
+          entities: "$recent_phaseis"
+          oikos_id: "$oikos_id"
           timestamp: "{{ now() }}"
-          sender_id: "{{ session.persona_id }}"
+          sender_id: "{{ session.prosopon_id }}"
         bind_to: response_message
 
       - step: set
         bindings:
-          message_json: "{{ response_message | to_json }}"
+          message_json: "{{ response_message | json_encode }}"
 
       # Find the connection to this peer
       - step: gather
@@ -2005,9 +2068,8 @@ entities:
         bind_to: connections
 
       - step: filter
-        in: "$connections"
-        as: c
-        where: '$c.data.peer_id == "$peer_id" and $c.data.status == "connected"'
+        items: "$connections"
+        condition: '$item.data.peer_id == "$peer_id" and $item.data.status == "connected"'
         bind_to: peer_connection
 
       - step: set
@@ -2025,7 +2087,7 @@ entities:
               - step: return
                 value:
                   sent: true
-                  entity_count: "$recent_expressions | length"
+                  entity_count: "$recent_phaseis | length"
         default:
           - step: return
             value:
@@ -2035,7 +2097,7 @@ entities:
 - eidos: praxis
   id: praxis/aither/apply-catch-up
   data:
-    oikos: aither
+    topos: aither
     name: apply-catch-up
     visible: false
     tier: 2
@@ -2049,10 +2111,10 @@ entities:
         type: array
         required: true
         description: "Entities from catch-up response"
-      - name: circle_id
+      - name: oikos_id
         type: string
         required: true
-        description: "Circle context"
+        description: "Oikos context"
     steps:
       - step: set
         bindings:
@@ -2072,15 +2134,15 @@ entities:
             cases:
               - when: "not $existing"
                 then:
-                  # Compose new entity
+                  # Compose new phasis entity
                   - step: compose
-                    typos_id: "typos-def-expression"
+                    typos_id: "typos-def-phasis"
                     inputs:
                       id: "$entity.id"
                       content: "$entity.data.content"
                       mode: "$entity.data.mode"
                       author_id: "$entity.data.author_id"
-                      circle_id: "$circle_id"
+                      oikos_id: "$oikos_id"
                       synced_from: "$entity.data.author_id"
                       created_at: "$entity.data.created_at"
                     bind_to: created
@@ -2112,7 +2174,7 @@ entities:
 - eidos: praxis
   id: praxis/aither/process-sync-message
   data:
-    oikos: aither
+    topos: aither
     name: process-sync-message
     visible: false  # Internal, invoked by reflex
     tier: 3  # Requires federation channel access
@@ -2145,24 +2207,24 @@ entities:
                 params:
                   entity: "$message.data.entity"
                   action: "$message.data.action"
-                  circle_id: "$message.data.circle_id"
+                  oikos_id: "$message.data.oikos_id"
                 bind_to: result
-          - when: '$message.data.type == "expression"'
+          - when: '$message.data.type == "phasis"'
             then:
               - step: call
-                praxis: aither/apply-expression-sync
+                praxis: aither/apply-phasis-sync
                 params:
                   entity: "$message.data.entity"
                   action: "$message.data.action"
-                  circle_id: "$message.data.circle_id"
+                  oikos_id: "$message.data.oikos_id"
                 bind_to: result
           - when: '$message.data.type == "presence"'
             then:
               - step: call
                 praxis: aither/update-presence
                 params:
-                  persona_id: "$message.data.sender_id"
-                  circle_id: "$message.data.circle_id"
+                  prosopon_id: "$message.data.sender_id"
+                  oikos_id: "$message.data.oikos_id"
                   status: "online"
                 bind_to: result
           - when: '$message.data.type == "catch-up-request"'
@@ -2170,7 +2232,7 @@ entities:
               - step: call
                 praxis: aither/respond-catch-up
                 params:
-                  circle_id: "$message.data.circle_id"
+                  oikos_id: "$message.data.oikos_id"
                   since: "$message.data.since"
                   sender_id: "$message.data.sender_id"
                 bind_to: result
@@ -2180,7 +2242,7 @@ entities:
                 praxis: aither/apply-catch-up
                 params:
                   entities: "$message.data.entities"
-                  circle_id: "$message.data.circle_id"
+                  oikos_id: "$message.data.oikos_id"
                 bind_to: result
         default:
           - step: set
@@ -2191,7 +2253,7 @@ entities:
 
       # Mark message as processed
       - step: update
-        entity_id: "$message_id"
+        id: "$message_id"
         data:
           processed: true
 
@@ -2206,7 +2268,7 @@ entities:
 - eidos: praxis
   id: praxis/aither/apply-entity-sync
   data:
-    oikos: aither
+    topos: aither
     name: apply-entity-sync
     visible: false  # Internal helper
     tier: 2
@@ -2223,7 +2285,7 @@ entities:
         type: string
         required: true
         description: "Action: create, update, delete"
-      - name: circle_id
+      - name: oikos_id
         type: string
         required: true
     steps:
@@ -2239,10 +2301,12 @@ entities:
                 cases:
                   - when: "not $existing"
                     then:
-                      - step: arise
-                        eidos: "$entity.eidos"
-                        id: "$entity.id"
-                        data: "$entity.data"
+                      # CE4: compose instead of arise
+                      - step: compose
+                        typos_id: "typos-def-$entity.eidos"
+                        inputs:
+                          id: "$entity.id"
+                          data: "$entity.data"
                         bind_to: created
                       - step: return
                         value:
@@ -2257,7 +2321,7 @@ entities:
           - when: '$action == "update"'
             then:
               - step: update
-                entity_id: "$entity.id"
+                id: "$entity.id"
                 data: "$entity.data"
               - step: return
                 value:
@@ -2275,3 +2339,35 @@ entities:
             value:
               action: "unknown"
               error: "Unknown action: $action"
+
+# =============================================================================
+# SENSING PRAXEIS — Daemon-Invoked Actuality Sensing
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/aither/sense-syndesmos-states
+  data:
+    topos: aither
+    name: sense-syndesmos-states
+    visible: false
+    tier: 1
+    description: |
+      Sense actuality for all syndesmos entities.
+      Invoked by daemon/sense-syndesmos on a periodic schedule.
+      Updates trigger entity_updated events which drift-detection reflexes observe.
+    params: []
+    steps:
+      - step: gather
+        eidos: syndesmos
+        bind_to: connections
+
+      - step: for_each
+        items: "$connections"
+        as: conn
+        do:
+          - step: sense_actuality
+            entity_id: "$conn.id"
+
+      - step: return
+        value:
+          sensed_count: "{{ $connections | length }}"

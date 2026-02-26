@@ -1,0 +1,123 @@
+# Chora-Dev Compute Modes — Cargo operations as substrate modes
+#
+# Three modes for Rust development: build, test, lint.
+# All use stoicheion dispatch — build.rs generates the dispatch table.
+# The stoicheia themselves are implemented in steps.rs (shell-execute
+# based, using cargo command templates from genesis entities).
+#
+# These modes are referenced by build-target, test-run, and lint-run
+# entities via mode field in their data.
+
+entities:
+
+  - eidos: mode
+    id: mode/cargo-build
+    data:
+      name: cargo-build
+      topos: chora-dev
+      substrate: compute
+      provider: local
+      description: |
+        Compile a Rust crate via cargo build.
+        Manifest spawns the build process, sense checks if
+        the artifact exists and is fresh, unmanifest runs cargo clean.
+      operations:
+        manifest:
+          stoicheion: cargo-build-run
+          params:
+            - crate_path
+            - profile
+            - features
+          returns:
+            success: boolean
+            artifact_path: string
+            content_hash: string
+            duration_ms: number
+            error: string
+          description: Run cargo build for a crate
+        sense:
+          stoicheion: cargo-build-sense
+          params:
+            - crate_path
+            - profile
+          returns:
+            exists: boolean
+            is_fresh: boolean
+            artifact_path: string
+            content_hash: string
+          description: Check if build artifact exists and is fresh
+        unmanifest:
+          stoicheion: cargo-clean
+          params:
+            - crate_path
+            - profile
+          description: Clean build artifacts for a crate
+
+  - eidos: mode
+    id: mode/cargo-test
+    data:
+      name: cargo-test
+      topos: chora-dev
+      substrate: compute
+      provider: local
+      description: |
+        Run Rust tests via cargo test.
+        Manifest runs the test suite, sense checks last result.
+      operations:
+        manifest:
+          stoicheion: cargo-test-run
+          params:
+            - crate_path
+            - test_filter
+            - features
+          returns:
+            success: boolean
+            passed: number
+            failed: number
+            ignored: number
+            duration_ms: number
+            output: string
+          description: Run cargo test for a crate
+        sense:
+          stoicheion: cargo-test-sense
+          params:
+            - crate_path
+          returns:
+            last_run_at: timestamp
+            last_result: string
+            passed: number
+            failed: number
+          description: Check last test run status
+
+  - eidos: mode
+    id: mode/cargo-clippy
+    data:
+      name: cargo-clippy
+      topos: chora-dev
+      substrate: compute
+      provider: local
+      description: |
+        Run Rust lints via cargo clippy.
+        Manifest runs clippy, sense checks last result.
+      operations:
+        manifest:
+          stoicheion: cargo-clippy-run
+          params:
+            - crate_path
+            - features
+          returns:
+            success: boolean
+            warnings: number
+            errors: number
+            output: string
+            duration_ms: number
+          description: Run cargo clippy for a crate
+        sense:
+          stoicheion: cargo-clippy-sense
+          params:
+            - crate_path
+          returns:
+            last_run_at: timestamp
+            warnings: number
+            errors: number
+          description: Check last clippy run status

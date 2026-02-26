@@ -1,0 +1,49 @@
+# Composition Reconciliation Reflexes
+# The fourth reconciliation loop: composed entity ↔ source dependencies
+#
+# When an entity is updated, find all entities that depend on it
+# (via depends-on bonds) and compose them again. Compose is idempotent —
+# hash comparison terminates cascades where no actual change occurred.
+#
+# Provenance: PROMPT-COMPOSITION-RECONCILIATION.md
+
+entities:
+
+  # =============================================================================
+  # TRIGGERS
+  # =============================================================================
+
+  - eidos: trigger
+    id: trigger/demiurge/composition-dependency-changed
+    data:
+      name: composition-dependency-changed
+      description: |
+        Fires when any entity is updated. The response praxis
+        checks for inbound depends-on bonds and composes dependents.
+      enabled: true
+    bonds:
+      - { desmos: matches-event, to: entity-mutation/updated }
+
+  # =============================================================================
+  # REFLEXES
+  # =============================================================================
+
+  - eidos: reflex
+    id: reflex/demiurge/compose-dependents
+    data:
+      name: compose-dependents
+      description: |
+        When any entity is updated, find all entities that depend on it
+        (via depends-on bonds) and compose them again. Compose is
+        idempotent — hash comparison terminates cascades where no
+        actual change occurred.
+
+        DAG enforcement on depends-on bonds guarantees termination
+        by construction. Content hashing prunes the cascade early.
+      enabled: true
+      scope: global
+      response_params:
+        changed_entity_id: "$entity.id"
+    bonds:
+      - { desmos: triggered-by, to: trigger/demiurge/composition-dependency-changed }
+      - { desmos: responds-with, to: praxis/demiurge/compose-dependents }

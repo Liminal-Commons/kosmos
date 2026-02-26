@@ -1,0 +1,83 @@
+# Propylon Reflexes — Homoiconic Form
+# Autonomic responses for gateway entry flow
+#
+# Bonds are inline on their parent entities:
+#   trigger.bonds: matches-event, filters-eidos
+#   reflex.bonds: triggered-by
+#   reflex.data.response_params: params from responds-with bond
+
+entities:
+
+  # =============================================================================
+  # TRIGGERS
+  # =============================================================================
+
+  - eidos: trigger
+    id: trigger/propylon/notify-entry-request
+    data:
+      name: notify-entry-request
+      enabled: true
+    bonds:
+      - desmos: matches-event
+        to: entity-mutation/created
+      - desmos: filters-eidos
+        to: eidos/entry-request
+
+  - eidos: trigger
+    id: trigger/propylon/announce-entry-approved
+    data:
+      name: announce-entry-approved
+      condition: '$entity.data.status == "approved"'
+      enabled: true
+    bonds:
+      - desmos: matches-event
+        to: entity-mutation/updated
+      - desmos: filters-eidos
+        to: eidos/entry-request
+
+  # =============================================================================
+  # REFLEXES
+  # =============================================================================
+
+  - eidos: reflex
+    id: reflex/propylon/notify-entry-request
+    data:
+      name: notify-entry-request
+      description: |
+        When an entry request arrives (via propylon link), emit a phasis
+        requesting steward approval.
+      enabled: true
+      scope: oikos
+      response_params:
+        content: "Entry request received — approval needed"
+        stance: request
+        source_kind: topos
+        metadata:
+          source_eidos: entry-request
+          source_id: "$entity.id"
+    bonds:
+      - desmos: triggered-by
+        to: trigger/propylon/notify-entry-request
+      - desmos: responds-with
+        to: praxis/logos/emit-phasis
+
+  - eidos: reflex
+    id: reflex/propylon/announce-entry-approved
+    data:
+      name: announce-entry-approved
+      description: |
+        When entry is approved, announce in discourse.
+      enabled: true
+      scope: oikos
+      response_params:
+        content: "Entry approved — new prosopon arriving"
+        stance: declaration
+        source_kind: topos
+        metadata:
+          source_eidos: entry-request
+          source_id: "$entity.id"
+    bonds:
+      - desmos: triggered-by
+        to: trigger/propylon/announce-entry-approved
+      - desmos: responds-with
+        to: praxis/logos/emit-phasis

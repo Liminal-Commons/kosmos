@@ -1,0 +1,29 @@
+# Ekdosis Screen Mode — Releases list
+# Browse oikos releases through thyra.
+
+entities:
+
+  - eidos: mode
+    id: mode/releases-list
+    data:
+      name: releases-list
+      topos: ekdosis
+      substrate: screen
+      description: |
+        Published releases — versioned oikos publications
+        with channel and attestation status. Center panel.
+      item_spec_id: render-spec/oikos-release-card
+      arrangement: scroll
+      empty_message: "No releases published"
+      spatial:
+        position: center
+        height: fill
+      source_query: "gather(eidos: oikos-release, sort: published_at, order: desc, limit: 50)"
+      config:
+        watch_eidos: oikos-release
+      created_at: "2026-02-22T00:00:00Z"
+
+bonds:
+  - from_id: mode/releases-list
+    to_id: render-spec/oikos-release-card
+    desmos: uses-render-spec

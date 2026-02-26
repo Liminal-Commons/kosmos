@@ -1,0 +1,42 @@
+# Dynamis Reconciler Entities — Health-Focused
+# Complements the declarative transition reconcilers in reconcilers/dynamis.yaml
+# by specifically handling degraded and health-related states.
+#
+# The core reconciler/deployment covers state transitions (running↔stopped↔removed).
+# This reconciler handles health degradation that the core transitions don't cover.
+#
+# Traces to: genesis/dynamis/DESIGN.md
+
+entities:
+
+  - eidos: reconciler
+    id: reconciler/deployment-health
+    data:
+      target_eidos: deployment
+      intent_field: desired_state
+      actuality_field: actual_state
+      transitions:
+        # Running but degraded → restart (manifest)
+        - intent: running
+          actual: degraded
+          action: manifest
+
+        # Running and healthy → no action
+        - intent: running
+          actual: running
+          action: none
+
+        # Running but failed → restart (manifest)
+        - intent: running
+          actual: failed
+          action: manifest
+
+        # Stopped and degraded → clean up (unmanifest)
+        - intent: stopped
+          actual: degraded
+          action: unmanifest
+
+        # Stopped and failed → no action (already down)
+        - intent: stopped
+          actual: [stopped, failed, unknown]
+          action: none

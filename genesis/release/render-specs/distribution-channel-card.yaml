@@ -1,0 +1,120 @@
+# Distribution Channel Card Render-Spec
+# Pathway for releases to reach users
+#
+# Distribution-channel fields:
+#   - name (string): Channel identifier
+#   - provider (enum): r2 | github | homebrew | npm | crates | direct
+#   - description (string): Channel description
+#   - base_url (string): Base URL for downloads
+#   - status (enum): active | paused | deprecated
+#
+# Traces to: genesis/demiurge/THYRA-EVOLUTION.md
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/distribution-channel-card
+    data:
+      name: distribution-channel-card
+      description: |
+        Distribution channel card showing provider, status,
+        and download URL.
+      target_eidos: distribution-channel
+      variant: card
+
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+          children:
+            - widget: stack
+              props:
+                gap: sm
+              children:
+                # Header with provider icon
+                - widget: row
+                  props:
+                    justify: between
+                    align: center
+                  children:
+                    - widget: row
+                      props:
+                        gap: sm
+                        align: center
+                      children:
+                        # Provider-specific icons
+                        - widget: icon
+                          when: "provider == 'r2'"
+                          props:
+                            name: cloud
+                            size: md
+                        - widget: icon
+                          when: "provider == 'github'"
+                          props:
+                            name: globe
+                            size: md
+                        - widget: icon
+                          when: "provider == 'homebrew'"
+                          props:
+                            name: terminal
+                            size: md
+                        - widget: icon
+                          when: "provider == 'npm'"
+                          props:
+                            name: layers
+                            size: md
+                        - widget: icon
+                          when: "provider == 'crates'"
+                          props:
+                            name: folder
+                            size: md
+                        - widget: icon
+                          when: "provider == 'direct'"
+                          props:
+                            name: link
+                            size: md
+
+                        - widget: text
+                          props:
+                            content: "{name}"
+                            variant: emphasis
+
+                    # Status badge
+                    - widget: badge
+                      when: "status == 'active'"
+                      props:
+                        content: "Active"
+                        variant: success
+                    - widget: badge
+                      when: "status == 'paused'"
+                      props:
+                        content: "Paused"
+                        variant: warning
+                    - widget: badge
+                      when: "status == 'deprecated'"
+                      props:
+                        content: "Deprecated"
+                        variant: default
+
+                # Provider indicator
+                - widget: badge
+                  props:
+                    content: "{provider}"
+                    variant: info
+
+                # Description
+                - widget: text
+                  when: "description"
+                  props:
+                    content: "{description}"
+                    variant: body
+
+                # Base URL
+                - widget: text
+                  when: "base_url"
+                  props:
+                    content: "{base_url}"
+                    variant: caption
+
+      created_at: "2026-02-03T00:00:00Z"

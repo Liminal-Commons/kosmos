@@ -1,32 +1,33 @@
-# Oikos Manifest: Politeia
+# Topos Manifest: Politeia
 # πολιτεία — the constitution, governance and capability.
 #
-# How circles govern and grant capabilities. The layer where
-# "being in a circle" translates to "being able to do things."
+# How oikoi govern and grant capabilities. The layer where
+# "being in an oikos" translates to "being able to do things."
 #
-# Manifest v2.1 — oikos metadata for entity composition
+# Manifest v2.1 — topos metadata for entity composition
 
 format_version: "2.1"
-oikos_id: politeia
+topos_id: politeia
 version: "0.1.0"
 
-# Oikos metadata (v2.1)
-oikos_name: Politeia
-oikos_description: |
-  The constitution, governance and capability. How circles govern
-  and grant capabilities. The layer where "being in a circle"
+# Topos metadata (v2.1)
+topos_name: Politeia
+topos_description: |
+  The constitution, governance and capability. How oikoi govern
+  and grant capabilities. The layer where "being in an oikos"
   translates to "being able to do things."
-oikos_scale: polis
+topos_scale: polis
 
 # Development experience metadata
-oikos_category: domain
+topos_category: domain
 surfaces_provided: []   # Politeia is foundational governance, not an interaction surface
-surfaces_consumed: []   # No external surfaces consumed
+surfaces_consumed:
+  - reactivity          # Reflexes for governance mutation response
 
 # =============================================================================
-# CONTENT PATHS — Where this oikos sources content from
+# CONTENT PATHS — Where this topos sources content from
 # =============================================================================
-# Each path becomes a sources-content-from bond from this oikos
+# Each path becomes a sources-content-from bond from this topos
 # to the corresponding content-root entity.
 
 content_paths:
@@ -36,8 +37,16 @@ content_paths:
     content_types: [desmos]
   - path: praxeis/
     content_types: [praxis]
+  - path: typos/
+    content_types: [typos]
+  - path: circles/
+    content_types: [oikos]
   - path: entities/
-    content_types: [render-spec, attainment]
+    content_types: [attainment]
+  - path: reflexes/
+    content_types: [reflex]
+  - path: render-specs/
+    content_types: [render-spec]
 
 requires_dynamis:
   - db.arise
@@ -50,25 +59,40 @@ requires_dynamis:
 
 provides:
   eide:
-    # NOTE: animus, persona, circle are foundational (defined in spora.yaml)
+    # NOTE: parousia, prosopon, oikos are foundational (defined in spora.yaml)
     # Politeia operates on them but doesn't define them
     - attainment
     - affordance
-    - hud-region
     - invitation
     - membership-event
+    - sync-cursor
+    - sync-conflict
 
-  # Oikos-centric rendering: politeia owns presentation for governance entities
+  reflexes:
+    - reflex/politeia/derive-attainments-on-join
+    - reflex/politeia/log-membership-change
+    - reflex/politeia/announce-join
+
+  # Topos-centric rendering: politeia owns presentation for governance entities
   renderable:
-    - eidos: circle
+    - eidos: oikos
       description: "Trust boundary cards and list items"
+    - eidos: attainment
+      description: "Capability marker cards"
+    - eidos: affordance
+      description: "Clickable action cards"
+    - eidos: invitation
+      description: "Pending membership with accept/decline"
+    - eidos: membership-event
+      description: "Audit log entries"
 
   attainments:
-    - govern              # Create circles, manage attainments
-    - invite              # Invite others to circles
-    - distribute          # Distribute oikoi through circles
-    - hud                 # Create and manage HUD regions and affordances
+    - govern              # Create oikoi, manage attainments
+    - invite              # Invite others to oikoi
+    - distribute          # Distribute topoi through oikoi
+    - hud                 # Create and manage affordances
     - admin               # Administrative operations (bypass governance)
+    - federate            # Federation between oikoi
 
   desmoi:
     # Governance bonds
@@ -83,20 +107,25 @@ provides:
     # Surface bonds
     - surfaces-as
     - enabled-by
-    - renders-in
     # Structure bonds
     - child-of
     - invited-to
+    # Distribution bonds
+    - distributes
+    # Federation bonds
+    - federates-with
+    - tracks-sync
+    - conflicts-on
 
   praxeis:
-    # Circle operations
-    - politeia/create-circle
-    - politeia/invite-to-circle
+    # Oikos operations
+    - politeia/create-oikos
+    - politeia/invite-to-oikos
     - politeia/accept-invitation
     - politeia/decline-invitation
-    - politeia/dwell-in-circle
-    - politeia/leave-circle
-    - politeia/list-circles
+    - politeia/dwell-in-oikos
+    - politeia/leave-oikos
+    - politeia/list-oikoi
     # Attainment operations
     - politeia/create-attainment
     - politeia/grant-attainment
@@ -108,19 +137,31 @@ provides:
     - politeia/gather-affordances
     - politeia/render-hud
     - politeia/invoke-affordance
-    # HUD operations
-    - politeia/create-hud-region
-    - politeia/list-hud-regions
     # Membership history
+    - politeia/create-membership-event
     - politeia/list-membership-events
-    # Oikos distribution (K4)
-    - politeia/create-distribution-circle
-    - politeia/distribute-oikos
-    - politeia/list-distributed-oikoi
-    - politeia/list-oikos-distributors
-    - politeia/install-oikos
-    - politeia/uninstall-oikos
-    - politeia/list-installed-oikoi
+    # Topos distribution (K4)
+    - politeia/create-distribution-oikos
+    - politeia/distribute-topos
+    - politeia/list-distributed-topoi
+    - politeia/list-topos-distributors
+    - politeia/install-topos
+    - politeia/uninstall-topos
+    - politeia/list-installed-topoi
+    # Topos sync (internal)
+    - politeia/sync-oikos-topoi
+    - politeia/install-topos-if-needed
+    - politeia/update-topos-if-newer
+    - politeia/reconcile-oikos-topoi
+    # Admin operations
+    - politeia/admin-bind
+    - politeia/admin-loose
+    # Federation
+    - politeia/federate-oikoi
+    - politeia/unfederate-oikoi
+    - politeia/list-federations
+    - politeia/resolve-conflict
+    - politeia/list-conflicts
 
 stoicheia_form:
   # All operations via praxeis

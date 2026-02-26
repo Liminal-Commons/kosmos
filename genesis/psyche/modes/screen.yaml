@@ -1,0 +1,29 @@
+# Psyche Screen Mode — Kairos feed
+# Browse opportune moments and experiential state through thyra.
+
+entities:
+
+  - eidos: mode
+    id: mode/kairos-feed
+    data:
+      name: kairos-feed
+      topos: psyche
+      substrate: screen
+      description: |
+        Kairos moments — recognized opportunities where intention
+        meets structural readiness. Overlay showing active kairos.
+      item_spec_id: render-spec/kairos-card
+      arrangement: scroll
+      empty_message: "No kairos moments recognized"
+      spatial:
+        position: overlay
+        height: auto
+      source_query: "gather(eidos: kairos, sort: recognized_at, order: desc, limit: 20)"
+      config:
+        watch_eidos: kairos
+      created_at: "2026-02-22T00:00:00Z"
+
+bonds:
+  - from_id: mode/kairos-feed
+    to_id: render-spec/kairos-card
+    desmos: uses-render-spec

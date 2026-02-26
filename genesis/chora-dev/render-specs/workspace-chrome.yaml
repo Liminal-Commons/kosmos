@@ -1,0 +1,40 @@
+# Workspace Chrome Render-Spec
+# Heading and action buttons for the chora-dev workspace mode
+#
+# Rendered once by the layout engine as chrome for mode/chora-dev-workspace.
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/chora-dev/workspace-chrome
+    data:
+      name: workspace-chrome
+      description: "Heading chrome with action buttons for chora-dev workspace mode"
+      variant: chrome
+
+      layout:
+        - widget: row
+          props:
+            gap: md
+            align: center
+          children:
+            - widget: heading
+              props:
+                level: 3
+                content: "Workspace"
+
+            - widget: row
+              props:
+                gap: sm
+              children:
+                - widget: button
+                  props:
+                    label: "Scan"
+                    variant: ghost
+                    on_click: chora-dev/scan-workspace
+
+                - widget: button
+                  props:
+                    label: "Build All"
+                    variant: primary
+                    on_click: chora-dev/reconcile-builds

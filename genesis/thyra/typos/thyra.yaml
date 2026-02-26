@@ -1,0 +1,165 @@
+# Thyra Typos — Portal, Rendering, Workspace
+#
+# Typos for the thyra (portal/UI) domain.
+# Workspace, themes, accumulation, widgets.
+
+entities:
+
+# =============================================================================
+# WORKSPACE
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-workspace
+  data:
+    name: workspace
+    description: |
+      Create a workspace for a parousia.
+
+      Workspaces track open artifacts (tabs) and current focus.
+    target_eidos: workspace
+    defaults:
+      open_artifact_ids: []
+      focused_artifact_id: null
+    bonds:
+      - desmos: workspace-of
+        from_self: true
+        to_context: _parousia
+        optional: true
+
+# =============================================================================
+# STYLE THEMES
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-style-theme
+  data:
+    name: style-theme
+    description: |
+      Define a visual style theme.
+
+      Controls palette, density, typography.
+    target_eidos: style-theme
+    defaults:
+      density: comfortable
+      active: false
+    bonds:
+      - desmos: belongs-to
+        from_self: true
+        to_literal: topos/thyra
+
+# Dark theme
+- eidos: typos
+  id: typos-def-dark-theme
+  data:
+    name: dark-theme
+    description: |
+      Dark mode theme for chora.
+    target_eidos: style-theme
+    defaults:
+      name: "dark"
+      palette:
+        background: "#1a1a2e"
+        foreground: "#eaeaea"
+        accent: "#7b68ee"
+        muted: "#4a4a6a"
+        surface: "#25253a"
+        border: "#3a3a5a"
+        error: "#ff6b6b"
+        success: "#69db7c"
+      density: comfortable
+      typography:
+        font_family: "Inter, system-ui, sans-serif"
+        font_size_base: 14
+        line_height: 1.5
+      world_context: self
+      active: true
+    bonds:
+      - desmos: belongs-to
+        from_self: true
+        to_literal: topos/thyra
+
+# =============================================================================
+# ACCUMULATION
+# =============================================================================
+# typos-def-phasis moved to logos — the topos that introduces phasis.
+
+- eidos: typos
+  id: typos-def-accumulation
+  data:
+    name: accumulation
+    description: |
+      Accumulation entity — literal fill from praxis-updated inputs.
+
+      One literal slot receives content from three sources:
+      voice transcription (flush-transcript), manual editing
+      (sync-compose-content), and LLM clarification (clarify-accumulation).
+
+      All sources update _composition_inputs.inputs.content via praxis,
+      then re-compose. Composition stays deterministic; content is
+      mutable through the input.
+    target_eidos: accumulation
+    slots:
+      content:
+        fill: literal
+        default: ""
+      status:
+        fill: literal
+        default: "active"
+    template: "{{ content }}"
+
+- eidos: typos
+  id: typos-def-utterance
+  data:
+    name: utterance
+    description: "Compose an utterance entity (VAD-bounded speech segment)"
+    target_eidos: utterance
+
+- eidos: typos
+  id: typos-def-render-intent
+  data:
+    name: render-intent
+    description: "Compose a render-intent entity"
+    target_eidos: render-intent
+
+# =============================================================================
+# WIDGET VOCABULARY (THYRA PHASE 2)
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-widget
+  data:
+    name: widget
+    description: "Compose a widget entity (UI primitive for render-specs)"
+    target_eidos: widget
+
+- eidos: typos
+  id: typos-def-render-spec
+  data:
+    name: render-spec
+    description: "Compose a render-spec entity (declarative rendering template)"
+    target_eidos: render-spec
+
+# =============================================================================
+# PREFERENCE
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-preference
+  data:
+    name: preference
+    description: |
+      Create a preference entity.
+
+      Preferences are key-value pairs that configure thyra behavior.
+      The layout engine watches well-known preference entities reactively.
+    target_eidos: preference
+    slots:
+      name:
+        fill: input
+        required: true
+        description: "Preference key name"
+      value:
+        fill: input
+        required: true
+        description: "Preference value"

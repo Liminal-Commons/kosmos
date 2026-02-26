@@ -59,19 +59,19 @@ entities:
           component: input
           placeholder: "word1 word12 word24"
 
-# Persona name form
+# Prosopon name form
 - eidos: typos
-  id: typos-def-persona-name-form
+  id: typos-def-prosopon-name-form
   data:
-    name: persona-name-form
+    name: prosopon-name-form
     description: |
-      Form for naming a new persona.
+      Form for naming a new prosopon.
     target_eidos: form-submission
     slots:
       name:
         type: string
         required: true
-        description: "Display name for the persona"
+        description: "Display name for the prosopon"
         ui_hint:
           component: input
           placeholder: "Your name..."
@@ -92,10 +92,10 @@ entities:
       Configures message, expiry, usage limits, and approval requirements.
     target_eidos: propylon-link
     slots:
-      circle_id:
+      oikos_id:
         type: string
         required: true
-        description: "Circle to invite to (usually auto-filled from context)"
+        description: "Oikos to invite to (usually auto-filled from context)"
         ui_hint:
           component: hidden
       message:
@@ -139,7 +139,7 @@ entities:
           component: checkbox
           label: "Require my approval before they can enter"
 
-# Accept invitation form (for entering circle)
+# Accept invitation form (for entering oikos)
 - eidos: typos
   id: typos-def-accept-invitation-form
   data:
@@ -152,40 +152,40 @@ entities:
       display_name:
         type: string
         required: true
-        description: "Name to show in the circle"
+        description: "Name to show in the oikos"
         ui_hint:
           component: input
-          placeholder: "Your name in this circle..."
+          placeholder: "Your name in this oikos..."
           minLength: 1
           maxLength: 64
 
 # =============================================================================
-# CIRCLE FORMS
+# OIKOS FORMS
 # =============================================================================
 
-# Create circle form
+# Create oikos form
 - eidos: typos
-  id: typos-def-create-circle-form
+  id: typos-def-create-oikos-form
   data:
-    name: create-circle-form
+    name: create-oikos-form
     description: |
-      Form for creating a new circle.
-    target_eidos: circle
+      Form for creating a new oikos.
+    target_eidos: oikos
     slots:
       name:
         type: string
         required: true
-        description: "Circle name"
+        description: "Oikos name"
         ui_hint:
           component: input
-          placeholder: "Circle name..."
+          placeholder: "Oikos name..."
           minLength: 1
           maxLength: 64
       description:
         type: string
         required: false
         default: ""
-        description: "Circle description"
+        description: "Oikos description"
         ui_hint:
           component: textarea
           rows: 2
@@ -195,7 +195,7 @@ entities:
         type: string
         required: true
         default: peer
-        description: "Circle type"
+        description: "Oikos type"
         enum: [self, peer, commons]
         ui_hint:
           component: select
@@ -208,4 +208,4 @@ entities:
               description: "Collaborative creation (cannot distribute externally)"
             - value: commons
               label: "Commons"
-              description: "Distribution circle (grants oikoi + attainments)"
+              description: "Distribution oikos (grants topoi + attainments)"

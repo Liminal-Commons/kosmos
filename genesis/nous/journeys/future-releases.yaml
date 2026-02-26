@@ -1,0 +1,1253 @@
+# Future Releases as Journeys
+# Post-MVP scope embodied as traversable entities.
+#
+# Structure:
+#   Release journey (R1-R6) contains sub-journeys
+#   Sub-journeys contain waypoints (individual tasks)
+#   Dependencies are bonds between journeys
+#
+# The markdown document (FUTURE-RELEASES.md) renders this graph.
+# These journeys ARE the roadmap.
+
+# =============================================================================
+# R1: EMISSION COMPLETION
+# Full-circle code generation — schema drives all generated code
+# =============================================================================
+
+entities:
+  - eidos: journey
+    id: journey/r1-emission
+    data:
+      desire: "Emission Completion — full-circle code generation with provenance"
+      status: arrived
+      arrived_at: "2026-01-26"
+      priority: high
+      leverage_type: meta
+      feedback_loop: true
+      rationale: |
+        Foundation for everything else. Type-safe frontend, auto-generated dispatchers,
+        and schema-synced docs reduce maintenance burden for all subsequent work.
+      success_criteria:
+        - "TypeScript entity types generated from eidos, included in hash"
+        - "MCP tools auto-registered from visible praxeis"
+        - "Dynamis dispatch generated with tier gates"
+        - "Full-circle hash includes all generated code (H1 == H2)"
+
+# R1 Sub-journeys
+
+  - eidos: journey
+    id: journey/r1-typescript
+    data:
+      desire: "E8 — TypeScript emission from eidos definitions"
+      status: arrived
+      current_waypoint: 3
+      arrived_at: "2026-01-26"
+      priority: high
+      leverage_type: additive
+      leverage_multiplier: eidos
+      notes: |
+        Generate TypeScript interfaces from eidos definitions.
+        Eliminates frontend/backend type drift.
+
+  - eidos: waypoint
+    id: waypoint/r1-typescript-0
+    data:
+      journey_id: journey/r1-typescript
+      ordinal: 0
+      description: "Generate entity type interfaces from eidos definitions"
+      status: arrived
+      notes: "108 eidos interfaces generated from spora.yaml and oikos eide/ directories"
+
+  - eidos: waypoint
+    id: waypoint/r1-typescript-1
+    data:
+      journey_id: journey/r1-typescript
+      ordinal: 1
+      description: "Emit app/src/types/entities.ts with provenance headers"
+      status: arrived
+      notes: "entities.ts emitted via emit_cycle with full provenance header"
+
+  - eidos: waypoint
+    id: waypoint/r1-typescript-2
+    data:
+      journey_id: journey/r1-typescript
+      ordinal: 2
+      description: "Generate Zustand store slice types from eidos fields"
+      status: arrived
+      notes: "Fixed bootstrap.rs to load eide:/praxeis:/desmoi: keys from oikos YAML files. SolidJS store can import typed entity interfaces."
+
+  - eidos: waypoint
+    id: waypoint/r1-typescript-3
+    data:
+      journey_id: journey/r1-typescript
+      ordinal: 3
+      description: "Include TypeScript in full-circle hash verification"
+      status: arrived
+      notes: "entities.ts included in emit_cycle verify and code_files hash"
+
+  - eidos: journey
+    id: journey/r1-mcp-dispatch
+    data:
+      desire: "E9 — MCP tool dispatch from praxis definitions"
+      status: arrived
+      current_waypoint: 3
+      arrived_at: "2026-01-26"
+      priority: high
+      leverage_type: compound
+      leverage_multiplier: praxis
+      feedback_loop: true
+      notes: |
+        Auto-generate MCP tool wrappers from praxis definitions.
+        Adding visible: true to a praxis automatically exposes it.
+
+        COMPOUND LEVERAGE: Each new praxis with visible: true becomes a tool.
+        FEEDBACK LOOP: More tools → more Claude capabilities → easier praxis creation.
+
+        COMPLETED: Schema-driven essential praxeis (YAML → build.rs → const).
+        Full-circle verification via emit_cycle.
+
+  - eidos: waypoint
+    id: waypoint/r1-mcp-0
+    data:
+      journey_id: journey/r1-mcp-dispatch
+      ordinal: 0
+      description: "Generate MCP tool registration from visible praxeis"
+      status: arrived
+      notes: "Superseded by attainment/mcp-essential (politeia/entities/mcp.yaml) — runtime graph traversal"
+
+  - eidos: waypoint
+    id: waypoint/r1-mcp-1
+    data:
+      journey_id: journey/r1-mcp-dispatch
+      ordinal: 1
+      description: "Emit dispatch match arms in kosmos-mcp/src/lib.rs"
+      status: arrived
+      notes: "projection.rs include!() uses generated const; lib.rs dispatches via interpreter"
+
+  - eidos: waypoint
+    id: waypoint/r1-mcp-2
+    data:
+      journey_id: journey/r1-mcp-dispatch
+      ordinal: 2
+      description: "Generate JSON Schema for praxis params"
+      status: arrived
+      notes: "build_json_schema() in projection.rs converts praxis params to JSON Schema"
+
+  - eidos: waypoint
+    id: waypoint/r1-mcp-3
+    data:
+      journey_id: journey/r1-mcp-dispatch
+      ordinal: 3
+      description: "Include MCP dispatch in full-circle verification"
+      status: arrived
+      notes: "emit_cycle verify now includes essential_praxeis.rs comparison"
+
+  - eidos: journey
+    id: journey/r1-dynamis-dispatch
+    data:
+      desire: "E10 — Dynamis dispatch from dynamis-function entities"
+      status: arrived
+      current_waypoint: 3
+      arrived_at: "2026-01-26"
+      priority: high
+      leverage_type: additive
+      leverage_multiplier: mode
+      notes: |
+        Generate tier-gated substrate dispatch from dynamis definitions.
+        Substrate capabilities become declarative.
+
+  - eidos: waypoint
+    id: waypoint/r1-dynamis-0
+    data:
+      journey_id: journey/r1-dynamis-dispatch
+      ordinal: 0
+      description: "Generate dynamis function dispatch from dynamis-function entities"
+      status: arrived
+      notes: "actuality_modes.rs generated with 6 modes: dns/cloudflare, object-storage/{local,r2,s3}, process/{local,docker}"
+
+  - eidos: waypoint
+    id: waypoint/r1-dynamis-1
+    data:
+      journey_id: journey/r1-dynamis-dispatch
+      ordinal: 1
+      description: "Emit tier-gated access control in interpreter/dynamis.rs"
+      status: arrived
+      notes: "require_tier3_access() in steps.rs gates Embed/Emit/Infer/Manifest/Signal. Tier 3 attainments added to spora.yaml."
+
+  - eidos: waypoint
+    id: waypoint/r1-dynamis-2
+    data:
+      journey_id: journey/r1-dynamis-dispatch
+      ordinal: 2
+      description: "Generate HostContext method stubs from dynamis API"
+      status: arrived
+      notes: "HostContext already implements the dynamis API surface (embed, infer, manifest, emit, signal, etc). No stubs needed."
+
+  - eidos: waypoint
+    id: waypoint/r1-dynamis-3
+    data:
+      journey_id: journey/r1-dynamis-dispatch
+      ordinal: 3
+      description: "Include dynamis dispatch in full-circle verification"
+      status: arrived
+      notes: "actuality_modes.rs now included in emit_cycle verify. All 4 generated files in full-circle sync."
+
+  - eidos: journey
+    id: journey/r1-config
+    data:
+      desire: "E11 — Configuration emission from app-config entities"
+      status: pending
+      priority: low
+      notes: |
+        Generate configuration files from app metadata entities.
+        Lower priority — config is stable and rarely changes.
+
+  - eidos: waypoint
+    id: waypoint/r1-config-0
+    data:
+      journey_id: journey/r1-config
+      ordinal: 0
+      description: "Define app-config eidos for Tauri metadata"
+      status: pending
+
+  - eidos: waypoint
+    id: waypoint/r1-config-1
+    data:
+      journey_id: journey/r1-config
+      ordinal: 1
+      description: "Emit tauri.conf.json from app-config entity"
+      status: pending
+
+  - eidos: journey
+    id: journey/r1-reference-docs
+    data:
+      desire: "E12 — Reference documentation from schema entities"
+      status: arrived
+      arrived_at: "2026-01-26"
+      priority: medium
+      notes: |
+        Generate reference documentation from schema entities.
+        Docs stay in sync with schema changes.
+
+  - eidos: waypoint
+    id: waypoint/r1-docs-0
+    data:
+      journey_id: journey/r1-reference-docs
+      ordinal: 0
+      description: "Generate eidos reference (field tables) from eidos entities"
+      status: arrived
+      notes: "generate_eidos_table() in emit_cycle.rs creates markdown tables with field name, type, required, description"
+
+  - eidos: waypoint
+    id: waypoint/r1-docs-1
+    data:
+      journey_id: journey/r1-reference-docs
+      ordinal: 1
+      description: "Generate praxis reference (param tables) from praxis entities"
+      status: arrived
+      notes: "generate_praxis_table() creates param tables with MCP visibility badge (🔧 for visible praxeis)"
+
+  - eidos: waypoint
+    id: waypoint/r1-docs-2
+    data:
+      journey_id: journey/r1-reference-docs
+      ordinal: 2
+      description: "Generate stoicheion API reference from stoicheion entities"
+      status: skipped
+      notes: "Stoicheion reference covered by step_types.rs generation (E7). Separate doc not needed."
+
+  - eidos: waypoint
+    id: waypoint/r1-docs-3
+    data:
+      journey_id: journey/r1-reference-docs
+      ordinal: 3
+      description: "Emit per-oikos REFERENCE.md files"
+      status: arrived
+      notes: "14 REFERENCE.md files emitted to genesis/{oikos}/ with eide, praxeis, and desmoi sections"
+
+# =============================================================================
+# R2: THYRA POLISH
+# Production-ready desktop experience
+# =============================================================================
+
+  - eidos: journey
+    id: journey/r2-thyra-polish
+    data:
+      desire: "Thyra Polish — production-ready desktop experience"
+      status: arrived
+      arrived_at: "2026-01-26"
+      priority: high
+      rationale: |
+        Users are joining circles. Now make the experience robust.
+        Sync, offline handling, and error states.
+      success_criteria:
+        - "Content syncs in real-time while peers are connected"
+        - "Reconnection triggers catch-up sync"
+        - "Offline mode shows clear status, queues actions"
+        - "All error states have user-facing explanations"
+
+  - eidos: journey
+    id: journey/r2-sync
+    data:
+      desire: "C8.4-5 — Real-time sync and reconnection"
+      status: arrived
+      arrived_at: "2026-01-26"
+      priority: high
+
+  - eidos: waypoint
+    id: waypoint/r2-sync-0
+    data:
+      journey_id: journey/r2-sync
+      ordinal: 0
+      description: "Real-time updates while connected"
+      status: arrived
+      notes: "Polling-based sync (5s interval) while in signaling room. Automatically starts on room join, stops on leave/disconnect."
+
+  - eidos: waypoint
+    id: waypoint/r2-sync-1
+    data:
+      journey_id: journey/r2-sync
+      ordinal: 1
+      description: "Reconnection and catch-up sync"
+      status: arrived
+      notes: "Reconnection triggers room rejoin which starts phasis sync (immediate catch-up + polling). Queued messages flushed after reconnect."
+
+  - eidos: journey
+    id: journey/r2-resilience
+    data:
+      desire: "C9.4-6 — Offline handling and error states"
+      status: arrived
+      arrived_at: "2026-01-26"
+      priority: high
+
+  - eidos: waypoint
+    id: waypoint/r2-resilience-0
+    data:
+      journey_id: journey/r2-resilience
+      ordinal: 0
+      description: "Graceful degradation when offline"
+      status: arrived
+      notes: "Browser online/offline detection added. Queued message count displayed. Auto-reconnect triggers when coming back online."
+
+  - eidos: waypoint
+    id: waypoint/r2-resilience-1
+    data:
+      journey_id: journey/r2-resilience
+      ordinal: 1
+      description: "Clear error UI for all failure modes"
+      status: arrived
+      notes: "ConnectionStatus shows error messages with recovery guidance. Error patterns mapped to user-friendly messages."
+
+  - eidos: waypoint
+    id: waypoint/r2-resilience-2
+    data:
+      journey_id: journey/r2-resilience
+      ordinal: 2
+      description: "Visible history of membership changes (audit trail)"
+      status: arrived
+      notes: "Added membership-event eidos with joined/left/removed/invited events. Praxeis accept-invitation and leave-oikos now create events. list-membership-events praxis for querying."
+
+  - eidos: journey
+    id: journey/r2-klimax
+    data:
+      desire: "E6 — Klimax hierarchy emission"
+      status: arrived
+      arrived_at: "2026-01-26"
+      priority: medium
+
+  - eidos: waypoint
+    id: waypoint/r2-klimax-0
+    data:
+      journey_id: journey/r2-klimax
+      ordinal: 0
+      description: "Emit scale definitions to klimax/{scale}/"
+      status: arrived
+      notes: "All 6 scales have manifest.yaml and {scale}.yaml files in klimax/{n}-{scale}/ directories."
+
+  - eidos: waypoint
+    id: waypoint/r2-klimax-1
+    data:
+      journey_id: journey/r2-klimax
+      ordinal: 1
+      description: "Include DESIGN.md for each scale"
+      status: arrived
+      notes: "DESIGN.md created for all scales: 1-kosmos, 2-physis, 3-polis, 4-oikos, 5-soma, 6-psyche, nous"
+
+  - eidos: waypoint
+    id: waypoint/r2-klimax-2
+    data:
+      journey_id: journey/r2-klimax
+      ordinal: 2
+      description: "Verify hierarchical ordering preserved"
+      status: arrived
+      notes: "Directories follow 1-kosmos through 6-psyche naming. nous is correctly unnumbered as a special scale."
+
+# =============================================================================
+# R3: DISTRIBUTION PIPELINE
+# Automated release flow
+# =============================================================================
+
+  - eidos: journey
+    id: journey/r3-distribution
+    data:
+      desire: "Distribution Pipeline — automated release flow from tag to download"
+      status: arrived
+      arrived_at: "2026-01-26"
+      priority: medium
+      rationale: |
+        Manual releases work but don't scale. Automate before adding platforms.
+      notes: |
+        Blocking decisions that must be resolved:
+        - macOS code signing — Apple Developer account ($99/year)?
+        - Windows code signing — Authenticode certificate?
+        - Linux format — AppImage, .deb, Flatpak, or multiple?
+      success_criteria:
+        - "just release triggers full build pipeline"
+        - "Artifacts registered in kosmos with hashes"
+        - "Landing page shows current version dynamically"
+        - "Download links resolve from distribution-channel"
+
+  - eidos: journey
+    id: journey/r3-build
+    data:
+      desire: "D4 — Build pipeline integration"
+      status: arrived
+      arrived_at: "2026-01-26"
+      priority: medium
+
+  - eidos: waypoint
+    id: waypoint/r3-build-0
+    data:
+      journey_id: journey/r3-build
+      ordinal: 0
+      description: "justfile targets for cargo build"
+      status: arrived
+      notes: "Added app-dev, app-build, app-build-release, app-build-mac, version targets to justfile"
+
+  - eidos: waypoint
+    id: waypoint/r3-build-1
+    data:
+      journey_id: journey/r3-build
+      ordinal: 1
+      description: "Artifact registration (hash, size, path) in kosmos"
+      status: arrived
+      notes: "Added release and release-artifact eide to thyra oikos with content_hash, size_bytes, storage_path fields"
+
+  - eidos: waypoint
+    id: waypoint/r3-build-2
+    data:
+      journey_id: journey/r3-build
+      ordinal: 2
+      description: "Version bump workflow"
+      status: arrived
+      notes: "Added version-bump and release targets to justfile. Syncs tauri.conf.json, Cargo.toml, wrangler.toml"
+
+  - eidos: journey
+    id: journey/r3-landing
+    data:
+      desire: "D5 — Landing page integration"
+      status: arrived
+      arrived_at: "2026-01-26"
+      priority: medium
+
+  - eidos: waypoint
+    id: waypoint/r3-landing-0
+    data:
+      journey_id: journey/r3-landing
+      ordinal: 0
+      description: "thyra-landing Worker queries release entities"
+      status: arrived
+      notes: "Worker reads latest.json from R2 bucket for release metadata"
+
+  - eidos: waypoint
+    id: waypoint/r3-landing-1
+    data:
+      journey_id: journey/r3-landing
+      ordinal: 1
+      description: "Dynamic version from kosmos (not hardcoded)"
+      status: arrived
+      notes: "getCurrentVersion() reads from R2 latest.json, falls back to env.CURRENT_VERSION"
+
+  - eidos: waypoint
+    id: waypoint/r3-landing-2
+    data:
+      journey_id: journey/r3-landing
+      ordinal: 2
+      description: "Platform detection → substrate resolution"
+      status: arrived
+      notes: "getArtifactInfo() resolves platform-specific artifact from R2 metadata"
+
+  - eidos: waypoint
+    id: waypoint/r3-landing-3
+    data:
+      journey_id: journey/r3-landing
+      ordinal: 3
+      description: "Download URL from distribution-channel entity"
+      status: arrived
+      notes: "Artifact storage_path from latest.json used for R2 download resolution"
+
+# =============================================================================
+# R4: PRODUCTION HARDENING
+# Relay resilience
+# =============================================================================
+
+  - eidos: journey
+    id: journey/r4-hardening
+    data:
+      desire: "Production Hardening — relay resilience and observability"
+      status: arrived
+      arrived_at: "2026-01-26"
+      priority: medium
+      rationale: |
+        Core flow works. Now make it reliable under load.
+      notes: |
+        Implemented in propylon-relay repository (../propylon-relay).
+        - RateLimiter DO for per-IP rate limiting
+        - SignalingRoom alarm-based GC for stale connections
+        - Structured logging + /metrics endpoint
+        - Custom domain config template in wrangler.jsonc
+      success_criteria:
+        - "Rate limiting prevents signaling abuse"
+        - "Stale rooms cleaned up automatically"
+        - "Relay metrics visible in dashboard"
+        - "Relay deployed to multiple regions"
+
+  - eidos: waypoint
+    id: waypoint/r4-hardening-0
+    data:
+      journey_id: journey/r4-hardening
+      ordinal: 0
+      description: "Rate limiting for signaling relay"
+      status: arrived
+      notes: "RateLimiter Durable Object with per-IP sliding window. Configurable limits per endpoint type (validate: 30/min, join: 10/min, landing: 20/min)."
+
+  - eidos: waypoint
+    id: waypoint/r4-hardening-1
+    data:
+      journey_id: journey/r4-hardening
+      ordinal: 1
+      description: "Garbage collect stale connections"
+      status: arrived
+      notes: "SignalingRoom alarm-based cleanup. Idle connections closed after 2min, idle rooms GC'd after 5min, max room lifetime 1hr."
+
+  - eidos: waypoint
+    id: waypoint/r4-hardening-2
+    data:
+      journey_id: journey/r4-hardening
+      ordinal: 2
+      description: "Monitoring and logging"
+      status: arrived
+      notes: "Structured JSON logging via log() helper. /metrics endpoint with Prometheus-style output. /health returns live metrics. Observability enabled in wrangler.jsonc."
+
+  - eidos: waypoint
+    id: waypoint/r4-hardening-3
+    data:
+      journey_id: journey/r4-hardening
+      ordinal: 3
+      description: "Custom domain SSL"
+      status: arrived
+      notes: "Custom domain configuration template in wrangler.jsonc. Supports routes or custom_domains patterns. SSL automatic via Cloudflare edge."
+
+  - eidos: waypoint
+    id: waypoint/r4-hardening-4
+    data:
+      journey_id: journey/r4-hardening
+      ordinal: 4
+      description: "Geographic distribution (multi-region)"
+      status: deferred
+      notes: "Durable Objects automatically run in the region closest to the first request. Multi-region requires either DO placement hints or multiple workers with routing. Deferred until traffic patterns justify complexity."
+
+# =============================================================================
+# R5: KOSMOS PUBLICATION
+# Oikos packaging and distribution
+# =============================================================================
+
+  - eidos: journey
+    id: journey/r5-publication
+    data:
+      desire: "Kosmos Publication — package and distribute oikoi to circles"
+      status: pending
+      priority: medium
+      rationale: |
+        With stable infrastructure, enable ecosystem growth.
+      success_criteria:
+        - "Content roots are entities with provenance bonds"
+        - "Oikos entities composed from manifests"
+        - "Affordances and attainments bound to oikoi"
+        - "oikos-prod packages are signed and hashable"
+        - "Circles can install oikoi from distribution circles"
+
+  - eidos: journey
+    id: journey/r5-content-roots
+    data:
+      desire: "K0 — Content root infrastructure"
+      status: arrived
+      arrived_at: "2026-01-26"
+      priority: medium
+      notes: |
+        Content roots embody "where things come from" as entities.
+        Graph-driven content sourcing.
+
+  - eidos: waypoint
+    id: waypoint/r5-roots-0
+    data:
+      journey_id: journey/r5-content-roots
+      ordinal: 0
+      description: "Define content-root eidos (constitutional: true)"
+      status: arrived
+      notes: "Added content-root eidos to arche/eidos.yaml with path, oikos_id, constitutional, order, content_types fields"
+
+  - eidos: waypoint
+    id: waypoint/r5-roots-1
+    data:
+      journey_id: journey/r5-content-roots
+      ordinal: 1
+      description: "Define sources-content-from desmos"
+      status: arrived
+      notes: "Added sources-content-from (oikos → content-root) and sourced-from (entity → content-root) desmoi to arche/desmos.yaml"
+
+  - eidos: waypoint
+    id: waypoint/r5-roots-2
+    data:
+      journey_id: journey/r5-content-roots
+      ordinal: 2
+      description: "Extend spora.yaml format to v2.0 (content_roots, stages)"
+      status: arrived
+      notes: "Added format_version: 2.0 and content_roots section to spora.yaml. Updated all 21 manifest.yaml files with format_version and content_paths declarations."
+
+  - eidos: waypoint
+    id: waypoint/r5-roots-3
+    data:
+      journey_id: journey/r5-content-roots
+      ordinal: 3
+      description: "Update bootstrap.rs to create content-root entities and bonds"
+      status: arrived
+      notes: "Added ContentRootConfig and ContentPathConfig structs. create_content_root_entities() creates content-root entities from spora.yaml. load_single_manifest() creates sources-content-from bonds from oikos-manifest to content-root entities."
+
+  - eidos: journey
+    id: journey/r5-oikos-entities
+    data:
+      desire: "K1-K2 — Oikos entity composition and binding"
+      status: arrived
+      arrived_at: "2026-01-26"
+      priority: medium
+      notes: |
+        Manifest format v2.1 with oikos metadata (name, description, scale).
+        Bootstrap creates oikos entities from manifests with proper bonds.
+        New desmoi: manifest-for, provides-affordance, requires-attainment.
+
+  - eidos: waypoint
+    id: waypoint/r5-oikos-0
+    data:
+      journey_id: journey/r5-oikos-entities
+      ordinal: 0
+      description: "Compose oikos entity from manifest.yaml"
+      status: arrived
+      notes: "bootstrap.rs creates oikos entities with id, name, description, scale from manifest v2.1 oikos_* fields"
+
+  - eidos: waypoint
+    id: waypoint/r5-oikos-1
+    data:
+      journey_id: journey/r5-oikos-entities
+      ordinal: 1
+      description: "Compose oikos entities for all oikoi"
+      status: arrived
+      notes: "All 21 manifests updated to v2.1 format with oikos metadata. Klimax scales renamed to scale-* to avoid ID conflicts."
+
+  - eidos: waypoint
+    id: waypoint/r5-oikos-2
+    data:
+      journey_id: journey/r5-oikos-entities
+      ordinal: 2
+      description: "Define provides-affordance and requires-attainment bonds"
+      status: arrived
+      notes: "Added to arche/desmos.yaml: manifest-for (oikos-manifest → oikos), provides-affordance (oikos → attainment), requires-attainment (oikos → attainment)"
+
+  - eidos: waypoint
+    id: waypoint/r5-oikos-3
+    data:
+      journey_id: journey/r5-oikos-entities
+      ordinal: 3
+      description: "Bind existing affordances and attainments to oikoi"
+      status: arrived
+      notes: "bootstrap.rs creates provides-affordance and requires-attainment bonds from manifest provides.attainments and requires_attainments fields"
+
+  - eidos: journey
+    id: journey/r5-packaging
+    data:
+      desire: "K3-K4 — Oikos packaging and distribution"
+      status: pending
+      priority: medium
+
+  - eidos: waypoint
+    id: waypoint/r5-pkg-0
+    data:
+      journey_id: journey/r5-packaging
+      ordinal: 0
+      description: "Compose oikos-dev from oikos + manifest"
+      status: pending
+
+  - eidos: waypoint
+    id: waypoint/r5-pkg-1
+    data:
+      journey_id: journey/r5-packaging
+      ordinal: 1
+      description: "Implement demiurge/bake-oikos (resolve generation specs)"
+      status: pending
+
+  - eidos: waypoint
+    id: waypoint/r5-pkg-2
+    data:
+      journey_id: journey/r5-packaging
+      ordinal: 2
+      description: "Implement demiurge/publish-oikos (sign and freeze)"
+      status: pending
+
+  - eidos: waypoint
+    id: waypoint/r5-pkg-3
+    data:
+      journey_id: journey/r5-packaging
+      ordinal: 3
+      description: "Create distribution oikoi for topos-prod"
+      status: pending
+
+  - eidos: waypoint
+    id: waypoint/r5-pkg-4
+    data:
+      journey_id: journey/r5-packaging
+      ordinal: 4
+      description: "Enable topos installation from distribution oikos"
+      status: pending
+
+# =============================================================================
+# R6: COMMONS
+# Self-sovereign infrastructure
+# =============================================================================
+
+  - eidos: journey
+    id: journey/r6-commons
+    data:
+      desire: "Commons — self-sovereign infrastructure for circles"
+      status: pending
+      priority: lower
+      rationale: |
+        Requires stable oikos packaging, infrastructure reconciliation,
+        and hardware investment.
+      success_criteria:
+        - "Agora spatial environments work with LiveKit"
+        - "NixOS services reconciled from kosmos entities"
+        - "Local inference running on owned hardware"
+        - "Commons capabilities packaged as oikos"
+        - "Other circles can install and run commons"
+
+  - eidos: journey
+    id: journey/r6-agora
+    data:
+      desire: "S1 — Agora oikos (spatial gathering)"
+      status: pending
+      priority: lower
+
+  - eidos: waypoint
+    id: waypoint/r6-agora-0
+    data:
+      journey_id: journey/r6-agora
+      ordinal: 0
+      description: "LiveKit client integration (Rust or WASM)"
+      status: pending
+
+  - eidos: waypoint
+    id: waypoint/r6-agora-1
+    data:
+      journey_id: journey/r6-agora
+      ordinal: 1
+      description: "Phaser.js frontend integration"
+      status: pending
+
+  - eidos: waypoint
+    id: waypoint/r6-agora-2
+    data:
+      journey_id: journey/r6-agora
+      ordinal: 2
+      description: "Spatial audio configuration"
+      status: pending
+
+  - eidos: journey
+    id: journey/r6-infrastructure
+    data:
+      desire: "S2 — Infrastructure reconciliation"
+      status: pending
+      priority: lower
+
+  - eidos: waypoint
+    id: waypoint/r6-infra-0
+    data:
+      journey_id: journey/r6-infrastructure
+      ordinal: 0
+      description: "Define server eidos (represents owned hardware)"
+      status: pending
+
+  - eidos: waypoint
+    id: waypoint/r6-infra-1
+    data:
+      journey_id: journey/r6-infrastructure
+      ordinal: 1
+      description: "nixos-service actuality mode"
+      status: pending
+
+  - eidos: waypoint
+    id: waypoint/r6-infra-2
+    data:
+      journey_id: journey/r6-infrastructure
+      ordinal: 2
+      description: "actualize-server praxis (sense/compare/manifest)"
+      status: pending
+
+  - eidos: waypoint
+    id: waypoint/r6-infra-3
+    data:
+      journey_id: journey/r6-infrastructure
+      ordinal: 3
+      description: "Deploy LiveKit on NixOS server"
+      status: pending
+
+  - eidos: waypoint
+    id: waypoint/r6-infra-4
+    data:
+      journey_id: journey/r6-infrastructure
+      ordinal: 4
+      description: "Reconciliation loop (periodic health check)"
+      status: pending
+
+  - eidos: journey
+    id: journey/r6-local-ai
+    data:
+      desire: "S3 — Local AI services"
+      status: pending
+      priority: lower
+
+  - eidos: waypoint
+    id: waypoint/r6-ai-0
+    data:
+      journey_id: journey/r6-local-ai
+      ordinal: 0
+      description: "Define inference-server eidos"
+      status: pending
+
+  - eidos: waypoint
+    id: waypoint/r6-ai-1
+    data:
+      journey_id: journey/r6-local-ai
+      ordinal: 1
+      description: "Local Ollama/llama.cpp deployment"
+      status: pending
+
+  - eidos: waypoint
+    id: waypoint/r6-ai-2
+    data:
+      journey_id: journey/r6-local-ai
+      ordinal: 2
+      description: "Local Whisper transcription with NPU"
+      status: pending
+
+  - eidos: waypoint
+    id: waypoint/r6-ai-3
+    data:
+      journey_id: journey/r6-local-ai
+      ordinal: 3
+      description: "Manteia config for local inference endpoint"
+      status: pending
+
+  - eidos: waypoint
+    id: waypoint/r6-ai-4
+    data:
+      journey_id: journey/r6-local-ai
+      ordinal: 4
+      description: "Local embeddings for semantic search"
+      status: pending
+
+  - eidos: journey
+    id: journey/r6-distribution
+    data:
+      desire: "S4 — Commons distribution"
+      status: pending
+      priority: lower
+
+  - eidos: waypoint
+    id: waypoint/r6-dist-0
+    data:
+      journey_id: journey/r6-distribution
+      ordinal: 0
+      description: "Commons oikos bundle (gathering-space + local-ai)"
+      status: pending
+
+  - eidos: waypoint
+    id: waypoint/r6-dist-1
+    data:
+      journey_id: journey/r6-distribution
+      ordinal: 1
+      description: "Distribution oikos for commons software"
+      status: pending
+
+  - eidos: waypoint
+    id: waypoint/r6-dist-2
+    data:
+      journey_id: journey/r6-distribution
+      ordinal: 2
+      description: "Installation workflow for other circles"
+      status: pending
+
+  - eidos: waypoint
+    id: waypoint/r6-dist-3
+    data:
+      journey_id: journey/r6-distribution
+      ordinal: 3
+      description: "Federation between commons circles"
+      status: pending
+
+# =============================================================================
+# BONDS
+# =============================================================================
+
+bonds:
+  # Release journey containment (parent → child)
+  - from: journey/r1-emission
+    to: journey/r1-typescript
+    desmos: contains-journey
+  - from: journey/r1-emission
+    to: journey/r1-mcp-dispatch
+    desmos: contains-journey
+  - from: journey/r1-emission
+    to: journey/r1-dynamis-dispatch
+    desmos: contains-journey
+  - from: journey/r1-emission
+    to: journey/r1-config
+    desmos: contains-journey
+  - from: journey/r1-emission
+    to: journey/r1-reference-docs
+    desmos: contains-journey
+
+  - from: journey/r2-thyra-polish
+    to: journey/r2-sync
+    desmos: contains-journey
+  - from: journey/r2-thyra-polish
+    to: journey/r2-resilience
+    desmos: contains-journey
+  - from: journey/r2-thyra-polish
+    to: journey/r2-klimax
+    desmos: contains-journey
+
+  - from: journey/r3-distribution
+    to: journey/r3-build
+    desmos: contains-journey
+  - from: journey/r3-distribution
+    to: journey/r3-landing
+    desmos: contains-journey
+
+  - from: journey/r5-publication
+    to: journey/r5-content-roots
+    desmos: contains-journey
+  - from: journey/r5-publication
+    to: journey/r5-oikos-entities
+    desmos: contains-journey
+  - from: journey/r5-publication
+    to: journey/r5-packaging
+    desmos: contains-journey
+
+  - from: journey/r6-commons
+    to: journey/r6-agora
+    desmos: contains-journey
+  - from: journey/r6-commons
+    to: journey/r6-infrastructure
+    desmos: contains-journey
+  - from: journey/r6-commons
+    to: journey/r6-local-ai
+    desmos: contains-journey
+  - from: journey/r6-commons
+    to: journey/r6-distribution
+    desmos: contains-journey
+
+  # Cross-release dependencies
+  # R2 benefits from R1 (type-safe frontend)
+  - from: journey/r2-thyra-polish
+    to: journey/r1-typescript
+    desmos: benefits-from
+
+  # R3 benefits from R1 (generated docs)
+  - from: journey/r3-landing
+    to: journey/r1-reference-docs
+    desmos: benefits-from
+
+  # R5 depends on R1 (emission patterns)
+  - from: journey/r5-publication
+    to: journey/r1-emission
+    desmos: depends-on
+
+  # R6 depends on R5 (oikos packaging)
+  - from: journey/r6-commons
+    to: journey/r5-packaging
+    desmos: depends-on
+
+  # R6 benefits from R4 (hardened relay)
+  - from: journey/r6-commons
+    to: journey/r4-hardening
+    desmos: benefits-from
+
+  # Sub-journey dependencies within R5
+  - from: journey/r5-oikos-entities
+    to: journey/r5-content-roots
+    desmos: depends-on
+  - from: journey/r5-packaging
+    to: journey/r5-oikos-entities
+    desmos: depends-on
+
+  # Sub-journey dependencies within R6
+  - from: journey/r6-infrastructure
+    to: journey/r6-agora
+    desmos: enables
+  - from: journey/r6-local-ai
+    to: journey/r6-infrastructure
+    desmos: depends-on
+  - from: journey/r6-distribution
+    to: journey/r6-local-ai
+    desmos: depends-on
+
+  # Waypoint containment bonds (journey → waypoints)
+  # R1-typescript
+  - from: journey/r1-typescript
+    to: waypoint/r1-typescript-0
+    desmos: contains-waypoint
+  - from: journey/r1-typescript
+    to: waypoint/r1-typescript-1
+    desmos: contains-waypoint
+  - from: journey/r1-typescript
+    to: waypoint/r1-typescript-2
+    desmos: contains-waypoint
+  - from: journey/r1-typescript
+    to: waypoint/r1-typescript-3
+    desmos: contains-waypoint
+
+  # R1-mcp
+  - from: journey/r1-mcp-dispatch
+    to: waypoint/r1-mcp-0
+    desmos: contains-waypoint
+  - from: journey/r1-mcp-dispatch
+    to: waypoint/r1-mcp-1
+    desmos: contains-waypoint
+  - from: journey/r1-mcp-dispatch
+    to: waypoint/r1-mcp-2
+    desmos: contains-waypoint
+  - from: journey/r1-mcp-dispatch
+    to: waypoint/r1-mcp-3
+    desmos: contains-waypoint
+
+  # R1-dynamis
+  - from: journey/r1-dynamis-dispatch
+    to: waypoint/r1-dynamis-0
+    desmos: contains-waypoint
+  - from: journey/r1-dynamis-dispatch
+    to: waypoint/r1-dynamis-1
+    desmos: contains-waypoint
+  - from: journey/r1-dynamis-dispatch
+    to: waypoint/r1-dynamis-2
+    desmos: contains-waypoint
+  - from: journey/r1-dynamis-dispatch
+    to: waypoint/r1-dynamis-3
+    desmos: contains-waypoint
+
+  # R1-config
+  - from: journey/r1-config
+    to: waypoint/r1-config-0
+    desmos: contains-waypoint
+  - from: journey/r1-config
+    to: waypoint/r1-config-1
+    desmos: contains-waypoint
+
+  # R1-docs
+  - from: journey/r1-reference-docs
+    to: waypoint/r1-docs-0
+    desmos: contains-waypoint
+  - from: journey/r1-reference-docs
+    to: waypoint/r1-docs-1
+    desmos: contains-waypoint
+  - from: journey/r1-reference-docs
+    to: waypoint/r1-docs-2
+    desmos: contains-waypoint
+  - from: journey/r1-reference-docs
+    to: waypoint/r1-docs-3
+    desmos: contains-waypoint
+
+  # R2-sync
+  - from: journey/r2-sync
+    to: waypoint/r2-sync-0
+    desmos: contains-waypoint
+  - from: journey/r2-sync
+    to: waypoint/r2-sync-1
+    desmos: contains-waypoint
+
+  # R2-resilience
+  - from: journey/r2-resilience
+    to: waypoint/r2-resilience-0
+    desmos: contains-waypoint
+  - from: journey/r2-resilience
+    to: waypoint/r2-resilience-1
+    desmos: contains-waypoint
+  - from: journey/r2-resilience
+    to: waypoint/r2-resilience-2
+    desmos: contains-waypoint
+
+  # R2-klimax
+  - from: journey/r2-klimax
+    to: waypoint/r2-klimax-0
+    desmos: contains-waypoint
+  - from: journey/r2-klimax
+    to: waypoint/r2-klimax-1
+    desmos: contains-waypoint
+  - from: journey/r2-klimax
+    to: waypoint/r2-klimax-2
+    desmos: contains-waypoint
+
+  # R3-build
+  - from: journey/r3-build
+    to: waypoint/r3-build-0
+    desmos: contains-waypoint
+  - from: journey/r3-build
+    to: waypoint/r3-build-1
+    desmos: contains-waypoint
+  - from: journey/r3-build
+    to: waypoint/r3-build-2
+    desmos: contains-waypoint
+
+  # R3-landing
+  - from: journey/r3-landing
+    to: waypoint/r3-landing-0
+    desmos: contains-waypoint
+  - from: journey/r3-landing
+    to: waypoint/r3-landing-1
+    desmos: contains-waypoint
+  - from: journey/r3-landing
+    to: waypoint/r3-landing-2
+    desmos: contains-waypoint
+  - from: journey/r3-landing
+    to: waypoint/r3-landing-3
+    desmos: contains-waypoint
+
+  # R4 (flat — no sub-journeys)
+  - from: journey/r4-hardening
+    to: waypoint/r4-hardening-0
+    desmos: contains-waypoint
+  - from: journey/r4-hardening
+    to: waypoint/r4-hardening-1
+    desmos: contains-waypoint
+  - from: journey/r4-hardening
+    to: waypoint/r4-hardening-2
+    desmos: contains-waypoint
+  - from: journey/r4-hardening
+    to: waypoint/r4-hardening-3
+    desmos: contains-waypoint
+  - from: journey/r4-hardening
+    to: waypoint/r4-hardening-4
+    desmos: contains-waypoint
+
+  # R5-roots
+  - from: journey/r5-content-roots
+    to: waypoint/r5-roots-0
+    desmos: contains-waypoint
+  - from: journey/r5-content-roots
+    to: waypoint/r5-roots-1
+    desmos: contains-waypoint
+  - from: journey/r5-content-roots
+    to: waypoint/r5-roots-2
+    desmos: contains-waypoint
+  - from: journey/r5-content-roots
+    to: waypoint/r5-roots-3
+    desmos: contains-waypoint
+
+  # R5-oikos
+  - from: journey/r5-oikos-entities
+    to: waypoint/r5-oikos-0
+    desmos: contains-waypoint
+  - from: journey/r5-oikos-entities
+    to: waypoint/r5-oikos-1
+    desmos: contains-waypoint
+  - from: journey/r5-oikos-entities
+    to: waypoint/r5-oikos-2
+    desmos: contains-waypoint
+  - from: journey/r5-oikos-entities
+    to: waypoint/r5-oikos-3
+    desmos: contains-waypoint
+
+  # R5-packaging
+  - from: journey/r5-packaging
+    to: waypoint/r5-pkg-0
+    desmos: contains-waypoint
+  - from: journey/r5-packaging
+    to: waypoint/r5-pkg-1
+    desmos: contains-waypoint
+  - from: journey/r5-packaging
+    to: waypoint/r5-pkg-2
+    desmos: contains-waypoint
+  - from: journey/r5-packaging
+    to: waypoint/r5-pkg-3
+    desmos: contains-waypoint
+  - from: journey/r5-packaging
+    to: waypoint/r5-pkg-4
+    desmos: contains-waypoint
+
+  # R6-agora
+  - from: journey/r6-agora
+    to: waypoint/r6-agora-0
+    desmos: contains-waypoint
+  - from: journey/r6-agora
+    to: waypoint/r6-agora-1
+    desmos: contains-waypoint
+  - from: journey/r6-agora
+    to: waypoint/r6-agora-2
+    desmos: contains-waypoint
+
+  # R6-infrastructure
+  - from: journey/r6-infrastructure
+    to: waypoint/r6-infra-0
+    desmos: contains-waypoint
+  - from: journey/r6-infrastructure
+    to: waypoint/r6-infra-1
+    desmos: contains-waypoint
+  - from: journey/r6-infrastructure
+    to: waypoint/r6-infra-2
+    desmos: contains-waypoint
+  - from: journey/r6-infrastructure
+    to: waypoint/r6-infra-3
+    desmos: contains-waypoint
+  - from: journey/r6-infrastructure
+    to: waypoint/r6-infra-4
+    desmos: contains-waypoint
+
+  # R6-ai
+  - from: journey/r6-local-ai
+    to: waypoint/r6-ai-0
+    desmos: contains-waypoint
+  - from: journey/r6-local-ai
+    to: waypoint/r6-ai-1
+    desmos: contains-waypoint
+  - from: journey/r6-local-ai
+    to: waypoint/r6-ai-2
+    desmos: contains-waypoint
+  - from: journey/r6-local-ai
+    to: waypoint/r6-ai-3
+    desmos: contains-waypoint
+  - from: journey/r6-local-ai
+    to: waypoint/r6-ai-4
+    desmos: contains-waypoint
+
+  # R6-distribution
+  - from: journey/r6-distribution
+    to: waypoint/r6-dist-0
+    desmos: contains-waypoint
+  - from: journey/r6-distribution
+    to: waypoint/r6-dist-1
+    desmos: contains-waypoint
+  - from: journey/r6-distribution
+    to: waypoint/r6-dist-2
+    desmos: contains-waypoint
+  - from: journey/r6-distribution
+    to: waypoint/r6-dist-3
+    desmos: contains-waypoint

@@ -1,7 +1,7 @@
 # soma.yaml
 # Soma praxeis exposed as MCP tools
 #
-# Soma is the embodied interface — animus lifecycle, channels, perception/action.
+# Soma is the embodied interface — parousia lifecycle, channels, perception/action.
 # These praxeis enable Claude to manage dwelling presence and interface with the world.
 #
 # NOTE: Timestamps (created_at, updated_at) are handled by the DB layer automatically.
@@ -10,63 +10,63 @@
 entities:
 
 # =============================================================================
-# ANIMUS LIFECYCLE
+# PAROUSIA LIFECYCLE
 # =============================================================================
 
 - eidos: praxis
-  id: praxis/soma/arise-animus
+  id: praxis/soma/arise-parousia
   data:
-    oikos: soma
-    name: arise-animus
+    topos: soma
+    name: arise-parousia
     visible: true
     description: |
-      Bring an animus into being. The animus instantiates a persona.
+      Bring a parousia into being. The parousia instantiates a prosopon.
 
       Creates:
-      - animus entity (status: dwelling)
+      - parousia entity (status: dwelling)
       - body-schema entity (default capabilities)
-      - instantiates bond to persona
-      - schema-of bond to animus
+      - instantiates bond to prosopon
+      - schema-of bond to parousia
 
-      Returns the animus_id. Use this ID for channel operations.
+      Returns the parousia_id. Use this ID for channel operations.
     params:
-      - name: persona_id
+      - name: prosopon_id
         type: string
         required: true
-        description: The persona this animus instantiates
-      - name: animus_id
+        description: The prosopon this parousia instantiates
+      - name: parousia_id
         type: string
         required: true
-        description: ID for the new animus (e.g., animus/uuid)
+        description: ID for the new parousia (e.g., parousia/uuid)
     steps:
-      # Verify persona exists
+      # Verify prosopon exists
       - step: find
-        id: "$persona_id"
-        bind_to: persona
+        id: "$prosopon_id"
+        bind_to: prosopon
 
       - step: assert
-        condition: "$persona"
-        message: "Persona not found: $persona_id"
+        condition: "$prosopon"
+        message: "Prosopon not found: $prosopon_id"
 
-      # Create the animus (CE4: compose instead of arise)
+      # Create the parousia (CE4: compose instead of arise)
       - step: compose
-        typos_id: "typos-def-animus"
+        typos_id: "typos-def-parousia"
         inputs:
-          id: "$animus_id"
+          id: "$parousia_id"
           status: "dwelling"
-          persona_id: "$persona_id"
-        bind_to: animus_entity
+          prosopon_id: "$prosopon_id"
+        bind_to: parousia_entity
 
       # Create instantiates bond
       - step: bind
-        from_id: "$animus_id"
-        to_id: "$persona_id"
+        from_id: "$parousia_id"
+        to_id: "$prosopon_id"
         desmos: "instantiates"
 
       # Create default body schema
       - step: set
         bindings:
-          schema_id: "body-schema/$animus_id"
+          schema_id: "body-schema/$parousia_id"
 
       # CE4: compose instead of arise
       - step: compose
@@ -80,49 +80,62 @@ entities:
       # Create schema-of bond
       - step: bind
         from_id: "$schema_id"
-        to_id: "$animus_id"
+        to_id: "$parousia_id"
         desmos: "schema-of"
+
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Parousia $parousia_id has arisen"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: parousia
+            source_id: "$parousia_id"
 
       - step: return
         value:
-          animus_id: "$animus_id"
+          parousia_id: "$parousia_id"
           body_schema_id: "$schema_id"
           status: "dwelling"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/embody }
 
 - eidos: praxis
-  id: praxis/soma/depart-animus
+  id: praxis/soma/depart-parousia
   data:
-    oikos: soma
-    name: depart-animus
+    topos: soma
+    name: depart-parousia
     visible: true
     description: |
-      Have an animus depart (end dwelling).
+      Have a parousia depart (end dwelling).
 
-      Marks the animus as departed and closes all open channels.
+      Marks the parousia as departed and closes all open channels.
     params:
-      - name: animus_id
+      - name: parousia_id
         type: string
         required: true
-        description: The animus to depart
+        description: The parousia to depart
     steps:
-      # Find the animus
+      # Find the parousia
       - step: find
-        id: "$animus_id"
-        bind_to: animus
+        id: "$parousia_id"
+        bind_to: parousia
 
       - step: assert
-        condition: "$animus"
-        message: "Animus not found: $animus_id"
+        condition: "$parousia"
+        message: "Parousia not found: $parousia_id"
 
       # Mark as departed
       - step: update
-        id: "$animus_id"
+        id: "$parousia_id"
         data:
           status: "departed"
 
       # Find and close all channels
       - step: trace
-        to_id: "$animus_id"
+        to_id: "$parousia_id"
         desmos: "channel-of"
         resolve: "from"
         bind_to: channels
@@ -140,10 +153,23 @@ entities:
                     data:
                       status: "closed"
 
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Parousia $parousia_id has departed"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: parousia
+            source_id: "$parousia_id"
+
       - step: return
         value:
           departed: true
-          animus_id: "$animus_id"
+          parousia_id: "$parousia_id"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/embody }
 
 # =============================================================================
 # CHANNEL MANAGEMENT
@@ -152,21 +178,21 @@ entities:
 - eidos: praxis
   id: praxis/soma/open-channel
   data:
-    oikos: soma
+    topos: soma
     name: open-channel
     visible: true
     description: |
-      Open a channel for an animus.
+      Open a channel for a parousia.
 
       Channels are interfaces for perception or action:
       - perception: receives input (text, voice, vision)
       - action: emits output (text, file, signal)
       - bidirectional: both
     params:
-      - name: animus_id
+      - name: parousia_id
         type: string
         required: true
-        description: The animus to open a channel for
+        description: The parousia to open a channel for
       - name: channel_id
         type: string
         required: true
@@ -184,14 +210,14 @@ entities:
         required: false
         description: Channel kind (perception, action, bidirectional)
     steps:
-      # Find the animus
+      # Find the parousia
       - step: find
-        id: "$animus_id"
-        bind_to: animus
+        id: "$parousia_id"
+        bind_to: parousia
 
       - step: assert
-        condition: "$animus"
-        message: "Animus not found: $animus_id"
+        condition: "$parousia"
+        message: "Parousia not found: $parousia_id"
 
       # Default kind to bidirectional
       - step: set
@@ -218,10 +244,10 @@ entities:
           status: "open"
         bind_to: channel_entity
 
-      # Create channel-of bond to animus
+      # Create channel-of bond to parousia
       - step: bind
         from_id: "$channel_id"
-        to_id: "$animus_id"
+        to_id: "$parousia_id"
         desmos: "channel-of"
 
       - step: return
@@ -231,11 +257,13 @@ entities:
           modality: "$modality"
           kind: "$channel_kind"
           status: "open"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/channel }
 
 - eidos: praxis
   id: praxis/soma/close-channel
   data:
-    oikos: soma
+    topos: soma
     name: close-channel
     visible: true
     description: |
@@ -263,6 +291,8 @@ entities:
         value:
           closed: true
           channel_id: "$channel_id"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/channel }
 
 # =============================================================================
 # PERCEPTION AND ACTION
@@ -271,7 +301,7 @@ entities:
 - eidos: praxis
   id: praxis/soma/perceive
   data:
-    oikos: soma
+    topos: soma
     name: perceive
     visible: true
     description: |
@@ -336,7 +366,7 @@ entities:
 - eidos: praxis
   id: praxis/soma/emit
   data:
-    oikos: soma
+    topos: soma
     name: emit
     visible: true
     description: |
@@ -377,9 +407,9 @@ entities:
         condition: "$channel.data.kind != 'perception'"
         message: "Cannot emit through perception-only channel"
 
-      # Create the signal (CE4: compose instead of arise)
+      # Create the body-signal (CE4: compose instead of arise)
       - step: compose
-        typos_id: "typos-def-signal"
+        typos_id: "typos-def-body-signal"
         inputs:
           id: "$signal_id"
           modality: "$channel.data.modality"
@@ -405,30 +435,30 @@ entities:
 - eidos: praxis
   id: praxis/soma/sense-body
   data:
-    oikos: soma
+    topos: soma
     name: sense-body
     visible: true
     tier: 1
     description: |
       Sense the current body schema (idioaisthesis).
 
-      Aggregates proprioceptive state from across oikoi:
+      Aggregates proprioceptive state from across topoi:
       - Core soma: channels, capabilities, limits
       - Credentials: stored/unlocked credentials, granted attainments
-      - Opsis: visual state (layout, theme, workspace)
-      - Ergon: work items (pragma signaled to circle)
+      - Thyra: visual state (layout, theme, workspace)
+      - Ergon: work items (pragma signaled to oikos)
       - Release: release lifecycle activity
 
       This is the answer to "what can I do right now?"
     params:
-      - name: animus_id
+      - name: parousia_id
         type: string
         required: true
-        description: The animus to sense
+        description: The parousia to sense
     steps:
       # Find the body schema
       - step: trace
-        to_id: "$animus_id"
+        to_id: "$parousia_id"
         desmos: "schema-of"
         resolve: "from"
         bind_to: schemas
@@ -447,45 +477,69 @@ entities:
 
       # Get channel states
       - step: trace
-        to_id: "$animus_id"
+        to_id: "$parousia_id"
         desmos: "channel-of"
         resolve: "from"
         bind_to: channels
 
-      # Aggregate from credentials oikos
+      # Aggregate from credentials topos
       - step: call
         praxis: praxis/credentials/sense-credentials
         params: {}
         bind_to: credentials_state
 
-      # Aggregate from opsis oikos
-      - step: call
-        praxis: praxis/opsis/sense-opsis
-        params: {}
-        bind_to: opsis_state
-
-      # Aggregate from ergon oikos
+      # Aggregate from ergon topos
       - step: call
         praxis: praxis/ergon/sense-pragma
         params: {}
         bind_to: ergon_state
 
-      # Aggregate from release oikos
+      # Aggregate from release topos
       - step: call
         praxis: praxis/release/sense-releases
         params: {}
         bind_to: release_state
 
-      # Aggregate from demiurge oikos (development state)
+      # Aggregate from demiurge topos (development state)
       - step: call
         praxis: praxis/demiurge/sense-development
         params: {}
         bind_to: development_state
 
+      # Aggregate from nous topos (knowledge state)
+      - step: call
+        praxis: praxis/nous/sense-nous
+        params: {}
+        bind_to: nous_state
+
+      # Aggregate from oikos topos (session state)
+      - step: call
+        praxis: praxis/oikos/sense-oikos
+        params: {}
+        bind_to: oikos_state
+
+      # Aggregate from propylon topos (gateway state)
+      - step: call
+        praxis: praxis/propylon/sense-propylon
+        params: {}
+        bind_to: propylon_state
+
+      # Aggregate from dynamis topos (deployment state)
+      - step: call
+        praxis: praxis/dynamis/sense-deployment
+        params: {}
+        bind_to: dynamis_state
+
+      # Aggregate from dokimasia topos (validation state)
+      - step: call
+        praxis: praxis/dokimasia/topos-health-report
+        params: {}
+        bind_to: dokimasia_state
+
       - step: return
         value:
           found: true
-          animus_id: "$animus_id"
+          parousia_id: "$parousia_id"
           sensed_at: "{{ now() }}"
           # Core soma state
           soma:
@@ -493,12 +547,16 @@ entities:
             channels: "$channels"
             capabilities: "$schema.data.capabilities"
             limits: "$schema.data.limits"
-          # Cross-oikos contributions
+          # Cross-topos contributions
           credentials: "$credentials_state"
-          opsis: "$opsis_state"
           ergon: "$ergon_state"
           release: "$release_state"
           development: "$development_state"
+          nous: "$nous_state"
+          oikos: "$oikos_state"
+          propylon: "$propylon_state"
+          dynamis: "$dynamis_state"
+          dokimasia: "$dokimasia_state"
 
 # =============================================================================
 # CURSOR / NOTIFICATION OPERATIONS
@@ -510,29 +568,29 @@ entities:
 - eidos: praxis
   id: praxis/soma/get-notifications
   data:
-    oikos: soma
+    topos: soma
     name: get-notifications
     visible: true
     tier: 1
     description: |
-      Get notification counts for all circles visible to a persona.
+      Get notification counts for all oikoi visible to a prosopon.
 
-      Returns an array of {circle_id, count} objects where count > 0.
-      The count represents entities changed since the persona's cursor position.
+      Returns an array of {oikos_id, count} objects where count > 0.
+      The count represents entities changed since the prosopon's cursor position.
 
-      This powers notification badges in the UI — showing which circles
+      This powers notification badges in the UI — showing which oikoi
       have new content to review.
     params:
-      - name: persona_id
+      - name: prosopon_id
         type: string
         required: true
-        description: The persona to get notifications for
+        description: The prosopon to get notifications for
     steps:
       - step: get_notifications
-        persona_id: "$persona_id"
+        prosopon_id: "$prosopon_id"
         bind_to: notifications
 
-      # Filter to only circles with changes
+      # Filter to only oikoi with changes
       - step: filter
         items: "$notifications"
         condition: "$item.count > 0"
@@ -540,72 +598,72 @@ entities:
 
       - step: return
         value:
-          persona_id: "$persona_id"
+          prosopon_id: "$prosopon_id"
           notifications: "$filtered"
 
 - eidos: praxis
-  id: praxis/soma/mark-circle-seen
+  id: praxis/soma/mark-oikos-seen
   data:
-    oikos: soma
-    name: mark-circle-seen
+    topos: soma
+    name: mark-oikos-seen
     visible: true
     tier: 2
     description: |
-      Mark a circle as seen by updating the persona's cursor.
+      Mark an oikos as seen by updating the prosopon's cursor.
 
-      Sets the persona's cursor for this circle to the current max version,
+      Sets the prosopon's cursor for this oikos to the current max version,
       effectively acknowledging all current changes.
 
-      Call this when the user views a circle's content to clear notifications.
+      Call this when the user views an oikos's content to clear notifications.
     params:
-      - name: persona_id
+      - name: prosopon_id
         type: string
         required: true
-        description: The persona marking the circle as seen
-      - name: circle_id
+        description: The prosopon marking the oikos as seen
+      - name: oikos_id
         type: string
         required: true
-        description: The circle being marked as seen
+        description: The oikos being marked as seen
     steps:
       - step: update_cursor
-        persona_id: "$persona_id"
-        circle_id: "$circle_id"
+        prosopon_id: "$prosopon_id"
+        oikos_id: "$oikos_id"
         bind_to: new_version
 
       - step: return
         value:
           marked_seen: true
-          persona_id: "$persona_id"
-          circle_id: "$circle_id"
+          prosopon_id: "$prosopon_id"
+          oikos_id: "$oikos_id"
           cursor_version: "$new_version"
 
 - eidos: praxis
-  id: praxis/soma/get-circle-changes
+  id: praxis/soma/get-oikos-changes
   data:
-    oikos: soma
-    name: get-circle-changes
+    topos: soma
+    name: get-oikos-changes
     visible: true
     tier: 1
     description: |
-      Get entities that changed in a circle since a specific version.
+      Get entities that changed in an oikos since a specific version.
 
-      If no since_version is provided, uses the persona's current cursor.
+      If no since_version is provided, uses the prosopon's current cursor.
       Returns the changed entities along with the current max version.
 
-      Use this to explore what's new in a circle before marking it as seen.
+      Use this to explore what's new in an oikos before marking it as seen.
     params:
-      - name: circle_id
+      - name: oikos_id
         type: string
         required: true
-        description: The circle to get changes for
-      - name: persona_id
+        description: The oikos to get changes for
+      - name: prosopon_id
         type: string
         required: false
-        description: Optional persona to use cursor from (if since_version not provided)
+        description: Optional prosopon to use cursor from (if since_version not provided)
       - name: since_version
         type: integer
         required: false
-        description: Version to query from (defaults to persona cursor or 0)
+        description: Version to query from (defaults to prosopon cursor or 0)
       - name: limit
         type: integer
         required: false
@@ -619,11 +677,11 @@ entities:
               - step: set
                 bindings:
                   query_version: "$since_version"
-          - when: "$persona_id"
+          - when: "$prosopon_id"
             then:
               - step: get_cursor
-                persona_id: "$persona_id"
-                circle_id: "$circle_id"
+                prosopon_id: "$prosopon_id"
+                oikos_id: "$oikos_id"
                 bind_to: cursor_version
               - step: set
                 bindings:
@@ -634,14 +692,14 @@ entities:
               query_version: 0
 
       - step: gather_since
-        circle_id: "$circle_id"
+        oikos_id: "$oikos_id"
         since_version: "$query_version"
         limit: "$limit"
         bind_to: entities
 
       - step: return
         value:
-          circle_id: "$circle_id"
+          oikos_id: "$oikos_id"
           since_version: "$query_version"
           count: "{{ len($entities) }}"
           entities: "$entities"
@@ -653,7 +711,7 @@ entities:
 - eidos: praxis
   id: praxis/soma/add-notification
   data:
-    oikos: soma
+    topos: soma
     name: add-notification
     visible: false  # Internal, invoked by reflexes
     tier: 2
@@ -667,10 +725,10 @@ entities:
         type: string
         required: true
         description: Notification type (pragma_received, pragma_resolved, etc.)
-      - name: circle_id
+      - name: oikos_id
         type: string
         required: false
-        description: Target circle for the notification
+        description: Target oikos for the notification
       - name: pragma_id
         type: string
         required: false
@@ -693,7 +751,7 @@ entities:
         typos_id: typos-def-notification
         inputs:
           type: "$type"
-          circle_id: "$circle_id"
+          oikos_id: "$oikos_id"
           pragma_id: "$pragma_id"
           title: "$title"
           priority: "$priority"
@@ -717,7 +775,7 @@ entities:
 - eidos: praxis
   id: praxis/soma/register-node
   data:
-    oikos: soma
+    topos: soma
     name: register-node
     visible: true
     tier: 2
@@ -725,7 +783,7 @@ entities:
       Register a node in the infrastructure.
 
       Creates a node entity representing a physical or virtual machine.
-      For commons nodes, also binds to the steward circle.
+      For commons nodes, also binds to the steward oikos.
     params:
       - name: node_id
         type: string
@@ -751,10 +809,10 @@ entities:
         type: string
         required: false
         description: Public URL if accessible
-      - name: steward_circle_id
+      - name: steward_oikos_id
         type: string
         required: false
-        description: For commons nodes — governing circle
+        description: For commons nodes — governing oikos
     steps:
       - step: compose
         typos_id: typos-def-node
@@ -765,9 +823,20 @@ entities:
           platform: "$platform"
           address: "$address"
           public_endpoint: "$public_endpoint"
-          steward_circle_id: "$steward_circle_id"
+          steward_oikos_id: "$steward_oikos_id"
           status: unknown
         bind_to: node
+
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Registered node $name ($kind)"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: node
+            source_id: "$node_id"
 
       - step: return
         value:
@@ -775,11 +844,13 @@ entities:
           name: "$name"
           kind: "$kind"
           status: unknown
+  bonds:
+    - { desmos: requires-attainment, to: attainment/infrastructure }
 
 - eidos: praxis
   id: praxis/soma/sense-node
   data:
-    oikos: soma
+    topos: soma
     name: sense-node
     visible: true
     tier: 1
@@ -820,11 +891,13 @@ entities:
           node: "$node"
           services: "$services"
           kosmos_instances: "$instances"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/infrastructure }
 
 - eidos: praxis
   id: praxis/soma/register-service
   data:
-    oikos: soma
+    topos: soma
     name: register-service
     visible: true
     tier: 2
@@ -885,24 +958,37 @@ entities:
         to_id: "$service_id"
         desmos: hosts-service
 
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Registered service $name on node $node_id"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: service-instance
+            source_id: "$service_id"
+
       - step: return
         value:
           service_id: "$service_id"
           name: "$name"
           node_id: "$node_id"
           status: provisioning
+  bonds:
+    - { desmos: requires-attainment, to: attainment/infrastructure }
 
 - eidos: praxis
   id: praxis/soma/sense-service
   data:
-    oikos: soma
+    topos: soma
     name: sense-service
     visible: true
     tier: 1
     description: |
       Sense the current state of a service instance.
 
-      Returns service info including which circles it provides to.
+      Returns service info including which oikoi it provides to.
     params:
       - name: service_id
         type: string
@@ -928,23 +1014,25 @@ entities:
         bindings:
           host_node: "$nodes.0"
 
-      # Find circles this service provides to
+      # Find oikoi this service provides to
       - step: trace
         from_id: "$service_id"
         desmos: provides-to
         resolve: to
-        bind_to: circles
+        bind_to: oikoi
 
       - step: return
         value:
           service: "$service"
           host_node: "$host_node"
-          provides_to_circles: "$circles"
+          provides_to_oikoi: "$oikoi"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/infrastructure }
 
 - eidos: praxis
   id: praxis/soma/sense-kosmos-instance
   data:
-    oikos: soma
+    topos: soma
     name: sense-kosmos-instance
     visible: true
     tier: 1
@@ -981,3 +1069,5 @@ entities:
         value:
           instance: "$instance"
           host_node: "$host_node"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/infrastructure }

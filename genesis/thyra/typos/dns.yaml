@@ -1,0 +1,68 @@
+# Thyra DNS Typos — DNS Management
+#
+# Typos for DNS zone and record management (Thyra Phase 17.7).
+
+entities:
+
+# =============================================================================
+# DNS MANAGEMENT
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-dns-zone
+  data:
+    name: dns-zone
+    description: |
+      Create a managed DNS zone.
+
+      Zones are sovereignty boundaries. An oikos that manages a zone
+      has authority over all records within it.
+    target_eidos: dns-zone
+    defaults:
+      status: pending
+      record_count: 0
+    bonds:
+      - desmos: manages-zone
+        from_context: _oikos
+        to_self: true
+        optional: true
+
+- eidos: typos
+  id: typos-def-dns-record
+  data:
+    name: dns-record
+    description: |
+      Create a DNS record with dual existence.
+
+      The entity represents intent (what we want).
+      Actuality represents provider state (what exists).
+      The reconciler aligns them.
+    target_eidos: dns-record
+    defaults:
+      ttl: 1
+      proxied: true
+      desired_state: present
+      actual_state: unknown
+    bonds:
+      - desmos: in-zone
+        from_self: true
+        to_slot: zone_id
+        required: true
+
+- eidos: typos
+  id: typos-def-dns-provider-binding
+  data:
+    name: dns-provider-binding
+    description: |
+      Bind a zone to its DNS provider with credentials.
+
+      Credentials are referenced via secret:// or env:// URIs,
+      never stored directly in the entity.
+    target_eidos: dns-provider-binding
+    defaults:
+      status: active
+    bonds:
+      - desmos: provided-by
+        from_slot: zone_id
+        to_self: true
+        required: true

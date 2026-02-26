@@ -1,0 +1,39 @@
+# Compose Mode Switch Reflex
+# When transcriber.desired_state transitions, switch compose bar mode.
+#
+# active → compose-full to compose-transcribing
+# closed → compose-transcribing to compose-full
+#
+# Provenance: PROMPT-LITERAL-FILL-ACCUMULATION.md Phase 3
+
+entities:
+
+  # Trigger: fires when transcriber entity is updated (desired_state changes)
+  - eidos: trigger
+    id: trigger/thyra/transcriber-mode-switch
+    data:
+      name: transcriber-mode-switch
+      description: |
+        Fires when a transcriber entity's desired_state changes.
+        Compares current vs previous to avoid re-firing on unrelated updates.
+      enabled: true
+      condition: '$entity.data.desired_state != $previous.data.desired_state'
+    bonds:
+      - { desmos: matches-event, to: entity-mutation/updated }
+      - { desmos: filters-eidos, to: eidos/transcriber }
+
+  # Reflex: responds by switching compose bar mode
+  - eidos: reflex
+    id: reflex/thyra/transcriber-mode-switch
+    data:
+      name: transcriber-mode-switch
+      description: |
+        When transcriber.desired_state changes, switch the compose bar
+        between compose-full and compose-transcribing modes.
+      enabled: true
+      scope: global
+      response_params:
+        transcriber_desired_state: "$entity.data.desired_state"
+    bonds:
+      - { desmos: triggered-by, to: trigger/thyra/transcriber-mode-switch }
+      - { desmos: responds-with, to: praxis/thyra/switch-compose-mode }

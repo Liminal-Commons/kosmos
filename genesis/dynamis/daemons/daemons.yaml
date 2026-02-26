@@ -1,0 +1,21 @@
+# Dynamis Sensing Daemons
+# Periodic actuality sensing for deployment reconciliation
+#
+# Traces to: docs/reference/daemon-runner.md
+# Authorized by: phasis/genesis-root
+
+entities:
+
+  - eidos: daemon
+    id: daemon/sense-deployments
+    data:
+      name: sense-deployments
+      description: |
+        Periodically sense deployment actuality.
+        Gathers all deployment entities and invokes sense_actuality on each.
+        Entity updates trigger drift-detection reflexes.
+      praxis: dynamis/sense-deployment-states
+      interval: 30
+      enabled: true
+      scope: global
+      backoff_max: 300

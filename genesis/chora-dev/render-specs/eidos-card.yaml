@@ -1,0 +1,63 @@
+# Eidos Card — Constitutional entity type browser
+# Displays an eidos definition with its fields and constraints
+
+entities:
+  - eidos: render-spec
+    id: render-spec/chora-dev/eidos-card
+    data:
+      name: eidos-card
+      description: "Entity type card showing fields, constraints, and constitutional status"
+      target_eidos: eidos
+      variant: card
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+            on_click: ui/set-selection
+            on_click_params:
+              selection_type: selected-eidos
+              entity_id: "{id}"
+          children:
+            - widget: row
+              props:
+                gap: md
+                align: center
+                justify: between
+              children:
+                # Eidos name
+                - widget: text
+                  props:
+                    content: "{id}"
+                    variant: emphasis
+
+                # Constitutional badge
+                - widget: badge
+                  when: "constitutional"
+                  props:
+                    content: "constitutional"
+                    variant: info
+
+            # Description
+            - widget: text
+              when: "description"
+              props:
+                content: "{description}"
+                variant: caption
+
+            # Fields summary row
+            - widget: row
+              when: "fields"
+              props:
+                gap: xs
+                align: center
+              children:
+                - widget: badge
+                  props:
+                    content: "fields"
+                    variant: default
+
+                - widget: text
+                  props:
+                    content: "{fields | keys | join}"
+                    variant: caption

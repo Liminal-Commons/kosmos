@@ -56,7 +56,7 @@ Sessions are bounded periods of dwelling:
 | `closed_at` | timestamp | When session ended (if closed) |
 | `status` | enum | active, closed, suspended |
 
-Sessions bond to circles via the dwelling context — an animus dwells in a circle during a session.
+Sessions bond to oikoi via the dwelling context — a parousia dwells in an oikos during a session.
 
 ### 2. Conversation Flow
 
@@ -141,7 +141,7 @@ Oikos provides:
 - **Notes**: Attention markers that seed understanding
 - **Insights**: Emerging understanding before crystallization
 
-With oikos, dwelling has texture. The animus doesn't just exist in a circle — it engages, notes, reflects, and understands.
+With oikos, dwelling has texture. The parousia doesn't just exist in an oikos — it engages, notes, reflects, and understands.
 
 ---
 
@@ -155,4 +155,4 @@ With oikos, dwelling has texture. The animus doesn't just exist in a circle — 
 ---
 
 *Composed in service of the kosmogonia.*
-*Traces to: expression/genesis-root*
+*Traces to: phasis/genesis-root*

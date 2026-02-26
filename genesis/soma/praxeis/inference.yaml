@@ -1,0 +1,122 @@
+# Inference Praxeis
+# Model tier resolution — query provider APIs and classify via inference
+#
+# Traces to: PROMPT-INFERENCE-SUBSTRATE.md
+
+entities:
+
+  # =========================================================================
+  # resolve-model-tiers — discover models and classify via inference
+  # =========================================================================
+
+  - eidos: praxis
+    id: praxis/soma/resolve-model-tiers
+    data:
+      topos: soma
+      name: resolve-model-tiers
+      visible: true
+      tier: 2
+      description: |
+        Query a provider's models API and resolve capability tiers.
+
+        Fetches the raw model list, then uses inference (the provider's own
+        cheapest model) to classify models into capable/balanced/fast tiers.
+        No hardcoded model naming patterns — the LLM classifies by world knowledge.
+      params:
+        - name: provider
+          type: string
+          required: true
+          description: "Provider to resolve (e.g., anthropic)"
+      steps:
+        # 1. Fetch raw model list from provider API
+        - step: invoke
+          dynamis: inference
+          operation: list-models
+          params:
+            provider: "$provider"
+          bind_to: raw_models
+
+        # 2. Pick classification model and format list for prompt
+        - step: set
+          bindings:
+            classify_model: "$raw_models.0.id"
+            models_json: "$raw_models | json_encode"
+
+        # 3. Classify via inference — LLM knows model capabilities
+        - step: infer
+          internal: true
+          provider: "$provider"
+          model: "$classify_model"
+          temperature: 0
+          prompt: |
+            Classify these model IDs into capability tiers.
+
+            Tiers:
+            - capable: Most powerful model for complex reasoning
+            - balanced: Good performance/cost for everyday tasks
+            - fast: Cheapest and fastest for simple tasks
+
+            Models: $models_json
+
+            Return exactly one model ID per tier, copied exactly from the list.
+            If no model fits a tier, return empty string.
+          output_schema:
+            type: object
+            properties:
+              capable:
+                type: string
+              balanced:
+                type: string
+              fast:
+                type: string
+            required: [capable, balanced, fast]
+          bind_to: classification
+
+        # 4. Capture timestamp
+        - step: set
+          bindings:
+            resolved_at: "now_iso()"
+
+        # 5. Update each tier entity with resolved model_id
+        - step: switch
+          cases:
+            - when: "$classification.capable"
+              then:
+                - step: update
+                  id: "model-tier/$provider/capable"
+                  data:
+                    model_id: "$classification.capable"
+                    resolved_at: "$resolved_at"
+            - when: "true"
+              then: []
+
+        - step: switch
+          cases:
+            - when: "$classification.balanced"
+              then:
+                - step: update
+                  id: "model-tier/$provider/balanced"
+                  data:
+                    model_id: "$classification.balanced"
+                    resolved_at: "$resolved_at"
+            - when: "true"
+              then: []
+
+        - step: switch
+          cases:
+            - when: "$classification.fast"
+              then:
+                - step: update
+                  id: "model-tier/$provider/fast"
+                  data:
+                    model_id: "$classification.fast"
+                    resolved_at: "$resolved_at"
+            - when: "true"
+              then: []
+
+        - step: return
+          value:
+            provider: "$provider"
+            capable: "$classification.capable"
+            balanced: "$classification.balanced"
+            fast: "$classification.fast"

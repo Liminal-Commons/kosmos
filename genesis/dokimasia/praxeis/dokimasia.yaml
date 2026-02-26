@@ -17,8 +17,11 @@ entities:
 
 - eidos: praxis
   id: praxis/dokimasia/validate-provenance
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/examine
   data:
-    oikos: dokimasia
+    topos: dokimasia
     name: validate-provenance
     visible: true
     tier: 2
@@ -26,7 +29,7 @@ entities:
       Verify that an entity's authorization traces to genesis.
 
       Walks the authorized_by chain until:
-      - It reaches expression/genesis-root (valid)
+      - It reaches phasis/genesis-root (valid)
       - It reaches an entity without authorized_by (invalid)
       - It detects a cycle (invalid)
       - Max depth exceeded (invalid, possible attack)
@@ -93,7 +96,7 @@ entities:
 - eidos: praxis
   id: praxis/dokimasia/_walk-chain
   data:
-    oikos: dokimasia
+    topos: dokimasia
     name: _walk-chain
     visible: false
     tier: 2
@@ -118,13 +121,13 @@ entities:
       # Check for genesis root
       - step: switch
         cases:
-          - when: '$current_id == "expression/genesis-root"'
+          - when: '$current_id == "phasis/genesis-root"'
             then:
               - step: return
                 value:
                   valid: true
                   chain: "$chain"
-                  terminus: "expression/genesis-root"
+                  terminus: "phasis/genesis-root"
 
       # Check depth limit
       - step: switch
@@ -245,8 +248,11 @@ entities:
 
 - eidos: praxis
   id: praxis/dokimasia/validate-schema
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/examine
   data:
-    oikos: dokimasia
+    topos: dokimasia
     name: validate-schema
     visible: true
     tier: 1
@@ -342,8 +348,11 @@ entities:
 
 - eidos: praxis
   id: praxis/dokimasia/validate-semantic
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/examine
   data:
-    oikos: dokimasia
+    topos: dokimasia
     name: validate-semantic
     visible: true
     tier: 1
@@ -429,39 +438,39 @@ entities:
                           valid: false
                           errors: "$errors + [{layer: 'semantic', code: 'UNRESOLVED_PRAXIS', message: 'Referenced praxis not found', path: '$.praxis_id', context: {ref: $content.praxis_id}}]"
 
-      # Check circle_id if present
+      # Check oikos_id if present (social dwelling)
       - step: switch
         cases:
-          - when: "$content.circle_id"
+          - when: "$content.oikos_id"
             then:
               - step: find
-                id: "$content.circle_id"
-                bind_to: circle_ref
+                id: "$content.oikos_id"
+                bind_to: oikos_ref
               - step: switch
                 cases:
-                  - when: "not $circle_ref"
+                  - when: "not $oikos_ref"
                     then:
                       - step: set
                         bindings:
                           valid: false
-                          errors: "$errors + [{layer: 'semantic', code: 'UNRESOLVED_ENTITY', message: 'Referenced circle not found', path: '$.circle_id', context: {ref: $content.circle_id}}]"
+                          errors: "$errors + [{layer: 'semantic', code: 'UNRESOLVED_ENTITY', message: 'Referenced oikos not found', path: '$.oikos_id', context: {ref: $content.oikos_id}}]"
 
-      # Check persona_id if present
+      # Check prosopon_id if present
       - step: switch
         cases:
-          - when: "$content.persona_id"
+          - when: "$content.prosopon_id"
             then:
               - step: find
-                id: "$content.persona_id"
-                bind_to: persona_ref
+                id: "$content.prosopon_id"
+                bind_to: prosopon_ref
               - step: switch
                 cases:
-                  - when: "not $persona_ref"
+                  - when: "not $prosopon_ref"
                     then:
                       - step: set
                         bindings:
                           valid: false
-                          errors: "$errors + [{layer: 'semantic', code: 'UNRESOLVED_ENTITY', message: 'Referenced persona not found', path: '$.persona_id', context: {ref: $content.persona_id}}]"
+                          errors: "$errors + [{layer: 'semantic', code: 'UNRESOLVED_ENTITY', message: 'Referenced prosopon not found', path: '$.prosopon_id', context: {ref: $content.prosopon_id}}]"
 
       - step: return
         value:
@@ -474,8 +483,11 @@ entities:
 
 - eidos: praxis
   id: praxis/dokimasia/validate-generation
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/examine
   data:
-    oikos: dokimasia
+    topos: dokimasia
     name: validate-generation
     visible: true
     tier: 2
@@ -640,6 +652,17 @@ entities:
         to_id: "$validation_id"
         desmos: validated-by
 
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Validated generation $generation_id: $passed"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: validation-result
+            source_id: "$validation_id"
+
       - step: return
         value: "$validation"
 
@@ -649,8 +672,11 @@ entities:
 
 - eidos: praxis
   id: praxis/dokimasia/compose-validation-report
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/examine
   data:
-    oikos: dokimasia
+    topos: dokimasia
     name: compose-validation-report
     visible: true
     tier: 2
@@ -835,7 +861,7 @@ entities:
 - eidos: praxis
   id: praxis/dokimasia/lint-praxis
   data:
-    oikos: dokimasia
+    topos: dokimasia
     name: lint-praxis
     visible: true
     tier: 1
@@ -930,7 +956,7 @@ entities:
 - eidos: praxis
   id: praxis/dokimasia/lint-all-praxeis
   data:
-    oikos: dokimasia
+    topos: dokimasia
     name: lint-all-praxeis
     visible: true
     tier: 2
@@ -1060,18 +1086,18 @@ entities:
             digest_count: "$digest_count"
 
 # =============================================================================
-# OIKOS VALIDATION — Complete Oikos Functionality Check
+# TOPOS VALIDATION — Complete Topos Functionality Check
 # =============================================================================
 
 - eidos: praxis
-  id: praxis/dokimasia/validate-oikos
+  id: praxis/dokimasia/validate-topos
   data:
-    oikos: dokimasia
-    name: validate-oikos
+    topos: dokimasia
+    name: validate-topos
     visible: true
     tier: 2
     description: |
-      Validate that an oikos is fully functional.
+      Validate that a topos is fully functional.
 
       Checks:
       1. Manifest exists and is valid
@@ -1079,7 +1105,7 @@ entities:
       3. All declared praxeis exist and lint clean
       4. All declared desmoi exist
       5. All declared attainments exist
-      6. All dependencies are satisfied (dependent oikoi exist)
+      6. All dependencies are satisfied (dependent topoi exist)
       7. All praxis steps reference valid stoicheia
       8. All entity references resolve
 
@@ -1089,10 +1115,10 @@ entities:
       - errors: list of issues found
       - warnings: non-blocking issues
     params:
-      - name: oikos_id
+      - name: topos_id
         type: string
         required: true
-        description: Oikos ID to validate (e.g., "hodos", "opsis")
+        description: Topos ID to validate (e.g., "hodos", "thyra")
     steps:
       # Initialize tracking
       - step: set
@@ -1107,23 +1133,23 @@ entities:
             attainments: { passed: false, found: 0, expected: 0, missing: [] }
             dependencies: { passed: false, satisfied: [], missing: [] }
 
-      # Step 1: Find oikos entity (from manifest)
+      # Step 1: Find topos entity (from manifest)
       - step: find
-        id: "oikos/$oikos_id"
-        bind_to: oikos_entity
+        id: "topos/$topos_id"
+        bind_to: topos_entity
 
       - step: switch
         cases:
-          - when: "not $oikos_entity"
+          - when: "not $topos_entity"
             then:
               - step: set
                 bindings:
                   checks:
-                    manifest: { passed: false, message: "Oikos entity not found" }
-                  errors: "$errors + [{layer: 'manifest', code: 'OIKOS_NOT_FOUND', message: 'Oikos entity does not exist', context: {oikos_id: $oikos_id}}]"
+                    manifest: { passed: false, message: "Topos entity not found" }
+                  errors: "$errors + [{layer: 'manifest', code: 'TOPOS_NOT_FOUND', message: 'Topos entity does not exist', context: {topos_id: $topos_id}}]"
               - step: return
                 value:
-                  oikos_id: "$oikos_id"
+                  topos_id: "$topos_id"
                   passed: false
                   checks: "$checks"
                   errors: "$errors"
@@ -1132,7 +1158,7 @@ entities:
       - step: set
         bindings:
           checks:
-            manifest: { passed: true, message: "Oikos entity exists" }
+            manifest: { passed: true, message: "Topos entity exists" }
 
       # Step 2: Gather expected entities from manifest
       # (In a real implementation, we'd parse the manifest YAML)
@@ -1142,16 +1168,16 @@ entities:
       - step: gather
         eidos: eidos
         filter:
-          oikos: "$oikos_id"
+          topos: "$topos_id"
         bind_to: found_eide
 
       - step: set
         bindings:
           eide_count: "$found_eide | length"
 
-      # Trace belongs-to bonds to find eide belonging to this oikos
+      # Trace belongs-to bonds to find eide belonging to this topos
       - step: trace
-        from_id: "oikos/$oikos_id"
+        from_id: "topos/$topos_id"
         desmos: belongs-to
         direction: inward
         resolve: from
@@ -1160,13 +1186,13 @@ entities:
       - step: filter
         items: "$belonging_entities"
         condition: '$item.eidos == "eidos"'
-        bind_to: oikos_eide
+        bind_to: topos_eide
 
       - step: set
         bindings:
           checks:
             manifest: "$checks.manifest"
-            eide: { passed: true, found: "$oikos_eide | length", message: "Eide found" }
+            eide: { passed: true, found: "$topos_eide | length", message: "Eide found" }
             praxeis: "$checks.praxeis"
             desmoi: "$checks.desmoi"
             attainments: "$checks.attainments"
@@ -1176,7 +1202,7 @@ entities:
       - step: gather
         eidos: praxis
         filter:
-          oikos: "$oikos_id"
+          topos: "$topos_id"
         bind_to: found_praxeis
 
       - step: set
@@ -1218,7 +1244,7 @@ entities:
       - step: filter
         items: "$belonging_entities"
         condition: '$item.eidos == "desmos"'
-        bind_to: oikos_desmoi
+        bind_to: topos_desmoi
 
       - step: set
         bindings:
@@ -1226,7 +1252,7 @@ entities:
             manifest: "$checks.manifest"
             eide: "$checks.eide"
             praxeis: "$checks.praxeis"
-            desmoi: { passed: true, found: "$oikos_desmoi | length" }
+            desmoi: { passed: true, found: "$topos_desmoi | length" }
             attainments: "$checks.attainments"
             dependencies: "$checks.dependencies"
 
@@ -1234,7 +1260,7 @@ entities:
       - step: filter
         items: "$belonging_entities"
         condition: '$item.eidos == "attainment"'
-        bind_to: oikos_attainments
+        bind_to: topos_attainments
 
       - step: set
         bindings:
@@ -1243,12 +1269,12 @@ entities:
             eide: "$checks.eide"
             praxeis: "$checks.praxeis"
             desmoi: "$checks.desmoi"
-            attainments: { passed: true, found: "$oikos_attainments | length" }
+            attainments: { passed: true, found: "$topos_attainments | length" }
             dependencies: "$checks.dependencies"
 
       # Step 3: Check dependencies
       - step: trace
-        from_id: "oikos/$oikos_id"
+        from_id: "topos/$topos_id"
         desmos: depends-on
         resolve: to
         bind_to: dependencies
@@ -1278,7 +1304,7 @@ entities:
                   - step: set
                     bindings:
                       dep_missing: "$dep_missing + [$dep.id]"
-                      errors: "$errors + [{layer: 'dependency', code: 'MISSING_DEPENDENCY', message: 'Required oikos not found', context: {oikos_id: $oikos_id, missing: $dep.id}}]"
+                      errors: "$errors + [{layer: 'dependency', code: 'MISSING_DEPENDENCY', message: 'Required topos not found', context: {topos_id: $topos_id, missing: $dep.id}}]"
 
       - step: set
         bindings:
@@ -1298,7 +1324,7 @@ entities:
 
       - step: return
         value:
-          oikos_id: "$oikos_id"
+          topos_id: "$topos_id"
           passed: "$overall_passed"
           checks: "$checks"
           errors: "$errors"
@@ -1311,23 +1337,23 @@ entities:
             dependencies: "$dep_satisfied | length"
 
 - eidos: praxis
-  id: praxis/dokimasia/validate-all-oikoi
+  id: praxis/dokimasia/validate-all-topoi
   data:
-    oikos: dokimasia
-    name: validate-all-oikoi
+    topos: dokimasia
+    name: validate-all-topoi
     visible: true
     tier: 2
     description: |
-      Validate all oikoi in the kosmos.
+      Validate all topoi in the kosmos.
 
-      Runs validate-oikos on each oikos entity and aggregates results.
+      Runs validate-topos on each topos entity and aggregates results.
       Useful for system-wide health checks and CI validation.
 
       Returns:
-      - total: number of oikoi examined
+      - total: number of topoi examined
       - passed: number fully functional
       - failed: number with issues
-      - results: per-oikos validation results
+      - results: per-topos validation results
       - summary: aggregate statistics
     params:
       - name: stop_on_failure
@@ -1336,8 +1362,8 @@ entities:
         description: Stop validation on first failure (default false)
     steps:
       - step: gather
-        eidos: oikos
-        bind_to: all_oikoi
+        eidos: topos
+        bind_to: all_topoi
 
       - step: set
         bindings:
@@ -1357,14 +1383,14 @@ entities:
                   should_stop: true
 
       - step: for_each
-        items: "$all_oikoi"
-        as: oikos
+        items: "$all_topoi"
+        as: t
         steps:
           - step: switch
             cases:
               - when: "$stop_early"
                 then:
-                  # Skip remaining oikoi
+                  # Skip remaining topoi
                   - step: set
                     bindings:
                       skipped: true
@@ -1374,9 +1400,9 @@ entities:
                   total: "$total + 1"
 
               - step: call
-                praxis: dokimasia/validate-oikos
+                praxis: dokimasia/validate-topos
                 params:
-                  oikos_id: "$oikos.data.name"
+                  topos_id: "$t.data.name"
                 bind_to: result
 
               - step: set
@@ -1414,17 +1440,17 @@ entities:
           failed: "$failed"
           all_passed: "$all_passed"
           results: "$results"
-          failed_oikoi: "$results | select(.passed == false) | map(.oikos_id)"
+          failed_topoi: "$results | select(.passed == false) | map(.topos_id)"
 
 - eidos: praxis
-  id: praxis/dokimasia/oikos-health-report
+  id: praxis/dokimasia/topos-health-report
   data:
-    oikos: dokimasia
-    name: oikos-health-report
+    topos: dokimasia
+    name: topos-health-report
     visible: true
     tier: 2
     description: |
-      Generate a health report for an oikos showing completeness status.
+      Generate a health report for a topos showing completeness status.
 
       Combines validation with embodiment level tracking:
       - Defined: Eide, praxeis, desmoi, attainments declared
@@ -1435,28 +1461,28 @@ entities:
 
       Returns a structured health report artifact.
     params:
-      - name: oikos_id
+      - name: topos_id
         type: string
         required: true
-        description: Oikos to report on
+        description: Topos to report on
     steps:
       # Run validation
       - step: call
-        praxis: dokimasia/validate-oikos
+        praxis: dokimasia/validate-topos
         params:
-          oikos_id: "$oikos_id"
+          topos_id: "$topos_id"
         bind_to: validation
 
-      # Get oikos entity for metadata
+      # Get topos entity for metadata
       - step: find
-        id: "oikos/$oikos_id"
-        bind_to: oikos_entity
+        id: "topos/$topos_id"
+        bind_to: topos_entity
 
       # Gather praxeis to check MCP projection
       - step: gather
         eidos: praxis
         filter:
-          oikos: "$oikos_id"
+          topos: "$topos_id"
           visible: true
         bind_to: visible_praxeis
 
@@ -1526,12 +1552,12 @@ entities:
       - step: compose
         typos_id: typos-def-artifact
         inputs:
-          id: "artifact/health-report-$oikos_id"
-          title: "Health Report: $oikos_id"
+          id: "artifact/health-report-$topos_id"
+          title: "Health Report: $topos_id"
           kind: report
           domain: "dokimasia"
           content:
-            oikos_id: "$oikos_id"
+            topos_id: "$topos_id"
             health_score: "$health_score"
             levels: "$levels"
             validation: "$validation"
@@ -1540,7 +1566,254 @@ entities:
 
       - step: return
         value:
-          oikos_id: "$oikos_id"
+          topos_id: "$topos_id"
           health_score: "$health_score"
           levels: "$levels"
           report_artifact: "$report"
+
+# =============================================================================
+# TEMPLATE LINT — Detect Computational Fill in Typos
+# =============================================================================
+# These praxeis enforce the GDS principle: templates are dumb molds.
+# Computation belongs in praxis steps, not in template strings.
+
+- eidos: praxis
+  id: praxis/dokimasia/lint-typos
+  data:
+    topos: dokimasia
+    name: lint-typos
+    visible: true
+    tier: 1
+    description: |
+      Lint a typos definition for unsupported template constructs.
+
+      Detects "computational fill" — template logic that should live in
+      praxis steps instead. The GDS principle: templates are dumb molds,
+      praxeis are where computation lives.
+
+      Checks:
+      1. Handlebars block helpers: {{#each}}, {{#if}}, {{/each}}, {{/if}}
+      2. Block conditionals: {{ if $var }}...{{ end }}
+      3. Ternary operators: $x ? 'a' : 'b'
+      4. Embedded scripts: <script> tags in templates
+      5. Complex filter chains (warning): multiple pipes in one expression
+
+      Returns:
+        typos_id: the typos examined
+        violations: array of {type, pattern, message, guidance}
+        warnings: array of non-blocking issues
+        passed: boolean (true if no violations)
+    params:
+      - name: typos_id
+        type: string
+        required: true
+        description: ID of typos to lint
+    steps:
+      - step: find
+        id: "$typos_id"
+        bind_to: typos
+
+      - step: assert
+        condition: "$typos"
+        message: "Typos not found: $typos_id"
+
+      - step: set
+        bindings:
+          violations: []
+          warnings: []
+          template_text: "$typos.data.template"
+
+      # Skip if no template field
+      - step: switch
+        cases:
+          - when: "$template_text"
+            then:
+              # Check for Handlebars block helpers
+              - step: switch
+                cases:
+                  - when: '$template_text contains "{{#each"'
+                    then:
+                      - step: set
+                        bindings:
+                          violations: "$violations + [{type: 'UNSUPPORTED_SYNTAX', pattern: '{{#each}}', message: 'Handlebars block helpers are not supported by eval_string', guidance: 'Use for_each in praxis steps to iterate, pass pre-formatted result to template slot'}]"
+
+              - step: switch
+                cases:
+                  - when: '$template_text contains "{{#if"'
+                    then:
+                      - step: set
+                        bindings:
+                          violations: "$violations + [{type: 'UNSUPPORTED_SYNTAX', pattern: '{{#if}}', message: 'Handlebars conditionals are not supported by eval_string', guidance: 'Use switch/set in praxis steps or when: on typos slots for conditional inclusion'}]"
+
+              - step: switch
+                cases:
+                  - when: '$template_text contains "{{/each}}"'
+                    then:
+                      - step: set
+                        bindings:
+                          violations: "$violations + [{type: 'UNSUPPORTED_SYNTAX', pattern: '{{/each}}', message: 'Handlebars block closers are not supported', guidance: 'Remove block structure; use praxis for_each instead'}]"
+
+              - step: switch
+                cases:
+                  - when: '$template_text contains "{{/if}}"'
+                    then:
+                      - step: set
+                        bindings:
+                          violations: "$violations + [{type: 'UNSUPPORTED_SYNTAX', pattern: '{{/if}}', message: 'Handlebars block closers are not supported', guidance: 'Remove block structure; use praxis switch/set instead'}]"
+
+              - step: switch
+                cases:
+                  - when: '$template_text contains "{{else}}"'
+                    then:
+                      - step: set
+                        bindings:
+                          violations: "$violations + [{type: 'UNSUPPORTED_SYNTAX', pattern: '{{else}}', message: 'Handlebars else blocks are not supported', guidance: 'Prepare both branches in praxis, pass the correct one as slot'}]"
+
+              # Check for Jinja-style block conditionals
+              - step: switch
+                cases:
+                  - when: '$template_text contains "{{ if "'
+                    then:
+                      - step: set
+                        bindings:
+                          violations: "$violations + [{type: 'UNSUPPORTED_SYNTAX', pattern: '{{ if }}', message: 'Block conditionals are not supported by eval_string', guidance: 'Pre-compute conditional sections in praxis steps, pass as slot values'}]"
+
+              - step: switch
+                cases:
+                  - when: '$template_text contains "{{ end }}"'
+                    then:
+                      - step: set
+                        bindings:
+                          violations: "$violations + [{type: 'UNSUPPORTED_SYNTAX', pattern: '{{ end }}', message: 'Block end markers are not supported', guidance: 'Remove block structure; use slot-based composition'}]"
+
+              # Check for embedded scripts
+              - step: switch
+                cases:
+                  - when: '$template_text contains "<script"'
+                    then:
+                      - step: set
+                        bindings:
+                          violations: "$violations + [{type: 'COMPUTATIONAL_FILL', pattern: '<script>', message: 'Embedded scripts indicate client-side computation that should be a render-spec', guidance: 'Migrate to render-spec with widget tree (each, when: expressions) or mode with item_spec_id'}]"
+
+              # Check for ternary operators (warning — may be in expressions, not templates)
+              - step: switch
+                cases:
+                  - when: '$template_text contains " ? "'
+                    then:
+                      - step: set
+                        bindings:
+                          warnings: "$warnings + [{type: 'LIKELY_UNSUPPORTED', pattern: 'ternary operator', message: 'Ternary operators (? :) are not supported by eval_string', guidance: 'Use switch step in praxis to compute the value, pass result to template'}]"
+
+      - step: set
+        bindings:
+          passed: "length($violations) == 0"
+
+      - step: return
+        value:
+          typos_id: "$typos_id"
+          violations: "$violations"
+          warnings: "$warnings"
+          passed: "$passed"
+          violation_count: "length($violations)"
+          warning_count: "length($warnings)"
+
+- eidos: praxis
+  id: praxis/dokimasia/lint-all-typos
+  data:
+    topos: dokimasia
+    name: lint-all-typos
+    visible: true
+    tier: 2
+    description: |
+      Lint all typos definitions in the kosmos for unsupported template constructs.
+
+      Identifies all typos that use computational fill patterns that should be
+      migrated to GDS (Graph-Data-Slots) composition — where templates are dumb
+      molds and praxeis handle computation.
+
+      Returns:
+        total: number of typos examined
+        passed: number with no violations
+        failed: number with violations
+        violations_by_typos: array of {typos_id, violations, warnings}
+        summary: {block_helpers, block_conditionals, embedded_scripts, ternaries}
+    params: []
+    steps:
+      - step: gather
+        eidos: typos
+        limit: 500
+        bind_to: all_typos
+
+      - step: set
+        bindings:
+          results: []
+          total: "length($all_typos)"
+          passed_count: 0
+          failed_count: 0
+          block_helpers: 0
+          block_conditionals: 0
+          embedded_scripts: 0
+          ternaries: 0
+
+      - step: for_each
+        items: "$all_typos"
+        item_var: t
+        steps:
+          - step: call
+            praxis: praxis/dokimasia/lint-typos
+            params:
+              typos_id: "$t.id"
+            bind_to: lint_result
+
+          - step: switch
+            cases:
+              - when: "$lint_result.passed"
+                then:
+                  - step: set
+                    bindings:
+                      passed_count: "$passed_count + 1"
+              - when: "true"
+                then:
+                  - step: set
+                    bindings:
+                      failed_count: "$failed_count + 1"
+                      results: "$results + [{typos_id: $t.id, violations: $lint_result.violations, warnings: $lint_result.warnings}]"
+
+      - step: return
+        value:
+          total: "$total"
+          passed: "$passed_count"
+          failed: "$failed_count"
+          violations_by_typos: "$results"
+
+# =============================================================================
+# SENSING PRAXEIS — Daemon-Invoked Actuality Sensing
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/dokimasia/sense-validation-results
+  data:
+    topos: dokimasia
+    name: sense-validation-results
+    visible: false
+    tier: 1
+    description: |
+      Sense actuality for all validation-result entities.
+      Invoked by daemon/sense-graph-integrity on a periodic schedule.
+      Checks all validation results for integrity drift.
+    params: []
+    steps:
+      - step: gather
+        eidos: validation-result
+        bind_to: results
+
+      - step: for_each
+        items: "$results"
+        as: result
+        do:
+          - step: sense_actuality
+            entity_id: "$result.id"
+
+      - step: return
+        value:
+          sensed_count: "{{ $results | length }}"

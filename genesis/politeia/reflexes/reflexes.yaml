@@ -1,0 +1,98 @@
+# Politeia Reflexes — Homoiconic Form
+# Autonomic responses for governance and membership
+#
+# Reflexes connect to triggers and praxeis via bonds:
+#   reflex --[triggered-by]--> trigger --[matches-event]--> mutation-event
+#   reflex --[responds-with]--> praxis (response_params carries params)
+
+entities:
+
+  # =============================================================================
+  # TRIGGERS
+  # =============================================================================
+
+  # Shared trigger: both derive-attainments and log-membership fire on member-of bond creation
+  - eidos: trigger
+    id: trigger/politeia/member-joined
+    data:
+      name: member-joined
+      enabled: true
+    bonds:
+      - desmos: matches-event
+        to: bond-mutation/created
+      - desmos: filters-desmos
+        to: desmos/member-of
+
+  - eidos: trigger
+    id: trigger/politeia/announce-join
+    data:
+      name: announce-join
+      condition: '$entity.data.event_type == "joined"'
+      enabled: true
+    bonds:
+      - desmos: matches-event
+        to: entity-mutation/created
+      - desmos: filters-eidos
+        to: eidos/membership-event
+
+  # =============================================================================
+  # REFLEXES
+  # =============================================================================
+
+  - eidos: reflex
+    id: reflex/politeia/derive-attainments-on-join
+    data:
+      name: derive-attainments-on-join
+      description: |
+        When a prosopon joins an oikos (membership bond created),
+        automatically derive their attainments from oikos configuration.
+      enabled: true
+      scope: global
+      response_params:
+        prosopon_id: "$from.id"
+        oikos_id: "$to.id"
+    bonds:
+      - desmos: triggered-by
+        to: trigger/politeia/member-joined
+      - desmos: responds-with
+        to: praxis/politeia/derive-attainments
+
+  - eidos: reflex
+    id: reflex/politeia/log-membership-change
+    data:
+      name: log-membership-change
+      description: |
+        When membership bonds are created or dissolved, create a
+        membership-event entity for audit trail.
+      enabled: true
+      scope: global
+      response_params:
+        prosopon_id: "$from.id"
+        oikos_id: "$to.id"
+        event_type: joined
+    bonds:
+      - desmos: triggered-by
+        to: trigger/politeia/member-joined
+      - desmos: responds-with
+        to: praxis/politeia/create-membership-event
+
+  - eidos: reflex
+    id: reflex/politeia/announce-join
+    data:
+      name: announce-join
+      description: |
+        When a new member joins, announce it in the oikos discourse.
+      enabled: true
+      scope: oikos
+      response_params:
+        content: "New member joined the oikos"
+        stance: declaration
+        source_kind: topos
+        metadata:
+          source_eidos: membership-event
+          source_id: "$entity.id"
+    bonds:
+      - desmos: triggered-by
+        to: trigger/politeia/announce-join
+      - desmos: responds-with
+        to: praxis/logos/emit-phasis

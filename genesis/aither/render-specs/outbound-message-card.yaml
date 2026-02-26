@@ -1,0 +1,117 @@
+# Aither Render Specifications — outbound-message card
+# Queued message for delivery display
+#
+# Outbound-message fields:
+#   - message_type (enum): phoreta | content-sync | presence-update | phasis
+#   - status (enum): pending | sending | delivered | failed | expired
+#   - target_peer (string): Peer or room to deliver to
+#   - attempts (integer): Delivery attempts made
+#   - expires_at (timestamp): Message TTL
+#
+# Traces to: genesis/aither/eide/aither.yaml § outbound-message
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/outbound-message-card
+    data:
+      name: outbound-message-card
+      description: "Card view for outbound-message — queued message with delivery status and attempts."
+      target_eidos: outbound-message
+      variant: card
+
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+          children:
+            - widget: stack
+              props:
+                gap: sm
+              children:
+                # Header with icon, message type, and status
+                - widget: row
+                  props:
+                    justify: between
+                    align: center
+                  children:
+                    - widget: row
+                      props:
+                        gap: sm
+                        align: center
+                      children:
+                        - widget: icon
+                          props:
+                            name: send
+                            size: md
+                        - widget: text
+                          props:
+                            content: "{message_type}"
+                            variant: emphasis
+
+                    # Status badges
+                    - widget: badge
+                      when: "status == 'pending'"
+                      props:
+                        content: "Pending"
+                        variant: warning
+                    - widget: badge
+                      when: "status == 'sending'"
+                      props:
+                        content: "Sending"
+                        variant: info
+                    - widget: badge
+                      when: "status == 'delivered'"
+                      props:
+                        content: "Delivered"
+                        variant: success
+                    - widget: badge
+                      when: "status == 'failed'"
+                      props:
+                        content: "Failed"
+                        variant: error
+                    - widget: badge
+                      when: "status == 'expired'"
+                      props:
+                        content: "Expired"
+                        variant: default
+
+                # Target peer
+                - widget: row
+                  props:
+                    gap: sm
+                    align: center
+                  children:
+                    - widget: text
+                      props:
+                        content: "To:"
+                        variant: label
+                    - widget: text
+                      props:
+                        content: "{target_peer}"
+                        variant: body
+
+                # Attempts count
+                - widget: row
+                  props:
+                    gap: sm
+                    align: center
+                  children:
+                    - widget: icon
+                      props:
+                        name: repeat
+                        size: sm
+                    - widget: text
+                      props:
+                        content: "{attempts} attempts"
+                        variant: caption
+
+                # Footer — expires at
+                - widget: text
+                  when: "expires_at"
+                  props:
+                    content: "Expires {expires_at}"
+                    variant: caption
+
+      created_at: "2026-02-09T00:00:00Z"

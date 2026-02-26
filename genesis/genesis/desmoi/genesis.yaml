@@ -18,8 +18,8 @@ entities:
         locations. Adding a content root = creating an entity + bond.
 
         Examples:
-        - oikos/nous sources-content-from content-root/nous
-        - oikos/agora sources-content-from content-root/agora
+        - topos/nous sources-content-from content-root/nous
+        - topos/agora sources-content-from content-root/agora
         - kosmos sources-content-from content-root/arche (constitutional)
       from_eidos: any
       to_eidos: content-root
@@ -37,7 +37,7 @@ entities:
         Provides provenance for where definitions live in genesis.
         The target is an artifact containing the path information.
       from_eidos:
-        - oikos
+        - topos
         - eidos
         - praxis
         - desmos

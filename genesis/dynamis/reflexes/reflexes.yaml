@@ -1,0 +1,138 @@
+# Dynamis Reflexes — Homoiconic Form
+# Autonomic responses for reconciliation triggering
+#
+# Reflexes connect to triggers and praxeis via bonds:
+#   reflex --[triggered-by]--> trigger --[matches-event]--> mutation-event
+#   reflex --[responds-with]--> praxis (bond data carries params)
+
+entities:
+
+  # =============================================================================
+  # TRIGGERS
+  # =============================================================================
+
+  - eidos: trigger
+    id: trigger/dynamis/deployment-intent-changed
+    data:
+      name: deployment-intent-changed
+      condition: '$entity.data.desired_state != $previous.data.desired_state'
+      enabled: true
+    bonds:
+      - { desmos: matches-event, to: entity-mutation/updated }
+      - { desmos: filters-eidos, to: eidos/deployment }
+
+  - eidos: trigger
+    id: trigger/dynamis/release-artifact-intent-changed
+    data:
+      name: release-artifact-intent-changed
+      condition: '$entity.data.uploaded != $previous.data.uploaded'
+      enabled: true
+    bonds:
+      - { desmos: matches-event, to: entity-mutation/updated }
+      - { desmos: filters-eidos, to: eidos/release-artifact }
+
+  - eidos: trigger
+    id: trigger/dynamis/announce-drift
+    data:
+      name: announce-drift
+      condition: '$entity.data.status != $previous.data.status'
+      enabled: true
+    bonds:
+      - { desmos: matches-event, to: entity-mutation/updated }
+      - { desmos: filters-eidos, to: eidos/deployment }
+
+  # =============================================================================
+  # REFLEXES
+  # =============================================================================
+
+  - eidos: reflex
+    id: reflex/dynamis/deployment-intent-changed
+    data:
+      name: deployment-intent-changed
+      description: |
+        Trigger reconciliation when deployment intent changes.
+
+        Bridge between reflex system (event detection) and reconciler
+        system (state alignment). When a deployment's desired_state
+        changes, the reconciler senses actuality and converges.
+      enabled: true
+      scope: global
+      response_params:
+        reconciler_id: "reconciler/deployment"
+        entity_id: "$entity.id"
+    bonds:
+      - { desmos: triggered-by, to: trigger/dynamis/deployment-intent-changed }
+      - { desmos: responds-with, to: praxis/dynamis/reconcile }
+
+  - eidos: reflex
+    id: reflex/dynamis/release-artifact-intent-changed
+    data:
+      name: release-artifact-intent-changed
+      description: |
+        Trigger reconciliation when release artifact upload intent changes.
+
+        For R2/S3 uploads — when uploaded flag changes, reconcile.
+      enabled: true
+      scope: global
+      response_params:
+        reconciler_id: "reconciler/release-artifact"
+        entity_id: "$entity.id"
+    bonds:
+      - { desmos: triggered-by, to: trigger/dynamis/release-artifact-intent-changed }
+      - { desmos: responds-with, to: praxis/dynamis/reconcile }
+
+  - eidos: reflex
+    id: reflex/dynamis/announce-drift
+    data:
+      name: announce-drift
+      description: |
+        When a deployment's actual state diverges from desired state,
+        emit a phasis alerting dwellers to the drift.
+      enabled: true
+      scope: global
+      response_params:
+        content: "Deployment status changed: $entity.data.name is now $entity.data.status"
+        stance: declaration
+        source_kind: topos
+        metadata:
+          source_eidos: deployment
+          source_id: "$entity.id"
+    bonds:
+      - { desmos: triggered-by, to: trigger/dynamis/announce-drift }
+      - { desmos: responds-with, to: praxis/logos/emit-phasis }
+
+  # =============================================================================
+  # DRIFT-DETECTION TRIGGERS (fire on actuality divergence from sensing daemons)
+  # =============================================================================
+
+  - eidos: trigger
+    id: trigger/dynamis/deployment-drift
+    data:
+      name: deployment-drift
+      condition: '$entity.data.desired_state != $entity.data.actual_state'
+      enabled: true
+    bonds:
+      - { desmos: matches-event, to: entity-mutation/updated }
+      - { desmos: filters-eidos, to: eidos/deployment }
+
+  # =============================================================================
+  # DRIFT-DETECTION REFLEXES
+  # =============================================================================
+
+  - eidos: reflex
+    id: reflex/dynamis/deployment-drift
+    data:
+      name: deployment-drift
+      description: |
+        When a deployment's sensed actuality diverges from intent,
+        invoke reconciliation to correct. Complements the intent-change
+        reflex: that fires on desired_state changes, this fires on
+        actual_state changes from external drift (e.g., process crash).
+      enabled: true
+      scope: global
+      response_params:
+        reconciler_id: "reconciler/deployment"
+        entity_id: "$entity.id"
+    bonds:
+      - { desmos: triggered-by, to: trigger/dynamis/deployment-drift }
+      - { desmos: responds-with, to: praxis/dynamis/reconcile }

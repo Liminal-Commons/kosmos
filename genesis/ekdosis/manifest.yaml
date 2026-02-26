@@ -1,25 +1,25 @@
-# Oikos Manifest: Ekdosis
+# Topos Manifest: Ekdosis
 # ἔκδοσις — content publication and release management
 #
 # Ekdosis governs the publication of kosmos content — oikoi, stoicheia, and
 # composed artifacts. Complementary to dynamis which handles binary releases.
 #
-# Manifest v2.1 — oikos metadata for entity composition
+# Manifest v2.1 — topos metadata for entity composition
 
 format_version: "2.1"
-oikos_id: ekdosis
+topos_id: ekdosis
 version: "0.1.0"
 
-# Oikos metadata (v2.1)
-oikos_name: Ekdosis
-oikos_description: |
+# Topos metadata (v2.1)
+topos_name: Ekdosis
+topos_description: |
   The giving out, publication, release. Governs the publication of kosmos
   content — oikoi, stoicheia, and composed artifacts. Complementary to
   dynamis which handles binary releases.
-oikos_scale: cross-scale
+topos_scale: cross-scale
 
 # Development experience metadata
-oikos_category: infrastructure
+topos_category: infrastructure
 surfaces_provided: []   # Publication is an operation, not a surface
 surfaces_consumed:
   - emission            # Uses thyra/emit for artifact output
@@ -31,8 +31,12 @@ content_paths:
     content_types: [desmos]
   - path: praxeis/
     content_types: [praxis]
-  - path: entities/
+  - path: typos/
+    content_types: [typos]
+  - path: render-specs/
     content_types: [render-spec]
+  - path: modes/
+    content_types: [mode]
 
 requires_dynamis:
   - db.find

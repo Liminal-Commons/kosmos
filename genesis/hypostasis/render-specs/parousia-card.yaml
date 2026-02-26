@@ -1,0 +1,66 @@
+# Parousia Card Render-Spec
+# Presence card showing dwelling presence status
+#
+# Parousia fields:
+#   - name (string): Display name of the present identity
+#   - status (enum): active | departed
+#
+# Traces to: genesis/demiurge/THYRA-EVOLUTION.md
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/parousia-card
+    data:
+      name: parousia-card
+      description: |
+        Card view for parousia — dwelling presence.
+        Shows name and status indicator.
+      target_eidos: parousia
+      variant: card
+
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+          children:
+            - widget: stack
+              props:
+                gap: sm
+              children:
+                # Header with name and status
+                - widget: row
+                  props:
+                    justify: between
+                    align: center
+                  children:
+                    - widget: text
+                      props:
+                        content: "{name}"
+                        variant: emphasis
+
+                    # Status indicator
+                    - widget: status-indicator
+                      props:
+                        status: "{status}"
+
+                # Status badge
+                - widget: badge
+                  when: "status == 'active'"
+                  props:
+                    content: "Active"
+                    variant: success
+                - widget: badge
+                  when: "status == 'departed'"
+                  props:
+                    content: "Departed"
+                    variant: default
+
+                # Entity ID
+                - widget: text
+                  props:
+                    content: "{id}"
+                    variant: caption
+
+      created_at: "2026-02-09T00:00:00Z"

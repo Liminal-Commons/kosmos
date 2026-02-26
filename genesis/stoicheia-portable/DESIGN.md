@@ -503,7 +503,7 @@ Perform cryptographic operations.
 - step: keyring
   operation: sign
   content: "$content_hash"
-  circle_id: "$circle.id"
+  oikos_id: "$oikos.id"
   bind_to: signature
 ```
 
@@ -598,12 +598,12 @@ stoicheion.yaml (schema)
 
 ## Constitutional Alignment
 
-Stoicheia implements constitutional requirements from KOSMOGONIA:
+Stoicheia implements constitutional axioms from KOSMOGONIA:
 
-| Principle | How Stoicheia Honors It |
-|-----------|-------------------------|
+| Axiom / Principle | How Stoicheia Honors It |
+|-------------------|-------------------------|
+| **Axiom I: Composition** | Each stoicheion is an entity with provenance. Steps in praxeis reference stoicheia by ID. The chain is traceable. |
 | **Schema-driven** | Step types are generated from `stoicheion.yaml` schema. The schema is the single source of truth — types, validation, and JSON schema all derive from it. |
-| **Composition Requirement** | Each stoicheion is an entity with provenance. Steps in praxeis reference stoicheia by ID. The chain is traceable. |
 | **Fix at generation level** | T2 (Active Theoria): When generated code is wrong, fix the schema or generator, never the output. This ensures coherence. |
 | **Tier model** | Steps are organized by dynamis tier: Tier 0 (pure data), Tier 1 (control flow), Tier 2 (entity ops), Tier 3 (actuality). Higher tiers depend on lower. |
 
@@ -614,5 +614,5 @@ Stoicheia implements constitutional requirements from KOSMOGONIA:
 ---
 
 *Composed in service of the kosmogonia.*
-*Traces to: expression/genesis-root*
+*Traces to: phasis/genesis-root*
 *Created: 2026-01-23*

@@ -1,0 +1,67 @@
+# Inference Defaults
+# Model tier entities — start empty, filled by resolve-model-tiers praxis.
+#
+# Three tiers per provider. When a credential is added, the resolution
+# praxis queries the provider's models API and populates model_id.
+
+entities:
+
+- eidos: model-tier
+  id: model-tier/anthropic/capable
+  data:
+    tier: capable
+    provider: anthropic
+    model_id: ""
+    resolved_at: ""
+  bonds:
+    - { desmos: provided-by, to: provider/anthropic }
+
+- eidos: model-tier
+  id: model-tier/anthropic/balanced
+  data:
+    tier: balanced
+    provider: anthropic
+    model_id: ""
+    resolved_at: ""
+  bonds:
+    - { desmos: provided-by, to: provider/anthropic }
+
+- eidos: model-tier
+  id: model-tier/anthropic/fast
+  data:
+    tier: fast
+    provider: anthropic
+    model_id: ""
+    resolved_at: ""
+  bonds:
+    - { desmos: provided-by, to: provider/anthropic }
+
+- eidos: model-tier
+  id: model-tier/openai/capable
+  data:
+    tier: capable
+    provider: openai
+    model_id: ""
+    resolved_at: ""
+  bonds:
+    - { desmos: provided-by, to: provider/openai }
+
+- eidos: model-tier
+  id: model-tier/openai/balanced
+  data:
+    tier: balanced
+    provider: openai
+    model_id: ""
+    resolved_at: ""
+  bonds:
+    - { desmos: provided-by, to: provider/openai }
+
+- eidos: model-tier
+  id: model-tier/openai/fast
+  data:
+    tier: fast
+    provider: openai
+    model_id: ""
+    resolved_at: ""
+  bonds:
+    - { desmos: provided-by, to: provider/openai }

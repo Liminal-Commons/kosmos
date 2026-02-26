@@ -1,73 +1,73 @@
-# Circle Membership Praxeis
-# Enables homoiconic circle discovery via member-of bonds
+# Oikos Membership Praxeis
+# Enables homoiconic oikos discovery via member-of bonds
 #
-# These praxeis allow personas to manage their circle memberships,
-# enabling the MCP bridge to discover circles from within the graph
+# These praxeis allow prosopa to manage their oikos memberships,
+# enabling the MCP bridge to discover oikoi from within the graph
 # rather than external configuration.
 
 entities:
 
 # =============================================================================
-# JOIN CIRCLE
+# JOIN OIKOS
 # =============================================================================
 
 - eidos: praxis
-  id: praxis/soma/join-circle
+  id: praxis/soma/join-oikos
   data:
-    oikos: soma
-    name: join-circle
+    topos: soma
+    name: join-oikos
     visible: true
     description: |
-      Join a circle by creating a member-of bond.
-      The circle must have an endpoint field for MCP discovery.
+      Join an oikos by creating a member-of bond.
+      The oikos must have an endpoint field for MCP discovery.
 
       Creates:
-      - member-of bond from current persona to circle
-      - Optionally sets endpoint on circle if not already set
+      - member-of bond from current prosopon to oikos
+      - Optionally sets endpoint on oikos if not already set
 
-      Returns the circle ID and endpoint for connection.
+      Returns the oikos ID and endpoint for connection.
     params:
-      - name: circle_id
+      - name: oikos_id
         type: string
         required: true
-        description: "Circle entity ID (e.g., 'circle/work')"
+        description: "Oikos entity ID (e.g., 'oikos/work')"
       - name: endpoint
         type: string
         required: false
-        description: "Optional endpoint URL to set on the circle if not already set"
+        description: "Optional endpoint URL to set on the oikos if not already set"
     steps:
-      # Verify circle exists
+      # Verify oikos exists
       - step: find
-        id: "$circle_id"
-        bind_to: target_circle
+        id: "$oikos_id"
+        bind_to: target_oikos
 
       - step: assert
-        condition: "$target_circle"
-        message: "Circle not found: $circle_id"
+        condition: "$target_oikos"
+        message: "Oikos not found: $oikos_id"
 
       # Optionally update endpoint if provided and not set
       - step: switch
         cases:
-          - when: "$endpoint && !$target_circle.data.endpoint"
+          - when: "$endpoint && !$target_oikos.data.endpoint"
             then:
               - step: update
-                id: "$circle_id"
+                id: "$oikos_id"
                 data:
                   endpoint: "$endpoint"
               - step: find
-                id: "$circle_id"
-                bind_to: target_circle
+                id: "$oikos_id"
+                bind_to: target_oikos
 
       # Check if already a member
       - step: trace
-        from_id: "$_persona"
+        from_id: "$_prosopon"
         desmos: member-of
         bind_to: existing_memberships
 
-      # Filter to see if we're already in this circle
+      # Filter to see if we're already in this oikos
       - step: filter
         items: "$existing_memberships"
-        condition: "$item.to_id === $circle_id"
+        condition: "$item.to_id === $oikos_id"
         bind_to: already_member
 
       # Create member-of bond if not already a member
@@ -76,54 +76,76 @@ entities:
           - when: "$already_member.length === 0"
             then:
               - step: bind
-                from_id: "$_persona"
-                to_id: "$circle_id"
+                from_id: "$_prosopon"
+                to_id: "$oikos_id"
                 desmos: member-of
                 data:
                   joined_at: "$_now"
 
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Joined oikos $oikos_id"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: oikos
+            source_id: "$oikos_id"
+
       - step: return
         value:
-          joined: "$circle_id"
-          endpoint: "$target_circle.data.endpoint"
+          joined: "$oikos_id"
+          endpoint: "$target_oikos.data.endpoint"
           already_member: "$already_member.length > 0"
 
 # =============================================================================
-# LEAVE CIRCLE
+# LEAVE OIKOS
 # =============================================================================
 
 - eidos: praxis
-  id: praxis/soma/leave-circle
+  id: praxis/soma/leave-oikos
   data:
-    oikos: soma
-    name: leave-circle
+    topos: soma
+    name: leave-oikos
     visible: true
     description: |
-      Leave a circle by removing the member-of bond.
+      Leave an oikos by removing the member-of bond.
     params:
-      - name: circle_id
+      - name: oikos_id
         type: string
         required: true
-        description: "Circle entity ID to leave"
+        description: "Oikos entity ID to leave"
     steps:
-      # Verify circle exists
+      # Verify oikos exists
       - step: find
-        id: "$circle_id"
-        bind_to: target_circle
+        id: "$oikos_id"
+        bind_to: target_oikos
 
       - step: assert
-        condition: "$target_circle"
-        message: "Circle not found: $circle_id"
+        condition: "$target_oikos"
+        message: "Oikos not found: $oikos_id"
 
       # Remove member-of bond
       - step: loose
-        from_id: "$_persona"
-        to_id: "$circle_id"
+        from_id: "$_prosopon"
+        to_id: "$oikos_id"
         desmos: member-of
+
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Left oikos $oikos_id"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: oikos
+            source_id: "$oikos_id"
 
       - step: return
         value:
-          left: "$circle_id"
+          left: "$oikos_id"
 
 # =============================================================================
 # LIST MEMBERSHIPS
@@ -132,26 +154,26 @@ entities:
 - eidos: praxis
   id: praxis/soma/list-memberships
   data:
-    oikos: soma
+    topos: soma
     name: list-memberships
     visible: true
     description: |
-      List all circles the current persona is a member of.
-      Returns circles with their endpoints for MCP bridge discovery.
+      List all oikoi the current prosopon is a member of.
+      Returns oikoi with their endpoints for MCP bridge discovery.
     params: []
     steps:
-      # Trace member-of bonds from current persona
+      # Trace member-of bonds from current prosopon
       - step: trace
-        from_id: "$_persona"
+        from_id: "$_prosopon"
         desmos: member-of
         bind_to: memberships
 
-      # Gather all circles
+      # Gather all oikoi
       - step: gather
-        eidos: circle
-        bind_to: all_circles
+        eidos: oikos
+        bind_to: all_oikoi
 
-      # Build membership info with circle details
+      # Build membership info with oikos details
       - step: set
         bindings:
           result: []
@@ -160,31 +182,31 @@ entities:
         items: "$memberships"
         item_var: membership
         steps:
-          # Find the circle entity
+          # Find the oikos entity
           - step: filter
-            items: "$all_circles"
+            items: "$all_oikoi"
             condition: "$item.id === $membership.to_id"
-            bind_to: matching_circles
+            bind_to: matching_oikoi
 
           - step: switch
             cases:
-              - when: "$matching_circles.length > 0"
+              - when: "$matching_oikoi.length > 0"
                 then:
                   - step: set
                     bindings:
-                      circle: "$matching_circles.0"
+                      oikos: "$matching_oikoi.0"
                   - step: append
                     to: result
                     value:
                       id: "$membership.to_id"
-                      name: "$circle.data.name"
-                      kind: "$circle.data.kind"
-                      endpoint: "$circle.data.endpoint"
+                      name: "$oikos.data.name"
+                      kind: "$oikos.data.kind"
+                      endpoint: "$oikos.data.endpoint"
                       joined_at: "$membership.data.joined_at"
         lift:
           - result
 
-      # Filter to circles with endpoints (for MCP discovery)
+      # Filter to oikoi with endpoints (for MCP discovery)
       - step: filter
         items: "$result"
         condition: "$item.endpoint"
@@ -192,5 +214,5 @@ entities:
 
       - step: return
         value:
-          circles: "$result"
+          oikoi: "$result"
           discoverable: "$discoverable"

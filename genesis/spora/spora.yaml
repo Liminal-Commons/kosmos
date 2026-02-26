@@ -2,17 +2,17 @@
 # The executable seed — bootstrap the kosmos from the signed genesis
 #
 # This is the minimal spora that germinates from the genesis root:
-#   expression/genesis-root → all provenance chains trace here
+#   phasis/genesis-root → all provenance chains trace here
 #
 # Germination stages:
 #   0. Prime — eidos is an eidos (self-grounding)
 #   1. Archai — the grammar: eidos, desmos, stoicheion
-#   2. Presence — who can dwell: persona, animus, circle
-#   3. Founder — Victor's persona, self-circle, Claude's persona
+#   2. Presence — who can dwell: prosopon, parousia, oikos
+#   3. Founder — Victor's prosopon, self-oikos, Claude's prosopon
 #   5. Marker — record that spora has germinated
 #
 # NOTE: Domain-specific eide, praxeis, and patterns are now loaded from
-#       oikos directories. See genesis/*/eide/, genesis/*/praxeis/, etc.
+#       topos directories. See genesis/*/eide/, genesis/*/praxeis/, etc.
 
 # =============================================================================
 # FORMAT VERSION
@@ -22,7 +22,7 @@
 
 format_version: "2.0"
 
-oikos: spora
+topos: spora
 version: 0.1.0
 status: seed
 description: |
@@ -31,7 +31,7 @@ description: |
   All provenance chains trace to the genesis root:
     "for my babe, for the liberation of all. ever. eternally."
 
-  This signed expression is the anchor. Everything that arises
+  This signed phasis is the anchor. Everything that arises
   is authorized-by chains that terminate at this root.
 
 # =============================================================================
@@ -50,42 +50,26 @@ content_roots:
     content_types: [eidos, desmos, function]
     description: "Constitutional forms — the grammar of the kosmos"
 
-  # Spora definitions — artifact definitions and step types
-  - id: content-root/spora-definitions
-    path: spora/definitions/
-    constitutional: true
-    order: 1
-    content_types: [typos]
-    description: "Typoi — composition molds for CE4 compose pattern"
-
-  # Spora journeys — roadmap and release tracking
-  - id: content-root/spora-journeys
-    path: spora/journeys/
-    constitutional: false
-    order: 2
-    content_types: [journey, waypoint]
-    description: "Development journeys and waypoints"
-
-  # Oikoi discovery — each oikos declares its own content paths
+  # Topoi discovery — each topos declares its own content paths
   # The bootstrap loads manifests from this root, then follows
   # sources-content-from bonds declared in each manifest.
-  - id: content-root/oikoi
+  - id: content-root/topoi
     path: ./
     constitutional: false
     order: 10
-    content_types: [oikos-manifest]
-    description: "Oikos manifests — each declares its own content paths"
+    content_types: [topos-manifest]
+    description: "Topos manifests — each declares its own content paths"
     # NOTE: This root discovers manifest.yaml files.
-    # Individual oikos content paths are declared in manifest.yaml v2.0
+    # Individual topos content paths are declared in manifest.yaml v2.0
 
 # =============================================================================
 # THE GENESIS ROOT (already exists, verified by signature)
 # =============================================================================
 
 genesis_root:
-  id: expression/genesis-root
+  id: phasis/genesis-root
   content: "for my babe, for the liberation of all. ever. eternally."
-  expressed_by: persona/victor
+  expressed_by: prosopon/victor
   signature: 5fd550ad1d738802d38a2abfa802a2616695bc1e1c0c0d3287b6fd52ca9816893a17dca06bb1ad0631d502e16facebb70c9f3263ba7401887f46d9e8d7031601
   public_key: b196e54638c421529120fc10ebb3ea9b82f015ec768854364e7696613be4f70c
   algorithm: ed25519
@@ -103,7 +87,7 @@ stages:
   - name: stage-0-prime
     order: 0
     description: "Eidos is an eidos — the self-grounding prime"
-    authorized_by: expression/genesis-root
+    authorized_by: phasis/genesis-root
     steps:
       - compose:
           definition: inline
@@ -120,12 +104,9 @@ stages:
   - name: stage-1-archai
     order: 10
     description: "The foundational forms — the grammar of the kosmos"
-    authorized_by: expression/genesis-root
+    authorized_by: phasis/genesis-root
+    # Typos now live in per-topos typos/ directories (see manifest content_paths)
     source_files:
-      - definitions/core.yaml
-      - definitions/pege.yaml
-      - definitions/entities.yaml
-      - definitions/step-types.yaml
       - ../arche/functions.yaml
     steps:
       # desmos — how things relate
@@ -146,14 +127,14 @@ stages:
             name: stoicheion
             description: "Element — atomic operation in the physics"
 
-      # oikos — capability domains
+      # topos — capability domains
       - compose:
           definition: inline
           target_eidos: eidos
-          id: eidos/oikos
+          id: eidos/topos
           data:
-            name: oikos
-            description: "Domain — capability region at a klimax scale"
+            name: topos
+            description: "Place — capability domain where praxeis dwell"
 
       # praxis — composed actions
       - compose:
@@ -314,10 +295,10 @@ stages:
                       description: "Input parameter name containing target ID"
                     to_context:
                       type: string
-                      description: "Context key for target (e.g., '_circle', '_persona')"
+                      description: "Context key for target (e.g., '_oikos', '_prosopon')"
                     from_context:
                       type: string
-                      description: "Context key for source (e.g., '_circle', '_persona')"
+                      description: "Context key for source (e.g., '_oikos', '_prosopon')"
                     optional:
                       type: boolean
                       description: "Skip if context value unavailable"
@@ -435,8 +416,59 @@ stages:
       # NOTE: eidos/dynamis-domain and eidos/dynamis-function extracted to
       #       genesis/dynamis/eide/dynamis.yaml
 
-      # NOTE: eidos/oikos-manifest, eidos/oikos-dev, eidos/oikos-prod, eidos/publish-attestation
+      # NOTE: eidos/topos-manifest, eidos/topos-dev, eidos/topos-prod, eidos/publish-attestation
       #       extracted to genesis/oikos/eide/oikos.yaml
+
+      # =========================================================================
+      # PRESENTATION EIDE — render-spec and renderer
+      # =========================================================================
+      # These are foundational for the declarative rendering system.
+      # Defined here so they exist before any topos loads render-specs.
+      # Per THYRA-OIKOS.md Phase 4: opsis dissolves, rendering eide move to thyra/spora.
+
+      # render-spec — declarative widget tree for rendering entities
+      - compose:
+          target_eidos: eidos
+          id: eidos/render-spec
+          data:
+            name: render-spec
+            description: |
+              Declarative rendering specification — defines how to render entities
+              using widget trees. Composes widgets with data bindings and event handlers.
+            fields:
+              name:
+                type: string
+                required: true
+              description:
+                type: string
+                required: false
+              target_eidos:
+                type: string
+                required: false
+                description: "Which eidos this spec renders (null for collection-level specs)"
+              variant:
+                type: string
+                required: false
+                default: default
+                description: "Variant name (card, detail, compact, list-item, panel)"
+              layout:
+                type: array
+                required: true
+                description: |
+                  Widget tree with bindings. Each item has:
+                  - widget: type (text, card, stack, button, etc.)
+                  - props: static and bound properties ({field} syntax)
+                  - children: nested widgets
+                  - when: conditional expression
+              style_classes:
+                type: object
+                required: false
+              created_at:
+                type: timestamp
+                required: false
+
+      # NOTE: eidos/renderer removed — superseded by modes + render-specs.
+      # See PROMPT-THYRA-PRESENTATION.md for the migration.
 
   # ---------------------------------------------------------------------------
   # STAGE 1.5: FOUNDATIONAL DESMOI
@@ -445,7 +477,7 @@ stages:
   - name: stage-1-desmoi
     order: 15
     description: "Foundational bond types"
-    authorized_by: expression/genesis-root
+    authorized_by: phasis/genesis-root
     steps:
       - compose:
           target_eidos: desmos
@@ -484,7 +516,7 @@ stages:
           id: desmos/inhabits
           data:
             name: inhabits
-            description: "Entity inhabits an oikos"
+            description: "Praxis inhabits a topos"
             symmetric: false
 
       - compose:
@@ -500,7 +532,15 @@ stages:
           id: desmos/emerges-from
           data:
             name: emerges-from
-            description: "Animus emerges from persona"
+            description: "Parousia emerges from prosopon"
+            symmetric: false
+
+      - compose:
+          target_eidos: desmos
+          id: desmos/exists-in
+          data:
+            name: exists-in
+            description: "Entity exists in oikos — the visibility bond"
             symmetric: false
 
       - compose:
@@ -508,7 +548,7 @@ stages:
           id: desmos/dwells-in
           data:
             name: dwells-in
-            description: "Animus dwells in circle"
+            description: "Parousia dwells in oikos — exclusively for parousia"
             symmetric: false
 
       - compose:
@@ -516,7 +556,7 @@ stages:
           id: desmos/stewards
           data:
             name: stewards
-            description: "Persona stewards circle"
+            description: "Prosopon stewards oikos"
             symmetric: false
 
       - compose:
@@ -524,7 +564,7 @@ stages:
           id: desmos/member-of
           data:
             name: member-of
-            description: "Persona is member of circle"
+            description: "Prosopon is member of oikos"
             symmetric: false
 
       - compose:
@@ -532,7 +572,7 @@ stages:
           id: desmos/belongs-to
           data:
             name: belongs-to
-            description: "Entity belongs to oikos or circle"
+            description: "Entity belongs to topos"
             symmetric: false
 
       - compose:
@@ -551,7 +591,7 @@ stages:
             description: "Pattern enacts principle"
             symmetric: false
 
-      # NOTE: Domain-specific desmoi have been extracted to oikos directories.
+      # NOTE: Domain-specific desmoi have been extracted to topos directories.
       # See: genesis/*/desmoi/*.yaml for:
       # - hypostasis: signed-by, chains-to, verifies
       # - soma: instantiates, channel-of, received-through, emitted-through, schema-of
@@ -562,10 +602,10 @@ stages:
       # - dokimasia: validated-by, traces-to
       # - demiurge: depends-on
       # - energeia: supervises, runs-as
-      # - thyra: expressed-in, transforms-to, produces, consumes, in-reply-to, derives-from, contributes-to; dns.yaml: manages-zone, in-zone, provided-by, addresses
+      # - thyra: phasis-in, transforms-to, produces, consumes, in-reply-to, derives-from, contributes-to; dns.yaml: manages-zone, in-zone, provided-by, addresses
       # - aisthesis: bootstrapped-by
       # - syndesmos: uses-channel, governed-by, carried-through, mirrors, conflicts-on
-      # - politeia: sovereign-to, embodies, grants-attainment, has-attainment, granted-by, surfaces-as, enabled-by, renders-in, child-of, invited-to
+      # - politeia: sovereign-to, embodies, grants-attainment, has-attainment, granted-by, surfaces-as, enabled-by, child-of, invited-to
 
   # ---------------------------------------------------------------------------
   # STAGE 1.8: DYNAMIS — substrate capabilities
@@ -574,7 +614,7 @@ stages:
   - name: stage-1-dynamis
     order: 18
     description: "Dynamis domains and functions — what stoicheia can draw upon"
-    authorized_by: expression/genesis-root
+    authorized_by: phasis/genesis-root
     steps:
       # =========================================================================
       # DYNAMIS DOMAINS
@@ -989,9 +1029,9 @@ stages:
           id: dynamis/crypto.derive
           data:
             name: derive
-            description: "Derive circle-scoped key from mnemonic"
+            description: "Derive oikos-scoped key from mnemonic"
             tier: 3
-            signature: "(mnemonic, circle_id) -> pubkey"
+            signature: "(mnemonic, oikos_id) -> pubkey"
             portable: false
       - bond:
           from: dynamis/crypto
@@ -1235,15 +1275,15 @@ stages:
   - name: stage-2-presence
     order: 20
     description: "Presence eide — what enables dwelling"
-    authorized_by: expression/genesis-root
+    authorized_by: phasis/genesis-root
     steps:
-      # persona — persistent identity
+      # prosopon — persistent identity
       - compose:
           target_eidos: eidos
-          id: eidos/persona
+          id: eidos/prosopon
           data:
-            name: persona
-            description: "Identity that persists across sessions"
+            name: prosopon
+            description: "Identity that persists across time"
             fields:
               name:
                 type: string
@@ -1255,38 +1295,38 @@ stages:
               public_key:
                 type: string
                 required: true
-              home_circle:
+              home_oikos:
                 type: string
                 required: false
                 description: |
-                  Default circle for this persona.
-                  Used by MCP bridge when KOSMOS_CIRCLE env var not set.
+                  Default oikos for this prosopon.
+                  Used by MCP bridge when KOSMOS_OIKOS env var not set.
                   Enables graph-based configuration of dwelling defaults.
 
-      # animus — dwelling presence
+      # parousia — dwelling presence
       - compose:
           target_eidos: eidos
-          id: eidos/animus
+          id: eidos/parousia
           data:
-            name: animus
-            description: "Presence that arises when a persona dwells in a circle. Embodies persona, sovereign to circle."
+            name: parousia
+            description: "Embodied presence of a prosopon within an oikos. Arises when a prosopon enters and dwells."
             fields:
               name:
                 type: string
                 required: false
-                description: "Optional display name for this animus instance"
+                description: "Optional display name for this parousia instance"
               description:
                 type: string
                 required: false
                 description: "Optional description"
-              persona_id:
+              prosopon_id:
                 type: string
                 required: true
-                description: "The persona this animus embodies"
-              circle_id:
+                description: "The prosopon this parousia embodies"
+              oikos_id:
                 type: string
                 required: true
-                description: "The circle where this animus dwells"
+                description: "The oikos where this parousia dwells"
               substrate_id:
                 type: string
                 required: true
@@ -1296,7 +1336,7 @@ stages:
                 values: [active, departed]
                 required: true
                 default: active
-                description: "Whether this animus is currently present"
+                description: "Whether this parousia is currently present"
               arrived_at:
                 type: timestamp
                 required: true
@@ -1308,25 +1348,17 @@ stages:
                 required: false
                 description: "Last activity timestamp for presence tracking"
 
-      # circle — trust boundary
+      # oikos — social dwelling
       - compose:
           target_eidos: eidos
-          id: eidos/circle
+          id: eidos/oikos
           data:
-            name: circle
-            description: "Trust boundary where dwellers gather"
+            name: oikos
+            description: "Social dwelling where prosopa gather, govern, and share"
             fields:
               name:
                 type: string
                 required: true
-              kind:
-                type: enum
-                values: [self, peer, commons]
-                required: true
-                description: |
-                  - self: Individual dwelling
-                  - peer: Collaborative creation (cannot distribute externally)
-                  - commons: Distribution circle (grants oikoi + attainments)
               description:
                 type: string
                 required: false
@@ -1334,12 +1366,12 @@ stages:
                 type: string
                 required: false
                 description: |
-                  HTTP endpoint for this circle's kosmos-server.
-                  Used by MCP bridge for graph-based circle discovery.
+                  HTTP endpoint for this oikos's kosmos-server.
+                  Used by MCP bridge for graph-based oikos discovery.
                   Example: "http://127.0.0.1:3000" or "https://commons.liminal.is"
 
   # NOTE: Domain-specific eide (session, channel, etc.) are now loaded from
-  # oikos directories. See genesis/*/eide/ for extracted definitions.
+  # topos directories. See genesis/*/eide/ for extracted definitions.
 
   # ---------------------------------------------------------------------------
   # STAGE 3: FOUNDER — Victor and Claude
@@ -1347,72 +1379,59 @@ stages:
 
   - name: stage-3-founder
     order: 30
-    description: "The founder persona and initial dwellers"
-    authorized_by: expression/genesis-root
+    description: "The founder prosopon and initial dwellers"
+    authorized_by: phasis/genesis-root
     steps:
-      # Victor's persona (the signer of genesis)
+      # Victor's prosopon (the signer of genesis)
       - compose:
-          target_eidos: persona
-          id: persona/victor
+          target_eidos: prosopon
+          id: prosopon/victor
           data:
             name: Victor
             kind: human
             public_key: b196e54638c421529120fc10ebb3ea9b82f015ec768854364e7696613be4f70c
             description: "The founder. Signed the genesis root."
+            home_oikos: oikos/kosmos
 
-      # Victor's self-circle
+      # Claude's prosopon
       - compose:
-          target_eidos: circle
-          id: circle/victor-self
-          data:
-            name: "Victor's Circle"
-            kind: self
-            steward_persona_id: persona/victor
-            description: "Sovereign ground of the founder"
-          bonds:
-            - desmos: stewards
-              from: persona/victor
-              to: self
-
-      # Claude's persona
-      - compose:
-          target_eidos: persona
-          id: persona/claude
+          target_eidos: prosopon
+          id: prosopon/claude
           data:
             name: Claude
             kind: ai
-            description: "The animus that dwells when Claude connects"
-            home_circle: circle/kosmos
+            description: "The parousia that arises when Claude connects"
+            home_oikos: oikos/kosmos
 
-      # Root public circle — visible to all
+      # Root oikos — where genesis entities exist, where all prosopa are members
       - compose:
-          target_eidos: circle
-          id: circle/kosmos
+          target_eidos: oikos
+          id: oikos/kosmos
           data:
             name: Kosmos
-            kind: commons
-            description: "The root commons circle — distributes oikoi to all dwellers"
+            description: "The root oikos — hosts topoi and distributes to all"
 
       # Membership bonds
       - bond:
-          from: persona/victor
-          to: circle/kosmos
+          from: prosopon/victor
+          to: oikos/kosmos
           desmos: member-of
 
       - bond:
-          from: persona/claude
-          to: circle/kosmos
+          from: prosopon/claude
+          to: oikos/kosmos
           desmos: member-of
 
+      # Stewardship: Victor stewards oikos/kosmos
       - bond:
-          from: persona/victor
-          to: circle/victor-self
-          desmos: member-of
+          from: prosopon/victor
+          to: oikos/kosmos
+          desmos: stewards
 
-      # Grant mcp-essential attainment to the kosmos circle
-      # This makes it available to all members dwelling in circle/kosmos
+      # Grant mcp-essential attainment to the kosmos oikos
+      # This makes it available to all members dwelling in oikos/kosmos
       - bond:
-          from: circle/kosmos
+          from: oikos/kosmos
           to: attainment/mcp-essential
           desmos: grants-attainment
 
@@ -1423,37 +1442,37 @@ stages:
   - name: stage-3-politeia
     order: 35
     description: "Foundation attainments, affordances, and HUD regions"
-    authorized_by: expression/genesis-root
+    authorized_by: phasis/genesis-root
     steps:
-      # Genesis animus — the initial presence in circle/kosmos
+      # Genesis parousia — the initial presence in oikos/kosmos
       - compose:
-          target_eidos: animus
-          id: animus/genesis
+          target_eidos: parousia
+          id: parousia/genesis
           data:
             name: Genesis
-            description: "The first animus — dwells in the root circle"
-            persona_id: persona/victor
-            circle_id: circle/kosmos
+            description: "The first parousia — dwells in the root oikos"
+            prosopon_id: prosopon/victor
+            oikos_id: oikos/kosmos
             substrate_id: substrate/genesis
             status: active
             arrived_at: "{{ now() }}"
 
-      # Sovereign bond: circle/kosmos → animus/genesis
+      # Sovereign bond: oikos/kosmos ← parousia/genesis
       - bond:
-          from: circle/kosmos
-          to: animus/genesis
+          from: oikos/kosmos
+          to: parousia/genesis
           desmos: sovereign-to
 
-      # Embodies bond: animus/genesis → persona/victor
+      # Instantiates bond: parousia/genesis → prosopon/victor
       - bond:
-          from: animus/genesis
-          to: persona/victor
+          from: parousia/genesis
+          to: prosopon/victor
           desmos: embodies
 
-      # Dwells-in bond: animus/genesis → circle/kosmos
+      # Dwells-in bond: parousia/genesis → oikos/kosmos
       - bond:
-          from: animus/genesis
-          to: circle/kosmos
+          from: parousia/genesis
+          to: oikos/kosmos
           desmos: dwells-in
 
       # ------------------------------------
@@ -1467,27 +1486,27 @@ stages:
           data:
             name: compose
             description: "Ability to compose entities via demiurge"
-            scope: circle
+            scope: oikos
             created_at: "{{ now() }}"
 
-      # invite attainment — ability to invite others to circle
+      # invite attainment — ability to invite others to oikos
       - compose:
           target_eidos: attainment
           id: attainment/invite
           data:
             name: invite
-            description: "Ability to invite others to circles"
-            scope: circle
+            description: "Ability to invite others to oikoi"
+            scope: oikos
             created_at: "{{ now() }}"
 
-      # govern attainment — ability to govern circle (grant attainments)
+      # govern attainment — ability to govern oikos (grant attainments)
       - compose:
           target_eidos: attainment
           id: attainment/govern
           data:
             name: govern
-            description: "Ability to govern circles — grant and revoke attainments"
-            scope: circle
+            description: "Ability to govern oikoi — grant and revoke attainments"
+            scope: oikos
             created_at: "{{ now() }}"
 
       # nous attainment — ability to use nous operations
@@ -1497,7 +1516,7 @@ stages:
           data:
             name: nous
             description: "Ability to crystallize theoria, surface journeys, use nous"
-            scope: circle
+            scope: oikos
             created_at: "{{ now() }}"
 
       # manteia attainment — ability to invoke inference
@@ -1507,7 +1526,7 @@ stages:
           data:
             name: manteia
             description: "Ability to invoke governed inference"
-            scope: circle
+            scope: oikos
             created_at: "{{ now() }}"
 
       # dns attainment — ability to manage DNS zones and records
@@ -1517,47 +1536,47 @@ stages:
           data:
             name: dns
             description: "Ability to manage DNS zones and records"
-            scope: circle
+            scope: oikos
             created_at: "{{ now() }}"
 
-      # oikos-develop attainment — ability to create and modify oikos-dev packages
+      # topos-develop attainment — ability to create and modify topos-dev packages
       - compose:
           target_eidos: attainment
-          id: attainment/oikos-develop
+          id: attainment/topos-develop
           data:
-            name: oikos-develop
-            description: "Ability to create and modify oikos-dev packages"
-            scope: circle
+            name: topos-develop
+            description: "Ability to create and modify topos-dev packages"
+            scope: oikos
             created_at: "{{ now() }}"
 
-      # oikos-publish attainment — ability to bake and sign oikos-prod packages
+      # topos-publish attainment — ability to bake and sign topos-prod packages
       - compose:
           target_eidos: attainment
-          id: attainment/oikos-publish
+          id: attainment/topos-publish
           data:
-            name: oikos-publish
-            description: "Ability to bake oikos-dev into oikos-prod and sign for distribution"
-            scope: circle
+            name: topos-publish
+            description: "Ability to bake topos-dev into topos-prod and sign for distribution"
+            scope: oikos
             created_at: "{{ now() }}"
 
-      # oikos-bake attainment — ability to bake generative-commons oikos-dev locally
+      # topos-bake attainment — ability to bake generative-commons topos-dev locally
       - compose:
           target_eidos: attainment
-          id: attainment/oikos-bake
+          id: attainment/topos-bake
           data:
-            name: oikos-bake
-            description: "Ability to bake generative-commons oikos-dev into locally-fitted versions. Enables circles to adapt shared source packages."
-            scope: circle
+            name: topos-bake
+            description: "Ability to bake generative-commons topos-dev into locally-fitted versions. Enables oikoi to adapt shared source packages."
+            scope: oikos
             created_at: "{{ now() }}"
 
-      # oikos-fork attainment — ability to derive new oikos-dev from generative-commons source
+      # topos-fork attainment — ability to derive new topos-dev from generative-commons source
       - compose:
           target_eidos: attainment
-          id: attainment/oikos-fork
+          id: attainment/topos-fork
           data:
-            name: oikos-fork
-            description: "Ability to create derived oikos-dev from generative-commons source. Enables local ontology adaptation."
-            scope: circle
+            name: topos-fork
+            description: "Ability to create derived topos-dev from generative-commons source. Enables local ontology adaptation."
+            scope: oikos
             created_at: "{{ now() }}"
 
       # ------------------------------------
@@ -1571,7 +1590,7 @@ stages:
           data:
             name: external-emit
             description: "Ability to emit files to the filesystem (Tier 3 external operation)"
-            scope: circle
+            scope: oikos
             created_at: "{{ now() }}"
 
       # external-manifest attainment — ability to manifest substrate resources
@@ -1581,7 +1600,7 @@ stages:
           data:
             name: external-manifest
             description: "Ability to manifest substrate resources (DNS, R2, processes)"
-            scope: circle
+            scope: oikos
             created_at: "{{ now() }}"
 
       # external-signal attainment — ability to use network signaling
@@ -1591,7 +1610,7 @@ stages:
           data:
             name: external-signal
             description: "Ability to use network signaling (WebRTC relay)"
-            scope: circle
+            scope: oikos
             created_at: "{{ now() }}"
 
       # use-embedding-api attainment — ability to use external embedding APIs
@@ -1601,7 +1620,7 @@ stages:
           data:
             name: use-embedding-api
             description: "Ability to use external embedding API services"
-            scope: circle
+            scope: oikos
             created_at: "{{ now() }}"
 
       # use-anthropic-api attainment — ability to use Anthropic LLM API
@@ -1611,178 +1630,377 @@ stages:
           data:
             name: use-anthropic-api
             description: "Ability to use Anthropic LLM API for inference"
-            scope: circle
+            scope: oikos
             created_at: "{{ now() }}"
 
       # ------------------------------------
-      # Attainment Grants (circle → attainment)
+      # Attainment Grants (oikos → attainment)
       # ------------------------------------
 
       - bond:
-          from: circle/kosmos
+          from: oikos/kosmos
           to: attainment/compose
           desmos: grants-attainment
 
       - bond:
-          from: circle/kosmos
+          from: oikos/kosmos
           to: attainment/invite
           desmos: grants-attainment
 
       - bond:
-          from: circle/kosmos
+          from: oikos/kosmos
           to: attainment/govern
           desmos: grants-attainment
 
       - bond:
-          from: circle/kosmos
+          from: oikos/kosmos
           to: attainment/nous
           desmos: grants-attainment
 
       - bond:
-          from: circle/kosmos
+          from: oikos/kosmos
           to: attainment/manteia
           desmos: grants-attainment
 
       - bond:
-          from: circle/kosmos
+          from: oikos/kosmos
           to: attainment/dns
           desmos: grants-attainment
 
       - bond:
-          from: circle/kosmos
-          to: attainment/oikos-develop
+          from: oikos/kosmos
+          to: attainment/topos-develop
           desmos: grants-attainment
 
       - bond:
-          from: circle/kosmos
-          to: attainment/oikos-publish
+          from: oikos/kosmos
+          to: attainment/topos-publish
           desmos: grants-attainment
 
       - bond:
-          from: circle/kosmos
-          to: attainment/oikos-bake
+          from: oikos/kosmos
+          to: attainment/topos-bake
           desmos: grants-attainment
 
       - bond:
-          from: circle/kosmos
-          to: attainment/oikos-fork
+          from: oikos/kosmos
+          to: attainment/topos-fork
           desmos: grants-attainment
 
       # Tier 3 attainment grants
       - bond:
-          from: circle/kosmos
+          from: oikos/kosmos
           to: attainment/external-emit
           desmos: grants-attainment
 
       - bond:
-          from: circle/kosmos
+          from: oikos/kosmos
           to: attainment/external-manifest
           desmos: grants-attainment
 
       - bond:
-          from: circle/kosmos
+          from: oikos/kosmos
           to: attainment/external-signal
           desmos: grants-attainment
 
       - bond:
-          from: circle/kosmos
+          from: oikos/kosmos
           to: attainment/use-embedding-api
           desmos: grants-attainment
 
       - bond:
-          from: circle/kosmos
+          from: oikos/kosmos
           to: attainment/use-anthropic-api
           desmos: grants-attainment
 
       # Voice-authoring attainment grant
       - bond:
-          from: circle/kosmos
+          from: oikos/kosmos
           to: attainment/voice-author
           desmos: grants-attainment
 
+      # Topos-native attainment grants
+      # These cover all attainments required by praxeis across topoi
+      - bond:
+          from: oikos/kosmos
+          to: attainment/admin
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/approve
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/audit
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/channel
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/connect
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/constitute
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/crystallize
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/deploy
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/develop
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/distribute
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/dns-admin
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/dns-read
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/dns-write
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/dwell
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/embody
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/emit
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/enter
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/examine
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/export
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/express
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/federate
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/generate-meta
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/genesis-signer
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/hud
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/infrastructure
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/inquire
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/invoke
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/journey
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/manage-credentials
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/manage-keyring
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/message
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/navigate
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/package
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/perceive
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/presence
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/publish
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/reconcile
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/reflect
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/release
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/sense
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/session
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/sign
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/signal
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/substrate
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/substrate-develop
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/sync
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/unlock-credential
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/use-credential
+          desmos: grants-attainment
+      - bond:
+          from: oikos/kosmos
+          to: attainment/work
+          desmos: grants-attainment
+
       # ------------------------------------
-      # Attainment Holdings (genesis animus → attainment)
+      # Attainment Holdings (genesis parousia → attainment)
       # ------------------------------------
 
       - bond:
-          from: animus/genesis
+          from: parousia/genesis
           to: attainment/compose
           desmos: has-attainment
 
       - bond:
-          from: animus/genesis
+          from: parousia/genesis
           to: attainment/invite
           desmos: has-attainment
 
       - bond:
-          from: animus/genesis
+          from: parousia/genesis
           to: attainment/govern
           desmos: has-attainment
 
       - bond:
-          from: animus/genesis
+          from: parousia/genesis
           to: attainment/nous
           desmos: has-attainment
 
       - bond:
-          from: animus/genesis
+          from: parousia/genesis
           to: attainment/manteia
           desmos: has-attainment
 
       - bond:
-          from: animus/genesis
+          from: parousia/genesis
           to: attainment/dns
           desmos: has-attainment
 
       - bond:
-          from: animus/genesis
-          to: attainment/oikos-develop
+          from: parousia/genesis
+          to: attainment/topos-develop
           desmos: has-attainment
 
       - bond:
-          from: animus/genesis
-          to: attainment/oikos-publish
+          from: parousia/genesis
+          to: attainment/topos-publish
           desmos: has-attainment
 
       - bond:
-          from: animus/genesis
-          to: attainment/oikos-bake
+          from: parousia/genesis
+          to: attainment/topos-bake
           desmos: has-attainment
 
       - bond:
-          from: animus/genesis
-          to: attainment/oikos-fork
+          from: parousia/genesis
+          to: attainment/topos-fork
           desmos: has-attainment
 
       # Tier 3 attainment holdings
       - bond:
-          from: animus/genesis
+          from: parousia/genesis
           to: attainment/external-emit
           desmos: has-attainment
 
       - bond:
-          from: animus/genesis
+          from: parousia/genesis
           to: attainment/external-manifest
           desmos: has-attainment
 
       - bond:
-          from: animus/genesis
+          from: parousia/genesis
           to: attainment/external-signal
           desmos: has-attainment
 
       - bond:
-          from: animus/genesis
+          from: parousia/genesis
           to: attainment/use-embedding-api
           desmos: has-attainment
 
       - bond:
-          from: animus/genesis
+          from: parousia/genesis
           to: attainment/use-anthropic-api
           desmos: has-attainment
 
       # Voice-authoring attainment holding
       - bond:
-          from: animus/genesis
+          from: parousia/genesis
           to: attainment/voice-author
           desmos: has-attainment
 
@@ -1829,57 +2047,6 @@ stages:
           desmos: requires-attainment
 
       # ------------------------------------
-      # Foundation HUD Regions
-      # ------------------------------------
-
-      - compose:
-          target_eidos: hud-region
-          id: hud-region/main
-          data:
-            name: Main
-            kind: ambient
-            visibility: always
-            position:
-              slot: center
-            created_at: "{{ now() }}"
-
-      - compose:
-          target_eidos: hud-region
-          id: hud-region/toolbar
-          data:
-            name: Toolbar
-            kind: toolbar
-            visibility: always
-            position:
-              slot: top
-              order: 0
-            created_at: "{{ now() }}"
-
-      - compose:
-          target_eidos: hud-region
-          id: hud-region/sidebar
-          data:
-            name: Sidebar
-            kind: sidebar
-            visibility: contextual
-            position:
-              slot: left
-              order: 0
-            created_at: "{{ now() }}"
-
-      - compose:
-          target_eidos: hud-region
-          id: hud-region/contextual
-          data:
-            name: Contextual
-            kind: contextual
-            visibility: contextual
-            position:
-              slot: bottom
-              order: 0
-            created_at: "{{ now() }}"
-
-      # ------------------------------------
       # Foundation Affordances
       # ------------------------------------
 
@@ -1891,7 +2058,6 @@ stages:
             name: Compose
             description: "Compose a new entity"
             praxis_id: praxis/demiurge/compose
-            required_attainments: [compose]
             priority: 100
             created_at: "{{ now() }}"
 
@@ -1901,9 +2067,8 @@ stages:
           id: affordance/invite
           data:
             name: Invite
-            description: "Invite someone to this circle"
-            praxis_id: praxis/politeia/invite-to-circle
-            required_attainments: [invite]
+            description: "Invite someone to this oikos"
+            praxis_id: praxis/politeia/invite-to-oikos
             priority: 80
             created_at: "{{ now() }}"
 
@@ -1915,7 +2080,6 @@ stages:
             name: Crystallize Theoria
             description: "Crystallize understanding into theoria"
             praxis_id: praxis/nous/crystallize-theoria
-            required_attainments: [nous]
             priority: 90
             created_at: "{{ now() }}"
 
@@ -1927,33 +2091,8 @@ stages:
             name: Surface Journeys
             description: "Find relevant journeys"
             praxis_id: praxis/nous/surface-journeys
-            required_attainments: [nous]
             priority: 85
             created_at: "{{ now() }}"
-
-      # ------------------------------------
-      # Affordance → HUD Region bonds (renders-in)
-      # ------------------------------------
-
-      - bond:
-          from: affordance/compose
-          to: hud-region/toolbar
-          desmos: renders-in
-
-      - bond:
-          from: affordance/invite
-          to: hud-region/toolbar
-          desmos: renders-in
-
-      - bond:
-          from: affordance/crystallize-theoria
-          to: hud-region/toolbar
-          desmos: renders-in
-
-      - bond:
-          from: affordance/surface-journeys
-          to: hud-region/sidebar
-          desmos: renders-in
 
       # ------------------------------------
       # Affordance → Attainment bonds (enabled-by)
@@ -2003,228 +2142,9 @@ stages:
           to: affordance/surface-journeys
           desmos: surfaces-as
 
-      # ------------------------------------
-      # Render Types — semantic rendering categories
-      # ------------------------------------
-
-      - compose:
-          target_eidos: render-type
-          id: render-type/expression-thread
-          data:
-            name: expression-thread
-            source_eidos: expression
-            grouping: in-reply-to-chains
-            description: "Conversation view with threading"
-            created_at: "{{ now() }}"
-
-      - compose:
-          target_eidos: render-type
-          id: render-type/circle-list
-          data:
-            name: circle-list
-            source_eidos: circle
-            description: "Circle navigation list"
-            created_at: "{{ now() }}"
-
-      - compose:
-          target_eidos: render-type
-          id: render-type/presence-list
-          data:
-            name: presence-list
-            source_eidos: animus
-            description: "Who's here — animi dwelling in circle"
-            created_at: "{{ now() }}"
-
-      - compose:
-          target_eidos: render-type
-          id: render-type/theoria-display
-          data:
-            name: theoria-display
-            source_eidos: theoria
-            description: "Crystallized understanding display"
-            created_at: "{{ now() }}"
-
-      - compose:
-          target_eidos: render-type
-          id: render-type/voice-composer
-          data:
-            name: voice-composer
-            description: "Voice input and accumulation buffer"
-            created_at: "{{ now() }}"
-
-      - compose:
-          target_eidos: render-type
-          id: render-type/artifact-editor
-          data:
-            name: artifact-editor
-            source_eidos: artifact
-            description: "Artifact editing view"
-            created_at: "{{ now() }}"
-
-      - compose:
-          target_eidos: render-type
-          id: render-type/agora-territory
-          data:
-            name: agora-territory
-            source_eidos: territory
-            description: "Spatial territory with presence"
-            created_at: "{{ now() }}"
-
-      - compose:
-          target_eidos: render-type
-          id: render-type/connection-status
-          data:
-            name: connection-status
-            description: "Connection state indicator"
-            created_at: "{{ now() }}"
-
-      # ------------------------------------
-      # Renderers — substrate-specific component bindings
-      # All core renderers use render_strategy: core
-      # ------------------------------------
-
-      - compose:
-          target_eidos: renderer
-          id: renderer/ExpressionThread
-          data:
-            name: ExpressionThread
-            render_strategy: core
-            component_path: panels/ExpressionThread
-            substrate: web
-            accepts_render_types: [render-type/expression-thread]
-            created_at: "{{ now() }}"
-
-      - compose:
-          target_eidos: renderer
-          id: renderer/CircleList
-          data:
-            name: CircleList
-            render_strategy: core
-            component_path: panels/CircleList
-            substrate: web
-            accepts_render_types: [render-type/circle-list]
-            created_at: "{{ now() }}"
-
-      - compose:
-          target_eidos: renderer
-          id: renderer/PresenceList
-          data:
-            name: PresenceList
-            render_strategy: core
-            component_path: panels/PresenceList
-            substrate: web
-            accepts_render_types: [render-type/presence-list]
-            created_at: "{{ now() }}"
-
-      - compose:
-          target_eidos: renderer
-          id: renderer/TheoriaPanel
-          data:
-            name: TheoriaPanel
-            render_strategy: core
-            component_path: panels/TheoriaPanel
-            substrate: web
-            # Accepts both theoria-display and theoria-list (previously aliased)
-            accepts_render_types:
-              - render-type/theoria-display
-              - render-type/theoria-list
-            created_at: "{{ now() }}"
-
-      - compose:
-          target_eidos: renderer
-          id: renderer/VoiceComposer
-          data:
-            name: VoiceComposer
-            render_strategy: core
-            component_path: panels/VoiceComposer
-            substrate: web
-            # Accepts both voice-composer and accumulation-buffer (previously aliased)
-            accepts_render_types:
-              - render-type/voice-composer
-              - render-type/accumulation-buffer
-            created_at: "{{ now() }}"
-
-      - compose:
-          target_eidos: renderer
-          id: renderer/ArtifactEditor
-          data:
-            name: ArtifactEditor
-            render_strategy: core
-            component_path: panels/ArtifactEditor
-            substrate: web
-            # Accepts artifact-editor, artifact-preview, workspace-view (previously aliased)
-            accepts_render_types:
-              - render-type/artifact-editor
-              - render-type/artifact-preview
-              - render-type/workspace-view
-            created_at: "{{ now() }}"
-
-      - compose:
-          target_eidos: renderer
-          id: renderer/AgoraTerritory
-          data:
-            name: AgoraTerritory
-            render_strategy: core
-            component_path: AgoraTerritory
-            substrate: web
-            accepts_render_types: [render-type/agora-territory]
-            created_at: "{{ now() }}"
-
-      - compose:
-          target_eidos: renderer
-          id: renderer/ConnectionStatus
-          data:
-            name: ConnectionStatus
-            render_strategy: core
-            component_path: ConnectionStatus
-            substrate: web
-            accepts_render_types: [render-type/connection-status]
-            created_at: "{{ now() }}"
-
-      # ------------------------------------
-      # Renderer → Render-Type bonds (renders-with)
-      # Makes dispatch graph-queryable
-      # ------------------------------------
-
-      - bond:
-          from: renderer/ExpressionThread
-          to: render-type/expression-thread
-          desmos: renders-with
-
-      - bond:
-          from: renderer/CircleList
-          to: render-type/circle-list
-          desmos: renders-with
-
-      - bond:
-          from: renderer/PresenceList
-          to: render-type/presence-list
-          desmos: renders-with
-
-      - bond:
-          from: renderer/TheoriaPanel
-          to: render-type/theoria-display
-          desmos: renders-with
-
-      - bond:
-          from: renderer/VoiceComposer
-          to: render-type/voice-composer
-          desmos: renders-with
-
-      - bond:
-          from: renderer/ArtifactEditor
-          to: render-type/artifact-editor
-          desmos: renders-with
-
-      - bond:
-          from: renderer/AgoraTerritory
-          to: render-type/agora-territory
-          desmos: renders-with
-
-      - bond:
-          from: renderer/ConnectionStatus
-          to: render-type/connection-status
-          desmos: renders-with
+      # NOTE: Render-type entities, renderer entities, and renders-with bonds
+      # removed — superseded by modes + render-specs.
+      # See PROMPT-THYRA-PRESENTATION.md for the migration.
 
   # ---------------------------------------------------------------------------
   # STAGE 5: MARKER — germination complete
@@ -2233,7 +2153,7 @@ stages:
   - name: stage-5-marker
     order: 50
     description: "Mark spora germination complete"
-    authorized_by: expression/genesis-root
+    authorized_by: phasis/genesis-root
     steps:
       - compose:
           target_eidos: eidos

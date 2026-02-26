@@ -1,27 +1,28 @@
-# Oikos Manifest: Demiurge
+# Topos Manifest: Demiurge
 # δημιουργός — the craftsman, the compositor.
 #
 # One verb. One tool. The compositor is simple.
 # Complexity lives in the definition.
 #
-# Manifest v2.1 — oikos metadata for entity composition
+# Manifest v2.1 — topos metadata for entity composition
 
 format_version: "2.1"
-oikos_id: demiurge
+topos_id: demiurge
 version: "0.1.0"
 
-# Oikos metadata (v2.1)
-oikos_name: Demiurge
-oikos_description: |
+# Topos metadata (v2.1)
+topos_name: Demiurge
+topos_description: |
   The craftsman, the compositor. One verb — compose. One tool.
   The compositor is simple; complexity lives in the definition.
-oikos_scale: cross-scale
+topos_scale: cross-scale
 
 # Development experience metadata
-oikos_category: infrastructure
+topos_category: infrastructure
 surfaces_provided: []   # Composition is the mechanism, not a surface
 surfaces_consumed:
   - reasoning           # Uses manteia/governed-inference for definition generation
+  - reactivity          # Reflexes for composition mutation response
 
 content_paths:
   - path: eide/
@@ -30,7 +31,9 @@ content_paths:
     content_types: [desmos]
   - path: praxeis/
     content_types: [praxis]
-  - path: entities/
+  - path: typos/
+    content_types: [typos]
+  - path: reflexes/
     content_types: [reflex]
 
 requires_dynamis:
@@ -51,18 +54,19 @@ provides:
 
   attainments:
     - compose              # Core composition (always indexes, tracks dependencies)
-    - develop              # Oikos development via Generative Development Spiral
-    - package              # Oikos packaging and publishing
+    - develop              # Topos development via Generative Development Spiral
+    - package              # Topos packaging and publishing
 
   desmoi:
     - composed-from        # Entity was composed from typos (constitutional, in arche)
-    - authorized-by        # Composition was authorized by expression (constitutional, in arche)
+    - authorized-by        # Composition was authorized by phasis (constitutional, in arche)
     - depends-on           # Artifact depends on entity for invalidation
     - informed-by          # Generation was informed by theoria
-    - contains             # Oikos contains definition
-    - packages             # oikos-dev packages oikos
-    - baked-from           # oikos-prod was baked from oikos-dev
-    - published-by         # oikos-prod was published by animus
+    - contains             # Topos contains definition
+    - packages             # topos-dev packages topos
+    - baked-from           # topos-prod was baked from topos-dev
+    - published-by         # topos-prod was published by parousia
+    - forked-from          # topos-dev was forked from another topos-dev
 
   praxeis:
     # ─────────────────────────────────────────────────────────────────────────
@@ -85,31 +89,34 @@ provides:
     - demiurge/refresh-stale          # Recompose stale artifacts
 
     # ─────────────────────────────────────────────────────────────────────────
-    # GENERATIVE DEVELOPMENT SPIRAL — The canonical path for oikos development
+    # GENERATIVE DEVELOPMENT SPIRAL — The canonical path for topos development
     # Intent → Generate → Review → Actualize → Emit → Crystallize
     # ─────────────────────────────────────────────────────────────────────────
-    - demiurge/develop-oikos-from-design  # Entry point: DESIGN.md → artifacts
+    - demiurge/develop-topos-from-design  # Entry point: DESIGN.md → artifacts
     - demiurge/generate-eidos             # Compose inference context → generate
     - demiurge/generate-praxis            # Compose inference context → generate
     - demiurge/generate-desmos            # Compose inference context → generate
-    - demiurge/generate-oikos             # Compose inference context → generate design
+    - demiurge/generate-topos             # Compose inference context → generate design
     - demiurge/actualize-eidos            # Artifact → entity in kosmos
     - demiurge/actualize-praxis           # Artifact → entity in kosmos
     - demiurge/actualize-desmos           # Artifact → entity in kosmos
+    - demiurge/generate-render-spec       # Compose inference context → generate render-spec
+    - demiurge/actualize-render-spec      # Artifact → render-spec entity in kosmos
 
     # ─────────────────────────────────────────────────────────────────────────
     # VALIDATION — Check definitions before emission
     # ─────────────────────────────────────────────────────────────────────────
-    - demiurge/validate-oikos             # Validate all definitions in oikos
+    - demiurge/validate-topos             # Validate all definitions in topos
     - demiurge/validate-praxis            # Validate single praxis
+    - demiurge/validate-render-spec       # Validate render-spec structure
 
     # ─────────────────────────────────────────────────────────────────────────
-    # PACKAGING — Prepare oikos for distribution
+    # PACKAGING — Prepare topos for distribution
     # ─────────────────────────────────────────────────────────────────────────
-    - demiurge/compose-oikos-dev          # Package oikos from genesis
-    - demiurge/bake-oikos                 # Resolve generation specs
-    - demiurge/publish-oikos              # Sign and release
-    - demiurge/verify-oikos               # Verify package integrity
+    - demiurge/compose-topos-dev          # Package topos from genesis
+    - demiurge/bake-topos                 # Resolve generation specs
+    - demiurge/publish-topos              # Sign and release
+    - demiurge/verify-topos               # Verify package integrity
 
     # ─────────────────────────────────────────────────────────────────────────
     # DISCOVERY — Explore the compositional palette
@@ -130,4 +137,4 @@ stoicheia_form:
 depends_on:
   - manteia              # Uses governed-inference for definition generation
   - nous                 # Theoria surfaces into generation context
-  - genesis              # Emission praxeis moved to genesis oikos
+  - genesis              # Emission praxeis moved to genesis topos

@@ -1,0 +1,141 @@
+# Journey Card Render-Spec
+# Teleological container card — movement toward a desire
+#
+# Journey fields:
+#   - desire (string): What we're moving toward (the telos)
+#   - description (string): Extended description
+#   - status (enum): potential | active | paused | arrived | abandoned
+#   - current_waypoint (number): Position in journey
+#   - leverage_type (enum): meta | compound | additive | terminal
+#
+# Traces to: genesis/demiurge/THYRA-EVOLUTION.md
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/journey-card
+    data:
+      name: journey-card
+      description: |
+        Journey card showing the telos (desire), status, and progress.
+        Clicking navigates to journey detail or embarks the journey.
+      target_eidos: journey
+      variant: card
+
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+            on_click: nous/embark-journey
+            on_click_params:
+              journey_id: "{id}"
+          children:
+            - widget: stack
+              props:
+                gap: sm
+              children:
+                # Header with status
+                - widget: row
+                  props:
+                    justify: between
+                    align: center
+                  children:
+                    - widget: row
+                      props:
+                        gap: sm
+                        align: center
+                      children:
+                        # Journey icon based on status
+                        - widget: icon
+                          when: "status == 'potential'"
+                          props:
+                            name: compass
+                            size: md
+                        - widget: icon
+                          when: "status == 'active'"
+                          props:
+                            name: navigation
+                            size: md
+                            color: success
+                        - widget: icon
+                          when: "status == 'paused'"
+                          props:
+                            name: pause
+                            size: md
+                        - widget: icon
+                          when: "status == 'arrived'"
+                          props:
+                            name: flag
+                            size: md
+                            color: success
+                        - widget: icon
+                          when: "status == 'abandoned'"
+                          props:
+                            name: x-circle
+                            size: md
+                            color: error
+                        - widget: text
+                          props:
+                            content: "{desire}"
+                            variant: emphasis
+
+                    # Status badge
+                    - widget: badge
+                      when: "status == 'potential'"
+                      props:
+                        content: "Potential"
+                        variant: default
+                    - widget: badge
+                      when: "status == 'active'"
+                      props:
+                        content: "Active"
+                        variant: success
+                    - widget: badge
+                      when: "status == 'paused'"
+                      props:
+                        content: "Paused"
+                        variant: warning
+                    - widget: badge
+                      when: "status == 'arrived'"
+                      props:
+                        content: "Arrived"
+                        variant: success
+                    - widget: badge
+                      when: "status == 'abandoned'"
+                      props:
+                        content: "Abandoned"
+                        variant: error
+
+                # Description
+                - widget: text
+                  when: "description"
+                  props:
+                    content: "{description}"
+                    variant: caption
+
+                # Leverage indicator (for compound leverage journeys)
+                - widget: row
+                  when: "leverage_type"
+                  props:
+                    gap: xs
+                    align: center
+                  children:
+                    - widget: icon
+                      when: "leverage_type == 'meta'"
+                      props:
+                        name: zap
+                        size: sm
+                        color: warning
+                    - widget: icon
+                      when: "leverage_type == 'compound'"
+                      props:
+                        name: layers
+                        size: sm
+                        color: info
+                    - widget: badge
+                      props:
+                        content: "{leverage_type}"
+                        variant: info
+
+      created_at: "2026-02-03T00:00:00Z"

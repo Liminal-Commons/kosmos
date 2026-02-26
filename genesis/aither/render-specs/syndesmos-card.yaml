@@ -1,0 +1,138 @@
+# Aither Render Specifications — syndesmos card
+# Desired connection state with reconciliation
+#
+# Syndesmos fields:
+#   - peer_id (string): Remote peer identifier
+#   - room_id (string): Signaling room ID
+#   - intent (enum): connected | disconnected | suspended
+#   - status (enum): disconnected | connecting | connected | reconnecting | failed | suspended
+#   - retry_count (integer): Number of reconnection attempts
+#   - last_connected_at (timestamp): Last successful connection
+#
+# Traces to: genesis/aither/eide/aither.yaml § syndesmos
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/syndesmos-card
+    data:
+      name: syndesmos-card
+      description: "Card view for syndesmos — desired connection state with peer and retry info."
+      target_eidos: syndesmos
+      variant: card
+
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+          children:
+            - widget: stack
+              props:
+                gap: sm
+              children:
+                # Header with icon, intent badge, and status badge
+                - widget: row
+                  props:
+                    justify: between
+                    align: center
+                  children:
+                    - widget: row
+                      props:
+                        gap: sm
+                        align: center
+                      children:
+                        - widget: icon
+                          props:
+                            name: zap
+                            size: md
+                        - widget: badge
+                          props:
+                            content: "{intent}"
+                            variant: info
+
+                    # Status badges
+                    - widget: badge
+                      when: "status == 'disconnected'"
+                      props:
+                        content: "Disconnected"
+                        variant: default
+                    - widget: badge
+                      when: "status == 'connecting'"
+                      props:
+                        content: "Connecting"
+                        variant: warning
+                    - widget: badge
+                      when: "status == 'connected'"
+                      props:
+                        content: "Connected"
+                        variant: success
+                    - widget: badge
+                      when: "status == 'reconnecting'"
+                      props:
+                        content: "Reconnecting"
+                        variant: warning
+                    - widget: badge
+                      when: "status == 'failed'"
+                      props:
+                        content: "Failed"
+                        variant: error
+                    - widget: badge
+                      when: "status == 'suspended'"
+                      props:
+                        content: "Suspended"
+                        variant: default
+
+                # Peer ID
+                - widget: row
+                  when: "peer_id"
+                  props:
+                    gap: sm
+                    align: center
+                  children:
+                    - widget: text
+                      props:
+                        content: "Peer:"
+                        variant: label
+                    - widget: code
+                      props:
+                        content: "{peer_id}"
+
+                # Room ID
+                - widget: row
+                  props:
+                    gap: sm
+                    align: center
+                  children:
+                    - widget: text
+                      props:
+                        content: "Room:"
+                        variant: label
+                    - widget: code
+                      props:
+                        content: "{room_id}"
+
+                # Retry count
+                - widget: row
+                  when: "retry_count"
+                  props:
+                    gap: sm
+                    align: center
+                  children:
+                    - widget: icon
+                      props:
+                        name: refresh-cw
+                        size: sm
+                    - widget: text
+                      props:
+                        content: "{retry_count} retries"
+                        variant: caption
+
+                # Footer — last connected
+                - widget: text
+                  when: "last_connected_at"
+                  props:
+                    content: "Last connected {last_connected_at}"
+                    variant: caption
+
+      created_at: "2026-02-09T00:00:00Z"

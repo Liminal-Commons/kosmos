@@ -1,0 +1,70 @@
+# Aither Render Specifications — outbound-message item
+# Compact queue item for outbound message
+#
+# Outbound-message fields used:
+#   - message_type (enum): phoreta | content-sync | presence-update | phasis
+#   - status (enum): pending | sending | delivered | failed | expired
+#
+# Traces to: genesis/aither/eide/aither.yaml § outbound-message
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/outbound-message-item
+    data:
+      name: outbound-message-item
+      description: "Compact queue item for outbound-message — icon, type, and status."
+      target_eidos: outbound-message
+      variant: item
+
+      layout:
+        - widget: card
+          props:
+            variant: compact
+            padding: sm
+          children:
+            - widget: row
+              props:
+                gap: sm
+                align: center
+              children:
+                # Message icon
+                - widget: icon
+                  props:
+                    name: send
+                    size: sm
+
+                # Message type
+                - widget: text
+                  props:
+                    content: "{message_type}"
+                    variant: body
+
+                # Status badge
+                - widget: badge
+                  when: "status == 'pending'"
+                  props:
+                    content: "Pending"
+                    variant: warning
+                - widget: badge
+                  when: "status == 'sending'"
+                  props:
+                    content: "Sending"
+                    variant: info
+                - widget: badge
+                  when: "status == 'delivered'"
+                  props:
+                    content: "Delivered"
+                    variant: success
+                - widget: badge
+                  when: "status == 'failed'"
+                  props:
+                    content: "Failed"
+                    variant: error
+                - widget: badge
+                  when: "status == 'expired'"
+                  props:
+                    content: "Expired"
+                    variant: default
+
+      created_at: "2026-02-09T00:00:00Z"

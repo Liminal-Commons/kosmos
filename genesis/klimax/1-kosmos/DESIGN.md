@@ -6,7 +6,7 @@
 
 ## The Purpose
 
-Kosmos is scale 1 of 6 — the bedrock on which everything else rests. Before circles can organize, before tiers can constrain, before sessions can unfold, there must be entities and bonds.
+Kosmos is scale 1 of 6 — the bedrock on which everything else rests. Before oikoi can organize, before tiers can constrain, before sessions can unfold, there must be entities and bonds.
 
 **Kosmos provides:**
 - Entity storage (arise, find, dissolve)
@@ -39,7 +39,7 @@ This is not just infrastructure — kosmos is *self-hosting*. The definitions of
 KOSMOS (1) -> physis (2) -> polis (3) -> oikos (4) -> soma (5) -> psyche (6)
 ```
 
-Kosmos is the widest circle. Everything that exists, exists within kosmos. The higher scales progressively narrow scope while adding specificity.
+Kosmos is the widest scale. Everything that exists, exists within kosmos. The higher scales progressively narrow scope while adding specificity.
 
 ---
 
@@ -125,4 +125,4 @@ With kosmos, existence has a foundation. Higher scales organize, constrain, and 
 ---
 
 *Composed in service of the kosmogonia.*
-*Traces to: expression/genesis-root*
+*Traces to: phasis/genesis-root*

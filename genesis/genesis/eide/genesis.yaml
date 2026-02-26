@@ -28,10 +28,10 @@ entities:
           type: array
           required: true
           description: What kinds of entities live here (eidos, praxis, desmos, etc.)
-        oikos_id:
+        topos_id:
           type: string
           required: true
-          description: Which oikos this content belongs to
+          description: Which topos this content belongs to
 
   # =============================================================================
   # ATTAINMENTS
@@ -50,13 +50,13 @@ entities:
 
         Enables:
         - emit-genesis: Full genesis emission
-        - emit-oikos: Single oikos emission
+        - emit-topos: Single topos emission
         - verify-full-circle: Prove kosmos coherence
         - register-content-root: Add content locations
-      oikos: genesis
-      scope: circle
-      grants:
-        - praxis/genesis/emit-genesis
-        - praxis/genesis/emit-oikos
-        - praxis/genesis/verify-full-circle
-        - praxis/genesis/register-content-root
+      topos: genesis
+      scope: oikos
+    bonds:
+      - { desmos: grants-praxis, to: praxis/genesis/emit-genesis }
+      - { desmos: grants-praxis, to: praxis/genesis/emit-topos }
+      - { desmos: grants-praxis, to: praxis/genesis/verify-full-circle }
+      - { desmos: grants-praxis, to: praxis/genesis/register-content-root }

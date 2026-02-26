@@ -1,0 +1,79 @@
+# Dokimasia Render Specifications — validation-error card
+# Full card view for validation failures
+#
+# Validation-error fields:
+#   - layer (enum: provenance, schema, semantic, behavioral): Which layer failed
+#   - code (string): Error code (e.g., CHAIN_BROKEN, MISSING_FIELD)
+#   - message (string): Human-readable error message
+#   - path (string, optional): JSON path to the problem
+#
+# Traces to: genesis/dokimasia/DESIGN.md
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/validation-error-card
+    data:
+      name: validation-error-card
+      description: |
+        Card view for validation-error entities.
+        Shows the validation layer, error code, message, and path.
+      target_eidos: validation-error
+      variant: card
+
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+          children:
+            - widget: stack
+              props:
+                gap: sm
+              children:
+                # Header with layer badge and error code
+                - widget: row
+                  props:
+                    justify: between
+                    align: center
+                  children:
+                    - widget: row
+                      props:
+                        gap: sm
+                        align: center
+                      children:
+                        - widget: icon
+                          props:
+                            name: alert-circle
+                            size: md
+                        - widget: badge
+                          props:
+                            content: "{layer}"
+                            variant: error
+
+                    - widget: code
+                      props:
+                        content: "{code}"
+
+                # Error message
+                - widget: text
+                  props:
+                    content: "{message}"
+                    variant: body
+
+                # Path (when present)
+                - widget: row
+                  when: "path"
+                  props:
+                    gap: sm
+                    align: center
+                  children:
+                    - widget: text
+                      props:
+                        content: "Path:"
+                        variant: label
+                    - widget: code
+                      props:
+                        content: "{path}"
+
+      created_at: "2026-02-09T00:00:00Z"

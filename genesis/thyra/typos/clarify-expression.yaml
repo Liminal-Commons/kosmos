@@ -1,0 +1,56 @@
+# Clarify Phasis Typos
+# Takes raw text input, produces clarified content + detected stance via LLM.
+#
+# Called via demiurge/compose with inputs: { raw_content: "..." }
+# Returns: { clarification: { content: "...", stance: "..." } }
+#
+# Traces to: Phase 2 of voice authoring plan
+# Authorized by: Plan approval
+
+entities:
+
+  - eidos: typos
+    id: typos/clarify-phasis
+    data:
+      name: clarify-phasis
+      description: |
+        Clarify raw phasis text through LLM inference.
+        Removes disfluencies, fixes grammar, detects phasis stance.
+        Returns structured object with clarified content and stance.
+      output_type: object
+
+      slots:
+        clarification:
+          fill: generated
+          tier: fast
+          prompt: |
+            You are a clarification assistant. Clean up this raw text input while preserving the speaker's voice and intent.
+
+            Raw input:
+            "{{ raw_content }}"
+
+            Rules:
+            1. Remove verbal disfluencies (um, uh, ah, like, you know, I mean)
+            2. Fix grammar and punctuation
+            3. Preserve the speaker's distinct voice, word choices, and intent
+            4. Do NOT rephrase or add meaning — only clarify
+            5. Detect the speaker's stance from the content
+
+            Stances:
+            - declaration: Stating something as true or intended
+            - inquiry: Asking a question or seeking understanding
+            - suggestion: Proposing an idea tentatively
+            - invitation: Requesting participation or engagement
+            - request: Asking for something specific
+            - proposal: Putting forward a formal plan or offer
+          output_schema:
+            type: object
+            properties:
+              content:
+                type: string
+                description: "The clarified text — disfluencies removed, grammar fixed, voice preserved"
+              stance:
+                type: string
+                enum: [declaration, inquiry, suggestion, invitation, request, proposal]
+                description: "Detected phasis stance"
+            required: [content, stance]

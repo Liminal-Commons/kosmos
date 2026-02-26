@@ -21,7 +21,7 @@ presence, sensing, and the interface with world.
 
 ### body-schema
 
-The animus's sense of its own shape and capacity
+The parousia's sense of its own shape and capacity
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
@@ -68,16 +68,16 @@ A unit of sensory input through a channel
 
 🔧 = Exposed as MCP tool
 
-### arise-animus 🔧
+### arise-parousia 🔧
 
-Bring an animus into being. The animus instantiates a persona.
+Bring a parousia into being. The parousia instantiates a prosopon.
 
-**Tier:** 2 | **ID:** `praxis/soma/arise-animus`
+**Tier:** 2 | **ID:** `praxis/soma/arise-parousia`
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `persona_id` | string | ✓ | The persona this animus instantiates |
-| `animus_id` | string | ✓ | ID for the new animus (e.g., animus/uuid) |
+| `prosopon_id` | string | ✓ | The prosopon this parousia instantiates |
+| `parousia_id` | string | ✓ | ID for the new parousia (e.g., parousia/uuid) |
 
 ### close-channel 🔧
 
@@ -89,15 +89,15 @@ Close a channel.
 |-----------|------|----------|-------------|
 | `channel_id` | string | ✓ | The channel to close |
 
-### depart-animus 🔧
+### depart-parousia 🔧
 
-Have an animus depart (end dwelling).
+Have a parousia depart (end dwelling).
 
-**Tier:** 2 | **ID:** `praxis/soma/depart-animus`
+**Tier:** 2 | **ID:** `praxis/soma/depart-parousia`
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `animus_id` | string | ✓ | The animus to depart |
+| `parousia_id` | string | ✓ | The parousia to depart |
 
 ### emit 🔧
 
@@ -114,13 +114,13 @@ Emit a signal through a channel.
 
 ### open-channel 🔧
 
-Open a channel for an animus.
+Open a channel for a parousia.
 
 **Tier:** 2 | **ID:** `praxis/soma/open-channel`
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `animus_id` | string | ✓ | The animus to open a channel for |
+| `parousia_id` | string | ✓ | The parousia to open a channel for |
 | `channel_id` | string | ✓ | ID for the new channel (e.g., channel/uuid) |
 | `name` | string | ✓ | Channel name |
 | `modality` | string | ✓ | What type of data (text, voice, vision, file, etc.) |
@@ -147,16 +147,16 @@ Sense the current body schema (idioaisthesis).
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `animus_id` | string | ✓ | The animus to sense |
+| `parousia_id` | string | ✓ | The parousia to sense |
 
 ## Desmoi (Bond Types)
 
 | Desmos | From → To | Description |
 |--------|-----------|-------------|
-| `channel-of` | channel → animus | Channel belongs to animus |
+| `channel-of` | channel → parousia | Channel belongs to parousia |
 | `emitted-through` | signal → channel | Signal emitted through channel |
 | `received-through` | percept → channel | Percept received through channel |
-| `schema-of` | body-schema → animus | Body schema belongs to animus |
+| `schema-of` | body-schema → parousia | Body schema belongs to parousia |
 
 ---
 

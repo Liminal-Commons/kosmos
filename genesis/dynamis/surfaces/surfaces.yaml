@@ -1,0 +1,81 @@
+# Dynamis Surface Contracts
+
+entities:
+
+  - eidos: surface
+    id: surface/computation
+    data:
+      surface_id: computation
+      description: |
+        Substrate computation capabilities: deployment management
+        and substrate targeting.
+      praxeis:
+        - praxis/dynamis/create-substrate
+        - praxis/dynamis/create-deployment
+        - praxis/dynamis/manifest-deployment
+        - praxis/dynamis/sense-deployment
+        - praxis/dynamis/reconcile-deployment
+      version: "1.1"
+
+  - eidos: surface
+    id: surface/reconciliation
+    data:
+      surface_id: reconciliation
+      description: |
+        Declarative state alignment: intent/actuality reconciliation with
+        transition rules, triggering, and autonomous drift correction.
+
+        Consumers declare reconciler entities with transition tables.
+        Dynamis provides the generic reconciliation engine that reads
+        these entities and dispatches manifest/sense/unmanifest actions
+        through the mode system.
+
+        The reconciler is substrate-agnostic. Modes are substrate-specific.
+        Together they close the loop: sense actual state, compare with
+        intent, act to align.
+      praxeis:
+        - praxis/dynamis/reconcile
+      version: "1.0"
+
+  - eidos: surface
+    id: surface/reactivity
+    data:
+      surface_id: reactivity
+      description: |
+        Event-driven autonomic mutation response. Consumers declare reflex
+        entities with trigger patterns and response praxeis. The engine
+        fires matching responses automatically on graph mutations.
+
+        Reflexes are the sympathetic nervous system — immediate response
+        to stimulus. The consumer declares what to watch and what to do;
+        the engine handles matching, scoping, and parameter interpolation.
+
+        Consumers declare:
+          - trigger entities (eidos: trigger) with event patterns
+          - reflex entities (eidos: reflex) bonded to triggers and response praxeis
+        The engine automatically evaluates mutations against trigger patterns,
+        filters by scope (global/oikos), and invokes response praxeis with
+        interpolated parameters.
+      praxeis: []
+      version: "1.0"
+
+  - eidos: surface
+    id: surface/sensing
+    data:
+      surface_id: sensing
+      description: |
+        Periodic actuality sensing. Consumers declare daemon entities
+        with a praxis and interval. The engine invokes the praxis on
+        schedule with exponential backoff on failure.
+
+        Daemons are the parasympathetic nervous system — rhythmic sensing
+        that keeps the system aware of its environment. The consumer
+        declares what to sense and how often; the engine handles scheduling,
+        lifecycle, and backoff.
+
+        Consumers declare:
+          - daemon entities (eidos: daemon) with praxis, interval, and scope
+        The engine invokes the daemon's praxis on schedule, manages backoff
+        on failure (up to backoff_max), and respects enabled/disabled state.
+      praxeis: []
+      version: "1.0"

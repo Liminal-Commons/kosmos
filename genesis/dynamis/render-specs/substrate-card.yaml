@@ -1,0 +1,100 @@
+# Dynamis Render Specifications — substrate card
+# Card view for substrate showing platform details and active status
+#
+# Substrate fields:
+#   - name (string): Substrate name
+#   - kind (enum: platform, runtime, environment): Substrate kind
+#   - os (string): Operating system
+#   - arch (string): Architecture
+#   - active (boolean): Whether substrate is active
+#
+# Migrated from: genesis/dynamis/entities/rendering.yaml
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/substrate-card
+    data:
+      name: substrate-card
+      description: |
+        Card rendering for substrate entities.
+        Shows name, kind/os/arch badges, and active indicator.
+      target_eidos: substrate
+      variant: card
+
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+          children:
+            - widget: stack
+              props:
+                gap: sm
+              children:
+                # Header: icon, name, kind badge
+                - widget: row
+                  props:
+                    justify: between
+                    align: center
+                  children:
+                    - widget: row
+                      props:
+                        gap: sm
+                        align: center
+                      children:
+                        - widget: icon
+                          props:
+                            name: server
+                            size: md
+                        - widget: text
+                          props:
+                            content: "{name}"
+                            variant: title
+
+                    - widget: badge
+                      props:
+                        content: "{kind}"
+                        variant: info
+
+                # Platform row: os and arch badges
+                - widget: row
+                  props:
+                    gap: sm
+                    align: center
+                  children:
+                    - widget: badge
+                      props:
+                        content: "{os}"
+                        variant: default
+                    - widget: badge
+                      props:
+                        content: "{arch}"
+                        variant: default
+
+                # Active indicator
+                - widget: row
+                  props:
+                    gap: xs
+                    align: center
+                  children:
+                    - widget: status-indicator
+                      when: "active == true"
+                      props:
+                        status: active
+                    - widget: status-indicator
+                      when: "active == false"
+                      props:
+                        status: inactive
+                    - widget: text
+                      when: "active == true"
+                      props:
+                        content: "Active"
+                        variant: caption
+                    - widget: text
+                      when: "active == false"
+                      props:
+                        content: "Inactive"
+                        variant: caption
+
+      created_at: "2026-02-09T00:00:00Z"

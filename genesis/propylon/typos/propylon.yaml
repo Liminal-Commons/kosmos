@@ -1,0 +1,37 @@
+# Propylon Typos — Entry & Invitation Links
+#
+# Typos for the propylon (gateway/entry) domain.
+
+entities:
+
+# =============================================================================
+# PROPYLON (ENTRY/INVITATION LINKS)
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-propylon-link
+  data:
+    name: propylon-link
+    description: "Compose a propylon-link entity"
+    target_eidos: propylon-link
+
+- eidos: typos
+  id: typos-def-propylon-session
+  data:
+    name: propylon-session
+    description: "Compose a propylon-session entity"
+    target_eidos: propylon-session
+
+- eidos: typos
+  id: typos-def-entry-request
+  data:
+    name: entry-request
+    description: "Compose an entry-request entity (incoming entry from inviter's view)"
+    target_eidos: entry-request
+
+- eidos: typos
+  id: typos-def-session-token
+  data:
+    name: session-token
+    description: "Compose a session-token entity for cross-process session sharing"
+    target_eidos: session-token

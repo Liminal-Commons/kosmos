@@ -16,7 +16,7 @@ entities:
 - eidos: praxis
   id: praxis/nous/surface-journeys
   data:
-    oikos: nous
+    topos: nous
     name: surface-journeys
     visible: true
     description: |
@@ -49,7 +49,7 @@ entities:
 - eidos: praxis
   id: praxis/nous/surface
   data:
-    oikos: nous
+    topos: nous
     name: surface
     visible: true
     description: |
@@ -84,13 +84,73 @@ entities:
         value: "$results"
 
 # =============================================================================
+# CONTEXTUAL SURFACING (Ambient Intelligence)
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/nous/surface-for-context
+  data:
+    topos: nous
+    name: surface-for-context
+    visible: true
+    description: |
+      Surface knowledge relevant to a working context.
+
+      Given a context query (artifact name, domain, description), surfaces
+      relevant theoria, patterns, and principles from the knowledge ladder.
+      This is the foundation of ambient intelligence — proactive surfacing
+      of relevant understanding.
+
+      Returns structured results suitable for HUD rendering.
+    params:
+      - name: context_query
+        type: string
+        required: true
+        description: What context we're working in (artifact, domain, etc.)
+      - name: limit
+        type: number
+        required: false
+        description: Max results per category (default 3)
+    steps:
+      # Surface relevant theoria
+      - step: surface
+        query: "$context_query"
+        eidos_filter: "theoria"
+        limit: "$limit"
+        threshold: 0.65
+        bind_to: theoria_results
+
+      # Surface applicable patterns
+      - step: surface
+        query: "$context_query"
+        eidos_filter: "pattern"
+        limit: "$limit"
+        threshold: 0.65
+        bind_to: pattern_results
+
+      # Surface guiding principles
+      - step: surface
+        query: "$context_query"
+        eidos_filter: "principle"
+        limit: "$limit"
+        threshold: 0.65
+        bind_to: principle_results
+
+      # Return structured guidance
+      - step: return
+        value:
+          theoria: "$theoria_results"
+          patterns: "$pattern_results"
+          principles: "$principle_results"
+
+# =============================================================================
 # GATHERING AND FINDING
 # =============================================================================
 
 - eidos: praxis
   id: praxis/nous/gather
   data:
-    oikos: nous
+    topos: nous
     name: gather
     visible: true
     description: |
@@ -117,7 +177,7 @@ entities:
 - eidos: praxis
   id: praxis/nous/find
   data:
-    oikos: nous
+    topos: nous
     name: find
     visible: true
     description: |
@@ -143,7 +203,7 @@ entities:
 - eidos: praxis
   id: praxis/nous/index
   data:
-    oikos: nous
+    topos: nous
     name: index
     visible: true
     description: |
@@ -170,7 +230,7 @@ entities:
 - eidos: praxis
   id: praxis/nous/index-functions
   data:
-    oikos: nous
+    topos: nous
     name: index-functions
     visible: true
     description: |
@@ -212,7 +272,7 @@ entities:
 - eidos: praxis
   id: praxis/nous/traverse
   data:
-    oikos: nous
+    topos: nous
     name: traverse
     visible: true
     description: |
@@ -224,7 +284,7 @@ entities:
       Use this for:
       - Dependency trees for validation reports
       - Provenance chains (composed-from, authorized-by)
-      - Circle membership graphs
+      - Oikos membership graphs
       - Knowledge network navigation
     params:
       - name: root_id
@@ -265,14 +325,14 @@ entities:
 - eidos: praxis
   id: praxis/nous/crystallize-theoria
   data:
-    oikos: nous
+    topos: nous
     name: crystallize-theoria
     visible: true
     description: |
       Crystallize an understanding into theoria.
 
       Creates a theoria entity with the insight, domain, and status.
-      Bonds theoria to dwelling circle via crystallized-in.
+      Bonds theoria to dwelling oikos via crystallized-in.
       Indexes theoria for semantic surfacing (makes it discoverable).
     params:
       - name: theoria_id
@@ -321,14 +381,14 @@ entities:
           status: "provisional"
         bind_to: theoria_entity
 
-      # Bond to dwelling circle if available
+      # Bond to dwelling oikos if available
       - step: switch
         cases:
-          - when: "$_circle"
+          - when: "$_oikos"
             then:
               - step: bind
                 from_id: "$theoria_id"
-                to_id: "$_circle"
+                to_id: "$_oikos"
                 desmos: "crystallized-in"
 
       # Create evidence bonds if provided
@@ -351,6 +411,17 @@ entities:
         entity_id: "$theoria_id"
         text: "$domain: $insight"
 
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Crystallized theoria: $insight"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: theoria
+            source_id: "$theoria_id"
+
       - step: return
         value:
           theoria_id: "$theoria_id"
@@ -358,11 +429,121 @@ entities:
           domain: "$domain"
           status: "provisional"
           indexed: true
+  bonds:
+    - { desmos: requires-attainment, to: attainment/crystallize }
+
+- eidos: praxis
+  id: praxis/nous/crystallize-from-phasis
+  data:
+    topos: nous
+    name: crystallize-from-phasis
+    visible: true
+    description: |
+      Crystallize theoria from a voice session phasis.
+
+      Takes a phasis created during a voice session and extracts
+      its insight, creating a theoria with provenance back to the
+      phasis. This is how voice sessions contribute to the
+      knowledge ladder — insights spoken become crystallized understanding.
+
+      Uses manteia to refine the insight if the phasis is raw speech.
+    params:
+      - name: phasis_id
+        type: string
+        required: true
+        description: The phasis containing the insight
+      - name: domain
+        type: string
+        required: true
+        description: Knowledge domain for the theoria
+      - name: refine
+        type: boolean
+        required: false
+        description: Use manteia to refine the insight (default true)
+    steps:
+      # Find the phasis
+      - step: find
+        id: "$phasis_id"
+        bind_to: phasis
+
+      - step: assert
+        condition: "$phasis"
+        message: "Phasis not found: $phasis_id"
+
+      # Extract the content
+      - step: set
+        bindings:
+          raw_content: "$phasis.data.content"
+          refine_insight: "$refine"
+
+      # Default refine to true
+      - step: switch
+        cases:
+          - when: "$refine_insight"
+            then: []
+        default:
+          - step: set
+            bindings:
+              refine_insight: true
+
+      # Optionally refine the insight using manteia
+      - step: switch
+        cases:
+          - when: "$refine_insight"
+            then:
+              - step: call
+                praxis: manteia/governed-inference
+                params:
+                  prompt: |
+                    Extract the core insight from this spoken phasis.
+                    Express it as a clear, concise statement of understanding.
+                    Keep the essence but make it crystalline.
+
+                    Phasis: $raw_content
+                  output_schema:
+                    type: object
+                    properties:
+                      insight:
+                        type: string
+                        description: "The crystallized insight"
+                    required: ["insight"]
+                bind_to: refined
+              - step: set
+                bindings:
+                  final_insight: "$refined.insight"
+        default:
+          - step: set
+            bindings:
+              final_insight: "$raw_content"
+
+      # Generate theoria ID
+      - step: set
+        bindings:
+          theoria_id: "theoria/$_uuid"
+
+      # Crystallize the theoria with phasis as evidence
+      - step: call
+        praxis: nous/crystallize-theoria
+        params:
+          theoria_id: "$theoria_id"
+          insight: "$final_insight"
+          domain: "$domain"
+          source: "voice-session"
+          evidence:
+            - "$phasis_id"
+        bind_to: theoria_result
+
+      - step: return
+        value:
+          theoria_id: "$theoria_id"
+          insight: "$final_insight"
+          source_phasis: "$phasis_id"
+          refined: "$refine_insight"
 
 - eidos: praxis
   id: praxis/nous/confirm-theoria
   data:
-    oikos: nous
+    topos: nous
     name: confirm-theoria
     visible: true
     description: |
@@ -394,11 +575,13 @@ entities:
         value:
           confirmed: true
           theoria_id: "$theoria_id"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/crystallize }
 
 - eidos: praxis
   id: praxis/nous/supersede-theoria
   data:
-    oikos: nous
+    topos: nous
     name: supersede-theoria
     visible: true
     description: |
@@ -473,11 +656,13 @@ entities:
         value:
           new_theoria_id: "$new_theoria_id"
           superseded_id: "$old_theoria_id"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/crystallize }
 
 - eidos: praxis
   id: praxis/nous/list-theoria
   data:
-    oikos: nous
+    topos: nous
     name: list-theoria
     visible: true
     description: |
@@ -521,19 +706,785 @@ entities:
           theoria: "$all_theoria"
 
 # =============================================================================
+# PATTERN EMERGENCE (Knowledge Ladder)
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/nous/detect-patterns
+  data:
+    topos: nous
+    name: detect-patterns
+    visible: true
+    description: |
+      Detect emergent patterns from accumulated theoria.
+
+      Analyzes theoria in a domain to find recurring structures.
+      Uses manteia to identify commonalities and proposes patterns
+      for crystallization. This is how the knowledge ladder grows
+      organically — patterns emerge from accumulated understanding.
+
+      Returns proposed patterns with their source theoria for human
+      review before crystallization.
+    params:
+      - name: domain
+        type: string
+        required: true
+        description: Domain to analyze for patterns
+      - name: min_theoria
+        type: number
+        required: false
+        description: Minimum theoria to analyze (default 3)
+    steps:
+      # Gather theoria in domain
+      - step: gather
+        eidos: theoria
+        bind_to: all_theoria
+
+      - step: filter
+        items: "$all_theoria"
+        condition: "$item.data.domain == '$domain'"
+        bind_to: domain_theoria
+
+      # Default min_theoria to 3
+      - step: set
+        bindings:
+          min_count: "$min_theoria"
+
+      - step: switch
+        cases:
+          - when: "$min_count"
+            then: []
+        default:
+          - step: set
+            bindings:
+              min_count: 3
+
+      # Check we have enough theoria
+      - step: set
+        bindings:
+          theoria_count: "{{ $domain_theoria | length }}"
+
+      - step: switch
+        cases:
+          - when: "$theoria_count < $min_count"
+            then:
+              - step: return
+                value:
+                  status: "insufficient_theoria"
+                  count: "$theoria_count"
+                  required: "$min_count"
+                  message: "Need more theoria before patterns can emerge"
+
+      # Extract insights for analysis
+      - step: set
+        bindings:
+          insights_text: ""
+
+      - step: for_each
+        items: "$domain_theoria"
+        as: t
+        do:
+          - step: set
+            bindings:
+              insights_text: "{{ $insights_text }}\n- {{ $t.data.insight }}"
+
+      # Use manteia to detect patterns
+      - step: call
+        praxis: manteia/governed-inference
+        params:
+          prompt: |
+            Analyze these insights from the domain "$domain" and identify
+            recurring patterns — structural similarities that appear across
+            multiple insights.
+
+            Insights:
+            $insights_text
+
+            For each pattern found, provide:
+            1. A short name
+            2. Description of the pattern
+            3. The structure (sequence of steps or shape)
+            4. When to apply it (recognition trigger)
+            5. Which insights instantiate this pattern (by number)
+
+            Only propose patterns that appear in at least 2 insights.
+            Quality over quantity — propose only clear, actionable patterns.
+          output_schema:
+            type: object
+            properties:
+              patterns:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    description:
+                      type: string
+                    structure:
+                      type: string
+                    when:
+                      type: string
+                    instantiated_by:
+                      type: array
+                      items:
+                        type: number
+                  required: ["name", "description", "structure", "when"]
+              analysis:
+                type: string
+            required: ["patterns"]
+        bind_to: analysis_result
+
+      # Return proposed patterns with source theoria
+      - step: return
+        value:
+          domain: "$domain"
+          theoria_analyzed: "$theoria_count"
+          proposed_patterns: "$analysis_result.patterns"
+          analysis: "$analysis_result.analysis"
+          source_theoria: "$domain_theoria"
+
+- eidos: praxis
+  id: praxis/nous/crystallize-pattern
+  data:
+    topos: nous
+    name: crystallize-pattern
+    visible: true
+    description: |
+      Crystallize an emergent pattern from theoria.
+
+      Creates a pattern entity and bonds it to the theoria that
+      instantiate it. The pattern rises from accumulated understanding
+      to become reusable structure.
+    params:
+      - name: pattern_id
+        type: string
+        required: true
+        description: ID for the new pattern
+      - name: name
+        type: string
+        required: true
+        description: Short name for the pattern
+      - name: description
+        type: string
+        required: true
+        description: What this pattern is
+      - name: structure
+        type: string
+        required: true
+        description: The essential form (often steps)
+      - name: when
+        type: string
+        required: true
+        description: Recognition trigger
+      - name: domain
+        type: string
+        required: true
+        description: Domain this pattern belongs to
+      - name: theoria_ids
+        type: array
+        required: false
+        description: Theoria IDs that instantiate this pattern
+    steps:
+      # Create the pattern
+      - step: compose
+        typos_id: "typos-def-pattern"
+        inputs:
+          id: "$pattern_id"
+          name: "$name"
+          description: "$description"
+          structure: "$structure"
+          when: "$when"
+          domain: "$domain"
+          status: "provisional"
+        bind_to: pattern_entity
+
+      # Bond theoria to pattern via exemplifies
+      - step: switch
+        cases:
+          - when: "$theoria_ids"
+            then:
+              - step: for_each
+                items: "$theoria_ids"
+                as: theoria_id
+                do:
+                  - step: bind
+                    from_id: "$theoria_id"
+                    to_id: "$pattern_id"
+                    desmos: "exemplifies"
+
+      # Index for semantic surfacing
+      - step: index
+        entity_id: "$pattern_id"
+        text: "$domain pattern: $name - $description. When: $when"
+
+      - step: return
+        value:
+          pattern_id: "$pattern_id"
+          name: "$name"
+          domain: "$domain"
+          instantiated_by: "$theoria_ids"
+          status: "provisional"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/crystallize }
+
+# =============================================================================
+# KNOWLEDGE LADDER — Principle, Axiom, Elevation
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/nous/crystallize-principle
+  data:
+    topos: nous
+    name: crystallize-principle
+    visible: true
+    description: |
+      Crystallize a principle from observed patterns.
+
+      Creates a principle entity — normative guidance that says what
+      SHOULD be done. Bonds it to the patterns that ground it.
+      Principles rise from patterns to become reusable guidance.
+    params:
+      - name: principle_id
+        type: string
+        required: true
+        description: ID for the new principle
+      - name: name
+        type: string
+        required: true
+        description: Short name for the principle
+      - name: guidance
+        type: string
+        required: true
+        description: The normative statement — what should be done
+      - name: rationale
+        type: string
+        required: true
+        description: Why this is the right approach
+      - name: domain
+        type: string
+        required: true
+        description: Area of application
+      - name: grounded_in_pattern_ids
+        type: array
+        required: false
+        description: Pattern IDs this principle emerges from
+    steps:
+      - step: assert
+        condition: "$_prosopon"
+        message: "Prosopon required to crystallize a principle"
+
+      # Create the principle
+      - step: compose
+        typos_id: "typos-def-principle"
+        inputs:
+          id: "$principle_id"
+          name: "$name"
+          guidance: "$guidance"
+          rationale: "$rationale"
+          domain: "$domain"
+          status: "provisional"
+        bind_to: principle_entity
+
+      # Bond patterns to principle via grounded-in
+      - step: switch
+        cases:
+          - when: "$grounded_in_pattern_ids"
+            then:
+              - step: for_each
+                items: "$grounded_in_pattern_ids"
+                as: pattern_id
+                do:
+                  - step: bind
+                    from_id: "$pattern_id"
+                    to_id: "$principle_id"
+                    desmos: "grounded-in"
+
+      # Bond to dwelling oikos if available
+      - step: switch
+        cases:
+          - when: "$_oikos"
+            then:
+              - step: bind
+                from_id: "$principle_id"
+                to_id: "$_oikos"
+                desmos: "crystallized-in"
+
+      # Index for semantic surfacing
+      - step: index
+        entity_id: "$principle_id"
+        text: "$domain principle: $name - $guidance"
+
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Crystallized principle: $name — $guidance"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: principle
+            source_id: "$principle_id"
+
+      - step: return
+        value:
+          principle_id: "$principle_id"
+          name: "$name"
+          domain: "$domain"
+          grounded_in: "$grounded_in_pattern_ids"
+          status: "provisional"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/crystallize }
+
+- eidos: praxis
+  id: praxis/nous/crystallize-axiom
+  data:
+    topos: nous
+    name: crystallize-axiom
+    visible: true
+    description: |
+      Crystallize an axiom — a foundational truth.
+
+      Creates an axiom entity with provisional status. Axioms are the
+      bedrock upon which other knowledge stands. Bonds it to the
+      principles that ground it.
+    params:
+      - name: axiom_id
+        type: string
+        required: true
+        description: ID for the new axiom
+      - name: name
+        type: string
+        required: true
+        description: Short name for the axiom
+      - name: statement
+        type: string
+        required: true
+        description: The foundational truth as a clear statement
+      - name: rationale
+        type: string
+        required: true
+        description: Why this is foundational (not derived, but ground)
+      - name: domain
+        type: string
+        required: true
+        description: What domain this axiom grounds
+      - name: grounded_in_principle_ids
+        type: array
+        required: false
+        description: Principle IDs this axiom emerges from
+    steps:
+      - step: assert
+        condition: "$_prosopon"
+        message: "Prosopon required to crystallize an axiom"
+
+      # Create the axiom
+      - step: compose
+        typos_id: "typos-def-axiom"
+        inputs:
+          id: "$axiom_id"
+          name: "$name"
+          statement: "$statement"
+          rationale: "$rationale"
+          domain: "$domain"
+          status: "provisional"
+        bind_to: axiom_entity
+
+      # Bond principles to axiom via grounded-in
+      - step: switch
+        cases:
+          - when: "$grounded_in_principle_ids"
+            then:
+              - step: for_each
+                items: "$grounded_in_principle_ids"
+                as: principle_id
+                do:
+                  - step: bind
+                    from_id: "$principle_id"
+                    to_id: "$axiom_id"
+                    desmos: "grounded-in"
+
+      # Bond to dwelling oikos if available
+      - step: switch
+        cases:
+          - when: "$_oikos"
+            then:
+              - step: bind
+                from_id: "$axiom_id"
+                to_id: "$_oikos"
+                desmos: "crystallized-in"
+
+      # Index for semantic surfacing
+      - step: index
+        entity_id: "$axiom_id"
+        text: "$domain axiom: $name - $statement"
+
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Crystallized axiom: $name — $statement"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: axiom
+            source_id: "$axiom_id"
+
+      - step: return
+        value:
+          axiom_id: "$axiom_id"
+          name: "$name"
+          domain: "$domain"
+          grounded_in: "$grounded_in_principle_ids"
+          status: "provisional"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/constitute }
+
+- eidos: praxis
+  id: praxis/nous/establish-axiom
+  data:
+    topos: nous
+    name: establish-axiom
+    visible: true
+    description: |
+      Establish a provisional axiom as foundational truth.
+
+      Transitions an axiom from provisional to established status.
+      This is a ceremonial act — established axioms become bedrock.
+    params:
+      - name: axiom_id
+        type: string
+        required: true
+        description: The axiom to establish
+    steps:
+      - step: find
+        id: "$axiom_id"
+        bind_to: axiom
+
+      - step: assert
+        condition: "$axiom"
+        message: "Axiom not found: $axiom_id"
+
+      - step: assert
+        condition: '$axiom.data.status == "provisional"'
+        message: "Axiom is not provisional — cannot establish"
+
+      - step: update
+        id: "$axiom_id"
+        data:
+          status: "established"
+
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Axiom established: $axiom.data.name — $axiom.data.statement"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: axiom
+            source_id: "$axiom_id"
+            event: established
+
+      - step: return
+        value:
+          established: true
+          axiom_id: "$axiom_id"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/constitute }
+
+- eidos: praxis
+  id: praxis/nous/elevate-to-pattern
+  data:
+    topos: nous
+    name: elevate-to-pattern
+    visible: true
+    description: |
+      Elevate a theoria to a pattern.
+
+      Promotes a theoria up one rung of the knowledge ladder by
+      creating a new pattern entity grounded in the source theoria.
+    params:
+      - name: source_id
+        type: string
+        required: true
+        description: The theoria ID to elevate from
+      - name: name
+        type: string
+        required: true
+        description: Short name for the new pattern
+      - name: description
+        type: string
+        required: true
+        description: What this pattern is
+      - name: structure
+        type: string
+        required: true
+        description: The essential form
+      - name: when
+        type: string
+        required: true
+        description: Recognition trigger
+      - name: domain
+        type: string
+        required: true
+        description: Area of application
+    steps:
+      - step: find
+        id: "$source_id"
+        bind_to: source
+
+      - step: assert
+        condition: "$source"
+        message: "Source theoria not found: $source_id"
+
+      # Generate pattern ID
+      - step: set
+        bindings:
+          pattern_id: "pattern/$_uuid"
+
+      # Create the pattern
+      - step: compose
+        typos_id: "typos-def-pattern"
+        inputs:
+          id: "$pattern_id"
+          name: "$name"
+          description: "$description"
+          structure: "$structure"
+          when: "$when"
+          domain: "$domain"
+          status: "provisional"
+        bind_to: pattern_entity
+
+      # Bond source theoria to new pattern
+      - step: bind
+        from_id: "$source_id"
+        to_id: "$pattern_id"
+        desmos: "exemplifies"
+
+      # Index for semantic surfacing
+      - step: index
+        entity_id: "$pattern_id"
+        text: "$domain pattern: $name - $description. When: $when"
+
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Elevated theoria to pattern: $name"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: pattern
+            source_id: "$pattern_id"
+            elevated_from: "$source_id"
+
+      - step: return
+        value:
+          pattern_id: "$pattern_id"
+          name: "$name"
+          domain: "$domain"
+          elevated_from: "$source_id"
+          status: "provisional"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/crystallize }
+
+- eidos: praxis
+  id: praxis/nous/elevate-to-principle
+  data:
+    topos: nous
+    name: elevate-to-principle
+    visible: true
+    description: |
+      Elevate a pattern to a principle.
+
+      Promotes a pattern up one rung of the knowledge ladder by
+      creating a new principle entity grounded in the source pattern.
+    params:
+      - name: source_id
+        type: string
+        required: true
+        description: The pattern ID to elevate from
+      - name: name
+        type: string
+        required: true
+        description: Short name for the new principle
+      - name: guidance
+        type: string
+        required: true
+        description: The normative statement
+      - name: rationale
+        type: string
+        required: true
+        description: Why this is the right approach
+      - name: domain
+        type: string
+        required: true
+        description: Area of application
+    steps:
+      - step: find
+        id: "$source_id"
+        bind_to: source
+
+      - step: assert
+        condition: "$source"
+        message: "Source pattern not found: $source_id"
+
+      # Generate principle ID
+      - step: set
+        bindings:
+          principle_id: "principle/$_uuid"
+
+      # Create the principle
+      - step: compose
+        typos_id: "typos-def-principle"
+        inputs:
+          id: "$principle_id"
+          name: "$name"
+          guidance: "$guidance"
+          rationale: "$rationale"
+          domain: "$domain"
+          status: "provisional"
+        bind_to: principle_entity
+
+      # Bond source pattern to new principle
+      - step: bind
+        from_id: "$source_id"
+        to_id: "$principle_id"
+        desmos: "grounded-in"
+
+      # Index for semantic surfacing
+      - step: index
+        entity_id: "$principle_id"
+        text: "$domain principle: $name - $guidance"
+
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Elevated pattern to principle: $name"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: principle
+            source_id: "$principle_id"
+            elevated_from: "$source_id"
+
+      - step: return
+        value:
+          principle_id: "$principle_id"
+          name: "$name"
+          domain: "$domain"
+          elevated_from: "$source_id"
+          status: "provisional"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/crystallize }
+
+- eidos: praxis
+  id: praxis/nous/elevate-to-axiom
+  data:
+    topos: nous
+    name: elevate-to-axiom
+    visible: true
+    description: |
+      Elevate a principle to an axiom.
+
+      Promotes a principle up one rung of the knowledge ladder by
+      creating a new axiom entity grounded in the source principle.
+    params:
+      - name: source_id
+        type: string
+        required: true
+        description: The principle ID to elevate from
+      - name: name
+        type: string
+        required: true
+        description: Short name for the new axiom
+      - name: statement
+        type: string
+        required: true
+        description: The foundational truth as a clear statement
+      - name: rationale
+        type: string
+        required: true
+        description: Why this is foundational
+      - name: domain
+        type: string
+        required: true
+        description: What domain this axiom grounds
+    steps:
+      - step: find
+        id: "$source_id"
+        bind_to: source
+
+      - step: assert
+        condition: "$source"
+        message: "Source principle not found: $source_id"
+
+      # Generate axiom ID
+      - step: set
+        bindings:
+          axiom_id: "axiom/$_uuid"
+
+      # Create the axiom
+      - step: compose
+        typos_id: "typos-def-axiom"
+        inputs:
+          id: "$axiom_id"
+          name: "$name"
+          statement: "$statement"
+          rationale: "$rationale"
+          domain: "$domain"
+          status: "provisional"
+        bind_to: axiom_entity
+
+      # Bond source principle to new axiom
+      - step: bind
+        from_id: "$source_id"
+        to_id: "$axiom_id"
+        desmos: "grounded-in"
+
+      # Index for semantic surfacing
+      - step: index
+        entity_id: "$axiom_id"
+        text: "$domain axiom: $name - $statement"
+
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Elevated principle to axiom: $name"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: axiom
+            source_id: "$axiom_id"
+            elevated_from: "$source_id"
+
+      - step: return
+        value:
+          axiom_id: "$axiom_id"
+          name: "$name"
+          domain: "$domain"
+          elevated_from: "$source_id"
+          status: "provisional"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/constitute }
+
+# =============================================================================
 # INQUIRY OPERATIONS
 # =============================================================================
 
 - eidos: praxis
   id: praxis/nous/open-inquiry
   data:
-    oikos: nous
+    topos: nous
     name: open-inquiry
     visible: true
     description: |
       Open a new inquiry (question).
 
-      Creates an inquiry entity and bonds to persona if available.
+      Creates an inquiry entity and bonds to prosopon if available.
     params:
       - name: inquiry_id
         type: string
@@ -558,13 +1509,13 @@ entities:
           status: "open"
         bind_to: inquiry_entity
 
-      # Bond to persona if available
+      # Bond to prosopon if available
       - step: switch
         cases:
-          - when: "$_persona"
+          - when: "$_prosopon"
             then:
               - step: bind
-                from_id: "$_persona"
+                from_id: "$_prosopon"
                 to_id: "$inquiry_id"
                 desmos: "inquires"
 
@@ -573,11 +1524,13 @@ entities:
           inquiry_id: "$inquiry_id"
           question: "$question"
           status: "open"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/inquire }
 
 - eidos: praxis
   id: praxis/nous/answer-inquiry
   data:
-    oikos: nous
+    topos: nous
     name: answer-inquiry
     visible: true
     description: |
@@ -622,11 +1575,24 @@ entities:
         data:
           status: "answered"
 
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Inquiry resolved: $inquiry.data.question"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: inquiry
+            source_id: "$inquiry_id"
+
       - step: return
         value:
           answered: true
           inquiry_id: "$inquiry_id"
           theoria_id: "$theoria_id"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/inquire }
 
 # =============================================================================
 # SYNTHESIS OPERATIONS
@@ -635,7 +1601,7 @@ entities:
 - eidos: praxis
   id: praxis/nous/synthesize
   data:
-    oikos: nous
+    topos: nous
     name: synthesize
     visible: true
     description: |
@@ -680,11 +1646,24 @@ entities:
             to_id: "$source_id"
             desmos: "synthesizes"
 
+      # Emit phasis for discourse
+      - step: call
+        praxis: logos/emit-phasis
+        params:
+          content: "Synthesis complete: $insight"
+          stance: declaration
+          source_kind: topos
+          metadata:
+            source_eidos: synthesis
+            source_id: "$synthesis_id"
+
       - step: return
         value:
           synthesis_id: "$synthesis_id"
           insight: "$insight"
           sources: "$sources"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/inquire }
 
 # =============================================================================
 # KNOWLEDGE NAVIGATION
@@ -693,7 +1672,7 @@ entities:
 - eidos: praxis
   id: praxis/nous/find-related
   data:
-    oikos: nous
+    topos: nous
     name: find-related
     visible: true
     description: |
@@ -757,7 +1736,7 @@ entities:
 - eidos: praxis
   id: praxis/nous/begin-journey
   data:
-    oikos: nous
+    topos: nous
     name: begin-journey
     visible: true
     description: |
@@ -789,11 +1768,13 @@ entities:
           journey_id: "$journey_id"
           desire: "$desire"
           status: "potential"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/journey }
 
 - eidos: praxis
   id: praxis/nous/embark-journey
   data:
-    oikos: nous
+    topos: nous
     name: embark-journey
     visible: true
     description: |
@@ -821,11 +1802,13 @@ entities:
         value:
           embarked: true
           journey_id: "$journey_id"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/journey }
 
 - eidos: praxis
   id: praxis/nous/add-waypoint
   data:
-    oikos: nous
+    topos: nous
     name: add-waypoint
     visible: true
     description: |
@@ -879,11 +1862,13 @@ entities:
           journey_id: "$journey_id"
           ordinal: "$ordinal"
           status: "pending"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/journey }
 
 - eidos: praxis
   id: praxis/nous/reach-waypoint
   data:
-    oikos: nous
+    topos: nous
     name: reach-waypoint
     visible: true
     description: |
@@ -947,11 +1932,13 @@ entities:
           reached: true
           waypoint_id: "$waypoint_id"
           artifact_id: "$artifact_id"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/journey }
 
 - eidos: praxis
   id: praxis/nous/complete-journey
   data:
-    oikos: nous
+    topos: nous
     name: complete-journey
     visible: true
     description: |
@@ -979,11 +1966,13 @@ entities:
         value:
           completed: true
           journey_id: "$journey_id"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/journey }
 
 - eidos: praxis
   id: praxis/nous/abandon-journey
   data:
-    oikos: nous
+    topos: nous
     name: abandon-journey
     visible: true
     description: |
@@ -1017,11 +2006,13 @@ entities:
           abandoned: true
           journey_id: "$journey_id"
           reason: "$reason"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/journey }
 
 - eidos: praxis
   id: praxis/nous/list-journeys
   data:
-    oikos: nous
+    topos: nous
     name: list-journeys
     visible: true
     description: |
@@ -1053,7 +2044,7 @@ entities:
 - eidos: praxis
   id: praxis/nous/get-journey-waypoints
   data:
-    oikos: nous
+    topos: nous
     name: get-journey-waypoints
     visible: true
     description: |
@@ -1091,7 +2082,7 @@ entities:
 - eidos: praxis
   id: praxis/nous/call-praxis
   data:
-    oikos: nous
+    topos: nous
     name: call-praxis
     visible: true
     description: |
@@ -1100,18 +2091,18 @@ entities:
       Use this to call praxeis that aren't exposed as direct MCP tools.
       Discover praxeis via find/surface, then invoke via this meta-praxis.
 
-      Example: call-praxis(praxis_id: "politeia/create-circle", params: {...})
+      Example: call-praxis(praxis_id: "politeia/create-oikos", params: {...})
     params:
       - name: praxis_id
         type: string
         required: true
-        description: The praxis to invoke (e.g., "politeia/create-circle" or full "praxis/politeia/create-circle")
+        description: The praxis to invoke (e.g., "politeia/create-oikos" or full "praxis/politeia/create-oikos")
       - name: params
         type: object
         required: false
         description: Parameters to pass to the praxis
     steps:
-      # Normalize praxis_id (allow both "oikos/name" and "praxis/oikos/name")
+      # Normalize praxis_id (allow both "topos/name" and "praxis/topos/name")
       - step: set
         bindings:
           normalized_id: "$praxis_id"
@@ -1124,6 +2115,8 @@ entities:
 
       - step: return
         value: "$result"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/invoke }
 
 # =============================================================================
 # NOUS ACTIVATION (Composed Inference)
@@ -1132,7 +2125,7 @@ entities:
 - eidos: praxis
   id: praxis/nous/gather-context
   data:
-    oikos: nous
+    topos: nous
     name: gather-context
     visible: false
     description: |
@@ -1206,7 +2199,7 @@ entities:
 - eidos: praxis
   id: praxis/nous/invoke
   data:
-    oikos: nous
+    topos: nous
     name: invoke
     visible: true
     description: |
@@ -1216,12 +2209,12 @@ entities:
       1. Gather context per pattern specification
       2. Render system and user prompts from templates
       3. Call infer stoicheion
-      4. Parse yield (response, expression_mode, actions, mutations)
+      4. Parse yield (response, phasis_stance, actions, mutations)
       5. Execute yielded actions
       6. Apply yielded mutations
       7. Create invocation record
 
-      Expression modes determine how yields should be received:
+      Phasis stances determine how yields should be received:
       - suggestion: Soft, exploratory — take it or leave it
       - invitation: Opening a door — can be declined
       - inquiry: Seeking understanding — calls for reflection
@@ -1239,7 +2232,7 @@ entities:
         type: string
         required: true
         description: The input to process (what triggered activation)
-      - name: expression_mode
+      - name: phasis_stance
         type: string
         required: false
         description: How the yield should be received (suggestion, invitation, inquiry, request, proposal, declaration). Default declaration.
@@ -1278,23 +2271,14 @@ entities:
                     additional: "$additional_context"
 
       # Compose system prompt from template
-      - step: render
-        template: "$pattern.data.system_template"
-        context:
-          theoria: "$context.theoria"
-          recent: "$context.recent"
-          additional: "$context.additional"
-        bind_to: system_prompt
+      - step: set
+        bindings:
+          system_prompt: "{{ eval_string($pattern.data.system_template, { theoria: $context.theoria, recent: $context.recent, additional: $context.additional }) }}"
 
       # Compose user prompt from template
-      - step: render
-        template: "$pattern.data.user_template"
-        context:
-          utterance: "$utterance"
-          theoria: "$context.theoria"
-          recent: "$context.recent"
-          additional: "$context.additional"
-        bind_to: user_prompt
+      - step: set
+        bindings:
+          user_prompt: "{{ eval_string($pattern.data.user_template, { utterance: $utterance, theoria: $context.theoria, recent: $context.recent, additional: $context.additional }) }}"
 
       # Call governed inference (CE4: via governed-inference instead of raw infer)
       - step: call
@@ -1306,19 +2290,19 @@ entities:
           max_tokens: "$pattern.data.max_tokens"
         bind_to: response
 
-      # Default expression_mode to declaration if not provided
+      # Default phasis_stance to declaration if not provided
       - step: set
         bindings:
-          effective_expression_mode: "$expression_mode"
+          effective_phasis_stance: "$phasis_stance"
 
       - step: switch
         cases:
-          - when: "$effective_expression_mode"
+          - when: "$effective_phasis_stance"
             then: []
         default:
           - step: set
             bindings:
-              effective_expression_mode: "declaration"
+              effective_phasis_stance: "declaration"
 
       # Parse yield - for now, treat entire response as text
       # In future, can parse structured JSON yields
@@ -1326,7 +2310,7 @@ entities:
         bindings:
           yield:
             response: "$response"
-            expression_mode: "$effective_expression_mode"
+            phasis_stance: "$effective_phasis_stance"
             actions: []
             mutations: []
 
@@ -1348,11 +2332,13 @@ entities:
         value:
           invocation_id: "$invocation.id"
           yield: "$yield"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/invoke }
 
 - eidos: praxis
   id: praxis/nous/navigate
   data:
-    oikos: nous
+    topos: nous
     name: navigate
     visible: true
     description: |
@@ -1397,39 +2383,57 @@ entities:
             bindings:
               max_iter: 5
 
-      # Navigation loop
-      - step: while
-        condition: "not $done and $iteration < $max_iter"
+      # Build bounded iteration range [0, 1, 2, ... max_iter-1]
+      - step: set
+        bindings:
+          iter_range: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+      # Limit range to max_iter
+      - step: limit
+        items: "$iter_range"
+        count: "$max_iter"
+        bind_to: iter_range
+
+      # Navigation loop (bounded by iter_range)
+      - step: for_each
+        items: "$iter_range"
+        as: iter_idx
         do:
-          # Invoke with goal context
-          - step: call
-            praxis: nous/invoke
-            params:
-              pattern_id: "$pattern_id"
-              utterance: "$goal"
-              additional_context:
-                goal: "$goal"
-                iteration: "$iteration"
-                previous_results: "$results"
-            bind_to: step_result
-
-          # Append result
-          - step: set
-            bindings:
-              results: "$results + [$step_result]"
-
-          # Check if done (look for done flag in yield)
+          # Skip if already done
           - step: switch
             cases:
-              - when: "$step_result.yield.done"
-                then:
-                  - step: set
-                    bindings:
-                      done: true
+              - when: "$done"
+                then: []
             default:
+              # Invoke with goal context
+              - step: call
+                praxis: nous/invoke
+                params:
+                  pattern_id: "$pattern_id"
+                  utterance: "$goal"
+                  additional_context:
+                    goal: "$goal"
+                    iteration: "$iteration"
+                    previous_results: "$results"
+                bind_to: step_result
+
+              # Append result
               - step: set
                 bindings:
-                  iteration: "$iteration + 1"
+                  results: "$results + [$step_result]"
+
+              # Check if done (look for done flag in yield)
+              - step: switch
+                cases:
+                  - when: "$step_result.yield.done"
+                    then:
+                      - step: set
+                        bindings:
+                          done: true
+                default:
+                  - step: set
+                    bindings:
+                      iteration: "$iteration + 1"
 
       - step: return
         value:
@@ -1438,6 +2442,8 @@ entities:
           done: "$done"
           final_yield: "$step_result.yield"
           all_results: "$results"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/invoke }
 
 # =============================================================================
 # REFLEX RESPONSE PRAXEIS
@@ -1446,14 +2452,14 @@ entities:
 - eidos: praxis
   id: praxis/nous/index-entity
   data:
-    oikos: nous
+    topos: nous
     name: index-entity
     visible: false  # Internal, invoked by reflexes
     tier: 3  # Requires embedding generation
     description: |
       Index entity for semantic search.
 
-      Called by theoria/expression creation reflexes.
+      Called by theoria/phasis creation reflexes.
       Generates embedding and indexes for nous/surface queries.
     params:
       - name: entity_id
@@ -1473,7 +2479,7 @@ entities:
               - step: set
                 bindings:
                   text_to_embed: "$entity.data.insight"
-          - when: '$entity.eidos == "expression"'
+          - when: '$entity.eidos == "phasis"'
             then:
               - step: set
                 bindings:
@@ -1498,3 +2504,45 @@ entities:
           indexed: true
           entity_id: "$entity_id"
           entity_eidos: "$entity.eidos"
+
+# =============================================================================
+# ENTITY MUTATION
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/nous/update-entity
+  data:
+    topos: nous
+    name: update-entity
+    visible: true
+    tier: 2
+    description: |
+      Update an entity's data fields.
+
+      Merges the provided data with existing entity data —
+      fields not specified are preserved. The entity must already exist.
+    params:
+      - name: entity_id
+        type: string
+        required: true
+        description: ID of the entity to update
+      - name: data
+        type: object
+        required: true
+        description: Data fields to merge into the entity
+    steps:
+      - step: find
+        id: "$entity_id"
+        bind_to: existing
+
+      - step: assert
+        condition: "$existing"
+        message: "Entity not found: $entity_id"
+
+      - step: update
+        id: "$entity_id"
+        data: "$data"
+        bind_to: updated
+
+      - step: return
+        value: "$updated"

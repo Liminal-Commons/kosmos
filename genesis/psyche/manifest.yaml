@@ -1,23 +1,23 @@
-# Oikos Manifest: Psyche
-# ψυχή — the experiencing self — attention, intention, mood, thyra, prospect, kairos
+# Topos Manifest: Psyche
+# ψυχή — the experiencing self — attention, intention, mood, perceptual-field, prospect, kairos
 #
-# Manifest v2.1 — oikos metadata for entity composition
+# Manifest v2.1 — topos metadata for entity composition
 
 format_version: "2.1"
-oikos_id: psyche
+topos_id: psyche
 version: "0.2.0"
 
-# Oikos metadata (v2.1)
-oikos_name: Psyche
-oikos_description: |
+# Topos metadata (v2.1)
+topos_name: Psyche
+topos_description: |
   The experiencing self. Provides attention (where focus rests),
   intention (what is being pursued), mood (how the world shows up),
-  thyra (the portal through which experience flows), and temporal
-  texture (prospect and kairos).
-oikos_scale: psyche
+  perceptual-field (awareness of the portal through which experience flows),
+  and temporal texture (prospect and kairos).
+topos_scale: psyche
 
 # Development experience metadata
-oikos_category: domain
+topos_category: domain
 surfaces_provided: []   # Models experiential state
 surfaces_consumed: []   # Foundational experiential layer
 
@@ -28,8 +28,12 @@ content_paths:
     content_types: [desmos]
   - path: praxeis/
     content_types: [praxis]
-  - path: entities/
+  - path: typos/
+    content_types: [typos]
+  - path: render-specs/
     content_types: [render-spec]
+  - path: modes/
+    content_types: [mode]
 
 requires_dynamis:
   - db.arise
@@ -45,11 +49,11 @@ provides:
     - attention
     - intention
     - mood
-    - thyra
+    - perceptual-field
     - prospect
     - kairos
 
-  # Oikos-centric rendering: psyche owns presentation for experiential state
+  # Topos-centric rendering: psyche owns presentation for experiential state
   renderable:
     - eidos: attention
       description: "Focus indicators and attention beam display"
@@ -57,8 +61,8 @@ provides:
       description: "Goal cards and intention lists"
     - eidos: mood
       description: "Attunement indicators"
-    - eidos: thyra
-      description: "Portal interface status cards"
+    - eidos: perceptual-field
+      description: "Portal awareness status cards"
     - eidos: prospect
       description: "Anticipated possibility cards"
     - eidos: kairos
@@ -87,10 +91,10 @@ provides:
     # Mood
     - psyche/disclose-mood
     - psyche/sense-mood
-    # Thyra
-    - psyche/open-thyra
-    - psyche/close-thyra
-    - psyche/list-thyrai
+    # Perceptual Field (portal awareness)
+    - psyche/open-perceptual-field
+    - psyche/close-perceptual-field
+    - psyche/list-perceptual-fields
     # Prospect and Kairos
     - psyche/foresee
     - psyche/recognize-kairos

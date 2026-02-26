@@ -8,7 +8,7 @@ Ekdosis addresses **the gap between private and public** — how content moves f
 
 Without ekdosis:
 - Oikos packages have no versioning
-- Content cannot be shared between circles
+- Content cannot be shared between oikoi
 - Updates have no provenance
 - Distribution is manual
 
@@ -16,36 +16,36 @@ With ekdosis:
 - **Baking**: oikos-dev → oikos-prod (frozen, hashable)
 - **Signing**: Cryptographic attestation of build provenance
 - **Publishing**: Versioned releases to channels
-- **Distribution**: Circles receive oikoi via bonds
+- **Distribution**: Oikoi receive topoi via bonds
 
-The central concept is the **release** — a versioned, signed, distributable unit of content. Releases flow through circles to members via the reconciler.
+The central concept is the **release** — a versioned, signed, distributable unit of content. Releases flow through oikoi to members via the reconciler.
 
-## Circle Context
+## Oikos Context
 
-### Self Circle
+### Self Oikos
 
 A solitary dweller uses ekdosis to:
-- Package their personal oikoi for backup
+- Package their personal topoi for backup
 - Create local releases for version tracking
 - Sign content for self-attestation
 - Maintain release history
 
 Self-publication enables personal version control.
 
-### Peer Circle
+### Peer Oikos
 
 Collaborators use ekdosis to:
-- Share oikos packages between circle members
+- Share topos packages between oikos members
 - Coordinate release channels (stable, beta)
 - Verify each other's releases via signatures
-- Receive updates through circle distribution
+- Receive updates through oikos distribution
 
 Peer distribution enables collaborative development.
 
-### Commons Circle
+### Commons Oikos
 
 A commons uses ekdosis to:
-- Publish oikoi to the broader community
+- Publish topoi to the broader community
 - Maintain multiple release channels
 - Provide attestation for public trust
 - Enable fork-and-extend workflows
@@ -64,7 +64,7 @@ A versioned publication of an oikos-prod.
 - `channel` — stable, beta, alpha, canary
 - `notes` — release notes
 - `published_at` — timestamp
-- `publisher_persona` — who published
+- `publisher_prosopon` — who published
 
 **Lifecycle:**
 - Arise: publish-release creates after bake/sign/upload
@@ -92,7 +92,7 @@ A publication channel with update semantics.
 Cryptographic attestation of build provenance.
 
 **Fields:**
-- `builder_persona` — who built
+- `builder_prosopon` — who built
 - `build_timestamp` — when built
 - `source_hash` — hash of oikos-dev content
 - `output_hash` — hash of oikos-prod content
@@ -103,9 +103,9 @@ Cryptographic attestation of build provenance.
 
 ### publishes
 
-Persona publishes an oikos-release.
+Prosopon publishes an oikos-release.
 
-- **From:** persona
+- **From:** prosopon
 - **To:** oikos-release
 - **Cardinality:** one-to-many
 - **Traversal:** Find releases by a publisher
@@ -148,10 +148,10 @@ Attestation covers an oikos-prod.
 
 ### distributed-by
 
-Oikos-release is distributed through a circle.
+Oikos-release is distributed through an oikos.
 
 - **From:** oikos-release
-- **To:** circle
+- **To:** oikos
 - **Cardinality:** many-to-many
 - **Traversal:** Find distribution channels
 
@@ -171,7 +171,7 @@ Upload oikos-prod content to storage (R2). Populates fetch_url.
 
 ### publish-release
 
-Create a release and optionally distribute via circles.
+Create a release and optionally distribute via oikoi.
 
 ### list-releases
 
@@ -188,8 +188,8 @@ Verify a release's signatures and hashes.
 Publication capability — can bake, sign, upload, and publish releases.
 
 - **Grants:** bake-oikos, sign-oikos, upload-oikos, publish-release, verify-release, list-releases
-- **Scope:** circle
-- **Rationale:** Publishing affects what circle members receive; requires trust
+- **Scope:** oikos
+- **Rationale:** Publishing affects what oikos members receive; requires trust
 
 ## Embodiment
 
@@ -210,7 +210,7 @@ When sense-body gathers ekdosis state:
 
 ```yaml
 publication:
-  publishable_oikoi: 2
+  publishable_topoi: 2
   pending_releases: 1
   channels_available: [stable, beta]
   recent_publications: 3
@@ -225,17 +225,17 @@ An ekdosis reconciler would surface:
 - **Ready to publish** — "oikos-dev/my-oikos is ready to publish"
 - **New version available** — "ekdosis 0.2.0 available (you have 0.1.0)"
 - **Signature expired** — "Release signature older than 90 days"
-- **Distribution opportunity** — "3 circles could receive this release"
+- **Distribution opportunity** — "3 oikoi could receive this release"
 
 ## Compound Leverage
 
-### amplifies oikos
+### amplifies topos
 
-Oikos packages are what ekdosis publishes. The oikos-dev → oikos-prod flow.
+Topos packages are what ekdosis publishes. The oikos-dev → oikos-prod flow.
 
 ### amplifies dynamis
 
-Dynamis handles binary releases (Thyra app). Ekdosis handles content releases (oikoi). Complementary territories.
+Dynamis handles binary releases (Thyra app). Ekdosis handles content releases (topoi). Complementary territories.
 
 ### amplifies hypostasis
 
@@ -243,7 +243,7 @@ Signing requires keyring. Publisher identity traces through bonds.
 
 ### amplifies politeia
 
-Circle distribution uses circle membership. Attainments gate publishing.
+Oikos distribution uses oikos membership. Attainments gate publishing.
 
 ### amplifies propylon
 
@@ -276,15 +276,15 @@ Authentication via session. Signing key from keyring.
        │ publish-release
        ▼
 ┌──────────────┐     ┌─────────────┐
-│ oikos-release│────►│   circle    │ (distributed-by bond)
+│ oikos-release│────►│   oikos     │ (distributed-by bond)
 └──────────────┘     └─────────────┘
 ```
 
 ## Theoria
 
-### T18: Oikos embodiment requires body-schema contribution
+### T18: Topos embodiment requires body-schema contribution
 
-When an animus has the capability to publish, sense-body should reflect this. Capabilities become visible through the body, not just through explicit queries.
+When a parousia has the capability to publish, sense-body should reflect this. Capabilities become visible through the body, not just through explicit queries.
 
 ### T19: Reconcilers surface opportunities, not just drift
 
@@ -302,7 +302,7 @@ Share oikos-dev (with generation specs) for others to bake locally with their ow
 
 ### Differential Updates
 
-Only transfer changed entities, not entire oikos packages.
+Only transfer changed entities, not entire topos packages.
 
 ### Rollback
 
@@ -310,9 +310,9 @@ Revert to previous release via succeeds chain.
 
 ### Announcements
 
-Notify circle members of new releases via expressions.
+Notify oikos members of new releases via phaseis.
 
 ---
 
 *Composed in service of the kosmogonia.*
-*Publication makes private public. Circles carry content to members.*
+*Publication makes private public. Oikoi carry content to members.*

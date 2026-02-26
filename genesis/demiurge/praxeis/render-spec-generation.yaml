@@ -1,0 +1,236 @@
+# Render-Spec Generation Praxeis
+# ================================
+#
+# The generative spiral extended to thyra presentation.
+# Pattern: compose inference context → governed-inference → validate → actualize
+#
+# Traces to: genesis/demiurge/THYRA-AWARENESS.md
+# Traces to: genesis/demiurge/RENDER-SPEC-GUIDE.md
+
+entities:
+
+# =============================================================================
+# GENERATE — Compose inference context → call governed-inference
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/demiurge/generate-render-spec
+  data:
+    topos: demiurge
+    name: generate-render-spec
+    visible: true
+    tier: 3
+    description: |
+      Generate a render-spec for an eidos using the widget vocabulary.
+
+      Surfaces target eidos fields, widget vocabulary, and existing render-spec
+      exemplars into the inference context. Returns an artifact containing the
+      generated render-spec, ready for review and actualization.
+    params:
+      - name: eidos_name
+        type: string
+        required: true
+        description: The eidos to create a render-spec for
+      - name: variant
+        type: string
+        required: true
+        description: "Render variant: card, list-item, detail, panel"
+      - name: purpose
+        type: string
+        required: true
+        description: What this render-spec should accomplish
+      - name: interactive
+        type: boolean
+        required: false
+        default: false
+        description: Include click handlers for actions
+      - name: evaluate
+        type: boolean
+        required: false
+        default: true
+        description: Whether to evaluate output against criteria
+    steps:
+      # 1. Find target eidos → get field definitions
+      - step: find
+        id: "eidos/{{ eidos_name }}"
+        bind_to: target_eidos
+
+      - step: assert
+        condition: "$target_eidos"
+        message: "Eidos not found: eidos/$eidos_name"
+
+      - step: set
+        bindings:
+          eidos_fields: "{{ target_eidos.data.fields | yaml_encode }}"
+
+      # 2. Gather example render-specs of same variant
+      - step: gather
+        eidos: render-spec
+        bind_to: all_specs
+
+      - step: filter
+        in: "$all_specs"
+        as: spec
+        condition: "$spec.data.variant == '$variant'"
+        limit: 3
+        bind_to: matching_specs
+
+      - step: set
+        bindings:
+          examples_yaml: "{{ matching_specs | yaml_encode }}"
+
+      # 3. Compose inference context
+      - step: compose
+        typos_id: typos-inference-render-spec
+        inputs:
+          eidos_name: "$eidos_name"
+          variant: "$variant"
+          purpose: "$purpose"
+          interactive: "$interactive"
+          eidos_fields: "$eidos_fields"
+          example_specs: "$examples_yaml"
+        bind_to: context
+
+      # 4. Call governed inference
+      - step: call
+        praxis: manteia/governed-inference
+        params:
+          prompt: "$context.data.request"
+          system_prompt: "$context.data.role"
+          output_schema: "$context.data.output_schema"
+          evaluate: "$evaluate"
+          criteria:
+            - name: widget_validity
+              description: "Does it use only valid widget types from the vocabulary?"
+              weight: 1.0
+            - name: binding_correctness
+              description: "Are entity bindings {field} and form bindings $form.field used correctly?"
+              weight: 1.0
+            - name: field_coverage
+              description: "Does it display the most important fields from the eidos?"
+              weight: 0.8
+            - name: variant_match
+              description: "Does the structure match the requested variant conventions?"
+              weight: 0.6
+        bind_to: generated
+
+      # 5. Create artifact with generated content
+      - step: compose
+        typos_id: typos-def-artifact
+        inputs:
+          id: "artifact/render-spec/$eidos_name-$variant"
+          title: "Render-spec: $eidos_name-$variant"
+          kind: definition
+          content: "$generated.content"
+        bind_to: artifact
+
+      # 6. Return
+      - step: return
+        value:
+          artifact: "$artifact"
+          render_spec: "$generated.content"
+          verdict: "$generated.verdict"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/develop }
+
+# =============================================================================
+# VALIDATE — Check render-spec structure and widget references
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/demiurge/validate-render-spec
+  data:
+    topos: demiurge
+    name: validate-render-spec
+    visible: true
+    tier: 1
+    description: |
+      Validate a render-spec for correctness.
+
+      Checks:
+      - Has required fields (layout, target_eidos, variant)
+      - Layout is a non-empty array
+      - Widget nodes have widget property
+    params:
+      - name: render_spec
+        type: object
+        required: true
+        description: The render-spec entity data to validate
+    steps:
+      # Basic structure checks
+      - step: assert
+        condition: "$render_spec.data.layout"
+        message: "render-spec must have layout array"
+
+      - step: assert
+        condition: "$render_spec.data.target_eidos"
+        message: "render-spec must declare target_eidos"
+
+      - step: assert
+        condition: "$render_spec.data.variant"
+        message: "render-spec must declare variant"
+
+      - step: return
+        value:
+          valid: true
+          id: "$render_spec.id"
+
+# =============================================================================
+# ACTUALIZE — Create render-spec entity from generated artifact
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/demiurge/actualize-render-spec
+  data:
+    topos: demiurge
+    name: actualize-render-spec
+    visible: true
+    tier: 2
+    description: |
+      Actualize a generated render-spec artifact into the kosmos.
+
+      Takes an artifact containing a render-spec definition (from
+      generate-render-spec) and creates the actual render-spec entity.
+    params:
+      - name: artifact_id
+        type: string
+        required: true
+        description: ID of the artifact containing the render-spec definition
+    steps:
+      # 1. Get the artifact
+      - step: find
+        id: "$artifact_id"
+        bind_to: artifact
+
+      - step: assert
+        condition: "$artifact"
+        message: "Artifact not found: $artifact_id"
+
+      # 2. Extract the render-spec content
+      - step: set
+        bindings:
+          spec: "$artifact.data.content"
+
+      # 3. Create the render-spec entity
+      # Exception: end-of-pipeline persist. Content composed by prior LLM generation steps.
+      - step: arise
+        internal: true
+        eidos: render-spec
+        id: "$spec.id"
+        data: "$spec.data"
+        bind_to: entity
+
+      # 4. Bond provenance
+      - step: bind
+        from_id: "$entity.id"
+        to_id: "$artifact_id"
+        desmos: composed-from
+
+      # 5. Return
+      - step: return
+        value:
+          status: actualized
+          entity_id: "$entity.id"
+          artifact_id: "$artifact_id"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/develop }

@@ -36,10 +36,10 @@ entities:
       published_at:
         type: timestamp
         required: true
-      publisher_persona:
+      publisher_prosopon:
         type: string
         required: true
-        description: "Persona ID of the publisher"
+        description: "Prosopon ID of the publisher"
 
 - eidos: eidos
   id: eidos/release-channel
@@ -73,10 +73,10 @@ entities:
       Cryptographic attestation of build provenance.
       Provides verifiable proof of who built what, when, and from what source.
     fields:
-      builder_persona:
+      builder_prosopon:
         type: string
         required: true
-        description: "Persona ID of the builder"
+        description: "Prosopon ID of the builder"
       build_timestamp:
         type: timestamp
         required: true
@@ -142,12 +142,12 @@ entities:
   data:
     name: publish
     description: |
-      Capability to publish oikoi to circles.
+      Capability to publish topoi to oikoi.
       Grants access to the bake → sign → upload → publish flow.
-    oikos: ekdosis
-    scope: circle
-    grants:
-      - praxis/ekdosis/bake-oikos
-      - praxis/ekdosis/sign-oikos
-      - praxis/ekdosis/upload-oikos
-      - praxis/ekdosis/publish-release
+    topos: ekdosis
+    scope: oikos
+  bonds:
+    - { desmos: grants-praxis, to: praxis/ekdosis/bake-oikos }
+    - { desmos: grants-praxis, to: praxis/ekdosis/sign-oikos }
+    - { desmos: grants-praxis, to: praxis/ekdosis/upload-oikos }
+    - { desmos: grants-praxis, to: praxis/ekdosis/publish-release }

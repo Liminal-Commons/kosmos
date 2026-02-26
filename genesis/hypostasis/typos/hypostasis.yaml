@@ -1,0 +1,80 @@
+# Hypostasis Typos — Identity & Substrate Replication
+#
+# Typos for the hypostasis (identity/keys/replication) domain.
+# Genesis records, snapshots, keyrings, credentials.
+
+entities:
+
+# =============================================================================
+# HYPOSTASIS (IDENTITY/KEYS/REPLICATION)
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-genesis-record
+  data:
+    name: genesis-record
+    description: |
+      Create a multi-signature genesis record.
+
+      Genesis records use threshold cryptography (3-of-5) to establish
+      constitutional authenticity. No single party can forge genesis.
+    target_eidos: genesis-record
+    defaults:
+      threshold: 3
+      verified: false
+    bonds:
+      - desmos: belongs-to
+        from_self: true
+        to_literal: topos/hypostasis
+
+- eidos: typos
+  id: typos-def-snapshot
+  data:
+    name: snapshot
+    description: |
+      Create a state snapshot for backup/recovery.
+
+      Snapshots are phoreta bundles capturing the full state of an oikos
+      at a point in time, signed by the creating prosopon.
+    target_eidos: artifact
+    slots:
+      oikos_id:
+        type: string
+        required: true
+        description: Oikos to snapshot
+      include_embeddings:
+        type: boolean
+        required: false
+        default: false
+        description: Whether to include embedding vectors
+    bonds:
+      - desmos: belongs-to
+        from_self: true
+        to_literal: topos/hypostasis
+
+- eidos: typos
+  id: typos-def-kleidoura
+  data:
+    name: kleidoura
+    description: "Compose a kleidoura entity (encrypted keyring)"
+    target_eidos: kleidoura
+
+- eidos: typos
+  id: typos-def-credential
+  data:
+    name: credential
+    description: "Compose a credential entity"
+    target_eidos: credential
+
+- eidos: typos
+  id: typos-def-ssh-credential
+  data:
+    name: ssh-credential
+    description: |
+      Compose an SSH credential for remote node access.
+      Used by manifest-deployment for nixos-rebuild actuality mode.
+    target_eidos: ssh-credential
+    defaults:
+      auth_method: agent
+      port: 22
+      user: root

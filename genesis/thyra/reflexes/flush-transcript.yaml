@@ -1,0 +1,39 @@
+# Flush Transcript Reflex
+# When transcriber.transcript changes (while active), flush to accumulation.
+#
+# This replaces the composition cascade (depends-on bond) with an explicit
+# reflex. Content flows: transcriber.transcript → flush praxis → accumulation.
+#
+# Provenance: PROMPT-LITERAL-FILL-ACCUMULATION.md Phase 2
+
+entities:
+
+  # Trigger: fires when transcriber entity is updated with non-empty transcript
+  - eidos: trigger
+    id: trigger/thyra/flush-transcript
+    data:
+      name: flush-transcript
+      description: |
+        Fires when a transcriber entity is updated with non-empty transcript.
+        The condition prevents re-firing after the flush praxis clears the buffer.
+      enabled: true
+      condition: '$entity.data.transcript != ""'
+    bonds:
+      - { desmos: matches-event, to: entity-mutation/updated }
+      - { desmos: filters-eidos, to: eidos/transcriber }
+
+  # Reflex: responds to transcript changes by flushing to accumulation
+  - eidos: reflex
+    id: reflex/thyra/flush-transcript
+    data:
+      name: flush-transcript
+      description: |
+        When a transcriber entity is updated, invoke flush-transcript
+        to move transcript buffer content into the accumulation's
+        literal composition input. The praxis handles empty-check
+        and clears the buffer after flush.
+      enabled: true
+      scope: global
+    bonds:
+      - { desmos: triggered-by, to: trigger/thyra/flush-transcript }
+      - { desmos: responds-with, to: praxis/thyra/flush-transcript }

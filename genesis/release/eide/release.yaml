@@ -65,7 +65,7 @@ entities:
         created_by:
           type: string
           required: false
-          description: "Persona ID who created this release"
+          description: "Prosopon ID who created this release"
       actuality:
         mode: object-storage
         provider: r2
@@ -184,25 +184,26 @@ entities:
       description: |
         Release management capability — creating and tracking releases.
         Enables creating releases, registering artifacts, and marking built.
-      oikos: release
-      scope: circle
-      grants:
-        - praxis/release/create-release
-        - praxis/release/register-artifact
-        - praxis/release/mark-built
-        - praxis/release/list-releases
-        - praxis/release/get-release
+      topos: release
+      scope: oikos
+    bonds:
+      - { desmos: grants-praxis, to: praxis/release/create-release }
+      - { desmos: grants-praxis, to: praxis/release/register-artifact }
+      - { desmos: grants-praxis, to: praxis/release/mark-built }
+      - { desmos: grants-praxis, to: praxis/release/list-releases }
+      - { desmos: grants-praxis, to: praxis/release/get-release }
 
   - eidos: attainment
-    id: attainment/distribute
+    id: attainment/publish-release
     data:
-      name: distribute
+      name: publish-release
       description: |
-        Distribution capability — uploading releases to channels.
+        Release distribution capability — uploading releases to channels.
         Tier-3 operations that manifest artifacts into external storage.
-      oikos: release
-      scope: circle
-      grants:
-        - praxis/release/distribute
-        - praxis/release/sense-release
-        - praxis/release/reconcile-release
+        (Renamed from distribute to disambiguate from politeia/attainment/distribute: topos distribution)
+      topos: release
+      scope: oikos
+    bonds:
+      - { desmos: grants-praxis, to: praxis/release/distribute }
+      - { desmos: grants-praxis, to: praxis/release/sense-release }
+      - { desmos: grants-praxis, to: praxis/release/reconcile-release }

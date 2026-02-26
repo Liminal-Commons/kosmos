@@ -1,22 +1,25 @@
-# Oikos Manifest: Soma
+# Topos Manifest: Soma
 # The embodied — presence, sensing, and the interface with world.
 #
-# Manifest v2.1 — oikos metadata for entity composition
+# Manifest v2.1 — topos metadata for entity composition
 
 format_version: "2.1"
-oikos_id: soma
+topos_id: soma
 version: "0.1.0"
 
-# Oikos metadata (v2.1)
-oikos_name: Soma
-oikos_description: |
+# Topos metadata (v2.1)
+topos_name: Soma
+topos_description: |
   The embodied. Presence, sensing, and the interface with world.
   Manages channels, percepts, signals, and the body schema.
-oikos_scale: soma
+topos_scale: soma
 
 # Development experience metadata
-oikos_category: infrastructure
-surfaces_provided: []   # Foundational presence layer
+topos_category: infrastructure
+surfaces_provided:
+  - kosmos-instance
+  - node
+  - service-instance
 surfaces_consumed: []   # Provides channels/body-schema infrastructure
 
 content_paths:
@@ -26,8 +29,20 @@ content_paths:
     content_types: [desmos]
   - path: praxeis/
     content_types: [praxis]
+  - path: typos/
+    content_types: [typos]
   - path: entities/
-    content_types: [mcp-bridge-config]
+    content_types: [mcp-bridge-config, audio-source, transcriber, provider, model-tier]
+  - path: modes/
+    content_types: [mode]
+  - path: render-specs/
+    content_types: [render-spec]
+  - path: reflexes/
+    content_types: [trigger, reflex]
+  - path: reconcilers/
+    content_types: [reconciler]
+  - path: daemons/
+    content_types: [daemon]
 
 requires_dynamis:
   # Database operations for entity/bond management
@@ -40,8 +55,8 @@ requires_dynamis:
 
 provides:
   eide:
-    # NOTE: animus is foundational (defined in spora.yaml stage-2-presence)
-    # Soma provides praxeis that operate on animus, but doesn't define it
+    # NOTE: parousia is foundational (defined in spora.yaml stage-2-presence)
+    # Soma provides praxeis that operate on parousia, but doesn't define it
     - channel
     - percept
     - body-signal
@@ -53,13 +68,29 @@ provides:
     - kosmos-instance
     # Configuration eide
     - mcp-bridge-config
+    # Inference eide
+    - provider
+    - model-tier
+    # Voice lifecycle eide
+    - audio-source
+    - transcriber
+
+  # Topos-centric rendering: soma owns presentation for infrastructure entities
+  renderable:
+    - eidos: node
+      description: "Infrastructure node cards"
+    - eidos: service-instance
+      description: "Running service cards"
+    - eidos: kosmos-instance
+      description: "Kosmos interpreter instance cards"
 
   attainments:
-    - embody              # Arise and depart as animus (presence management)
+    - embody              # Arise and depart as parousia (presence management)
     - channel             # Open and close channels (I/O pathway management)
     - infrastructure      # Manage nodes, services, kosmos instances
 
   desmoi:
+    - instantiates
     - channel-of
     - received-through
     - emitted-through
@@ -68,15 +99,22 @@ provides:
     - hosts-service
     - provides-to
     - runs-on
+    # Inference desmoi
+    - authenticates
+    - provided-by
 
   praxeis:
-    - soma/arise-animus
-    - soma/depart-animus
+    - soma/arise-parousia
+    - soma/depart-parousia
     - soma/open-channel
     - soma/close-channel
     - soma/perceive
     - soma/emit
     - soma/sense-body
+    # Cursor / notification praxeis
+    - soma/get-notifications
+    - soma/mark-oikos-seen
+    - soma/get-oikos-changes
     # Reflex response praxeis (internal)
     - soma/add-notification
     # Infrastructure praxeis
@@ -85,10 +123,18 @@ provides:
     - soma/register-service
     - soma/sense-service
     - soma/sense-kosmos-instance
-    # Circle membership praxeis
-    - soma/join-circle
-    - soma/leave-circle
+    # Oikos membership praxeis
+    - soma/join-oikos
+    - soma/leave-oikos
     - soma/list-memberships
+    # Voice sensing praxeis (daemon targets)
+    - soma/sense-audio-source-states
+    - soma/sense-transcriber-states
+    # Voice toggle praxeis (compose bar)
+    - soma/toggle-audio-intent
+    - soma/toggle-transcriber-intent
+    # Inference praxeis (model tier resolution)
+    - soma/resolve-model-tiers
 
 stoicheia_form:
   # All stoicheia used by soma are currently arche-level (interpreted by host)

@@ -1,0 +1,121 @@
+# Aither Render Specifications — data-channel card
+# P2P data channel display
+#
+# Data-channel fields:
+#   - channel_id (string): Unique channel identifier
+#   - remote_chora (string): ID of the remote chora
+#   - intent (enum): connected | disconnected
+#   - status (enum): new | connecting | connected | disconnected | failed
+#   - last_message_at (timestamp): Last message time
+#
+# Traces to: genesis/aither/eide/aither.yaml § data-channel
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/data-channel-card
+    data:
+      name: data-channel-card
+      description: "Card view for data-channel — P2P data channel with remote chora info."
+      target_eidos: data-channel
+      variant: card
+
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+          children:
+            - widget: stack
+              props:
+                gap: sm
+              children:
+                # Header with icon, label, and status
+                - widget: row
+                  props:
+                    justify: between
+                    align: center
+                  children:
+                    - widget: row
+                      props:
+                        gap: sm
+                        align: center
+                      children:
+                        - widget: icon
+                          props:
+                            name: radio
+                            size: md
+                        - widget: text
+                          props:
+                            content: "Data Channel"
+                            variant: label
+                        - widget: badge
+                          props:
+                            content: "{intent}"
+                            variant: info
+
+                    # Status badges
+                    - widget: badge
+                      when: "status == 'new'"
+                      props:
+                        content: "New"
+                        variant: default
+                    - widget: badge
+                      when: "status == 'connecting'"
+                      props:
+                        content: "Connecting"
+                        variant: warning
+                    - widget: badge
+                      when: "status == 'connected'"
+                      props:
+                        content: "Connected"
+                        variant: success
+                    - widget: badge
+                      when: "status == 'disconnected'"
+                      props:
+                        content: "Disconnected"
+                        variant: default
+                    - widget: badge
+                      when: "status == 'failed'"
+                      props:
+                        content: "Failed"
+                        variant: error
+
+                # Channel ID
+                - widget: row
+                  props:
+                    gap: sm
+                    align: center
+                  children:
+                    - widget: text
+                      props:
+                        content: "Channel:"
+                        variant: label
+                    - widget: code
+                      props:
+                        content: "{channel_id}"
+
+                # Remote chora
+                - widget: row
+                  when: "remote_chora"
+                  props:
+                    gap: sm
+                    align: center
+                  children:
+                    - widget: text
+                      props:
+                        content: "Remote:"
+                        variant: label
+                    - widget: text
+                      props:
+                        content: "{remote_chora}"
+                        variant: body
+
+                # Footer — last message
+                - widget: text
+                  when: "last_message_at"
+                  props:
+                    content: "Last message {last_message_at}"
+                    variant: caption
+
+      created_at: "2026-02-09T00:00:00Z"

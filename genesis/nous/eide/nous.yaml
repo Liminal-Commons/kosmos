@@ -93,10 +93,6 @@ entities:
           required: false
           description: "Optional artifact this waypoint yields"
         # Hodos navigation fields
-        panel_id:
-          type: string
-          required: false
-          description: "Panel to render for this waypoint"
         form_typos_id:
           type: string
           required: false
@@ -113,6 +109,123 @@ entities:
           type: array
           required: false
           description: "Entity types this waypoint yields on completion"
+
+  # =========================================================================
+  # Knowledge Ladder — axiom → principle → pattern → theoria
+  # =========================================================================
+
+  # axiom — foundational truth
+  - eidos: eidos
+    id: eidos/axiom
+    data:
+      name: axiom
+      description: |
+        Foundational truth — the bedrock upon which other knowledge stands.
+        Axioms are what agents surface when facing decisions. When an axiom
+        applies, there is one right way.
+      fields:
+        name:
+          type: string
+          required: true
+          description: "Short name (e.g., 'Actuation = Emission')"
+        statement:
+          type: string
+          required: true
+          description: "The foundational truth as a clear, complete statement"
+        rationale:
+          type: string
+          required: true
+          description: "Why this is foundational (not derived, but ground)"
+        domain:
+          type: string
+          required: true
+          description: "What domain this axiom grounds (constitution, development, methodology)"
+        status:
+          type: enum
+          values: [provisional, established]
+          required: true
+          default: provisional
+          description: "Lifecycle status — changes require ceremony"
+
+  # principle — normative guidance
+  - eidos: eidos
+    id: eidos/principle
+    data:
+      name: principle
+      description: |
+        Normative guidance — what should be done. Principles are prescriptive;
+        they say what SHOULD be done, not just what IS.
+      fields:
+        name:
+          type: string
+          required: true
+          description: "Short name for the principle"
+        guidance:
+          type: string
+          required: true
+          description: "The normative statement — what should be done"
+        rationale:
+          type: string
+          required: true
+          description: "Why this is the right approach"
+        domain:
+          type: string
+          required: true
+          description: "Area of application"
+        status:
+          type: enum
+          values: [provisional, established]
+          required: true
+          default: provisional
+          description: "Lifecycle status"
+        grounded_in:
+          type: array
+          required: false
+          description: "Axiom IDs this principle realizes"
+
+  # pattern — recurring structure
+  - eidos: eidos
+    id: eidos/pattern
+    data:
+      name: pattern
+      description: |
+        Recurring structure — "when you see X, do Y". Patterns are enacted;
+        they describe structure that works. Theoria instantiate patterns.
+      fields:
+        name:
+          type: string
+          required: true
+          description: "Short name (e.g., 'Phylax Pattern')"
+        description:
+          type: string
+          required: true
+          description: "What this pattern is"
+        structure:
+          type: string
+          required: true
+          description: "The essential form (often a sequence of steps)"
+        when:
+          type: string
+          required: true
+          description: "Recognition trigger — when to apply this pattern"
+        example:
+          type: string
+          required: false
+          description: "Concrete instance of the pattern in use"
+        domain:
+          type: string
+          required: true
+          description: "Area of application"
+        status:
+          type: enum
+          values: [provisional, established]
+          required: true
+          default: provisional
+          description: "Lifecycle status"
+        grounded_in:
+          type: array
+          required: false
+          description: "Principle or axiom IDs this pattern realizes"
 
   # =========================================================================
   # Inquiry — open question driving understanding
@@ -158,7 +271,7 @@ entities:
         opened_by:
           type: string
           required: false
-          description: "Persona ID who posed the question"
+          description: "Prosopon ID who posed the question"
 
   # =========================================================================
   # Synthesis — bringing-together of multiple theoria
@@ -196,7 +309,7 @@ entities:
         synthesized_by:
           type: string
           required: false
-          description: "Persona ID who created this synthesis"
+          description: "Prosopon ID who created this synthesis"
 
 # =============================================================================
 # ATTAINMENTS
@@ -207,14 +320,34 @@ entities:
     data:
       name: crystallize
       description: |
-        Capability to create and manage theoria — the lifecycle of understanding.
-        Required to capture, confirm, and supersede crystallized insights.
-      oikos: nous
-      scope: circle
-      grants:
-        - praxis/nous/crystallize-theoria
-        - praxis/nous/confirm-theoria
-        - praxis/nous/supersede-theoria
+        Capability to create and manage theoria, patterns, and principles —
+        the lifecycle of understanding. Required to capture, confirm, and
+        supersede crystallized insights and to elevate knowledge up the ladder.
+      topos: nous
+      scope: oikos
+    bonds:
+      - { desmos: grants-praxis, to: praxis/nous/crystallize-theoria }
+      - { desmos: grants-praxis, to: praxis/nous/confirm-theoria }
+      - { desmos: grants-praxis, to: praxis/nous/supersede-theoria }
+      - { desmos: grants-praxis, to: praxis/nous/crystallize-pattern }
+      - { desmos: grants-praxis, to: praxis/nous/crystallize-principle }
+      - { desmos: grants-praxis, to: praxis/nous/elevate-to-pattern }
+      - { desmos: grants-praxis, to: praxis/nous/elevate-to-principle }
+
+  - eidos: attainment
+    id: attainment/constitute
+    data:
+      name: constitute
+      description: |
+        Capability to create and manage axioms — foundational truths.
+        Rare capability, typically only granted in constitutional oikoi.
+        Axiom changes require ceremony.
+      topos: nous
+      scope: oikos
+    bonds:
+      - { desmos: grants-praxis, to: praxis/nous/crystallize-axiom }
+      - { desmos: grants-praxis, to: praxis/nous/elevate-to-axiom }
+      - { desmos: grants-praxis, to: praxis/nous/establish-axiom }
 
   - eidos: attainment
     id: attainment/inquire
@@ -222,17 +355,17 @@ entities:
       name: inquire
       description: |
         Inquiry and synthesis capability — posing questions and combining insights.
-        Circle-scoped because questions and syntheses are shared knowledge.
-      oikos: nous
-      scope: circle
-      grants:
-        - praxis/nous/open-inquiry
-        - praxis/nous/answer-inquiry
-        - praxis/nous/dissolve-inquiry
-        - praxis/nous/synthesize
-        - praxis/nous/list-open-inquiries
-        - praxis/nous/get-sources
-        - praxis/nous/trace-synthesis
+        Oikos-scoped because questions and syntheses are shared knowledge.
+      topos: nous
+      scope: oikos
+    bonds:
+      - { desmos: grants-praxis, to: praxis/nous/open-inquiry }
+      - { desmos: grants-praxis, to: praxis/nous/answer-inquiry }
+      - { desmos: grants-praxis, to: praxis/nous/dissolve-inquiry }
+      - { desmos: grants-praxis, to: praxis/nous/synthesize }
+      - { desmos: grants-praxis, to: praxis/nous/list-open-inquiries }
+      - { desmos: grants-praxis, to: praxis/nous/get-sources }
+      - { desmos: grants-praxis, to: praxis/nous/trace-synthesis }
 
   - eidos: attainment
     id: attainment/journey
@@ -241,15 +374,15 @@ entities:
       description: |
         Capability to create and manage journeys — teleological navigation.
         Required to begin journeys, add waypoints, and track progress toward goals.
-      oikos: nous
-      scope: circle
-      grants:
-        - praxis/nous/begin-journey
-        - praxis/nous/embark-journey
-        - praxis/nous/add-waypoint
-        - praxis/nous/reach-waypoint
-        - praxis/nous/complete-journey
-        - praxis/nous/abandon-journey
+      topos: nous
+      scope: oikos
+    bonds:
+      - { desmos: grants-praxis, to: praxis/nous/begin-journey }
+      - { desmos: grants-praxis, to: praxis/nous/embark-journey }
+      - { desmos: grants-praxis, to: praxis/nous/add-waypoint }
+      - { desmos: grants-praxis, to: praxis/nous/reach-waypoint }
+      - { desmos: grants-praxis, to: praxis/nous/complete-journey }
+      - { desmos: grants-praxis, to: praxis/nous/abandon-journey }
 
   - eidos: attainment
     id: attainment/invoke
@@ -258,9 +391,9 @@ entities:
       description: |
         Capability to activate nous via invocation — LLM integration with kosmos.
         Required to use composed invocation patterns and multi-step reasoning.
-      oikos: nous
-      scope: circle
-      grants:
-        - praxis/nous/invoke
-        - praxis/nous/navigate
-        - praxis/nous/call-praxis
+      topos: nous
+      scope: oikos
+    bonds:
+      - { desmos: grants-praxis, to: praxis/nous/invoke }
+      - { desmos: grants-praxis, to: praxis/nous/navigate }
+      - { desmos: grants-praxis, to: praxis/nous/call-praxis }

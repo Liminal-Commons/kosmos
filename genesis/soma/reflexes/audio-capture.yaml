@@ -1,0 +1,66 @@
+# Audio Capture Reflexes — Autonomic Triple
+# Intent-changed + drift triggers and reflexes for audio-source entities.
+#
+# Traces to: PROMPT-VOICE-DECOMPOSITION.md
+
+entities:
+
+  # =============================================================================
+  # TRIGGERS
+  # =============================================================================
+
+  # Intent-changed trigger
+  - eidos: trigger
+    id: trigger/soma/audio-source-intent-changed
+    data:
+      name: audio-source-intent-changed
+      condition: '$entity.data.desired_state != $previous.data.desired_state'
+      enabled: true
+    bonds:
+      - { desmos: matches-event, to: entity-mutation/updated }
+      - { desmos: filters-eidos, to: eidos/audio-source }
+
+  # Drift trigger
+  - eidos: trigger
+    id: trigger/soma/audio-source-drift
+    data:
+      name: audio-source-drift
+      condition: '$entity.data.desired_state == "active" and $entity.data.actual_state not in ["active", "manifesting", "pending"]'
+      enabled: true
+    bonds:
+      - { desmos: matches-event, to: entity-mutation/updated }
+      - { desmos: filters-eidos, to: eidos/audio-source }
+
+  # =============================================================================
+  # REFLEXES
+  # =============================================================================
+
+  # Intent-changed reflex
+  - eidos: reflex
+    id: reflex/soma/reconcile-audio-on-intent
+    data:
+      name: reconcile-audio-on-intent
+      description: "When audio source desired_state changes, reconcile."
+      enabled: true
+      scope: global
+      response_params:
+        reconciler_id: "reconciler/audio-capture"
+        entity_id: "$entity.id"
+    bonds:
+      - { desmos: triggered-by, to: trigger/soma/audio-source-intent-changed }
+      - { desmos: responds-with, to: praxis/dynamis/reconcile }
+
+  # Drift reflex
+  - eidos: reflex
+    id: reflex/soma/reconcile-audio-on-drift
+    data:
+      name: reconcile-audio-on-drift
+      description: "When audio source drifts from desired_state, reconcile."
+      enabled: true
+      scope: global
+      response_params:
+        reconciler_id: "reconciler/audio-capture"
+        entity_id: "$entity.id"
+    bonds:
+      - { desmos: triggered-by, to: trigger/soma/audio-source-drift }
+      - { desmos: responds-with, to: praxis/dynamis/reconcile }

@@ -1,0 +1,86 @@
+# Theoria Card Render-Spec
+# How theoria entities render as cards using widget vocabulary
+#
+# Phase 2 prototype: validates widget composition approach
+# Phase 3: Added created_at timestamp with icon
+#
+# Theoria fields (from spora.yaml):
+#   - insight (string, required): The crystallized understanding
+#   - domain (string, required): Knowledge domain
+#   - status (enum: provisional, confirmed, superseded): Lifecycle status
+#   - source (string, optional): Where understanding came from
+#   - created_at (timestamp, required): When theoria was created
+#
+# Traces to: docs/designs/THYRA-OIKOS.md lines 875-935
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/theoria-card
+    data:
+      name: theoria-card
+      description: |
+        Card rendering for theoria entities.
+        Shows domain badge, status badge, insight text, and timestamp.
+      target_eidos: theoria
+      variant: card
+
+      # Widget tree with data bindings
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+          children:
+            - widget: stack
+              props:
+                gap: sm
+              children:
+                # Row with badges
+                - widget: row
+                  props:
+                    justify: between
+                    align: center
+                  children:
+                    # Domain badge (always shown)
+                    - widget: badge
+                      props:
+                        content: "{domain}"
+                        variant: info
+
+                    # Status badge: Draft (when provisional)
+                    - widget: badge
+                      when: "status == 'provisional'"
+                      props:
+                        content: "Draft"
+                        variant: warning
+
+                    # Status badge: Crystallized (when confirmed)
+                    - widget: badge
+                      when: "status == 'confirmed'"
+                      props:
+                        content: "Crystallized"
+                        variant: success
+
+                # Insight text
+                - widget: text
+                  props:
+                    content: "{insight}"
+                    variant: body
+
+                # Timestamp row with icon (Phase 3)
+                - widget: row
+                  props:
+                    gap: xs
+                    align: center
+                  children:
+                    - widget: icon
+                      props:
+                        name: calendar
+                        size: sm
+                    - widget: text
+                      props:
+                        content: "{created_at}"
+                        variant: caption
+
+      created_at: "2025-02-03T00:00:00Z"

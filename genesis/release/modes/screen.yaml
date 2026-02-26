@@ -1,0 +1,29 @@
+# Release Screen Mode — Release dashboard
+# Browse build releases through thyra.
+
+entities:
+
+  - eidos: mode
+    id: mode/release-dashboard
+    data:
+      name: release-dashboard
+      topos: release
+      substrate: screen
+      description: |
+        Release dashboard — build artifacts with version,
+        status, and distribution channel tracking. Center panel.
+      item_spec_id: render-spec/release-card
+      arrangement: scroll
+      empty_message: "No releases"
+      spatial:
+        position: center
+        height: fill
+      source_query: "gather(eidos: release, sort: created_at, order: desc, limit: 50)"
+      config:
+        watch_eidos: release
+      created_at: "2026-02-22T00:00:00Z"
+
+bonds:
+  - from_id: mode/release-dashboard
+    to_id: render-spec/release-card
+    desmos: uses-render-spec

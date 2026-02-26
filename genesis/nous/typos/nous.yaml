@@ -1,0 +1,142 @@
+# Nous Typos — Understanding Operations
+#
+# Core typos for the nous (mind/understanding) domain.
+# Theoria, inquiry, synthesis, journeys, invocations.
+
+entities:
+
+# =============================================================================
+# UNDERSTANDING OPERATIONS (NOUS)
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-theoria
+  data:
+    name: theoria
+    description: |
+      Crystallize understanding into theoria.
+
+      Theoria is provisional until confirmed. It belongs to a domain
+      and crystallizes in an oikos.
+    target_eidos: theoria
+    defaults:
+      status: provisional
+    bonds:
+      # Theoria belongs to nous topos
+      - desmos: belongs-to
+        from_self: true
+        to_literal: topos/nous
+      # Theoria crystallizes in dwelling oikos (if available)
+      - desmos: crystallized-in
+        from_self: true
+        to_context: _oikos
+        optional: true
+
+- eidos: typos
+  id: typos-def-inquiry
+  data:
+    name: inquiry
+    description: |
+      Open a new inquiry.
+
+      Inquiries are open questions that drive understanding forward.
+    target_eidos: inquiry
+    defaults:
+      status: open
+    bonds:
+      - desmos: belongs-to
+        from_self: true
+        to_literal: topos/nous
+
+- eidos: typos
+  id: typos-def-synthesis
+  data:
+    name: synthesis
+    description: |
+      Synthesize multiple theoria into higher understanding.
+    target_eidos: synthesis
+    bonds:
+      - desmos: belongs-to
+        from_self: true
+        to_literal: topos/nous
+
+- eidos: typos
+  id: typos-def-journey
+  data:
+    name: journey
+    description: |
+      Begin a journey toward a desire.
+
+      Journeys are teleological containers - movement toward a telos.
+    target_eidos: journey
+    defaults:
+      status: potential
+      current_waypoint: 0
+    bonds:
+      - desmos: belongs-to
+        from_self: true
+        to_literal: topos/nous
+
+- eidos: typos
+  id: typos-def-waypoint
+  data:
+    name: waypoint
+    description: |
+      Add a waypoint to a journey.
+    target_eidos: waypoint
+    defaults:
+      status: pending
+
+- eidos: typos
+  id: typos-def-invocation-pattern
+  data:
+    name: invocation-pattern
+    description: |
+      Create an invocation pattern for composed inference.
+
+      Patterns specify how to gather context, compose prompts,
+      and invoke inference. They are templates for activation.
+    target_eidos: invocation-pattern
+    defaults:
+      temperature: 0.7
+      max_tokens: 4096
+      framing: cosmos
+    bonds:
+      - desmos: belongs-to
+        from_self: true
+        to_literal: topos/nous
+
+- eidos: typos
+  id: typos-def-invocation
+  data:
+    name: invocation
+    description: |
+      Record an invocation of chora-nous.
+
+      Invocations are audit records of inference activations,
+      capturing context, prompts, yields, and actions.
+    target_eidos: invocation
+    bonds:
+      - desmos: belongs-to
+        from_self: true
+        to_literal: topos/nous
+      - desmos: crystallized-in
+        from_self: true
+        to_context: _oikos
+        optional: true
+
+# =============================================================================
+# KNOWLEDGE LADDER
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-axiom
+  data:
+    name: axiom
+    description: |
+      Compose an axiom entity (foundational truth).
+      Axioms are the bedrock of the knowledge ladder — when an axiom applies,
+      there is one right way. Requires attainment/constitute.
+    target_eidos: axiom
+    defaults:
+      status: provisional

@@ -11,12 +11,12 @@ entities:
   id: desmos/publishes
   data:
     name: publishes
-    description: "Persona publishes an oikos-release"
-    from_eidos: [persona]
+    description: "Prosopon publishes an oikos-release"
+    from_eidos: [prosopon]
     to_eidos: [oikos-release]
     cardinality: one-to-many
     semantics: |
-      A persona can publish many releases.
+      A prosopon can publish many releases.
       This bond provides accountability for who published what.
 
 - eidos: desmos
@@ -71,11 +71,11 @@ entities:
   id: desmos/distributed-by
   data:
     name: distributed-by
-    description: "Oikos-release is distributed through a circle"
+    description: "Oikos-release is distributed through an oikos"
     from_eidos: [oikos-release]
-    to_eidos: [circle]
+    to_eidos: [oikos]
     cardinality: many-to-many
     semantics: |
-      A release can be distributed through many circles.
-      A circle can distribute many releases.
-      Members of the circle receive releases via the oikos reconciler.
+      A release can be distributed through many oikoi.
+      An oikos can distribute many releases.
+      Members of the oikos receive releases via the topos reconciler.

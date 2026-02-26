@@ -1,0 +1,178 @@
+# Dokimasia Error Catalog
+# Validation error code definitions as first-class entities
+#
+# Error codes referenced in DESIGN.md § validate-provenance,
+# validate-schema, and validate-semantic.
+#
+# Traces to: genesis/dokimasia/DESIGN.md
+
+entities:
+
+  # =========================================================================
+  # PROVENANCE ERRORS
+  # =========================================================================
+
+  - eidos: validation-error
+    id: validation-error/CHAIN_BROKEN
+    data:
+      code: CHAIN_BROKEN
+      layer: provenance
+      severity: critical
+      message: "Authorization chain is broken — cannot trace to genesis"
+      description: |
+        The provenance chain has a gap. An entity in the authorization
+        chain references a parent that does not exist or has been removed.
+      suggested_fix: "Verify that all entities in the authorization chain exist. Re-authorize from a valid chain root."
+
+  - eidos: validation-error
+    id: validation-error/CYCLE_DETECTED
+    data:
+      code: CYCLE_DETECTED
+      layer: provenance
+      severity: critical
+      message: "Circular reference detected in authorization chain"
+      description: |
+        The provenance chain contains a cycle — entity A authorizes B
+        which authorizes A. Authorization must be acyclic.
+      suggested_fix: "Break the cycle by re-authorizing one entity from a different parent in the chain."
+
+  - eidos: validation-error
+    id: validation-error/MAX_DEPTH_EXCEEDED
+    data:
+      code: MAX_DEPTH_EXCEEDED
+      layer: provenance
+      severity: warning
+      message: "Authorization chain exceeds maximum traversal depth"
+      description: |
+        The provenance chain is longer than the maximum allowed depth.
+        This may indicate an excessively deep authorization hierarchy
+        or a near-cycle.
+      suggested_fix: "Shorten the authorization chain by re-authorizing closer to genesis."
+
+  - eidos: validation-error
+    id: validation-error/ENTITY_NOT_FOUND
+    data:
+      code: ENTITY_NOT_FOUND
+      layer: provenance
+      severity: critical
+      message: "Referenced entity does not exist in the store"
+      description: |
+        An entity referenced in the provenance chain was not found.
+        The entity may have been deleted or never created.
+      suggested_fix: "Verify the entity ID is correct. Create the missing entity or re-authorize from an existing one."
+
+  # =========================================================================
+  # SCHEMA ERRORS
+  # =========================================================================
+
+  - eidos: validation-error
+    id: validation-error/EIDOS_NOT_FOUND
+    data:
+      code: EIDOS_NOT_FOUND
+      layer: schema
+      severity: critical
+      message: "Target eidos definition not found"
+      description: |
+        The entity claims to be of an eidos type that is not defined
+        in the kosmos. The eidos may be misspelled or not yet loaded.
+      suggested_fix: "Check the eidos name for typos. Ensure the topos defining this eidos is loaded."
+
+  - eidos: validation-error
+    id: validation-error/MISSING_FIELD
+    data:
+      code: MISSING_FIELD
+      layer: schema
+      severity: critical
+      message: "Required field is missing from entity data"
+      description: |
+        The entity is missing a field that the eidos definition marks
+        as required.
+      suggested_fix: "Add the missing field to the entity data. Check the eidos definition for required fields."
+
+  - eidos: validation-error
+    id: validation-error/TYPE_MISMATCH
+    data:
+      code: TYPE_MISMATCH
+      layer: schema
+      severity: critical
+      message: "Field value does not match expected type"
+      description: |
+        A field contains a value of the wrong type — e.g., a string
+        where a number is expected, or an object where an array is required.
+      suggested_fix: "Correct the field value to match the type declared in the eidos definition."
+
+  - eidos: validation-error
+    id: validation-error/INVALID_ENUM
+    data:
+      code: INVALID_ENUM
+      layer: schema
+      severity: critical
+      message: "Field value is not in the allowed enum values"
+      description: |
+        A field contains a value that is not one of the allowed enum
+        values declared in the eidos definition.
+      suggested_fix: "Use one of the allowed enum values. Check the eidos definition for valid options."
+
+  - eidos: validation-error
+    id: validation-error/PARSE_ERROR
+    data:
+      code: PARSE_ERROR
+      layer: schema
+      severity: critical
+      message: "Entity data could not be parsed"
+      description: |
+        The entity data is malformed and could not be parsed as valid
+        YAML or JSON. This is typically a syntax error.
+      suggested_fix: "Fix the YAML/JSON syntax. Validate the file with a linter before submitting."
+
+  # =========================================================================
+  # SEMANTIC ERRORS
+  # =========================================================================
+
+  - eidos: validation-error
+    id: validation-error/UNRESOLVED_ENTITY
+    data:
+      code: UNRESOLVED_ENTITY
+      layer: semantic
+      severity: critical
+      message: "Referenced entity ID does not resolve to an existing entity"
+      description: |
+        A field value references an entity by ID, but that entity
+        does not exist in the store. This creates a dangling reference.
+      suggested_fix: "Verify the referenced entity ID is correct. Create the missing entity or remove the reference."
+
+  - eidos: validation-error
+    id: validation-error/WRONG_EIDOS
+    data:
+      code: WRONG_EIDOS
+      layer: semantic
+      severity: critical
+      message: "Referenced entity exists but is of the wrong eidos type"
+      description: |
+        A field references an entity that exists but is not the expected
+        eidos type — e.g., referencing a theoria where a pattern is expected.
+      suggested_fix: "Reference an entity of the correct eidos type, or check the field definition for allowed types."
+
+  - eidos: validation-error
+    id: validation-error/UNRESOLVED_DESMOS
+    data:
+      code: UNRESOLVED_DESMOS
+      layer: semantic
+      severity: warning
+      message: "Bond type (desmos) is not defined in the kosmos"
+      description: |
+        A bond references a desmos type that is not declared in any
+        loaded topos. The bond type may be misspelled or not yet defined.
+      suggested_fix: "Check the desmos name for typos. Define the desmos in the appropriate topos."
+
+  - eidos: validation-error
+    id: validation-error/UNRESOLVED_PRAXIS
+    data:
+      code: UNRESOLVED_PRAXIS
+      layer: semantic
+      severity: warning
+      message: "Referenced praxis does not exist"
+      description: |
+        A step or attainment references a praxis by ID, but that praxis
+        is not defined in any loaded topos.
+      suggested_fix: "Check the praxis ID for typos. Ensure the topos defining this praxis is loaded."

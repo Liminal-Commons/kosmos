@@ -1,0 +1,29 @@
+# Hodos Screen Mode — Journey progress
+# Browse active journeys through thyra.
+
+entities:
+
+  - eidos: mode
+    id: mode/journey-progress
+    data:
+      name: journey-progress
+      topos: hodos
+      substrate: screen
+      description: |
+        Journey progress — active learning journeys with
+        waypoint tracking and advancement. Right panel.
+      item_spec_id: render-spec/journey-progress
+      arrangement: scroll
+      empty_message: "No active journeys"
+      spatial:
+        position: right
+        height: fill
+      source_query: "gather(eidos: journey, sort: name, order: asc)"
+      config:
+        watch_eidos: journey
+      created_at: "2026-02-22T00:00:00Z"
+
+bonds:
+  - from_id: mode/journey-progress
+    to_id: render-spec/journey-progress
+    desmos: uses-render-spec

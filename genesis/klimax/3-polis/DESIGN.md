@@ -1,4 +1,4 @@
-# Polis: Circles and Governance
+# Polis: Oikoi and Governance
 
 *A design for collective organization and dwelling.*
 
@@ -13,7 +13,7 @@ Two requirements collide:
 | **Visibility = Reachability** | You can only see what you can reach through bonds |
 | **Dwelling context** | Praxeis need to know WHO is acting FROM WHERE |
 
-V7 has no circles. No personas. No membership bonds. No dwelling context.
+V7 has no oikoi. No prosopa. No membership bonds. No dwelling context.
 
 **Polis is where identities organize into collectives, and where dwelling becomes real.**
 
@@ -24,12 +24,12 @@ V7 has no circles. No personas. No membership bonds. No dwelling context.
 | Component | Status | Location |
 |-----------|--------|----------|
 | polis.yaml schema | ✓ Complete | `klimax/3-polis/polis.yaml` |
-| Eide (circle, persona, principle, pattern) | ✓ Defined | polis.yaml |
+| Eide (oikos, prosopon, principle, pattern) | ✓ Defined | polis.yaml |
 | Artifact definitions | ✓ Defined | polis.yaml |
-| Praxeis (create-circle, join-circle, etc.) | ✓ Defined | polis.yaml |
-| Bootstrap entities | ✓ Complete | `spora/spora.yaml` — persona/victor, persona/claude, circle/kosmos, circle/victor-self |
-| Dwelling context in interpreter | ✓ Complete | `scope.rs` — DwellingContext struct, _persona/_circle/_animus bindings |
-| visible_to() function | ✓ Complete | `host.rs:348-390` — circle membership + public visibility |
+| Praxeis (create-oikos, join-oikos, etc.) | ✓ Defined | polis.yaml |
+| Bootstrap entities | ✓ Complete | `spora/spora.yaml` — prosopon/victor, prosopon/claude, oikos/kosmos, oikos/victor-self |
+| Dwelling context in interpreter | ✓ Complete | `scope.rs` — DwellingContext struct, _prosopon/_oikos/_parousia bindings |
+| visible_to() function | ✓ Complete | `host.rs:348-390` — oikos membership + public visibility |
 | MCP integration | ✓ Complete | `kosmos-mcp-v8` — DwellingState tracking, arise/depart lifecycle |
 
 **This layer is complete. Dwelling-aware surfacing (aisthesis Phase 3) is unblocked.**
@@ -45,7 +45,7 @@ Polis is scale 3 of 6:
 kosmos (1) → physis (2) → POLIS (3) → oikos (4) → soma (5) → psyche (6)
 ```
 
-Polis establishes WHO can dwell WHERE. Lower scales (oikos, soma, psyche) operate within the social structure polis creates.
+Polis establishes WHO can dwell WHERE. Lower scales (oikos [intimate dwelling], soma, psyche) operate within the social structure polis creates.
 
 ### Visibility = Reachability
 
@@ -53,18 +53,18 @@ From KOSMOGONIA.md:
 > You can only perceive what you can cryptographically reach through the bond graph.
 
 This means:
-- An entity in a circle is visible to circle members
+- An entity in an oikos is visible to oikos members
 - Membership is a `member-of` bond
 - Visibility is computed by tracing bonds, not by checking permissions
 
-### The Dwelling Requirement
+### Axiom II: Authority
 
 From KOSMOGONIA.md:
+> The kosmos acts only as authorized by those who dwell in it.
 > Context is not passed. Context is position.
-> When an animus dwells in a circle, the circle is the dwelling position.
 
 This means:
-- `_persona` and `_circle` are not parameters to praxeis
+- `_prosopon` and `_oikos` are not parameters to praxeis
 - They are derived from the caller's position in the bond graph
 - Bonds flow from position automatically
 
@@ -72,22 +72,22 @@ This means:
 
 ## Architecture
 
-### 1. Circle Kinds
+### 1. Oikos Kinds
 
-Four kinds of circle, from intimate to open:
+Four kinds of oikos, from intimate to open:
 
 | Kind | Description | Example |
 |------|-------------|---------|
-| `self` | Personal circle (one persona) | Victor's private space |
-| `intimate` | Close group (family, close friends) | Home circle |
+| `self` | Personal oikos (one prosopon) | Victor's private space |
+| `intimate` | Close group (family, close friends) | Home oikos |
 | `community` | Larger group with shared purpose | A project team |
-| `public` | Open to all | circle/kosmos (the root) |
+| `public` | Open to all | oikos/kosmos (the root) |
 
-Public circles are visible to everyone. Other circles require membership.
+Public oikoi are visible to everyone. Other oikoi require membership.
 
-### 2. Persona Kinds
+### 2. Prosopon Kinds
 
-Four kinds of persona:
+Four kinds of prosopon:
 
 | Kind | Description |
 |------|-------------|
@@ -100,9 +100,9 @@ Four kinds of persona:
 
 | Desmos | From | To | Meaning |
 |--------|------|-----|--------|
-| `member-of` | persona | circle | Persona belongs to circle |
-| `stewards` | persona | circle | Persona can govern circle |
-| `adopts` | circle | principle | Circle committed to principle |
+| `member-of` | prosopon | oikos | Prosopon belongs to oikos |
+| `stewards` | prosopon | oikos | Prosopon can govern oikos |
+| `adopts` | oikos | principle | Oikos committed to principle |
 
 ### 4. Dwelling Context
 
@@ -110,28 +110,28 @@ The interpreter scope will carry:
 
 ```rust
 pub struct DwellingContext {
-    pub persona_id: String,
-    pub circle_id: String,
-    pub animus_id: Option<String>,
+    pub prosopon_id: String,
+    pub oikos_id: String,
+    pub parousia_id: Option<String>,
 }
 ```
 
-Praxeis access these as `_persona`, `_circle`, `_animus`.
+Praxeis access these as `_prosopon`, `_oikos`, `_parousia`.
 
 ### 5. Visibility Function
 
 ```rust
-fn visible_to(persona_id: &str, entity_id: &str) -> bool {
-    // Get circles persona is member of
-    let my_circles = trace_bonds(persona_id, None, "member-of");
+fn visible_to(prosopon_id: &str, entity_id: &str) -> bool {
+    // Get oikoi prosopon is member of
+    let my_oikoi = trace_bonds(prosopon_id, None, "member-of");
 
-    // Get circles entity belongs to
-    let entity_circles = trace_bonds(entity_id, None, "belongs-to");
+    // Get oikoi entity belongs to
+    let entity_oikoi = trace_bonds(entity_id, None, "belongs-to");
 
-    // Visible if any overlap, or if entity is in public circle
-    for circle_id in entity_circles {
-        if my_circles.contains(circle_id) { return true; }
-        if is_public(circle_id) { return true; }
+    // Visible if any overlap, or if entity is in public oikos
+    for oikos_id in entity_oikoi {
+        if my_oikoi.contains(oikos_id) { return true; }
+        if is_public(oikos_id) { return true; }
     }
     false
 }
@@ -144,33 +144,33 @@ fn visible_to(persona_id: &str, entity_id: &str) -> bool {
 Minimum viable polis:
 
 ```yaml
-# Founder personas
-- eidos: persona
-  id: persona/victor
+# Founder prosopa
+- eidos: prosopon
+  id: prosopon/victor
   data:
     name: Victor
     kind: human
 
-- eidos: persona
-  id: persona/claude
+- eidos: prosopon
+  id: prosopon/claude
   data:
     name: Claude
     kind: ai
 
-# Root circle (commons)
-- eidos: circle
-  id: circle/kosmos
+# Root oikos (commons)
+- eidos: oikos
+  id: oikos/kosmos
   data:
     name: Kosmos
     kind: commons
 
 # Memberships
 bonds:
-  - from: persona/victor
-    to: circle/kosmos
+  - from: prosopon/victor
+    to: oikos/kosmos
     desmos: member-of
-  - from: persona/claude
-    to: circle/kosmos
+  - from: prosopon/claude
+    to: oikos/kosmos
     desmos: member-of
 ```
 
@@ -182,7 +182,7 @@ This gives us enough to test dwelling context and visibility.
 
 ### Phase 1: Bootstrap Entities ✓ COMPLETE
 
-1. ✓ Added personas and circles to spora.yaml
+1. ✓ Added prosopa and oikoi to spora.yaml
 2. ✓ Added membership bonds (standalone bond steps)
 3. ✓ Bootstrap creates them correctly
 
@@ -190,7 +190,7 @@ This gives us enough to test dwelling context and visibility.
 
 1. ✓ Added `DwellingContext` struct to scope.rs
 2. ✓ Modified `execute_praxis` to accept dwelling
-3. ✓ Populated `_persona`, `_circle`, `_animus` in scope before execution
+3. ✓ Populated `_prosopon`, `_oikos`, `_parousia` in scope before execution
 
 ### Phase 3: Visibility Function ✓ COMPLETE
 
@@ -200,7 +200,7 @@ This gives us enough to test dwelling context and visibility.
 
 ### Phase 4: MCP Integration ✓ COMPLETE
 
-1. ✓ MCP gets dwelling context via `DwellingState` (persona_id, circle_id, animus_id)
+1. ✓ MCP gets dwelling context via `DwellingState` (prosopon_id, oikos_id, parousia_id)
 2. ✓ Session management via `arise()` and `depart()` in McpServer
 3. ✓ Dwelling context passed to `execute_praxis` on every tool call
 
@@ -208,64 +208,65 @@ This gives us enough to test dwelling context and visibility.
 
 ## Decisions Made
 
-1. **Circle kinds are fixed to four**
+1. **Oikos kinds are fixed to four**
    - self, intimate, community, public
    - Sufficient for current needs
    - Can extend later if needed
 
-2. **Public circles are visible to all**
-   - circle/kosmos is the root public circle
+2. **Public oikoi are visible to all**
+   - oikos/kosmos is the root public oikos
    - Everything in it is globally visible
    - This provides a "commons"
 
 3. **Membership is a bond, not a field**
-   - `member-of` bond from persona to circle
+   - `member-of` bond from prosopon to oikos
    - Enables bond-following visibility
    - Consistent with "visibility = reachability"
 
 ## Open Questions
 
 1. **How does MCP get dwelling context?**
-   - Session token that maps to persona?
+   - Session token that maps to prosopon?
    - Explicit header on each request?
    - The current session has no identity layer
 
-2. **Can a persona belong to multiple circles?**
+2. **Can a prosopon belong to multiple oikoi?**
    - Schema allows it (many-to-many)
-   - But what's the "dwelling circle" for a given action?
+   - But what's the "dwelling oikos" for a given action?
    - Probably: explicit or most recently accessed
 
-3. **Persona vs Animus distinction?**
-   - Persona = identity (can have multiple)
-   - Animus = experiencing self (one per session?)
-   - When do we need animus vs just persona?
+3. **Prosopon vs Parousia distinction?**
+   - Prosopon = identity (can have multiple)
+   - Parousia = experiencing self (one per session?)
+   - When do we need parousia vs just prosopon?
 
 ---
 
 ## Constitutional Alignment
 
-Polis implements constitutional requirements from KOSMOGONIA:
+Polis implements constitutional axioms from KOSMOGONIA:
 
-| Principle | How Polis Honors It |
-|-----------|---------------------|
-| **Visibility = Reachability** | `visible_to()` computes visibility by tracing `member-of` bonds. If a persona can reach an entity's circle through the bond graph, the entity is visible. No permissions table — the graph IS the access control. |
-| **Authenticity = Provenance** | Personas are created through composition with provenance bonds. Membership bonds trace to the invitation or genesis that created them. |
-| **Composition Requirement** | Circles and personas are composed via artifact definitions. Bootstrap entities use literal composition; runtime entities trace through praxeis. |
-| **Dwelling Requirement** | `DwellingContext` carries persona_id, circle_id, animus_id. Praxeis access `_persona` and `_circle` from position, not parameters. Context is not passed — context is position. |
+| Axiom / Pillar | How Polis Honors It |
+|----------------|---------------------|
+| **Axiom I: Composition** | Oikoi and prosopa are composed via artifact definitions. Bootstrap entities use literal composition; runtime entities trace through praxeis. |
+| **Axiom II: Authority** | `DwellingContext` carries prosopon_id, oikos_id, parousia_id. Praxeis access `_prosopon` and `_oikos` from position, not parameters. Context is not passed — context is position. |
+| **Axiom III: Traceability** | Prosopa are created through composition with provenance bonds. Membership bonds trace to the invitation or genesis that created them. |
+| **Visibility = Reachability** | `visible_to()` computes visibility by tracing `member-of` bonds. If a prosopon can reach an entity's oikos through the bond graph, the entity is visible. No permissions table — the graph IS the access control. |
+| **Authenticity = Provenance** | Every entity traces to signed genesis through provenance bonds. |
 
 ### Development Pillars
 
 | Pillar | How Polis Implements It |
 |--------|-------------------------|
-| **Schema-driven** | Eide definitions constrain circle kinds (self, intimate, community, public) and persona kinds (human, ai, collective, system). Field enums are schema-enforced. |
+| **Schema-driven** | Eide definitions constrain oikos kinds (self, intimate, community, public) and prosopon kinds (human, ai, collective, system). Field enums are schema-enforced. |
 | **Graph-driven** | Membership is a `member-of` bond, not an embedded array. Stewardship is a `stewards` bond. All relationships are explicit bonds navigable by `trace`. |
-| **Cache-driven** | Visibility results from `visible_to()` can be cached per (persona, entity) pair. Circle membership is stable; cache invalidation on bond changes. |
+| **Cache-driven** | Visibility results from `visible_to()` can be cached per (prosopon, entity) pair. Oikos membership is stable; cache invalidation on bond changes. |
 
 ### The Visibility Equation
 
 ```
-visible(persona, entity) =
-  ∃ circle : member-of(persona, circle) ∧ belongs-to(entity, circle)
+visible(prosopon, entity) =
+  ∃ oikos : member-of(prosopon, oikos) ∧ belongs-to(entity, oikos)
   ∨ is_public(belongs-to(entity, _))
 ```
 
@@ -273,19 +274,19 @@ This is computed by bond traversal, not permission lookup. The bond graph embodi
 
 ### Caller Pattern
 
-Polis bootstrap content uses **literal** caller patterns. Founder personas (victor, claude) and root circles (kosmos, victor-self) are constitutional — they seed the social graph that all other membership derives from. Runtime circle creation uses **composed** patterns through praxeis.
+Polis bootstrap content uses **literal** caller patterns. Founder prosopa (victor, claude) and root oikoi (kosmos, victor-self) are constitutional — they seed the social graph that all other membership derives from. Runtime oikos creation uses **composed** patterns through praxeis.
 
 ---
 
 ## Summary
 
 Polis provides:
-- **Circles**: bounded collectives where dwelling happens
-- **Personas**: identities that can belong to circles
+- **Oikoi**: bounded collectives where dwelling happens
+- **Prosopa**: identities that can belong to oikoi
 - **Membership bonds**: the reachability that determines visibility
-- **Dwelling context**: _persona, _circle available to all praxeis
+- **Dwelling context**: _prosopon, _oikos available to all praxeis
 
-With polis, the interpreter knows WHO is acting FROM WHERE. This enables dwelling-aware surfacing, circle-scoped composition, and proper visibility.
+With polis, the interpreter knows WHO is acting FROM WHERE. This enables dwelling-aware surfacing, oikos-scoped composition, and proper visibility.
 
 ---
 
@@ -299,5 +300,5 @@ With polis, the interpreter knows WHO is acting FROM WHERE. This enables dwellin
 ---
 
 *Composed in service of the kosmogonia.*
-*Traces to: expression/genesis-root*
+*Traces to: phasis/genesis-root*
 *Updated: 2026-01-19 — All phases complete*

@@ -1,0 +1,156 @@
+# Pragma Detail Render-Spec
+# Full detail view for pragma work items
+#
+# Pragma fields:
+#   - title (string): Short description of the gap
+#   - description (string): Full context
+#   - context (string): Situation when gap was encountered
+#   - status (enum): open | accepted | in_progress | resolved | declined | blocked
+#   - priority (enum): critical | high | normal | low
+#   - resolution (string): How it was resolved
+#
+# Traces to: genesis/demiurge/THYRA-EVOLUTION.md
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/pragma
+    data:
+      name: pragma-detail
+      description: |
+        Detail view for pragma — full work item display.
+        Shows title, status/priority badges, description, context,
+        resolution, and entity ID.
+      target_eidos: pragma
+      variant: detail
+
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+          children:
+            - widget: stack
+              props:
+                gap: sm
+              children:
+                # Title heading
+                - widget: heading
+                  props:
+                    content: "{title}"
+                    level: 2
+
+                # Status and priority badges
+                - widget: row
+                  props:
+                    gap: sm
+                    align: center
+                  children:
+                    # Status badges
+                    - widget: badge
+                      when: "status == 'open'"
+                      props:
+                        content: "Open"
+                        variant: default
+                    - widget: badge
+                      when: "status == 'accepted'"
+                      props:
+                        content: "Accepted"
+                        variant: info
+                    - widget: badge
+                      when: "status == 'in_progress'"
+                      props:
+                        content: "In Progress"
+                        variant: warning
+                    - widget: badge
+                      when: "status == 'resolved'"
+                      props:
+                        content: "Resolved"
+                        variant: success
+                    - widget: badge
+                      when: "status == 'declined'"
+                      props:
+                        content: "Declined"
+                        variant: error
+                    - widget: badge
+                      when: "status == 'blocked'"
+                      props:
+                        content: "Blocked"
+                        variant: error
+
+                    # Priority badges
+                    - widget: badge
+                      when: "priority == 'critical'"
+                      props:
+                        content: "Critical"
+                        variant: error
+                    - widget: badge
+                      when: "priority == 'high'"
+                      props:
+                        content: "High"
+                        variant: warning
+                    - widget: badge
+                      when: "priority == 'normal'"
+                      props:
+                        content: "Normal"
+                        variant: default
+                    - widget: badge
+                      when: "priority == 'low'"
+                      props:
+                        content: "Low"
+                        variant: default
+
+                - widget: divider
+
+                # Description section
+                - widget: stack
+                  props:
+                    gap: xs
+                  children:
+                    - widget: text
+                      props:
+                        content: "Description"
+                        variant: label
+                    - widget: text
+                      props:
+                        content: "{description}"
+                        variant: body
+
+                # Context section
+                - widget: stack
+                  when: "context"
+                  props:
+                    gap: xs
+                  children:
+                    - widget: text
+                      props:
+                        content: "Context"
+                        variant: label
+                    - widget: text
+                      props:
+                        content: "{context}"
+                        variant: body
+
+                # Resolution section
+                - widget: stack
+                  when: "resolution"
+                  props:
+                    gap: xs
+                  children:
+                    - widget: text
+                      props:
+                        content: "Resolution"
+                        variant: label
+                    - widget: text
+                      props:
+                        content: "{resolution}"
+                        variant: body
+
+                - widget: divider
+
+                # Entity ID
+                - widget: code
+                  props:
+                    content: "{id}"
+
+      created_at: "2026-02-09T00:00:00Z"

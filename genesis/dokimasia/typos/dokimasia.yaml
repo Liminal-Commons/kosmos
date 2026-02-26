@@ -1,0 +1,53 @@
+# Dokimasia Typos — Validation
+#
+# Typos for the dokimasia (examination/validation) domain.
+
+entities:
+
+# =============================================================================
+# VALIDATION (DOKIMASIA)
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-validation-report
+  data:
+    name: validation-report
+    description: |
+      Compose an aggregated validation report across a dependency subgraph.
+
+      Traverses from a root entity following depends-on, authorized-by,
+      and composed-from bonds, gathering all validation results.
+      This enables "bubbling up" validation status through the graph.
+
+      The report includes:
+      - Summary counts (passed, failed, pending)
+      - List of failures with context
+      - The provenance chain from root to genesis
+      - All entities that were traversed
+    target_eidos: artifact
+    slots:
+      root_id:
+        type: string
+        required: true
+        description: Entity to start validation traversal from
+      depth:
+        type: number
+        required: false
+        default: 10
+        description: Maximum traversal depth
+      include_passed:
+        type: boolean
+        required: false
+        default: false
+        description: Include passed validations in results
+    bonds:
+      - desmos: belongs-to
+        from_self: true
+        to_literal: topos/dokimasia
+
+- eidos: typos
+  id: typos-def-validation-result
+  data:
+    name: validation-result
+    description: "Compose a validation-result entity"
+    target_eidos: validation-result

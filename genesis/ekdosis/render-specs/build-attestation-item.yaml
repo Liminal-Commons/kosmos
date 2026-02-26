@@ -1,0 +1,63 @@
+# Ekdosis Render Specifications — build-attestation item
+# Compact list item for build attestation navigation
+#
+# Uses widget vocabulary from thyra/eide/widget.yaml
+# Replaces the HTML template format in ekdosis/entities/rendering.yaml
+#
+# Build-attestation fields (from ekdosis/eide/ekdosis.yaml):
+#   - builder_prosopon (string, required): Builder identity
+#   - build_timestamp (timestamp, required): When it was built
+#
+# Traces to: genesis/ekdosis/DESIGN.md
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/build-attestation-item
+    data:
+      name: build-attestation-item
+      description: |
+        Compact list item for build-attestation.
+        Shows builder identity, timestamp, and verified badge.
+      target_eidos: build-attestation
+      variant: item
+
+      layout:
+        - widget: row
+          props:
+            gap: sm
+            align: center
+            justify: between
+          children:
+            # Left group: icon + builder
+            - widget: row
+              props:
+                gap: sm
+                align: center
+              children:
+                - widget: icon
+                  props:
+                    name: shield-check
+
+                - widget: text
+                  props:
+                    content: "{builder_prosopon}"
+                    variant: body
+
+            # Right group: timestamp + verified badge
+            - widget: row
+              props:
+                gap: sm
+                align: center
+              children:
+                - widget: text
+                  props:
+                    content: "{build_timestamp}"
+                    variant: caption
+
+                - widget: badge
+                  props:
+                    content: "Verified"
+                    variant: success
+
+      created_at: "2025-02-09T00:00:00Z"

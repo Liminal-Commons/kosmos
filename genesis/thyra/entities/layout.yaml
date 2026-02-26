@@ -1,0 +1,59 @@
+# Thyra Layout Entities
+# Thyra-config declarations — which modes are active in each configuration.
+# Mode entities live in genesis/thyra/modes/screen.yaml.
+
+entities:
+
+  # =============================================================================
+  # THYRA-CONFIG — Active mode sets
+  # =============================================================================
+
+  - eidos: thyra-config
+    id: thyra-config/workspace
+    data:
+      name: workspace
+      description: "Full workspace — sidebars, phasis feed, compose bar"
+      active_modes:
+        - mode/oikos-nav
+        - mode/phasis-feed
+        - mode/theoria-sidebar
+        - mode/compose-full
+        - mode/settings-overlay
+      window:
+        size: full
+        always_on_top: false
+      created_at: "2026-02-05T00:00:00Z"
+
+  # Topos dev mode — browse the ontology through thyra.
+  # Eide browser (left), praxis browser (center), topos overview (right).
+  # The pivot point: where the kosmos becomes visible to itself.
+  - eidos: thyra-config
+    id: thyra-config/topos-dev
+    data:
+      name: topos-dev
+      description: "Ontology browser — browse eide, praxeis, and topoi"
+      active_modes:
+        - mode/topos-browser
+        - mode/praxis-browser
+        - mode/topos-overview
+        - mode/compose-full
+        - mode/settings-overlay
+      window:
+        size: full
+        always_on_top: false
+      created_at: "2026-02-22T00:00:00Z"
+
+  # Compact always-on-top overlay — just a feed and compose bar.
+  # No sidebars, no settings overlay. Minimal chrome for quick interaction.
+  - eidos: thyra-config
+    id: thyra-config/hud
+    data:
+      name: hud
+      description: "Compact overlay — phasis feed and compose bar"
+      active_modes:
+        - mode/phasis-feed
+        - mode/compose-full
+      window:
+        size: compact
+        always_on_top: true
+      created_at: "2026-02-10T00:00:00Z"

@@ -1,0 +1,63 @@
+# Propylon Render Specifications — propylon-session card
+#
+# Card view for authentication sessions.
+# Shows authentication label, status, target oikos, and challenge expiry.
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/propylon-session-card
+    data:
+      name: propylon-session-card
+      description: "Card view for propylon-session — authentication state"
+      target_eidos: propylon-session
+      variant: card
+
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+          children:
+            - widget: stack
+              props:
+                gap: sm
+              children:
+                # Header: authentication label + status badge
+                - widget: row
+                  props:
+                    gap: sm
+                    align: center
+                    justify: between
+                  children:
+                    - widget: text
+                      props:
+                        content: "Authentication"
+                        variant: label
+                    - widget: badge
+                      props:
+                        content: "{status}"
+                        variant: "{status}"
+
+                # Target oikos
+                - widget: row
+                  props:
+                    gap: sm
+                    align: center
+                  children:
+                    - widget: text
+                      props:
+                        content: "Target:"
+                        variant: label
+                    - widget: text
+                      props:
+                        content: "{oikos_id}"
+                        variant: emphasis
+
+                # Challenge expiry
+                - widget: text
+                  props:
+                    content: "Expires {challenge_expires}"
+                    variant: caption
+
+      created_at: "2026-02-09T00:00:00Z"

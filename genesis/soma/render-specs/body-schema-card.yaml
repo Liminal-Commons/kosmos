@@ -1,0 +1,302 @@
+# Body Schema Render-Spec
+# Proprioceptive dashboard — aggregated state from all contributing topoi
+#
+# Shows a card per topos with badge indicators for health/counts.
+# The body-schema is the answer to "what can I do right now?"
+#
+# Traces to: genesis/soma/DESIGN.md § Body-Schema Contributions
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/body-schema-card
+    data:
+      name: body-schema-card
+      description: |
+        Proprioceptive dashboard showing aggregated state from across topoi.
+        Each section represents a topos contribution to the body-schema.
+      target_eidos: body-schema
+      variant: card
+
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: md
+          children:
+            - widget: stack
+              props:
+                gap: md
+              children:
+                # Header
+                - widget: row
+                  props:
+                    justify: between
+                    align: center
+                  children:
+                    - widget: row
+                      props:
+                        gap: sm
+                        align: center
+                      children:
+                        - widget: icon
+                          props:
+                            name: activity
+                            size: md
+                        - widget: text
+                          props:
+                            content: "Body Schema"
+                            variant: heading
+
+                    - widget: text
+                      props:
+                        content: "{sensed_at}"
+                        variant: caption
+
+                # ── Soma (core presence) ──
+                - widget: stack
+                  props:
+                    gap: xs
+                  children:
+                    - widget: text
+                      props:
+                        content: "Soma"
+                        variant: label
+                    - widget: row
+                      props:
+                        gap: sm
+                      children:
+                        - widget: badge
+                          props:
+                            content: "{soma.channels | length} channels"
+                            variant: info
+                        - widget: row
+                          each: "{soma.capabilities}"
+                          props:
+                            gap: xs
+                          children:
+                            - widget: badge
+                              props:
+                                content: "{.}"
+                                variant: default
+
+                - widget: divider
+
+                # ── Ergon (work) ──
+                - widget: stack
+                  when: "ergon"
+                  props:
+                    gap: xs
+                  children:
+                    - widget: text
+                      props:
+                        content: "Ergon"
+                        variant: label
+                    - widget: row
+                      props:
+                        gap: sm
+                      children:
+                        - widget: badge
+                          props:
+                            content: "{ergon.active_pragmas} active"
+                            variant: info
+                        - widget: badge
+                          when: "ergon.stale_pragmas > 0"
+                          props:
+                            content: "{ergon.stale_pragmas} stale"
+                            variant: warning
+                        - widget: badge
+                          when: "ergon.pending_reflexes > 0"
+                          props:
+                            content: "{ergon.pending_reflexes} reflexes"
+                            variant: warning
+
+                # ── Nous (knowledge) ──
+                - widget: stack
+                  when: "nous"
+                  props:
+                    gap: xs
+                  children:
+                    - widget: text
+                      props:
+                        content: "Nous"
+                        variant: label
+                    - widget: row
+                      props:
+                        gap: sm
+                      children:
+                        - widget: badge
+                          props:
+                            content: "{nous.theoria_count} theoria"
+                            variant: default
+                        - widget: badge
+                          when: "nous.active_journeys > 0"
+                          props:
+                            content: "{nous.active_journeys} journeys"
+                            variant: info
+                        - widget: badge
+                          when: "nous.pending_inquiries > 0"
+                          props:
+                            content: "{nous.pending_inquiries} inquiries"
+                            variant: warning
+
+                # ── Oikos (session) ──
+                - widget: stack
+                  when: "oikos"
+                  props:
+                    gap: xs
+                  children:
+                    - widget: text
+                      props:
+                        content: "Oikos"
+                        variant: label
+                    - widget: row
+                      props:
+                        gap: sm
+                      children:
+                        - widget: badge
+                          props:
+                            content: "{oikos.session_duration}"
+                            variant: default
+                        - widget: badge
+                          when: "oikos.notes_unprocessed > 0"
+                          props:
+                            content: "{oikos.notes_unprocessed} notes"
+                            variant: warning
+                        - widget: badge
+                          when: "oikos.insights_uncrystallized > 0"
+                          props:
+                            content: "{oikos.insights_uncrystallized} insights"
+                            variant: warning
+
+                # ── Credentials ──
+                - widget: stack
+                  when: "credentials"
+                  props:
+                    gap: xs
+                  children:
+                    - widget: text
+                      props:
+                        content: "Credentials"
+                        variant: label
+                    - widget: row
+                      props:
+                        gap: sm
+                      children:
+                        - widget: badge
+                          props:
+                            content: "{credentials.unlocked} unlocked"
+                            variant: success
+                        - widget: badge
+                          props:
+                            content: "{credentials.locked} locked"
+                            variant: default
+                        - widget: badge
+                          when: "credentials.expiring_soon > 0"
+                          props:
+                            content: "{credentials.expiring_soon} expiring"
+                            variant: warning
+
+                # ── Dynamis (deployments) ──
+                - widget: stack
+                  when: "dynamis"
+                  props:
+                    gap: xs
+                  children:
+                    - widget: text
+                      props:
+                        content: "Dynamis"
+                        variant: label
+                    - widget: row
+                      props:
+                        gap: sm
+                      children:
+                        - widget: badge
+                          props:
+                            content: "{dynamis.deployments_healthy} healthy"
+                            variant: success
+                        - widget: badge
+                          when: "dynamis.deployments_degraded > 0"
+                          props:
+                            content: "{dynamis.deployments_degraded} degraded"
+                            variant: error
+
+                # ── Propylon (gateway) ──
+                - widget: stack
+                  when: "propylon"
+                  props:
+                    gap: xs
+                  children:
+                    - widget: text
+                      props:
+                        content: "Propylon"
+                        variant: label
+                    - widget: row
+                      props:
+                        gap: sm
+                      children:
+                        - widget: badge
+                          props:
+                            content: "{propylon.active_sessions} sessions"
+                            variant: info
+                        - widget: badge
+                          when: "propylon.pending_entries > 0"
+                          props:
+                            content: "{propylon.pending_entries} pending"
+                            variant: warning
+
+                # ── Dokimasia (validation) ──
+                - widget: stack
+                  when: "dokimasia"
+                  props:
+                    gap: xs
+                  children:
+                    - widget: text
+                      props:
+                        content: "Dokimasia"
+                        variant: label
+                    - widget: row
+                      props:
+                        gap: sm
+                      children:
+                        - widget: badge
+                          when: "dokimasia.recent_failures > 0"
+                          props:
+                            content: "{dokimasia.recent_failures} failures"
+                            variant: error
+                        - widget: badge
+                          when: "dokimasia.provenance_issues > 0"
+                          props:
+                            content: "{dokimasia.provenance_issues} provenance"
+                            variant: warning
+                        - widget: badge
+                          when: "dokimasia.recent_failures == 0 and dokimasia.provenance_issues == 0"
+                          props:
+                            content: "All clear"
+                            variant: success
+
+                # ── Release ──
+                - widget: stack
+                  when: "release"
+                  props:
+                    gap: xs
+                  children:
+                    - widget: text
+                      props:
+                        content: "Release"
+                        variant: label
+                    - widget: row
+                      props:
+                        gap: sm
+                      children:
+                        - widget: badge
+                          props:
+                            content: "{release.latest_version}"
+                            variant: default
+                        - widget: badge
+                          when: "release.artifacts_distributed"
+                          props:
+                            content: "Distributed"
+                            variant: success
+
+      created_at: "2026-02-09T00:00:00Z"

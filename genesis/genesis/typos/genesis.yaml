@@ -1,0 +1,34 @@
+# Genesis Typos — Content Roots
+#
+# Typos for genesis infrastructure entities.
+
+entities:
+
+# =============================================================================
+# CONTENT ROOT
+# =============================================================================
+
+- eidos: typos
+  id: typos-def-content-root
+  data:
+    name: content-root
+    description: |
+      Register a content location in genesis.
+
+      Content roots make "where content comes from" traversable
+      via the graph. Bootstrap discovers content by traversing
+      sources-content-from bonds.
+    target_eidos: content-root
+    slots:
+      path:
+        fill: input
+        required: true
+        description: "Relative path within genesis (e.g., 'nous/eide')"
+      content_types:
+        fill: input
+        required: true
+        description: "What kinds of entities live here (eidos, praxis, desmos, etc.)"
+      topos_id:
+        fill: input
+        required: true
+        description: "The topos that owns this content"

@@ -1,0 +1,174 @@
+# Settings Overlay Render-Spec
+# Modal dialog with audio input and transcriber configuration sections.
+# Credential management remains native (security-critical crypto) — future work.
+#
+# Auto-save pattern:
+#   Selects → on_change (immediate persist + drift for restart)
+#   Inputs → on_blur (persist on focus loss, takes effect on next transcription start)
+#
+# Bond bindings:
+#   @fed-by-audio → audio-source/default
+#   @fed-by-transcriber → transcriber/default
+#
+# Traces to: PROMPT-SETTINGS-PANEL-ONTOLOGY.md
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/settings-overlay
+    data:
+      name: settings-overlay
+      description: "Settings modal with audio and transcriber configuration"
+      variant: overlay
+
+      layout:
+        - widget: modal
+          props:
+            open: "{open}"
+            title: "Settings"
+            size: md
+            on_close: thyra/close-settings
+            on_close_params:
+              entity_id: "{id}"
+          children:
+            - widget: stack
+              props:
+                gap: lg
+              children:
+                # ── Audio Input Section ──
+                - widget: stack
+                  props:
+                    gap: sm
+                  children:
+                    - widget: heading
+                      props:
+                        level: 3
+                        content: "Audio Input"
+                    - widget: select
+                      props:
+                        field: device_id
+                        value: "{@fed-by-audio.data.device_id}"
+                        options: "{@fed-by-audio.data.available_devices}"
+                        on_change: soma/update-audio-device
+                        on_change_params:
+                          entity_id: "{@fed-by-audio.id}"
+                          device_id: "$event.target.value"
+
+                # ── Transcriber Section ──
+                - widget: stack
+                  props:
+                    gap: sm
+                  children:
+                    - widget: heading
+                      props:
+                        level: 3
+                        content: "Transcriber"
+                    - widget: form
+                      props:
+                        class: settings-config-form
+                      children:
+                        - widget: stack
+                          props:
+                            gap: sm
+                          children:
+                            # ── Provider Selection ──
+                            - widget: select
+                              props:
+                                field: provider
+                                value: "{@fed-by-transcriber.data.provider}"
+                                options:
+                                  - { value: "whisper-local", label: "Local (Whisper)" }
+                                  - { value: "parakeet-lan", label: "Network (Parakeet)" }
+                                on_change: soma/switch-transcriber-provider
+                                on_change_params:
+                                  entity_id: "{@fed-by-transcriber.id}"
+                                  provider: "$event.target.value"
+                            # ── Whisper-specific settings (hidden when parakeet selected) ──
+                            - widget: text
+                              props:
+                                content: "Language"
+                            - widget: input
+                              props:
+                                name: language
+                                type: text
+                                value: "{@fed-by-transcriber.data.language}"
+                                placeholder: "en"
+                                on_blur: soma/save-transcriber-language
+                                on_blur_params:
+                                  entity_id: "{@fed-by-transcriber.id}"
+                                  language: "$form.language"
+                            - widget: text
+                              when: "@fed-by-transcriber.data.provider == 'whisper-local'"
+                              props:
+                                content: "Whisper Threads"
+                            - widget: input
+                              when: "@fed-by-transcriber.data.provider == 'whisper-local'"
+                              props:
+                                name: whisper_threads
+                                type: number
+                                value: "{@fed-by-transcriber.data.whisper_threads}"
+                                on_blur: soma/save-whisper-threads
+                                on_blur_params:
+                                  entity_id: "{@fed-by-transcriber.id}"
+                                  whisper_threads: "$form.whisper_threads"
+                            # ── VAD Tuning ──
+                            - widget: heading
+                              props:
+                                level: 4
+                                content: "Voice Activity Detection"
+                            - widget: text
+                              props:
+                                content: "Onset Threshold (0.0–1.0, lower = more sensitive)"
+                            - widget: input
+                              props:
+                                name: vad_onset_prob
+                                type: number
+                                value: "{@fed-by-transcriber.data.vad_onset_prob}"
+                                placeholder: "0.5"
+                                on_blur: soma/save-vad-config
+                                on_blur_params:
+                                  entity_id: "{@fed-by-transcriber.id}"
+                                  vad_onset_prob: "$form.vad_onset_prob"
+                                  vad_offset_prob: "$form.vad_offset_prob"
+                                  vad_min_segment_secs: "$form.vad_min_segment_secs"
+                            - widget: text
+                              props:
+                                content: "Offset Threshold (0.0–1.0, lower = waits longer)"
+                            - widget: input
+                              props:
+                                name: vad_offset_prob
+                                type: number
+                                value: "{@fed-by-transcriber.data.vad_offset_prob}"
+                                placeholder: "0.35"
+                                on_blur: soma/save-vad-config
+                                on_blur_params:
+                                  entity_id: "{@fed-by-transcriber.id}"
+                                  vad_onset_prob: "$form.vad_onset_prob"
+                                  vad_offset_prob: "$form.vad_offset_prob"
+                                  vad_min_segment_secs: "$form.vad_min_segment_secs"
+                            - widget: text
+                              props:
+                                content: "Min Segment Duration (seconds)"
+                            - widget: input
+                              props:
+                                name: vad_min_segment_secs
+                                type: number
+                                value: "{@fed-by-transcriber.data.vad_min_segment_secs}"
+                                placeholder: "0.5"
+                                on_blur: soma/save-vad-config
+                                on_blur_params:
+                                  entity_id: "{@fed-by-transcriber.id}"
+                                  vad_onset_prob: "$form.vad_onset_prob"
+                                  vad_offset_prob: "$form.vad_offset_prob"
+                                  vad_min_segment_secs: "$form.vad_min_segment_secs"
+
+                # ── Credentials Section (native — requires Tauri keyring) ──
+                - widget: stack
+                  props:
+                    gap: sm
+                  children:
+                    - widget: heading
+                      props:
+                        level: 3
+                        content: "Credentials"
+                    - widget: credential-manager

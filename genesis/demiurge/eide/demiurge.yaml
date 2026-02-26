@@ -93,6 +93,10 @@ entities:
           type: boolean
           required: false
           description: Whether the artifact needs recomposition
+        styles:
+          type: string
+          required: false
+          description: Scoped CSS styles from the typos template
 
         # Document/authoring fields
         title:
@@ -109,10 +113,10 @@ entities:
           type: string
           required: false
           description: Domain for surfacing relevant theoria during updates
-        circle_id:
+        oikos_id:
           type: string
           required: false
-          description: Circle this artifact belongs to
+          description: Oikos this artifact belongs to
 
         # Composition hierarchy fields
         parent_artifact_id:
@@ -148,70 +152,70 @@ entities:
 
         Compose is the single interface for all creation. Every composition:
         - Creates entity with provenance (composed-from, authorized-by bonds)
-        - Indexes for semantic search (circle-scoped)
+        - Indexes for semantic search (oikos-scoped)
         - Tracks dependencies for cache invalidation
-      oikos: demiurge
-      scope: circle
-      grants:
-        - praxis/demiurge/compose
-        - praxis/demiurge/compose-cached
-        - praxis/demiurge/check-cache
-        - praxis/demiurge/bind-dependencies
-        - praxis/demiurge/mark-dependents-stale
-        - praxis/demiurge/list-stale-artifacts
-        - praxis/demiurge/refresh-stale
+      topos: demiurge
+      scope: oikos
+    bonds:
+      - { desmos: grants-praxis, to: praxis/demiurge/compose }
+      - { desmos: grants-praxis, to: praxis/demiurge/compose-cached }
+      - { desmos: grants-praxis, to: praxis/demiurge/check-cache }
+      - { desmos: grants-praxis, to: praxis/demiurge/bind-dependencies }
+      - { desmos: grants-praxis, to: praxis/demiurge/mark-dependents-stale }
+      - { desmos: grants-praxis, to: praxis/demiurge/list-stale-artifacts }
+      - { desmos: grants-praxis, to: praxis/demiurge/refresh-stale }
 
   - eidos: attainment
     id: attainment/develop
     data:
       name: develop
       description: |
-        Oikos development capability — the Generative Development Spiral.
+        Topos development capability — the Generative Development Spiral.
 
-        The canonical path for developing oikoi:
+        The canonical path for developing topoi:
         1. Write DESIGN.md (human intent)
-        2. develop-oikos-from-design (parses, generates artifacts)
+        2. develop-topos-from-design (parses, generates artifacts)
         3. Review generated artifacts
         4. actualize-* (creates real entities)
-        5. validate-oikos (checks definitions)
-        6. emit-oikos (writes to genesis)
+        5. validate-topos (checks definitions)
+        6. emit-topos (writes to genesis)
 
         Each generation step uses inference context composition to surface
         relevant theoria and produce schema-constrained output.
-      oikos: demiurge
-      scope: circle
-      grants:
-        - praxis/demiurge/develop-oikos-from-design
-        - praxis/demiurge/generate-eidos
-        - praxis/demiurge/generate-praxis
-        - praxis/demiurge/generate-desmos
-        - praxis/demiurge/generate-oikos
-        - praxis/demiurge/actualize-eidos
-        - praxis/demiurge/actualize-praxis
-        - praxis/demiurge/actualize-desmos
-        - praxis/demiurge/validate-oikos
-        - praxis/demiurge/validate-praxis
-        - praxis/demiurge/discover-stoicheia
-        - praxis/demiurge/discover-typos
-        - praxis/demiurge/discover-desmoi
+      topos: demiurge
+      scope: oikos
+    bonds:
+      - { desmos: grants-praxis, to: praxis/demiurge/develop-topos-from-design }
+      - { desmos: grants-praxis, to: praxis/demiurge/generate-eidos }
+      - { desmos: grants-praxis, to: praxis/demiurge/generate-praxis }
+      - { desmos: grants-praxis, to: praxis/demiurge/generate-desmos }
+      - { desmos: grants-praxis, to: praxis/demiurge/generate-topos }
+      - { desmos: grants-praxis, to: praxis/demiurge/actualize-eidos }
+      - { desmos: grants-praxis, to: praxis/demiurge/actualize-praxis }
+      - { desmos: grants-praxis, to: praxis/demiurge/actualize-desmos }
+      - { desmos: grants-praxis, to: praxis/demiurge/validate-topos }
+      - { desmos: grants-praxis, to: praxis/demiurge/validate-praxis }
+      - { desmos: grants-praxis, to: praxis/demiurge/discover-stoicheia }
+      - { desmos: grants-praxis, to: praxis/demiurge/discover-typos }
+      - { desmos: grants-praxis, to: praxis/demiurge/discover-desmoi }
 
   - eidos: attainment
     id: attainment/package
     data:
       name: package
       description: |
-        Oikos packaging and publishing capability.
+        Topos packaging and publishing capability.
 
-        Prepares oikoi for distribution:
-        - compose-oikos-dev: Package from genesis source
-        - bake-oikos: Resolve generation specs to literals
-        - publish-oikos: Sign and release
-        - verify-oikos: Verify package integrity
-      oikos: demiurge
-      scope: circle
-      grants:
-        - praxis/demiurge/compose-oikos-dev
-        - praxis/demiurge/bake-oikos
-        - praxis/demiurge/publish-oikos
-        - praxis/demiurge/verify-oikos
+        Prepares topoi for distribution:
+        - compose-topos-dev: Package from genesis source
+        - bake-topos: Resolve generation specs to literals
+        - publish-topos: Sign and release
+        - verify-topos: Verify package integrity
+      topos: demiurge
+      scope: oikos
+    bonds:
+      - { desmos: grants-praxis, to: praxis/demiurge/compose-topos-dev }
+      - { desmos: grants-praxis, to: praxis/demiurge/bake-topos }
+      - { desmos: grants-praxis, to: praxis/demiurge/publish-topos }
+      - { desmos: grants-praxis, to: praxis/demiurge/verify-topos }
 

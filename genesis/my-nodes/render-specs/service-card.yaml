@@ -1,0 +1,39 @@
+# Service Card Render-Spec
+# Card for a single service instance.
+
+entities:
+
+  - eidos: render-spec
+    id: render-spec/my-nodes-service-card
+    data:
+      name: my-nodes-service-card
+      description: Card for a single service instance.
+      target_eidos: service-instance
+      variant: card
+      layout:
+        - widget: card
+          props:
+            variant: bordered
+            padding: sm
+          children:
+            - widget: row
+              props:
+                gap: sm
+                align: center
+              children:
+                - widget: status-indicator
+                  props:
+                    status: "{status}"
+                - widget: stack
+                  props:
+                    gap: xs
+                  children:
+                    - widget: text
+                      props:
+                        content: "{name}"
+                        variant: emphasis
+                    - widget: text
+                      when: "port"
+                      props:
+                        content: ":{port}"
+                        variant: caption

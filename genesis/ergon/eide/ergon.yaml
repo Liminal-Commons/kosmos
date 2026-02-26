@@ -1,7 +1,7 @@
 # Ergon Eide — Work Coordination Entity Types
 #
 # Traces to: genesis/ergon/DESIGN.md
-# Authorized by: expression/genesis-root
+# Authorized by: phasis/genesis-root
 
 entities:
 
@@ -16,12 +16,12 @@ entities:
       description: |
         πρᾶγμα — a thing to be done.
 
-        A gap, issue, or work item that signals between circles. Created
+        A gap, issue, or work item that signals between oikoi. Created
         where the gap is discovered, resolved where the capability exists.
 
         Pragma flow across the discipline boundary:
-        - Kosmos circle creates pragma (discovery)
-        - Chora circle accepts and resolves (capability)
+        - Kosmos oikos creates pragma (discovery)
+        - Chora oikos accepts and resolves (capability)
         - Resolution propagates back via shared graph
 
         This is the coordination primitive for the two-repo workflow where
@@ -92,14 +92,14 @@ entities:
     data:
       name: signal
       description: |
-        Signal capability — creating gaps for other circles' attention.
-        Enables creating pragma that signal to target circles where the
+        Signal capability — creating gaps for other oikoi's attention.
+        Enables creating pragma that signal to target oikoi where the
         capability to resolve them exists. Requires membership in the
-        discovering circle.
-      oikos: ergon
-      scope: circle
-      grants:
-        - praxis/ergon/create-pragma
+        discovering oikos.
+      topos: ergon
+      scope: oikos
+    bonds:
+      - { desmos: grants-praxis, to: praxis/ergon/create-pragma }
 
   - eidos: attainment
     id: attainment/work
@@ -108,14 +108,14 @@ entities:
       description: |
         Work capability — managing pragma lifecycle.
         Enables listing, accepting, and resolving pragma signaled to
-        a circle. Requires membership in the target circle to manage
+        an oikos. Requires membership in the target oikos to manage
         work items.
-      oikos: ergon
-      scope: circle
-      grants:
-        - praxis/ergon/list-pragma
-        - praxis/ergon/accept-pragma
-        - praxis/ergon/resolve-pragma
+      topos: ergon
+      scope: oikos
+    bonds:
+      - { desmos: grants-praxis, to: praxis/ergon/list-pragma }
+      - { desmos: grants-praxis, to: praxis/ergon/accept-pragma }
+      - { desmos: grants-praxis, to: praxis/ergon/resolve-pragma }
 
   # =========================================================================
   # reflex — autonomic response to graph mutations
@@ -136,10 +136,10 @@ entities:
           Graph mutation → Trigger match → Response praxis fires
 
         Use cases:
-        - Update oikos manifest when artifacts are added
+        - Update topos manifest when artifacts are added
         - Validate praxis when it changes
         - Notify when pragma arrives
-        - Auto-register MCP tools during oikos development
+        - Auto-register MCP tools during topos development
 
         Reflexes complement the cursor model:
         - Cursor: What's new for Claude to observe?
@@ -156,27 +156,6 @@ entities:
           required: true
           description: What this reflex does and why
 
-        trigger:
-          type: object
-          required: true
-          description: |
-            Pattern that activates this reflex. Structure:
-              event: entity_created | entity_updated | entity_deleted |
-                     bond_created | bond_updated | bond_deleted
-              eidos: Entity type filter (for entity events)
-              desmos: Bond type filter (for bond events)
-              from_eidos: Source entity type (for bond events)
-              to_eidos: Target entity type(s) (for bond events)
-              condition: Expression evaluated against mutation context
-
-        response:
-          type: object
-          required: true
-          description: |
-            Action to take when trigger matches. Structure:
-              praxis: Praxis ID to invoke
-              params: Parameters (can reference $from, $to, $entity, $bond)
-
         enabled:
           type: boolean
           required: false
@@ -185,40 +164,90 @@ entities:
 
         scope:
           type: enum
-          values: [circle, oikos, global]
+          values: [oikos, topos, global]
           required: false
           default: global
           description: |
             Where this reflex applies:
-            - circle: Only mutations within a specific circle
-            - oikos: Only mutations involving entities of an oikos
+            - oikos: Only mutations within a specific oikos
+            - topos: Only mutations involving entities of a topos
             - global: All matching mutations
-
-        circle_id:
-          type: string
-          required: false
-          description: Circle ID when scope is 'circle'
 
         oikos_id:
           type: string
           required: false
           description: Oikos ID when scope is 'oikos'
 
+        topos_id:
+          type: string
+          required: false
+          description: Topos ID when scope is 'topos'
+
   # =========================================================================
-  # REFLEX ATTAINMENT
+  # daemon — periodic background task
   # =========================================================================
 
-  - eidos: attainment
-    id: attainment/configure-reflex
+  - eidos: eidos
+    id: eidos/daemon
     data:
-      name: configure-reflex
+      name: daemon
       description: |
-        Reflex configuration capability — creating and managing reflexes.
-        This is a privileged operation as reflexes can invoke arbitrary
-        praxeis in response to graph mutations.
-      oikos: ergon
-      scope: circle
-      grants:
-        - praxis/ergon/create-reflex
-        - praxis/ergon/disable-reflex
-        - praxis/ergon/list-reflexes
+        Background task that periodically invokes a praxis.
+
+        Daemons are discovered at bootstrap and spawned as periodic tasks.
+        Each daemon declares a praxis to invoke and an interval in seconds.
+        On failure, backoff doubles (capped at backoff_max). On success,
+        interval resets.
+
+        The daemon runner is generic substrate infrastructure. Sensing
+        daemons combined with drift-detection reflexes replace the need
+        for custom reconciliation engines.
+      constitutional: false
+      fields:
+        name:
+          type: string
+          required: true
+          description: Short identifier for this daemon
+
+        description:
+          type: string
+          required: false
+          description: What this daemon does and why
+
+        praxis:
+          type: string
+          required: true
+          description: |
+            Praxis ID to invoke periodically.
+            Must exist at bootstrap time (validated on load).
+
+        interval:
+          type: number
+          required: true
+          description: Seconds between invocations
+
+        enabled:
+          type: boolean
+          required: false
+          default: true
+          description: Whether this daemon is active
+
+        scope:
+          type: enum
+          values: [global, dwelling, topos]
+          required: false
+          default: global
+          description: Where this daemon applies
+
+        backoff_max:
+          type: number
+          required: false
+          description: Maximum backoff interval in seconds (caps exponential backoff on failure)
+
+        status:
+          type: enum
+          values: [running, stopped, errored]
+          required: false
+          default: stopped
+          description: Current daemon status (set by runner, not by author)
+

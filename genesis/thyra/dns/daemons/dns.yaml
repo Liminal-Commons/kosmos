@@ -1,0 +1,24 @@
+# DNS Sensing Daemon
+# Periodic actuality sensing for DNS record reconciliation
+#
+# DNS records can drift — someone modifies a record in the
+# Cloudflare dashboard, or a record expires. Without periodic
+# sensing, the kosmos doesn't know. This daemon closes the loop.
+#
+# Traces to: genesis/thyra/dns/DESIGN.md
+
+entities:
+
+  - eidos: daemon
+    id: daemon/sense-dns-records
+    data:
+      name: sense-dns-records
+      description: |
+        Periodically sense all dns-record entities to detect external drift.
+        When a record is modified or deleted outside the kosmos,
+        sensing updates actual_state, which triggers reconciliation.
+      praxis: thyra/sense-dns-record
+      interval: 300
+      enabled: true
+      scope: dwelling
+      backoff_max: 1800

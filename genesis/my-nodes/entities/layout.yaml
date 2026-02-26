@@ -1,0 +1,56 @@
+# My-Nodes Layout — Modes and Thyra Configuration
+#
+# Defines how the my-nodes topos presents itself in thyra.
+# Uses compound mode with sections for nodes, services, and connections.
+
+entities:
+
+  # ===========================================================================
+  # Modes
+  # ===========================================================================
+
+  - eidos: mode
+    id: mode/my-nodes-dashboard
+    data:
+      name: my-nodes-dashboard
+      topos: my-nodes
+      spatial:
+        position: center
+        height: fill
+      config:
+        watch_eidos: node
+      sections:
+        - heading: "Nodes"
+          source_query: "gather(eidos: node, sort: name)"
+          item_spec_id: render-spec/my-nodes-node-card
+          arrangement: scroll
+          empty_message: "No nodes registered"
+        - heading: "Services"
+          source_query: "gather(eidos: service-instance, sort: name)"
+          item_spec_id: render-spec/my-nodes-service-card
+          arrangement: scroll
+          empty_message: "No services registered"
+        - heading: "Connections"
+          source_query: "gather(eidos: kosmos-instance, sort: name)"
+          item_spec_id: render-spec/my-nodes-instance-card
+          arrangement: scroll
+          empty_message: "No connections registered"
+
+  # ===========================================================================
+  # Bonds
+  # ===========================================================================
+
+  - eidos: bond
+    from_id: mode/my-nodes-dashboard
+    desmos: uses-render-spec
+    to_id: render-spec/my-nodes-node-card
+
+  - eidos: bond
+    from_id: mode/my-nodes-dashboard
+    desmos: uses-render-spec
+    to_id: render-spec/my-nodes-service-card
+
+  - eidos: bond
+    from_id: mode/my-nodes-dashboard
+    desmos: uses-render-spec
+    to_id: render-spec/my-nodes-instance-card
