@@ -1019,6 +1019,35 @@ entities:
           description: "Variable to bind result to"
 
   - eidos: eidos
+    id: eidos/stoicheion/emit-phoreta
+    data:
+      name: emit-phoreta
+      description: |
+        Emit entity + outbound bonds as encrypted phoreta bundle to content-addressed store.
+        Encryption is mandatory: entity data encrypted with AES-256-GCM using HKDF-derived
+        backup key. Emission is deferred if keyring is locked (backup key not derivable).
+        Metadata (IDs, eidos, bonds) stays cleartext. Files are immutable and content-addressed.
+      tier: 3
+      fields:
+        entity_id:
+          type: string
+          required: true
+          description: "Entity ID to emit as phoreta (with outbound bonds)"
+        base_dir:
+          type: string
+          required: false
+          description: "Override phoreta base directory (defaults to platform dir)"
+        sign:
+          type: boolean
+          required: false
+          default: false
+          description: "Sign the bundle with identity key (default false for auto-emission)"
+        bind_to:
+          type: string
+          required: false
+          description: "Variable to bind result to"
+
+  - eidos: eidos
     id: eidos/stoicheion/invoke
     data:
       name: invoke

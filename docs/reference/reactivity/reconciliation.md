@@ -227,7 +227,7 @@ Every reconciler must sense actuality. Without sense, the loop can't detect drif
 
 | File | Purpose |
 |------|---------|
-| `crates/kosmos/src/phoreta.rs` | Federation transport types (Phoreta, SyncMessage, apply_phoreta) |
+| `crates/kosmos/src/phoreta.rs` | Encrypted, signed, content-addressed entity bundles (Phoreta, storage, import) |
 | `crates/kosmos/src/host.rs` | `host.reconcile()` entry point |
 | `crates/kosmos/src/mode_dispatch.rs` | Generated `stoicheion_for_mode()` dispatch table |
 | `crates/kosmos/src/reflex.rs` | Reflex engine that triggers reconciliation |

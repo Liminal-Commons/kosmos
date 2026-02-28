@@ -53,8 +53,11 @@ entities:
         typos_id: "typos-def-parousia"
         inputs:
           id: "$parousia_id"
-          status: "dwelling"
+          status: "active"
           prosopon_id: "$prosopon_id"
+          oikos_id: "$_oikos.id"
+          substrate_id: "$_session.id"
+          arrived_at: "now_iso()"
         bind_to: parousia_entity
 
       # Create instantiates bond
@@ -75,6 +78,7 @@ entities:
           id: "$schema_id"
           channels: []
           capabilities: ["perceive", "emit", "dwell"]
+          updated_at: "now_iso()"
         bind_to: schema_entity
 
       # Create schema-of bond
@@ -242,6 +246,7 @@ entities:
           modality: "$modality"
           kind: "$channel_kind"
           status: "open"
+          opened_at: "now_iso()"
         bind_to: channel_entity
 
       # Create channel-of bond to parousia

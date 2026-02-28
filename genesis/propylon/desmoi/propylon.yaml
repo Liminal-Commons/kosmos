@@ -52,17 +52,8 @@ desmoi:
       to_eidos: propylon-relay
       cardinality: many-to-one
 
-  # authorized-by — parousia authorized by another prosopon's session
-  - id: desmos/authorized-by
-    data:
-      name: authorized-by
-      description: |
-        A parousia operating under the authorization of another prosopon's session.
-        Used when Claude's parousia arises within Victor's authenticated scope —
-        Claude acts with its own identity but scoped to Victor's oikos access.
-      from_eidos: parousia
-      to_eidos: prosopon
-      cardinality: many-to-one
+  # NOTE: authorized-by is defined in spora as a general provenance bond (no eidos constraints).
+  # The propylon-specific case (parousia authorized by prosopon's session) is one usage of that general bond.
 
   # issued-token — prosopon issued a session token
   - id: desmos/issued-token

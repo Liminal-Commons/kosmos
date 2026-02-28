@@ -1,0 +1,143 @@
+# Phoreta Emission Reflexes
+# Auto-emit identity + credential entities to local phoreta on changes.
+# Recovery-as-federation (T24): the mechanism that restores state after
+# a DB wipe is the same mechanism that federates state between devices.
+#
+# The "which eide auto-emit" decision lives here in the graph — not in
+# Rust wiring code. To add a new eidos to the emission set, add a
+# trigger + reflex pair. No code change required.
+#
+# IMPORTANT: Credential emission triggers on bond-mutation/created (not
+# entity-mutation/created) because compose_entity creates bonds AFTER
+# the entity. Emitting on entity creation produces bondless phoreta.
+
+entities:
+
+  # =============================================================================
+  # TRIGGERS
+  # =============================================================================
+
+  - eidos: trigger
+    id: trigger/hypostasis/kleidoura-created
+    data:
+      name: kleidoura-created
+      enabled: true
+    bonds:
+      - { desmos: matches-event, to: entity-mutation/created }
+      - { desmos: filters-eidos, to: eidos/kleidoura }
+
+  - eidos: trigger
+    id: trigger/hypostasis/kleidoura-updated
+    data:
+      name: kleidoura-updated
+      enabled: true
+    bonds:
+      - { desmos: matches-event, to: entity-mutation/updated }
+      - { desmos: filters-eidos, to: eidos/kleidoura }
+
+  # Credential bond-established: fires when a credential gets its exists-in
+  # bond (the last structural bond created by compose_entity). At this point
+  # all bonds (composed-from, typed-by, authorized-by, exists-in) exist,
+  # so the phoreta captures the full subgraph.
+  - eidos: trigger
+    id: trigger/hypostasis/credential-bond-established
+    data:
+      name: credential-bond-established
+      enabled: true
+    bonds:
+      - { desmos: matches-event, to: bond-mutation/created }
+      - { desmos: filters-from-eidos, to: eidos/credential }
+      - { desmos: filters-desmos, to: desmos/exists-in }
+
+  # Credential ownership established: fires when credential-of bond is created.
+  # This bond is created by add_credential AFTER compose_entity, so the initial
+  # exists-in emission misses it. Re-emit to capture the ownership bond.
+  - eidos: trigger
+    id: trigger/hypostasis/credential-ownership-established
+    data:
+      name: credential-ownership-established
+      enabled: true
+    bonds:
+      - { desmos: matches-event, to: bond-mutation/created }
+      - { desmos: filters-from-eidos, to: eidos/credential }
+      - { desmos: filters-desmos, to: desmos/credential-of }
+
+  - eidos: trigger
+    id: trigger/hypostasis/credential-updated
+    data:
+      name: credential-updated
+      enabled: true
+    bonds:
+      - { desmos: matches-event, to: entity-mutation/updated }
+      - { desmos: filters-eidos, to: eidos/credential }
+
+  # =============================================================================
+  # REFLEXES
+  # =============================================================================
+
+  - eidos: reflex
+    id: reflex/hypostasis/emit-kleidoura-on-create
+    data:
+      name: emit-kleidoura-on-create
+      description: Auto-emit kleidoura to phoreta when created
+      enabled: true
+      scope: global
+      response_params:
+        entity_id: "$entity.id"
+    bonds:
+      - { desmos: triggered-by, to: trigger/hypostasis/kleidoura-created }
+      - { desmos: responds-with, to: praxis/hypostasis/emit-phoreta }
+
+  - eidos: reflex
+    id: reflex/hypostasis/emit-kleidoura-on-update
+    data:
+      name: emit-kleidoura-on-update
+      description: Auto-emit kleidoura to phoreta when updated
+      enabled: true
+      scope: global
+      response_params:
+        entity_id: "$entity.id"
+    bonds:
+      - { desmos: triggered-by, to: trigger/hypostasis/kleidoura-updated }
+      - { desmos: responds-with, to: praxis/hypostasis/emit-phoreta }
+
+  # Emit credential when its exists-in bond is created (bond scope: $from)
+  - eidos: reflex
+    id: reflex/hypostasis/emit-credential-on-bond
+    data:
+      name: emit-credential-on-bond
+      description: Auto-emit credential to phoreta when bonded to oikos
+      enabled: true
+      scope: global
+      response_params:
+        entity_id: "$from.id"
+    bonds:
+      - { desmos: triggered-by, to: trigger/hypostasis/credential-bond-established }
+      - { desmos: responds-with, to: praxis/hypostasis/emit-phoreta }
+
+  # Re-emit credential when credential-of bond is created (captures ownership bond)
+  - eidos: reflex
+    id: reflex/hypostasis/emit-credential-on-ownership
+    data:
+      name: emit-credential-on-ownership
+      description: Re-emit credential to phoreta when ownership bond established
+      enabled: true
+      scope: global
+      response_params:
+        entity_id: "$from.id"
+    bonds:
+      - { desmos: triggered-by, to: trigger/hypostasis/credential-ownership-established }
+      - { desmos: responds-with, to: praxis/hypostasis/emit-phoreta }
+
+  - eidos: reflex
+    id: reflex/hypostasis/emit-credential-on-update
+    data:
+      name: emit-credential-on-update
+      description: Auto-emit credential to phoreta when updated
+      enabled: true
+      scope: global
+      response_params:
+        entity_id: "$entity.id"
+    bonds:
+      - { desmos: triggered-by, to: trigger/hypostasis/credential-updated }
+      - { desmos: responds-with, to: praxis/hypostasis/emit-phoreta }

@@ -56,34 +56,35 @@ After a database reset, the same mnemonic produces the same prosopon ID and self
 
 ### Keyring Persistence — The Sovereign Substrate
 
-The platform keychain (macOS Keychain, etc.) is the **primary store** of identity material and credentials. The graph entities (kleidoura, credential) are **projections** of what the keychain holds, not the other way around.
+The mnemonic is the **sovereign substrate** — the user holds it, the system derives from it. Kleidoura and credential entities are first-class graph entities, not projections of a platform-specific store.
 
-The keychain survives app deletion, database clean, and reinstallation. It belongs to the OS user, not the application.
+What persists where:
+- **Mnemonic**: held by the user (paper, password manager — their sovereignty)
+- **Kleidoura + Credentials**: kosmos database (entities with bonds, like everything else)
+- **Phoreta emission**: local filesystem — auto-emitted signed bundles that survive DB wipes
+- **Session token**: OS keyring (ephemeral cross-process IPC between Thyra and kosmos-mcp)
 
-What persists in the sovereign substrate:
-- **Kleidoura**: encrypted master seed (identity material)
-- **Credentials**: encrypted API keys (capability material)
-- **Session token**: current session state (ephemeral)
+Recovery after a database wipe follows the same path as federation: mnemonic re-derivation + phoreta import. The mechanism that moves state between devices also restores state locally. One pattern, not two.
 
-The user's 24-word mnemonic is the ultimate recovery mechanism. As long as the user has their mnemonic, they can recreate their keyring and re-derive all keys.
+The user's 24-word mnemonic is the ultimate recovery mechanism. As long as the user has their mnemonic, they can recreate their keyring and re-derive all keys. Phoreta emission restores credential and entity state without re-entry.
 
 ### Bootstrap Dwelling Discovery
 
-After constitutional bootstrap (genesis), a **discovery phase** scans the sovereign substrate:
+After constitutional bootstrap (genesis), a **discovery phase** scans for prior dwelling state:
 
 ```
 Genesis bootstrap complete
-  ├─ Scan keychain for existing kleidoura entries
-  │   ├─ Found: derive prosopon ID → derive self-oikos → establish membership bonds
-  │   │         → present unlock screen (dwelling reconstitutes)
+  ├─ Read phoreta store index
+  │   ├─ Found: import from index → derive prosopon ID → derive self-oikos
+  │   │         → establish membership bonds → present unlock screen
   │   └─ Empty: present welcome screen (fresh setup)
   │
-  └─ After unlock, scan for existing credentials
+  └─ After unlock, import credential phoreta
       ├─ Found: compose credential entities → bond to providers → trigger attainment derivation
       └─ Empty: credential manager shows empty state
 ```
 
-Discovery does not create from nothing — it re-derives from what persists. This is the reconciliation pattern (sense → compare → act) applied to the sovereign substrate.
+Discovery does not create from nothing — it re-derives from what persists. This is the reconciliation pattern (sense → compare → act) applied to local phoreta emission. The same format used for federation serves recovery.
 
 ### Arise Requires Authentication
 
@@ -105,12 +106,12 @@ Thyra (Tauri)                    kosmos-mcp (HTTP server)              kosmos (i
 │ KeyringSession   │─push-token─→│ McpSessionBridge     │──bridge──→  │ SessionBridge     │
 │ (process memory) │              │ (process memory)     │              │ (trait on Host)   │
 │                  │              │                      │              │                   │
-│ Keychain write ──┼──OS keyring──┼→ SessionToken::      │              │ require_attainment│
-│                  │              │  try_read()          │              │ get_credential()  │
+│ Token write ─────┼──OS keyring──┼→ SessionToken::      │              │ require_attainment│
+│ (session IPC)    │              │  try_read()          │              │ get_credential()  │
 └─────────────────┘              └─────────────────────┘              └──────────────────┘
 ```
 
-**Principle:** Credentials never stored in the database. Session state lives in chora (process memory), not kosmos (graph). The session bridge is the only credential source — no environment variable fallbacks.
+**Principle:** Decrypted credential values never stored in the database — only encrypted entities. Session state lives in chora (process memory), not kosmos (graph). The session bridge is the only credential source — no environment variable fallbacks.
 
 ### Dwelling Context and Visibility
 
@@ -409,9 +410,9 @@ When no token exists (headless mode with `KOSMOS_NO_SESSION=1`), MCP operates wi
 - **Encryption:** AES-256-GCM with random nonce per operation
 - **Key derivation:** Argon2 (password → symmetric key for seed encryption)
 - **Master seed:** 64-byte BIP-39 entropy, used for HKDF credential encryption
-- **OS keyring:** macOS Keychain (encrypted at rest)
+- **Phoreta emission:** Signed bundles on local filesystem (identity + credential persistence across DB wipes)
 - **Auto-lock:** 15-minute timeout (configurable), clears all in-memory state
-- **Cross-process:** Token in OS keyring allows kosmos-mcp to inherit session
+- **Cross-process:** Session token in OS keyring allows kosmos-mcp to inherit session (ephemeral IPC only)
 - **No bypass:** Main app inaccessible without authentication. No "browse while locked" mode.
 
 ---

@@ -41,7 +41,7 @@ entities:
       - step: set
         bindings:
           session_id: "signaling-session/{{ room_id }}-{{ role }}-{{ now() }}"
-          created_at: "now()"
+          created_at: "now_iso()"
 
       # Create the signaling-session entity (CE4: compose instead of arise)
       - step: compose
@@ -325,7 +325,7 @@ entities:
       - step: set
         bindings:
           cid: "$channel_id"
-          created_at: "now()"
+          created_at: "now_iso()"
 
       - step: switch
         cases:
@@ -458,7 +458,7 @@ entities:
       - step: set
         bindings:
           cid: "$channel_id"
-          created_at: "now()"
+          created_at: "now_iso()"
 
       - step: switch
         cases:
@@ -889,7 +889,7 @@ entities:
           - step: set
             bindings:
               syndesmos_id: "syndesmos/{{ room_id }}-{{ now() }}"
-              created_at: "now()"
+              created_at: "now_iso()"
 
           # CE4: compose instead of arise
           - step: compose
@@ -1195,7 +1195,7 @@ entities:
       - step: set
         bindings:
           msg_id: "outbound-message/{{ now() }}"
-          created_at: "now()"
+          created_at: "now_iso()"
           ttl: "$ttl_hours"
 
       - step: switch
@@ -1403,7 +1403,7 @@ entities:
       - step: set
         bindings:
           presence_status: "$status"
-          now_ts: "now()"
+          now_ts: "now_iso()"
 
       - step: switch
         cases:
@@ -1563,7 +1563,7 @@ entities:
       - step: set
         bindings:
           expired_count: 0
-          now_ts: "now()"
+          now_ts: "now_iso()"
 
       - step: for_each
         items: "$records"
@@ -1726,7 +1726,7 @@ entities:
     steps:
       - step: set
         bindings:
-          timestamp: "now()"
+          timestamp: "now_iso()"
 
       # Compose the sync-message
       - step: compose
@@ -2157,7 +2157,7 @@ entities:
       # Update last sync timestamp
       - step: set
         bindings:
-          now_ts: "now()"
+          now_ts: "now_iso()"
 
       - step: return
         value:

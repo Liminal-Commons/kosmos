@@ -1507,6 +1507,7 @@ entities:
           question: "$question"
           domain: "$domain"
           status: "open"
+          opened_at: "now_iso()"
         bind_to: inquiry_entity
 
       # Bond to prosopon if available

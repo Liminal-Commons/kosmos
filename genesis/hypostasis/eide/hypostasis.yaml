@@ -177,26 +177,43 @@ entities:
   data:
     name: phoreta
     description: |
-      Signed bundle for federation transport.
+      Signed, encrypted, content-addressed entity bundle.
+
       Phoreta are the universal carrier format — a portable envelope of
-      entities and bonds with cryptographic provenance.
+      entities and bonds with cryptographic provenance. One format serves
+      four purposes: emission, backup, recovery, federation.
 
-      Used for:
-      - Backup (export to file)
-      - Recovery (import from file)
-      - Federation (sync between oikoi)
-      - Archive (cold storage)
-      - Prosopon export (multi-device)
+      Recovery IS federation with your past self (T24). The mechanism that
+      restores state after a DB wipe is the same mechanism that federates
+      state between devices.
 
-      The bundle is signed by the exporting prosopon so the receiver
-      can verify authenticity. Content hash ensures integrity.
+      Encryption is mandatory. Entity data is always encrypted with
+      AES-256-GCM using an HKDF-derived backup key from the mnemonic seed.
+      Emission only occurs when the keyring is unlocked (backup key derivable).
+      If the keyring is locked, emission is deferred — entities persist in
+      the database and emit when the keyring next unlocks.
+
+      SOPS pattern: metadata (entity IDs, eidos, bonds) is always cleartext.
+      Entity data is individually encrypted. This enables bootstrap to read
+      metadata BEFORE keyring unlock — necessary to know which kleidoura to
+      present to the user.
+
+      Content hash covers ciphertext, not plaintext — integrity is verifiable
+      without decryption. Files are content-addressed and immutable: new state
+      produces a new file, old files are never overwritten.
     fields:
+      format_version:
+        type: number
+        required: true
+        default: 2
+        description: "Phoreta format version. v2 = unified format with optional encryption."
       type:
         type: enum
-        values: [full-snapshot, delta, prosopon-export, topos-bundle]
+        values: [emission, full-snapshot, delta, prosopon-export, topos-bundle]
         required: true
         description: |
           What kind of phoreta this is:
+          - emission: Auto-emitted single entity + its outbound bonds (reflex-driven)
           - full-snapshot: Complete oikos state
           - delta: Incremental changes since a version
           - prosopon-export: Prosopon identity + memberships + theoria
@@ -204,11 +221,17 @@ entities:
       entities:
         type: array
         required: true
-        description: "Array of entity records included in the bundle"
+        description: |
+          Array of entity records. Each record:
+          { id, eidos, version, data, encrypted }
+          When encrypted=true, data is base64(nonce || AES-256-GCM ciphertext).
+          When encrypted=false, data is the raw JSON value.
       bonds:
         type: array
         required: true
-        description: "Array of bond records included in the bundle"
+        description: |
+          Array of bond records: { from_id, to_id, desmos, data? }
+          Bonds are never encrypted — they are structural metadata.
       entity_count:
         type: number
         required: true
@@ -220,7 +243,10 @@ entities:
       content_hash:
         type: string
         required: true
-        description: "BLAKE3 hash of entities + bonds (integrity check)"
+        description: |
+          BLAKE3 of canonical_json({ entities, bonds }).
+          Computed AFTER encryption — covers ciphertext, not plaintext.
+          Integrity verifiable without decryption.
       signature:
         type: string
         required: false
@@ -229,11 +255,27 @@ entities:
         type: string
         required: false
         description: "Signer's Ed25519 public key (base64)"
+      encryption:
+        type: object
+        required: true
+        description: |
+          Encryption metadata. Entity data is always encrypted.
+          {
+            algorithm: "AES-256-GCM",
+            key_derivation: "HKDF-SHA256",
+            key_hint: "phoreta-backup"
+          }
+          The hint identifies which HKDF derivation path produces the decryption key,
+          without revealing the key itself.
       origin_oikos_id:
         type: string
         required: false
         description: "Oikos that produced this phoreta"
-      exported_at:
+      origin_prosopon_id:
+        type: string
+        required: false
+        description: "Prosopon that produced this phoreta"
+      created_at:
         type: timestamp
         required: true
         description: "When this phoreta was created"

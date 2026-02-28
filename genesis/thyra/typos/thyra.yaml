@@ -106,6 +106,9 @@ entities:
       status:
         fill: literal
         default: "active"
+      started_at:
+        fill: literal
+        default: ""
     template: "{{ content }}"
 
 - eidos: typos

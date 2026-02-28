@@ -203,6 +203,55 @@ entities:
         value: "$result"
 
 # =============================================================================
+# PIPELINE ACTIVATION — reflexive response to config changes
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/soma/activate-voice-pipeline
+  data:
+    topos: soma
+    name: activate-voice-pipeline
+    visible: false
+    tier: 3
+    description: |
+      Activate the full voice pipeline (audio capture + transcription).
+      Sets desired_state to active on both audio-source and transcriber.
+      The existing intent-changed triggers and reconcilers handle
+      manifest/unmanifest lifecycle.
+
+      Called by config-changed reflexes — when a user changes audio device
+      or transcription settings, this activates the pipeline automatically.
+    params: []
+    steps:
+      # Only update if not already active — prevents feedback loop
+      # (step: update fires EntityUpdated even when value unchanged)
+      - step: find
+        id: "audio-source/default"
+        bind_to: audio
+      - step: switch
+        cases:
+          - when: '$audio.data.desired_state != "active"'
+            then:
+              - step: update
+                id: "audio-source/default"
+                data:
+                  desired_state: "active"
+      - step: find
+        id: "transcriber/default"
+        bind_to: transcriber
+      - step: switch
+        cases:
+          - when: '$transcriber.data.desired_state != "active"'
+            then:
+              - step: update
+                id: "transcriber/default"
+                data:
+                  desired_state: "active"
+      - step: return
+        value:
+          activated: true
+
+# =============================================================================
 # CONFIG CHANGE PRAXEIS — update + drift cycle
 # =============================================================================
 

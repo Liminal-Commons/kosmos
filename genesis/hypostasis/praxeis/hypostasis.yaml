@@ -347,6 +347,41 @@ entities:
         value: "$phoreta"
 
 # =============================================================================
+# PHORETA EMISSION (REFLEX-INVOKED)
+# =============================================================================
+
+- eidos: praxis
+  id: praxis/hypostasis/emit-phoreta
+  data:
+    topos: hypostasis
+    name: emit-phoreta
+    visible: false
+    tier: 3
+    description: |
+      Emit entity as phoreta bundle to local filesystem.
+
+      Invoked by reflexes when identity or credential entities change.
+      Not user-facing — reflexes in genesis/hypostasis/reflexes/ determine
+      which eide trigger this praxis.
+    params:
+      - name: entity_id
+        type: string
+        required: true
+        description: Entity to emit as phoreta
+      - name: base_dir
+        type: string
+        required: false
+        description: Override phoreta base directory (for testing)
+    steps:
+      - step: emit-phoreta
+        entity_id: "$entity_id"
+        base_dir: "$base_dir"
+        bind_to: result
+
+      - step: return
+        value: "$result"
+
+# =============================================================================
 # PHORETA IMPORT
 # =============================================================================
 

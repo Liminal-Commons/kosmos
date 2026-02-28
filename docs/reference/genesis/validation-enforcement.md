@@ -123,11 +123,13 @@ The dokimasia topos is an **integrity reconciler** — it senses the state of th
 
 ## Current State
 
-**Structural enforcement**: Schema conformance is currently implemented as a separate module (`dokimasia.rs`) that wraps `arise_entity()`, `update_entity()`, and `create_bond()`. The target is to dissolve this module — moving conformance checking into the composition path and mutation operations themselves.
+**Structural enforcement**: Schema conformance is inline in `host.rs` — `validate_entity_schema()` runs inside `arise_entity_with_version()` and `update_entity()`, `validate_bond_constraints()` runs inside `create_bond()`. All three are gated by `is_bootstrapping()`. The `dokimasia.rs` wrapper module has been dissolved. No enforcement modes, no env vars — always reject non-conforming data.
+
+**Post-bootstrap diagnostics**: `post_bootstrap_diagnostics()` runs after `exit_bootstrap_mode()`, batch-validates all entities, logs warnings. Warn-only — does not block bootstrap completion.
 
 **Integrity sensing**: The dokimasia topos defines praxeis, daemon, reflex, and mode in genesis. These are not yet embodied as executable operations.
 
 ---
 
 *Traces to: Axiom I (Composition), Axiom IV (Self-Grounding), Axiom V (Adequacy), theoria/conformance-constitutive-of-typed-by, theoria/composition-gates-topos-senses, theoria/self-grounding-applies-to-validation*
-*Updated: 2026-02-25 — Rewritten to prescribe conformance-as-constitutive-of-typed-by and gate/sense separation*
+*Updated: 2026-02-25 — dokimasia.rs dissolved, conformance inline in host.rs*

@@ -47,7 +47,7 @@ entities:
       - step: set
         bindings:
           prod_id: "oikos-prod/{{ $oikos_dev.data.oikos_id }}/{{ $oikos_dev.data.version }}"
-          baked_at: "now()"
+          baked_at: "now_iso()"
 
       # TODO: Resolve generation specs via manteia
       # For now, we just copy the content as-is
@@ -126,7 +126,7 @@ entities:
 
       - step: set
         bindings:
-          signed_at: "now()"
+          signed_at: "now_iso()"
 
       # Update oikos-prod with signature
       - step: update
@@ -304,7 +304,7 @@ entities:
       - step: set
         bindings:
           release_id: "release/{{ $oikos_prod.data.oikos_id }}/{{ $version }}"
-          published_at: "now()"
+          published_at: "now_iso()"
 
       # Create oikos-release
       - step: compose

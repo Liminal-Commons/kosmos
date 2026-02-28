@@ -100,7 +100,7 @@ entities:
       - step: set
         bindings:
           accumulation_id: "accumulation/{{ now() }}"
-          started_at: "now()"
+          started_at: "now_iso()"
           content: "$initial_content"
 
       - step: switch
@@ -836,6 +836,52 @@ entities:
       - step: return
         value:
           synced: true
+
+- eidos: praxis
+  id: praxis/thyra/toggle-transcription
+  bonds:
+    - desmos: requires-attainment
+      to: attainment/perceive
+  data:
+    topos: thyra
+    name: toggle-transcription
+    visible: true
+    tier: 2
+    description: |
+      Toggle transcription with content sync. Syncs current textarea
+      content to accumulation before toggling, ensuring no content loss
+      on mode switch.
+    params:
+      - name: accumulation_id
+        type: string
+        required: true
+        description: The accumulation entity to sync and toggle
+      - name: content
+        type: string
+        required: false
+        description: "Current textarea content from $form.content"
+    steps:
+      # Sync DOM content to accumulation (if non-empty)
+      - step: switch
+        cases:
+          - when: "$content"
+            then:
+              - step: compose
+                entity_id: "$accumulation_id"
+                inputs:
+                  content: "$content"
+
+      # Delegate to soma toggle
+      - step: call
+        praxis: soma/toggle-transcriber-intent
+        params:
+          accumulation_id: "$accumulation_id"
+        bind_to: toggle_result
+
+      - step: return
+        value:
+          entity_id: "$toggle_result.entity_id"
+          desired_state: "$toggle_result.desired_state"
 
 - eidos: praxis
   id: praxis/thyra/switch-compose-mode

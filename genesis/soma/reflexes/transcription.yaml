@@ -94,3 +94,31 @@ entities:
     bonds:
       - { desmos: triggered-by, to: trigger/soma/audio-source-became-active }
       - { desmos: responds-with, to: praxis/dynamis/reconcile }
+
+  # =============================================================================
+  # CONFIG-CHANGED: Auto-activate pipeline when transcriber config changes
+  # =============================================================================
+
+  # Config-changed trigger: fires when provider, model, language, or threads change
+  # NOTE: disabled pending investigation of spurious firings (type comparison issue suspected)
+  - eidos: trigger
+    id: trigger/soma/transcriber-config-changed
+    data:
+      name: transcriber-config-changed
+      condition: '$entity.data.provider != $previous.data.provider || $entity.data.whisper_model != $previous.data.whisper_model || $entity.data.language != $previous.data.language || $entity.data.whisper_threads != $previous.data.whisper_threads'
+      enabled: false
+    bonds:
+      - { desmos: matches-event, to: entity-mutation/updated }
+      - { desmos: filters-eidos, to: eidos/transcriber }
+
+  # When transcriber config changes, activate the full voice pipeline
+  - eidos: reflex
+    id: reflex/soma/activate-on-transcriber-config
+    data:
+      name: activate-on-transcriber-config
+      description: "When transcriber config changes, activate voice pipeline."
+      enabled: true
+      scope: global
+    bonds:
+      - { desmos: triggered-by, to: trigger/soma/transcriber-config-changed }
+      - { desmos: responds-with, to: praxis/soma/activate-voice-pipeline }

@@ -38,14 +38,15 @@ entities:
       - step: set
         bindings:
           session_id: "session/{{ now() }}"
-          opened_at: "now()"
+          started_at: "now_iso()"
 
       # Create the session (CE4: compose instead of arise)
       - step: compose
         typos_id: "typos-def-session"
         inputs:
           id: "$session_id"
-          opened_at: "$opened_at"
+          parousia_id: "$_parousia.id"
+          started_at: "$started_at"
           status: "active"
         bind_to: session_entity
 
@@ -87,7 +88,7 @@ entities:
 
       - step: set
         bindings:
-          closed_at: "now()"
+          closed_at: "now_iso()"
 
       - step: update
         id: "$session_id"
@@ -137,7 +138,7 @@ entities:
       - step: set
         bindings:
           conversation_id: "conversation/{{ now() }}"
-          opened_at: "now()"
+          opened_at: "now_iso()"
 
       # Create the conversation (CE4: compose instead of arise)
       - step: compose
@@ -226,7 +227,7 @@ entities:
       - step: set
         bindings:
           segment_id: "segment/{{ now() }}"
-          created_at: "now()"
+          created_at: "now_iso()"
 
       # Create the segment (CE4: compose instead of arise)
       - step: compose
@@ -314,7 +315,7 @@ entities:
       - step: set
         bindings:
           note_id: "note/{{ now() }}"
-          created_at: "now()"
+          created_at: "now_iso()"
 
       # Create the note (CE4: compose instead of arise)
       - step: compose
@@ -452,7 +453,7 @@ entities:
       - step: set
         bindings:
           insight_id: "insight/{{ now() }}"
-          surfaced_at: "now()"
+          surfaced_at: "now_iso()"
 
       # Create the insight (CE4: compose instead of arise)
       - step: compose

@@ -64,3 +64,30 @@ entities:
     bonds:
       - { desmos: triggered-by, to: trigger/soma/audio-source-drift }
       - { desmos: responds-with, to: praxis/dynamis/reconcile }
+
+  # =============================================================================
+  # CONFIG-CHANGED: Auto-activate pipeline when audio config changes
+  # =============================================================================
+
+  # Config-changed trigger: fires when device_id changes
+  - eidos: trigger
+    id: trigger/soma/audio-config-changed
+    data:
+      name: audio-config-changed
+      condition: '$entity.data.device_id != $previous.data.device_id'
+      enabled: true
+    bonds:
+      - { desmos: matches-event, to: entity-mutation/updated }
+      - { desmos: filters-eidos, to: eidos/audio-source }
+
+  # When audio config changes, activate the full voice pipeline
+  - eidos: reflex
+    id: reflex/soma/activate-on-audio-config
+    data:
+      name: activate-on-audio-config
+      description: "When audio device changes, activate voice pipeline."
+      enabled: true
+      scope: global
+    bonds:
+      - { desmos: triggered-by, to: trigger/soma/audio-config-changed }
+      - { desmos: responds-with, to: praxis/soma/activate-voice-pipeline }

@@ -20,7 +20,7 @@ Chora receives kosmos. These are the **seven dimensions** of that reception:
 | 2 | **Compute** | Process execution and build toolchains | local, docker, systemd, nixos, cargo | `process.rs` |
 | 3 | **Storage** | Data persistence | fs-local, R2, S3 | `storage.rs` → `r2.rs` |
 | 4 | **Network** | System communication | cloudflare (DNS), route53, manual | `dns.rs` |
-| 5 | **Credential** | Identity, keys, secrets | macos-keychain, environment | `credential.rs` |
+| 5 | **Credential** | Identity, keys, secrets | session-bridge, environment | `credential.rs` |
 | 6 | **Media** | Capture devices and real-time streams | whisper (voice), livekit (WebRTC) | `voice.rs`, `livekit.rs` |
 | 7 | **Inference** | LLM inference and embedding | anthropic, openai | `nous.rs` |
 
@@ -157,15 +157,15 @@ Note: `nous.rs` has no dispatch pattern because inference currently has no lifec
 
 ## Credential Substrate
 
-Credentials are a **substrate**, not a utility. The keyring has a real actualization cycle:
+Credentials are a **substrate**, not a utility. The session keyring has a real actualization cycle:
 
-| Operation | Actualization | Keychain equivalent |
-|-----------|--------------|---------------------|
-| `unlock` | Manifest | Bring trust into actuality |
-| `store` | Manifest | Add a specific capability |
-| `retrieve` | Sense | Query current trust state |
-| `list` | Sense | Full state inspection |
-| `lock` | Unmanifest | Remove trust from actuality |
+| Operation | Actualization | What Happens |
+|-----------|--------------|--------------|
+| `unlock` | Manifest | Decrypt credentials into session memory — bring trust into actuality |
+| `store` | Manifest | Encrypt + persist credential entity — add a specific capability |
+| `retrieve` | Sense | Query session for decrypted value — current trust state |
+| `list` | Sense | Enumerate credential entities — full state inspection |
+| `lock` | Unmanifest | Zero session memory — remove trust from actuality |
 
 ### resolve_credential()
 
@@ -179,12 +179,12 @@ pub fn resolve_credential(
 ```
 
 Resolution order:
-1. **SessionBridge** (keychain): `session.get_credential(service_name)` — PRIMARY
+1. **SessionBridge**: `session.get_credential(service_name)` — PRIMARY (decrypted from kleidoura-encrypted entities)
 2. **Environment fallback**: well-known env var mapping (for headless/CI only)
 3. **Uppercase convention**: `SERVICE_NAME` as env var
 4. Error with guidance to unlock keyring
 
-The keychain is always tried first; env vars are the headless escape hatch, not a peer.
+The session bridge is always tried first; env vars are the headless escape hatch, not a peer.
 
 ---
 

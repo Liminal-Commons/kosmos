@@ -193,6 +193,31 @@ Verify genesis record signatures meet threshold.
 
 ### Phoreta Operations
 
+Phoreta are signed, encrypted, content-addressed entity bundles. One format
+serves four purposes: emission, backup, recovery, federation. Recovery IS federation with
+your past self (T24).
+
+**Format properties:**
+- **Subgraph-carrying:** entities + their outbound bonds as an atomic unit
+- **Encrypted (mandatory):** AES-256-GCM with HKDF-derived backup key from mnemonic seed
+- **SOPS pattern:** metadata (IDs, eidos, bonds) cleartext; entity data always encrypted
+- **Content-addressed:** files stored at BLAKE3 hash path, never overwritten
+- **Signed:** Ed25519 over content hash (covers all entities/bonds transitively)
+
+**Bootstrap constraint:** metadata is readable without the decryption key. Bootstrap scans
+phoreta to discover which kleidoura exists, presents the unlock screen, THEN decrypts entity
+data after the user enters their password and the backup key becomes derivable.
+
+**Emission requires unlocked keyring.** If the keyring is locked, emission is deferred — entities
+persist in the database and emit when the keyring next unlocks. This ensures no unencrypted
+phoreta are ever written to disk.
+
+#### emit-phoreta
+Auto-emit entity + outbound bonds to local phoreta store. Reflex-invoked, not user-facing.
+- **When:** Entity create/update (kleidoura, credential — via reflexes), keyring unlocked
+- **Encrypts:** Always (mandatory). Emission deferred if keyring locked.
+- **Storage:** Content-addressed file in `~/Library/Application Support/kosmos/phoreta/store/`
+
 #### export-phoreta
 Create signed bundle of entities and bonds for transport.
 - **When:** Backup, federation, sharing
@@ -202,7 +227,7 @@ Create signed bundle of entities and bonds for transport.
 #### import-phoreta
 Verify and import a phoreta bundle with merge strategy.
 - **When:** Restore, sync, receive shared content
-- **Requires:** Valid phoreta bundle, merge strategy
+- **Requires:** Valid phoreta bundle, merge strategy (newer_wins, local_wins, fail_on_conflict)
 
 #### create-snapshot
 Full state export of an oikos.
@@ -483,35 +508,40 @@ mnemonic (BIP-39, 24 words)
 
 Key derivation mirrors trust derivation. The social structure and the cryptographic structure are the same structure.
 
-**Deterministic identity:** The prosopon ID is a function of cryptographic material — same mnemonic always produces the same prosopon ID and self-oikos ID. Identity is derivation, not storage. Graph entities are projections of the sovereign substrate (platform keychain), not the source of truth.
+**Deterministic identity:** The prosopon ID is a function of cryptographic material — same mnemonic always produces the same prosopon ID and self-oikos ID. Identity is derivation, not storage. The mnemonic is the sovereign substrate — not any platform service.
 
 ## Sovereign Substrate
 
-The platform keychain (macOS Keychain, etc.) is the **primary store** of identity material and credentials — not backup, not cache. Graph entities (kleidoura, credential) are projections of what the keychain holds.
+The mnemonic is the **sovereign substrate** — the irreducible root from which all identity derives. It is not stored by the system. The user holds it. Everything else is derived.
 
-The keychain:
-- Survives app deletion, database clean, reinstallation
-- Belongs to the OS user, not the application
-- Stores kleidoura (encrypted master seed) and credentials (encrypted API keys)
+Graph entities (kleidoura, credential) are **first-class entities**, not projections of a platform-specific store. They persist in the kosmos database like all entities. If the database is wiped, recovery follows the same path as federation — mnemonic re-derivation + phoreta import:
 
-This is the ontological commitment: the sovereign substrate is primary. The graph is derived.
+- **Mnemonic** → deterministic re-derivation of prosopon ID, self-oikos ID, signing keys
+- **Phoreta** → signed bundles restore entity state (credentials, theoria, bonds)
+
+This dissolves the platform keychain dependency. Recovery IS federation with your past self. The mechanism that moves state between devices also moves state across database resets. One pattern, not two.
+
+What persists where:
+- **Mnemonic**: held by the user (paper, memory, password manager — their choice, their sovereignty)
+- **Phoreta emission**: local filesystem (`~/Library/Application Support/kosmos/phoreta/store/`) — reflex-driven auto-emission on entity create/update, survives DB wipe. Files are content-addressed (BLAKE3 hash → path) and immutable (new state = new file). An index tracks the latest phoreta per entity scope. Encryption is mandatory: entity data encrypted with AES-256-GCM using an HKDF-derived backup key (same mnemonic → same key). Emission only occurs when keyring is unlocked (backup key derivable). Metadata (IDs, eidos, bonds) stays cleartext. Trigger/reflex entities in the graph declare which eide auto-emit; adding new eide to the emission set requires a new reflex entity, not a code change
+- **Session token**: OS keyring (ephemeral cross-process IPC — Thyra ↔ kosmos-mcp, not identity persistence)
 
 ## Bootstrap Dwelling Discovery
 
-After constitutional bootstrap (genesis), a discovery phase scans the sovereign substrate:
+After constitutional bootstrap (genesis), a discovery phase scans for prior dwelling state:
 
-1. **Scan keychain** for existing kleidoura entries
-2. **If found:** derive prosopon ID from encrypted public key → derive self-oikos → compose prosopon entity → compose self-oikos entity → establish `member-of` and `stewards` bonds → present unlock screen
+1. **Scan local phoreta** for existing identity emission (`~/Library/Application Support/kosmos/phoreta/`)
+2. **If found:** import phoreta → re-derive prosopon ID from kleidoura public key → derive self-oikos → compose prosopon entity → compose self-oikos entity → establish `member-of` and `stewards` bonds → present unlock screen
 3. **If empty:** present welcome screen (fresh setup)
-4. **After unlock:** scan for credentials → compose credential entities → bond to providers → trigger attainment derivation via reflexes
+4. **After unlock:** import credential phoreta → compose credential entities → bond to providers → trigger attainment derivation via reflexes
 
-Discovery does not create from nothing — it re-derives from what persists. This is the reconciliation pattern (sense → compare → act) applied to the sovereign substrate.
+Discovery does not create from nothing — it re-derives from what persists. This is the reconciliation pattern (sense → compare → act) applied to local emission. The same phoreta format used for federation serves recovery.
 
 ### discover-dwelling (praxis)
-Scan sovereign substrate, re-derive identity, reconstitute dwelling entities.
+Scan local phoreta emission, re-derive identity, reconstitute dwelling entities.
 - **When:** After constitutional bootstrap completes
-- **Requires:** Access to platform keychain
-- **Effect:** Prosopon, self-oikos, and credential entities re-composed if sovereign material exists
+- **Requires:** Access to local phoreta directory
+- **Effect:** Prosopon, self-oikos, and credential entities re-composed if emission exists
 
 ## Future Extensions
 

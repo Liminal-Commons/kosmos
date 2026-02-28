@@ -66,9 +66,10 @@ entities:
                     class: compose-bar__transcription
                     data-signal-source: "{@fed-by-audio.id}"
                     data-state: "{@fed-by-transcriber.data.desired_state}"
-                    on_click: soma/toggle-transcriber-intent
+                    on_click: thyra/toggle-transcription
                     on_click_params:
                       accumulation_id: "{id}"
+                      content: $form.content
                   children:
                     - widget: icon
                       props:

@@ -1633,6 +1633,16 @@ stages:
             scope: oikos
             created_at: "{{ now() }}"
 
+      # voice-author attainment — ability to compose through voice
+      - compose:
+          target_eidos: attainment
+          id: attainment/voice-author
+          data:
+            name: voice-author
+            description: "Ability to compose artifacts through voice authoring"
+            scope: oikos
+            created_at: "{{ now() }}"
+
       # ------------------------------------
       # Attainment Grants (oikos → attainment)
       # ------------------------------------

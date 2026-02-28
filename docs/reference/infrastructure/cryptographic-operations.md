@@ -252,47 +252,87 @@ pub struct SessionKeyring {
 
 ---
 
-## Phoreta (Signed Bundles)
+## Phoreta (Encrypted, Signed Entity Bundles)
 
-Phoreta are signed, content-addressed bundles for entity export/import across oikoi.
+Phoreta (φορητά = "carried things") are encrypted, signed, content-addressed entity bundles for transport across time (backup/recovery) and space (federation). Recovery IS federation with your past self — one format, one import path.
 
 ### Bundle Format
 
 ```rust
-pub struct PhoretaBundle {
-    pub version: u32,                // Bundle format version (1)
-    pub entities: Vec<PhoretaEntity>,
-    pub bonds: Vec<PhoretaBond>,
-    pub content_hash: String,        // BLAKE3 of canonical payload
-    pub signature: String,           // Ed25519 signature (base64)
-    pub signer_public_key: String,   // Signer's public key (base64)
-    pub created_at: String,          // ISO 8601 timestamp
+pub struct Phoreta {
+    pub format_version: u32,           // 2
+    pub phoreta_type: PhoretaType,     // Emission | FullSnapshot | Delta
+    pub entities: Vec<PhoretaEntity>,  // [{id, eidos, version, data, encrypted}]
+    pub bonds: Vec<PhoretaBond>,       // [{from_id, to_id, desmos, data?}]
+    pub entity_count: usize,
+    pub bond_count: usize,
+    pub content_hash: String,          // BLAKE3 of canonical JSON({entities, bonds})
+    pub signature: Option<String>,     // Ed25519 over content_hash (base64)
+    pub public_key: Option<String>,    // Signer's public key (base64)
+    pub encryption: Option<PhoretaEncryption>,  // {algorithm, key_derivation, key_hint}
+    pub origin_oikos_id: Option<String>,
+    pub origin_prosopon_id: Option<String>,
+    pub created_at: String,
+    pub since_version: Option<i64>,
 }
 ```
 
-### Export
+### SOPS Pattern — Metadata Cleartext, Data Encrypted
 
-1. Collect entities and bonds to export
-2. Serialize payload to canonical JSON: `{ "entities": [...], "bonds": [...] }`
-3. Compute `content_hash = hash_content(&payload)`
-4. Sign `content_hash` bytes with exporter's Ed25519 key
-5. Construct `PhoretaBundle`
+Entity data is encrypted per-entity with AES-256-GCM. Structural metadata (entity IDs, eidos, bonds) remains cleartext. This satisfies the bootstrap constraint: the system can discover which entities exist before keyring unlock.
+
+Content hash covers **ciphertext**, not plaintext — integrity is verifiable without decryption.
+
+### Key Derivation
+
+Backup encryption uses a deterministic key derived from the mnemonic seed:
+
+```
+derive_backup_key(seed) → HKDF-SHA256(salt="phoreta-backup", ikm=seed, info="aes-256-gcm") → [u8; 32]
+```
+
+Same mnemonic → same backup key → can decrypt all emission phoreta.
+
+### Emission (Single Entity + Bonds)
+
+1. Gather entity and its outbound bonds
+2. Build `Phoreta::from_entity_with_bonds(entity, bonds)`
+3. Encrypt with `derive_backup_key(seed)` — **mandatory**, emission deferred if keyring locked
+4. Optionally sign with identity key
+5. Write to content-addressed store via `emit_to_store()`
+
+### Content-Addressed Immutable Storage
+
+Phoreta files are never overwritten. Storage uses git-style content-addressed paths:
+
+```
+~/Library/Application Support/kosmos/phoreta/
+  store/
+    a3/b7c4d5e6...rest.phoreta.json    # immutable
+    f1/2e3d4c5b...rest.phoreta.json
+  index.json                            # latest pointer per entity scope
+```
+
+The index tracks latest hash + history per entity. Pruning keeps the most recent N entries.
 
 ### Import
 
-1. Parse bundle
-2. Verify Ed25519 signature against `content_hash` and `signer_public_key`
-3. Recompute `hash_content` of payload; compare against `content_hash`
-4. If both pass: create entities via `arise_entity()` (subject to dokimasia validation)
-5. If either fails: reject bundle with structured error
+`import_from_index(host, base_dir, backup_key)` reads the index, loads phoreta files, and restores entities + bonds:
+
+1. Read index, iterate entries
+2. Load phoreta from content-addressed path
+3. Verify integrity (recompute BLAKE3, compare)
+4. If encrypted and key available: decrypt
+5. If encrypted and no key: import with encrypted data blob (opaque import — entity exists in graph, data decrypted later when keyring unlocks)
+6. Apply entities and bonds to graph, skipping entities that already exist
 
 ### Trust Model
 
-Import verifies that:
-- The content hasn't been tampered with (hash check)
-- The signer is who they claim to be (signature check)
+Integrity verification:
+- **Content hash**: BLAKE3 recomputed from canonical payload, compared against stored hash
+- **Signature**: Ed25519 verification against content hash and public key
 
-Import does NOT verify that the signer is authorized — that is the responsibility of the attainment system.
+Authorization is orthogonal — the attainment system gates what actions the importer can take with the restored entities.
 
 ---
 

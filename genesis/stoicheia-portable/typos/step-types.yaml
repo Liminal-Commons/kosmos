@@ -416,6 +416,10 @@ entities:
         pattern: queried
         source: "find('eidos/stoicheion/emit')"
 
+      - name: stoicheion_emit_phoreta
+        pattern: queried
+        source: "find('eidos/stoicheion/emit-phoreta')"
+
       - name: stoicheion_invoke
         pattern: queried
         source: "find('eidos/stoicheion/invoke')"
@@ -624,6 +628,12 @@ entities:
         inputs:
           stoicheion: "$stoicheion_emit"
 
+      - name: struct_emit_phoreta
+        pattern: composed
+        definition: typos-def-step-struct
+        inputs:
+          stoicheion: "$stoicheion_emit_phoreta"
+
       - name: struct_invoke
         pattern: composed
         definition: typos-def-step-struct
@@ -727,5 +737,7 @@ entities:
       {{ struct_signal }}
 
       {{ struct_emit }}
+
+      {{ struct_emit_phoreta }}
 
       {{ struct_invoke }}

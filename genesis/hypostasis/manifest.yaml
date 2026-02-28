@@ -30,6 +30,8 @@ content_paths:
     content_types: [desmos]
   - path: praxeis/
     content_types: [praxis]
+  - path: reflexes/
+    content_types: [trigger, reflex]
   - path: typos/
     content_types: [typos]
   - path: render-specs/
@@ -87,6 +89,7 @@ provides:
     - hypostasis/verify-chain
     - hypostasis/verify-genesis
     # Phoreta operations
+    - hypostasis/emit-phoreta
     - hypostasis/export-phoreta
     - hypostasis/import-phoreta
     - hypostasis/create-snapshot
