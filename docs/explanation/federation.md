@@ -1,476 +1,240 @@
-# Substrate Reconciliation: Making One Kosmos Actual Across Many
+# Federation: Oikos-Scoped Externalization Across Substrates
 
-*Reconciliation is the mechanism. Federation is the pattern that emerges.*
+*Rewritten to align with the unified externalization architecture.*
+
+---
+
+## Scope
+
+This document specifies federation behavior only.
+
+For the cross-cutting model shared by recovery, backup, self-sync, and federation, see:
+
+- `docs/explanation/externalization.md`
+
+Federation is the cross-prosopon, oikos-scoped destination of the same externalization reconciliation mechanism.
 
 ---
 
 ## Grounding
 
-From KOSMOGONIA:
+From constitutional and reference sources:
 
-> **Visibility = Reachability**
-> You can only perceive what you can cryptographically reach through the bond graph.
-> There is no separate permission layer. The bond graph IS the access control graph.
+- Reconciliation is the actuation shape: `sense -> compare -> act` (`genesis/KOSMOGONIA.md:285-343`).
+- The same shape applies at phoreta federation scale (`genesis/KOSMOGONIA.md:342`).
+- Visibility is reachability through bonds (`genesis/KOSMOGONIA.md:273-278`).
+- Federation distribution is part of the same flow (`genesis/KOSMOGONIA.md:416`).
 
-> **Continuous sync enables time-sensitive execution.**
-> The mechanism that delivers topoi also initiates ergon work.
-
-There is ONE kosmos — the ordering of entities and bonds that a dweller has relationship to. This kosmos may be actualized across multiple substrates (Victor's laptop, Victor's phone, Alice's device). Reconciliation ensures these actualizations stay consistent.
+Federation therefore does not define a separate synchronization ontology. It applies externalization reconciliation to remote substrates under oikos governance.
 
 ---
 
-## The Core Insight
+## Federation Boundaries
 
-From any dweller's vantage, there is one kosmos — the world they dwell in. The fact that this kosmos is actualized across multiple substrates (different `.db` files on different hardware) is an implementation detail of actualization.
+## In Scope
 
-```
-                         κόσμος (ONE)
-            Victor's oikoi, bonds, entities, theoria
-            ONE coherent ordering
-                           │
-                           │ actualization
-           ┌───────────────┼───────────────┐
-           ▼               ▼               ▼
-      substrate A     substrate B     substrate C
-      (laptop)        (phone)         (Alice's)
-      kosmos.db       kosmos.db       kosmos.db
-```
+- Oikos-scoped sync between substrates/prosopa using `federates-with`.
+- Cursor-based delta tracking with hash checkpoint verification.
+- Conflict detection and resolution semantics.
+- Integration with distributed topos delivery through oikos visibility.
 
-The **reconciler** ensures that changes on one substrate propagate to others, maintaining the coherence of the one kosmos across its actualizations.
+## Out of Scope
+
+- Local recovery/backup implementation details (covered in `externalization.md`).
+- New ontology beyond existing federation primitives, unless later evidence requires it.
 
 ---
 
-## Two Scopes of Reconciliation
+## Existing Federation Primitives
 
-The reconciler is always substrate-level — it syncs between kosmos.db instances. What varies is the **visibility filter**:
+| Primitive | Role | Anchor |
+|-----------|------|--------|
+| `desmos/federates-with` | Scope which oikos content can flow | `genesis/politeia/praxeis/politeia.yaml:2372-2381` |
+| `eidos/sync-cursor` | Track per-federation sync positions | `genesis/politeia/eide/politeia.yaml:174-222` |
+| `eidos/sync-conflict` | Represent divergence requiring resolution | `genesis/politeia/eide/politeia.yaml:223-285` |
+| `eidos/phoreta` | Signed carrier for payload transport | `genesis/hypostasis/eide/hypostasis.yaml:175-285` |
 
-### Self-Reconciliation
-
-Same prosopon on multiple substrates. No scoping bond needed.
-
-```
-prosopon/victor on laptop  ←→  prosopon/victor on phone
-         │                              │
-         └──────── reconciler ──────────┘
-                       │
-              filter: everything
-         (same prosopon = full visibility)
-```
-
-Victor's oikoi, theoria, phaseis — all sync because Victor has visibility to all of it from both substrates.
-
-### Oikos-Scoped Reconciliation (Federation)
-
-Different prosopa sharing an oikos. The `federates-with` bond scopes what syncs.
-
-```
-oikos/project contains entity/doc-123
-         │
-         ├── sovereign-to → parousia (Victor)
-         └── sovereign-to → parousia (Alice)
-
-Victor's substrate  ←→  Alice's substrate
-         │                     │
-         └──── reconciler ─────┘
-                    │
-           filter: oikos/project
-      (bond determines visibility)
-```
-
-When Victor adds content to oikos/project, it syncs to Alice's substrate because she's sovereign to the same oikos. The `federates-with` bond doesn't *start* federation — it *scopes* what the reconciler syncs.
+No new federation-specific eidos/desmos are introduced by this rewrite.
 
 ---
 
-## Reconciliation is the Mechanism
+## Federation Reconciliation Loop
 
-| Scope | What Syncs | Filter |
-|-------|-----------|--------|
-| Self | All of prosopon's content | None (same prosopon = full visibility) |
-| Oikos | Content in shared oikos | Bond reachability (`federates-with`) |
+Federation uses the same reconcile shape as other substrates.
 
-The reconciler doesn't have "modes." It syncs entities that pass the visibility filter. The filter is determined by prosopon identity and bond graph reachability.
+### 1. Sense
 
-**Federation** is what we call it when the scope extends beyond self — when the reconciler syncs content between different prosopa' substrates, mediated by oikos bonds.
+Federation sense reads:
+
+- local graph deltas for scoped oikos content (`crates/kosmos/src/graph.rs:153-212`)
+- local cursor state (`genesis/politeia/eide/politeia.yaml:196-221`)
+- local phoreta checkpoint state (`crates/kosmos/src/phoreta.rs:468-640`)
+- channel/session state for destination reachability (via aither channel context)
+
+### 2. Compare
+
+Federation compare uses hybrid tracking:
+
+- versions for traversal windows (`> local_version`)
+- hashes for equality/checkpoint and tamper/equivalence validation (`crates/kosmos/src/graph.rs:726-783`, `crates/kosmos/src/phoreta.rs:154-339`)
+- cursor-carried hash checkpoints for per-lane convergence state
+
+### 3. Act
+
+Federation act includes:
+
+- package scoped deltas as phoreta
+- send phoreta over data-channel
+- verify and apply incoming phoreta
+- update cursor/checkpoint state
+- surface conflict entity when convergence cannot be automatic
 
 ---
 
-## Ontology
+## Frequency Model for Federation
 
-### Existing Primitives
+Federation is not globally batch-only or globally periodic-only.
 
-| What | Role |
-|------|------|
-| **oikos** | Governance unit, determines visibility scope |
-| **sovereign-to** | Bond connecting oikos to parousia (membership) |
-| **desmos: federates-with** | Scopes oikos-level reconciliation between prosopa |
-| **phoreta** | Signed bundle for transport (exists in hypostasis) |
-| **data-channel** | WebRTC transport (exists in aither) |
+- Connected channels: continuous reconciliation.
+- Reconnect: cursor/hash catch-up.
+- Resource-protection mode: bounded batch windows, preserving semantics.
 
-### Federation-Specific Desmos
+This keeps federation responsive while controlling operational cost.
+
+---
+
+## Data Model
+
+## Federation Bond
+
+`federates-with` scopes flow. It does not replace reconciler semantics.
 
 ```yaml
 desmos/federates-with:
-  description: |
-    Scopes reconciliation for an oikos across substrates.
-    When prosopa share an oikos, this bond determines sync behavior.
-    The bond scopes — it doesn't initiate. Reconciliation is continuous.
   from_eidos: oikos
   to_eidos: oikos
-  cardinality: many-to-many
   properties:
-    sync_direction: enum [push, pull, bidirectional]
-    eidos_filter: array[string]  # Which eide to sync (empty = all)
-    channel_id: string           # Underlying data-channel
+    sync_direction: [push, pull, bidirectional]
+    eidos_filter: [string]
+    channel_id: string
 ```
 
-### Reconciliation-Tracking Eide
+## Sync Cursor
+
+`sync-cursor` tracks ordered progress and hash-equivalence checkpoints for each direction.
 
 ```yaml
 eidos/sync-cursor:
-  description: |
-    Tracks sync position between substrates.
-    Enables delta sync — only send what changed since last sync.
   fields:
-    local_substrate_id: string   # This substrate's identifier
-    remote_substrate_id: string  # Paired substrate's identifier
-    scope: string                # "self" or oikos ID
-    local_version: integer       # Last local version synced
-    remote_version: integer      # Last remote version received
-    status: enum [active, paused, failed]
+    federation_bond_id: string
+    local_oikos_id: string
+    remote_oikos_id: string
+    local_version: integer
+    remote_version: integer
+    local_hash_checkpoint: string
+    remote_hash_checkpoint: string
+    status: [active, paused, failed]
     last_sync_at: timestamp
 ```
 
+## Conflict Entity
+
+`sync-conflict` persists unresolved divergence for deterministic operator resolution.
+
 ```yaml
 eidos/sync-conflict:
-  description: |
-    Created when the same entity diverges across substrates.
-    Both substrates modified independently before reconciliation.
-    Surfaces in UI for human resolution.
   fields:
     entity_id: string
-    entity_eidos: string
     local_version: integer
-    local_data: object
     remote_version: integer
+    local_data: object
     remote_data: object
-    status: enum [open, resolved]
-    resolution: enum [local, remote, merged]
-    resolved_by: string
-    detected_at: timestamp
-    resolved_at: timestamp
+    status: [open, resolved]
 ```
 
 ---
 
-## The Sync Model
+## Conflict Semantics
 
-### Continuous, Not Batch
+Default strategies by class:
 
-Traditional sync: "sync now" triggers batch transfer.
-Kosmos reconciliation: changes flow continuously as they happen.
+- mergeable/domain-safe classes: merge strategy
+- ephemeral classes: timestamp/LWW allowed
+- sovereign/credential/governance classes: manual resolution required
 
-```
-Entity created/modified on substrate A
-    │
-    ▼
-Change event emitted locally
-    │
-    ▼
-Reconciler checks: what's the visibility scope?
-    │
-    ├── Self-reconciliation: sync to all of prosopon's substrates
-    │
-    └── Oikos-scoped: sync to substrates with federates-with bond
-    │
-    ▼
-For each target substrate:
-    - Package as phoreta (signed)
-    - Send via data-channel
-    │
-    ▼
-Remote substrate receives, verifies, applies
-```
-
-### What Triggers Sync?
-
-| Event | Action |
-|-------|--------|
-| Entity created | Push to substrates with visibility |
-| Entity modified | Push delta to substrates with visibility |
-| Bond created | Re-evaluate visibility, sync if newly visible |
-| Oikos membership | Full sync of oikos content to new member's substrate |
-| Substrate connects | Delta sync from last cursor position |
-
-### Delta Sync via Version Vectors
-
-Each entity has a version number (incremented on change).
-Each substrate-pair has a sync-cursor tracking position.
-
-```
-sync-cursor for laptop ↔ phone (self):
-  local_version: 147   # We've synced up to local version 147
-  remote_version: 92   # We've received up to remote version 92
-  scope: self
-```
-
-To sync:
-1. Find entities with version > sync-cursor.local_version
-2. Filter by visibility scope
-3. Send as phoreta
-4. Update cursor
+When auto-convergence cannot preserve invariants, create `sync-conflict` and pause only affected lane, not the entire federation domain.
 
 ---
 
-## Conflict Resolution
+## Integration with Topos Distribution
 
-When substrates modify the same entity before reconciliation:
+Topos distribution remains federation by the same mechanism:
 
-```
-substrate A: entity/foo version 5 → modified → version 6
-substrate B: entity/foo version 5 → modified → version 6'
+1. Oikos distributes a topos-prod.
+2. Member visibility includes the distributed entity set.
+3. Federation reconciliation carries those entities across substrates.
 
-Both syncs arrive:
-  A receives B's version 6'
-  B receives A's version 6
-```
-
-**Resolution strategies** (per-scope or per-eidos):
-
-| Strategy | Behavior |
-|----------|----------|
-| `last-write-wins` | Higher timestamp wins (simple but loses data) |
-| `manual` | Create sync-conflict for human resolution |
-| `merge` | Type-specific merge (for mergeable types) |
-
-**Default**: `manual` for most types, `last-write-wins` for ephemeral.
+No separate distribution transport is defined.
 
 ---
 
-## Transport Layer
+## Integration with Ergon and Shared Work
 
-Reconciliation uses aither data-channels for substrate-to-substrate communication.
+Shared work entities in federated oikoi follow identical flow:
 
-```
-substrate A  ────[data-channel]────  substrate B
-                     │
-                     │ channel_id: "chan_abc123"
-                     ▼
-            WebRTC P2P connection
-            (propylon-relay signaling)
-```
+- creation/update in one substrate
+- scoped visibility check
+- reconcile through phoreta transport
+- remote apply and cursor advance
 
-For self-reconciliation, the channel connects the same prosopon's substrates.
-For oikos-scoped reconciliation, the channel connects different prosopa' substrates.
+Federation transport is not special-cased by eidos category.
 
 ---
 
-## Praxeis
+## Security and Integrity
 
-### Substrate Registration
-
-```yaml
-praxis/hypostasis/register-substrate:
-  description: |
-    Register this substrate for reconciliation.
-    Creates substrate identity for sync tracking.
-  params:
-    prosopon_id: string
-  steps:
-    - Generate substrate ID if not exists
-    - Create substrate record
-    - Initialize for self-reconciliation
-```
-
-### Self-Reconciliation
-
-```yaml
-praxis/hypostasis/sync-self:
-  description: |
-    Sync prosopon's full kosmos to another of their substrates.
-    No oikos bond needed — same prosopon means full visibility.
-  params:
-    remote_substrate_id: string
-    channel_id: string (optional)
-  steps:
-    - Get or create sync-cursor (scope: self)
-    - Gather entities with version > cursor
-    - Package as phoreta
-    - Send via data-channel
-    - Update cursor
-```
-
-### Oikos-Scoped Reconciliation
-
-```yaml
-praxis/politeia/federate-oikos:
-  description: |
-    Enable oikos-scoped reconciliation with another prosopon's substrate.
-    Creates federates-with bond to scope what syncs.
-  params:
-    oikos_id: string
-    remote_substrate_id: string
-    remote_prosopon_pubkey: string
-    sync_direction: enum [push, pull, bidirectional]
-  steps:
-    - Verify caller is sovereign to oikos
-    - Create federates-with bond with scope properties
-    - Create data-channel via aither
-    - Initialize sync-cursor (scope: oikos_id)
-    - Trigger initial sync of oikos content
-
-praxis/politeia/unfederate-oikos:
-  description: Remove oikos-scoped reconciliation.
-  params:
-    oikos_id: string
-    remote_substrate_id: string
-  steps:
-    - Close data-channel
-    - Remove federates-with bond
-    - Mark sync-cursor inactive
-```
-
-### Conflict Resolution
-
-```yaml
-praxis/politeia/resolve-conflict:
-  description: Resolve a sync conflict manually.
-  params:
-    conflict_id: string
-    resolution: enum [local, remote, merged]
-    merged_data: object (if merged)
-  steps:
-    - Apply chosen resolution
-    - Mark conflict resolved
-    - Propagate resolved version to paired substrates
-```
+| Concern | Mechanism |
+|---------|-----------|
+| Unauthorized visibility | Bond graph scoping (`federates-with` + membership) |
+| Payload tampering | Phoreta hash/signature validation |
+| Replay and duplicate apply | Cursor windows + hash checkpoint checks |
+| Divergent concurrent writes | `sync-conflict` with explicit resolution |
 
 ---
 
-## Reconciler
+## Current Status and Gap Surface
 
-One reconciler handles both scopes: `substrate-reconciler`.
+## Implemented Today
 
-```yaml
-reconciler/substrate:
-  triggers:
-    - entity_changed       # Push to substrates with visibility
-    - channel_message      # Receive incoming phoreta
-    - channel_state_change # Handle disconnect/reconnect
-    - bond_created         # Re-evaluate visibility scope
+- federation ontology entities/primitives in politeia genesis
+- phoreta carrier and content-addressed storage
+- version and hash primitives in graph/phoreta layers
 
-  reconcile:
-    # On entity change
-    - determine visibility scope (self or oikos)
-    - for each substrate in scope: sync
+## Gaps Remaining
 
-    # On channel message
-    - verify phoreta signature
-    - check for conflict
-    - apply or create sync-conflict
-
-    # On disconnect
-    - mark sync-cursor as degraded
-
-    # On reconnect
-    - delta sync from cursor position
-```
+- full runtime substrate reconciler wiring for federation lanes
+- complete conflict UX and operator workflow
+- removal of recovery workaround logic in favor of uniform externalization path
+- sync-cursor genesis shape currently version-only; hash checkpoint fields are target-state additions
 
 ---
 
-## Integration with Distribution
+## Migration Discipline
 
-Topos distribution uses oikos-scoped reconciliation:
+This rewrite removes prior prescriptive ambiguity:
 
-```
-commons/my-topos ──[distributes]──► topos-prod/foo-1.0.0
-
-user joins commons/my-topos via invitation
-    │
-    ▼
-user's parousia becomes sovereign to commons/my-topos
-    │
-    ▼
-oikos-scoped reconciliation syncs topos-prod/foo-1.0.0
-to user's substrate
-```
-
-The `distributes` bond makes topos-prod visible within the oikos. Oikos membership makes it sync to the member's substrate. Same mechanism as phaseis, theoria, or any other content.
+- Federation is no longer described as a parallel model separate from recovery/backup.
+- Version vectors are no longer treated as sufficient alone; hash checkpoints are normative.
+- Federation docs no longer imply a distinct ontology when existing primitives are sufficient.
 
 ---
 
-## Integration with Ergon
+## Non-Goals of This Rewrite
 
-Work coordination uses the same mechanism:
-
-```
-oikos/project contains ergon/task-123
-
-Alice creates task in oikos/project
-    │
-    ▼
-oikos-scoped reconciliation delivers to Victor's substrate
-    │
-    ▼
-Victor sees task, can claim/execute
-```
-
-Continuous reconciliation means work appears immediately. No polling.
+- No code changes.
+- No genesis mutations.
+- No self-sync implementation details beyond architecture-level alignment.
 
 ---
 
-## Security Model
-
-| Concern | Mitigation |
-|---------|------------|
-| Unauthorized sync | Visibility determined by bond graph; no back doors |
-| Content tampering | Phoreta signature verification |
-| Replay attacks | Version vectors prevent re-application |
-| Substrate impersonation | Substrate ID tied to prosopon keypair |
-
----
-
-## Implementation Path
-
-### Phase 1: Ontology (kosmos) ✓
-1. Add `federates-with` desmos to politeia ✓
-2. Add `sync-cursor` eidos to politeia ✓
-3. Add `sync-conflict` eidos to politeia ✓
-4. Add reconciliation praxeis
-
-### Phase 2: Reconciler (chora)
-1. Implement substrate-reconciler in Rust ✓ (partial)
-2. Wire to entity change events
-3. Wire to aither channel events
-4. Implement phoreta send/receive via data-channel
-
-### Phase 3: Conflict UI (thyra)
-1. Surface sync-conflicts in UI
-2. Resolution interface (local/remote/merge)
-3. Reconciliation status indicator
-
-### Phase 4: Self-Reconciliation
-1. Test same-prosopon across devices
-2. Use hypostasis export/import for initial sync
-3. Continuous sync via reconciler
-
-### Phase 5: Oikos-Scoped Reconciliation
-1. Test oikos-to-oikos across prosopa
-2. Invitation flow establishes federation
-3. Topos distribution via commons oikoi
-
----
-
-## Open Questions
-
-1. **Initial sync**: Full dump or negotiated delta?
-2. **Large entity graphs**: How to handle entities with many bonds?
-3. **Offline/reconnect**: How long to buffer changes?
-4. **Bandwidth**: Compression? Binary protocol?
-5. **Substrate identity**: How does substrate ID relate to device vs app instance?
-
----
-
-*Reconciliation is the mechanism by which one kosmos stays coherent across its actualizations.*
-*Federation is what we call it when the scope extends beyond self.*
-
-*Drafted 2026-01-29, revised 2026-01-29*
+*Traces to: `docs/explanation/externalization.md`, `genesis/KOSMOGONIA.md:285-343`, `genesis/politeia/eide/politeia.yaml:174-285`, `genesis/politeia/praxeis/politeia.yaml:2372-2416`, `crates/kosmos/src/phoreta.rs:468-700`, `crates/kosmos/src/graph.rs:153-212`.*
