@@ -1,19 +1,32 @@
 # Kosmos
 
-*κόσμος — the world as ordered whole.*
+*The world as ordered whole.*
 
 ---
 
 ## What This Is
 
-This repository IS the kosmos — the ontological foundation that defines what can exist, how things relate, and what operations are possible.
+Kosmos is the ontological foundation for sovereign dwelling — a system where each person owns their understanding of reality and shares it with those they choose.
 
-**Kosmos is the world. Chora makes it breathe.**
+This repository contains the **genesis layer**: pure YAML and Markdown definitions that describe what can exist, how things relate, and what operations are possible. These definitions bootstrap into a living runtime via the Thyra application, available as pre-built binaries in [Releases](https://github.com/Liminal-Commons/kosmos/releases).
 
-- **Kosmos** = pure ontology (YAML + Markdown)
-- **Chora** = implementation (Rust + TypeScript)
+There is no central authority, no algorithmic intermediation, no rent extracted from your attention or relationships. Each kosmos is sovereign. Each prosopon owns their own keys. Federation is peer-to-peer.
 
-The world is described here. The implementation lives in [chora](https://github.com/liminalcommons/chora).
+---
+
+## Getting Started
+
+### Download Thyra
+
+Pre-built binaries are available on the [Releases](https://github.com/Liminal-Commons/kosmos/releases) page for macOS, Linux, and Windows.
+
+### From Source
+
+If you want to modify the genesis definitions and see them come alive:
+
+1. Clone this repository
+2. Author or modify YAML definitions in `genesis/`
+3. Bootstrap via Thyra to see changes take effect
 
 ---
 
@@ -23,165 +36,106 @@ The world is described here. The implementation lives in [chora](https://github.
 
 | Document | Purpose |
 |----------|---------|
-| [KOSMOGONIA.md](KOSMOGONIA.md) | The constitutional root — how the kosmos comes to be |
-| [CLAUDE.md](CLAUDE.md) | Instructions for dwelling — how to inhabit this world |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | Technical implementation patterns |
-| [COMPOSITION-GUIDE.md](COMPOSITION-GUIDE.md) | How to compose artifacts |
-| [CREATIVE-JOURNEY-PATTERN.md](CREATIVE-JOURNEY-PATTERN.md) | How psyche + soma + nous work together |
-| [ROADMAP.md](ROADMAP.md) | Development phases |
+| [KOSMOGONIA](genesis/KOSMOGONIA.md) | The constitutional root — how the kosmos comes to be |
+| [ROADMAP](genesis/ROADMAP.md) | Development phases |
 
-### `/genesis/`
+### Genesis Layer
 
 The seed content from which a kosmos bootstraps:
 
 ```
 genesis/
-├── arche/                 # The five archai (foundational types)
-│   ├── eidos.yaml         # Type definitions
-│   ├── desmos.yaml        # Bond definitions
-│   ├── stoicheion.yaml    # Element definitions
-│   ├── dynamis-interface.yaml
-│   └── functions.yaml
-│
-├── spora/                 # Bootstrap seed
-│   ├── spora.yaml         # Germination stages
-│   ├── definitions/       # Typos definitions
-│   ├── journeys/          # Learning paths and active journeys
-│   └── principles/        # Core values
-│
-├── klimax/                # Scale documentation
-│   ├── 1-kosmos/DESIGN.md
-│   ├── 2-physis/DESIGN.md
-│   ├── 3-polis/DESIGN.md
-│   ├── 4-oikos/DESIGN.md
-│   ├── 5-soma/DESIGN.md
-│   └── nous/DESIGN.md
-│
-└── [15 oikoi]/            # Domain packages
-    ├── manifest.yaml      # Identity, dependencies
-    ├── DESIGN.md          # How this oikos works
-    ├── eide/              # Type definitions
-    ├── desmoi/            # Bond types
-    └── praxeis/           # Operations
+├── KOSMOGONIA.md              # Constitutional root
+├── arche/                     # The grammar of being
+│   ├── eidos.yaml             # Entity types
+│   └── desmos.yaml            # Bond types
+├── stoicheia-portable/        # Step definitions (WASM-portable)
+├── spora/                     # Bootstrap seed
+├── klimax/                    # Scale documentation
+└── {topos}/                   # 21 capability domains
+    ├── manifest.yaml          # Identity, dependencies
+    ├── DESIGN.md              # Design rationale
+    ├── eide/                  # Entity type definitions
+    ├── desmoi/                # Bond definitions
+    ├── praxeis/               # Operations
+    ├── typos/                 # Composition molds
+    ├── reflexes/              # Reactive behaviors
+    └── render-specs/          # UI widget definitions
 ```
 
-### The 15 Oikoi
+### The Topoi
 
-| Oikos | Scale | What It Provides |
+| Topos | Scale | What It Provides |
 |-------|-------|------------------|
-| **nous** | cross-scale | Understanding operations, journeys, theoria |
+| **nous** | cross-scale | Understanding, journeys, theoria |
 | **demiurge** | cross-scale | Composition, artifact caching |
 | **manteia** | cross-scale | Governed inference |
 | **dokimasia** | cross-scale | Validation, testing |
 | **hypostasis** | cross-scale | Cryptographic identity, signing |
 | **dynamis** | infrastructure | Distribution, substrate bridging |
 | **aither** | infrastructure | Network transport, WebRTC |
-| **thyra** | infrastructure | Display, rendering, HUD |
+| **thyra** | infrastructure | Display, rendering, modes |
 | **soma** | embodiment | Channels, percepts, body-schema |
-| **psyche** | experience | Attention, intention, mood, thyra, prospect, kairos |
+| **psyche** | experience | Attention, intention, mood, prospect |
 | **oikos** | intimate | Sessions, conversations, notes |
-| **politeia** | governance | Circles, personas, attainments |
+| **politeia** | governance | Oikoi, prosopa, attainments |
 | **propylon** | entry | Invitations, verification |
-| **agora** | spatial | 2D territories, presence |
-| **stoicheia-portable** | vocabulary | WASM step definitions |
+| **credentials** | identity | Credential management |
+| **logos** | discourse | Phasis authoring and ownership |
+| **hodos** | navigation | Paths, waypoints |
+| **ekdosis** | publishing | Content publication |
+| **ergon** | coordination | Cross-oikos work |
+| **release** | lifecycle | Artifact lifecycle |
+| **my-nodes** | personal | Personal node views |
+| **chora-dev** | development | Development tooling |
 
 ---
 
-## The Numbers
+## Architecture
 
-| Metric | Count |
-|--------|-------|
-| Entities at bootstrap | ~754 |
-| Bonds | ~1098 |
-| Praxeis | ~239 |
-| Oikoi | 15 |
-| Eide | ~58 |
-| Desmoi | ~105 |
-
-All of this is pure YAML + Markdown.
-
----
-
-## How Chora Uses Kosmos
-
-Chora depends on kosmos for its ontological foundation:
+Kosmos follows a strict separation between ontology and implementation:
 
 ```
-kosmos/genesis/  →  bootstrap  →  kosmos.db  →  runtime
-     │
-     └── Embedded at build time or symlinked for development
+kosmos (this repo)          thyra (application)
+─────────────────           ───────────────────
+YAML definitions    →       bootstrap    →    runtime graph
+entity types                interpreter       MCP projection
+bond definitions            praxis engine     UI rendering
+step sequences              composition       federation
 ```
 
-The implementation in chora reads these definitions and:
-1. Parses YAML into entity structures
-2. Validates against schema constraints
-3. Creates the runtime graph of entities and bonds
-4. Exposes operations via MCP and UI
+The genesis definitions are the source of truth. The application reads them, validates against schema constraints, creates a runtime graph of entities and bonds, and exposes operations via MCP and the Thyra UI.
+
+### The Five Archai
+
+Five foundational forms define what can exist:
+
+| Arche | What It Defines |
+|-------|-----------------|
+| **Eidos** | Entity types — what things ARE |
+| **Typos** | Molds — HOW things are made |
+| **Desmos** | Bond types — how things RELATE |
+| **Stoicheion** | Step types — what things DO |
+| **Dynamis** | Power — substrate capabilities |
+
+### Full-Circle Verification
+
+The kosmos can emit itself, re-bootstrap from emission, and emit again with identical output. `emit → bootstrap → emit` = same BLAKE3 hash. This proves the system is self-consistent and deterministic.
 
 ---
 
 ## Contributing
 
-### Ontology Changes (Here)
-
-Make changes here for:
-- New eidos definitions
-- New desmos (bond type) definitions
-- New praxis definitions
-- Design documents
-- Constitutional updates
-
-### Implementation Changes (Chora)
-
-Make changes in [chora](https://github.com/liminalcommons/chora) for:
-- Interpreter fixes
-- UI components
-- MCP projection
-- Build system
+See [CONTRIBUTING.md](CONTRIBUTING.md) for how to contribute ontology definitions — new topoi, eide, desmoi, praxeis, and design documents.
 
 ---
 
-## Verification
+## License
 
-The full-circle test ensures kosmos is self-consistent:
+AGPL-3.0-or-later. See [LICENSE](LICENSE).
 
-```
-kosmos/genesis/  →  emit  →  dist/genesis/
-                              │
-                              ▼
-                    bootstrap  →  kosmos.db
-                              │
-                              ▼
-                         emit  →  dist/genesis/
-                              │
-                              ▼
-                    BLAKE3 hash identical? ✓
-```
-
-This proves:
-1. Kosmos is self-consistent
-2. Emission is deterministic
-3. No hidden state in implementation
-
----
-
-## Legacy Content
-
-The `/phoreta/`, `/oikoi/` (old structure), `/theoria/`, `/docs/`, and `/releases/` directories contain content from when this repo was conceived as a publication target. They are preserved for reference but the canonical source is now `/genesis/`.
-
----
-
-## The Vision
-
-Separation of world from implementation enables:
-
-1. **Independent evolution** — ontology changes don't require Rust rebuilds
-2. **Multiple implementations** — other languages could interpret kosmos
-3. **Clear contribution paths** — designers work in kosmos, engineers in chora
-4. **Documentation-first** — the world is described before implemented
-5. **Portable oikoi** — domain packages can be shared independently
+The commons stays common.
 
 ---
 
 *χώρα receives. κόσμος is received.*
-*Traces to: phasis/genesis-root*

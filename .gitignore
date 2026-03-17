@@ -4,10 +4,19 @@
 
 # Editor/OS artifacts
 .mcp.json
-*.DS_Store
+.DS_Store
 *~
 *.swp
 
 # Environment
 .env
 .env.local
+
+# Internal archives
+archive/
+
+# Federation exports (contain local paths)
+phoreta/
+
+# Build artifacts
+releases/
