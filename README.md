@@ -36,7 +36,9 @@ If you want to modify the genesis definitions and see them come alive:
 
 | Document | Purpose |
 |----------|---------|
-| [KOSMOGONIA](genesis/KOSMOGONIA.md) | The constitutional root — how the kosmos comes to be |
+| [SOUL](genesis/SOUL.md) | Kosmos metaphysics — the metaphysical ground |
+| [KOSMOGONIA](genesis/KOSMOGONIA.md) | The constitutional root — ontology derived from SOUL |
+| [THE-DWELLING](genesis/THE-DWELLING.md) | Phenomenological companion — the lived texture of dwelling |
 | [ROADMAP](genesis/ROADMAP.md) | Development phases |
 
 ### Genesis Layer

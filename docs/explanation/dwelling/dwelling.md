@@ -86,9 +86,9 @@ prosopon → parousia → oikos → topos → kairos
 
 But this is not a pipeline. All five are present simultaneously in every operation:
 
-- When you crystallize a theoria, you are: a prosopon (who signs it), embodied as parousia (through channels), dwelling in an oikos (where it accumulates), operating in nous topos (the capability domain of understanding), at a kairos moment (when insight ripened).
+- When a theoria is crystallized: a prosopon (who signs it), embodied as parousia (through channels), dwelling in an oikos (where it accumulates), operating in nous topos (the capability domain of understanding), at a kairos moment (when insight ripened).
 
-- When you compose an entity, you are: authenticated (prosopon), connected (soma), in social context (oikos), using demiurge capability (topos), at the moment composition is possible (kairos).
+- When an entity is composed: authenticated (prosopon), connected (soma), in social context (oikos), using demiurge capability (topos), at the moment composition is possible (kairos).
 
 ---
 

@@ -2,6 +2,16 @@
 
 οἶκος (oîkos) — the household, the dwelling, the intimate place
 
+## The Three Faces
+
+The oikos has three faces — three dimensions of what it means to dwell:
+
+**Threshold** — what you see when you arrive. The entryway. Navigation between oikoi, the active-oikos indicator, the sense of "where am I?"
+
+**Hearth** — intimate activity inside. Sessions, conversations, notes, insights. The journal of dwelling. Where presence becomes memory and memory becomes understanding.
+
+**Foundation** — structure, membership, governance. Who is here? What can they do? How is this oikos configured? (Served by politeia praxeis; oikos provides the intimate complement.)
+
 ## Ontological Purpose
 
 Oikos addresses **the gap between presence and memory** — the distance between being in a moment and having that moment become part of understanding.
@@ -18,7 +28,7 @@ With oikos:
 - **Notes**: Attention markers link to context
 - **Insights**: Understanding surfaces before crystallizing as theoria
 
-The household is where you dwell. Oikos makes dwelling traceable.
+The household is where prosopa dwell. Oikos makes dwelling traceable.
 
 ## Oikos Context
 
@@ -129,18 +139,9 @@ Emerging understanding — not yet theoria, but surfaced from notes.
 - Change: Confidence may update
 - Depart: Crystallizes into theoria via crystallize-insight
 
-## Topos Package Eide (Also Defined Here)
-
-The following eide are defined in oikos but manipulated by demiurge praxeis:
-
-- **topos-manifest** — Topos package declaration (requires/provides)
-- **topos-dev** — Development topos package (mutable, may have generation specs)
-- **topos-prod** — Production topos package (frozen, signed)
-- **publish-attestation** — Publication audit trail
-
-These serve the topos ecosystem but are not managed by oikos praxeis.
-
 ## Bonds (Desmoi)
+
+Oikos defines 4 intimate desmoi. Additional bonds used by oikos praxeis (`surfaces`, `crystallizes`, `exists-in`) are canonical in arche.
 
 ### within
 
@@ -177,24 +178,6 @@ Note is about an entity.
 - **To:** any
 - **Cardinality:** many-to-one
 - **Traversal:** Find notes about something
-
-### crystallizes
-
-Insight crystallizes into theoria.
-
-- **From:** insight
-- **To:** theoria
-- **Cardinality:** one-to-one
-- **Traversal:** Link from insight to crystallized theoria
-
-### surfaces
-
-Note surfaces into insight.
-
-- **From:** note
-- **To:** insight
-- **Cardinality:** many-to-one
-- **Traversal:** Track which notes contributed to an insight
 
 ## Operations (Praxeis)
 
@@ -286,12 +269,12 @@ Reflection capability — notes and insight surfacing.
 
 | Level | Status |
 |-------|--------|
-| Defined | ✅ 5 intimate eide, 4 package eide, 12 desmoi, 9 praxeis |
-| Loaded | ✅ Bootstrap loads all definitions |
-| Projected | ✅ 9 praxeis visible as MCP tools |
-| Embodied | ⏳ Body-schema contribution pending |
-| Surfaced | ⏳ Reconciler not yet implemented |
-| Afforded | ⏳ Thyra dwelling affordances pending |
+| Defined | 5 intimate eide, 4 desmoi, 8 praxeis, 2 attainments |
+| Loaded | Bootstrap loads all definitions |
+| Projected | 8 praxeis visible as MCP tools |
+| Embodied | Body-schema contribution pending |
+| Surfaced | Reconciler not yet implemented |
+| Afforded | Threshold wired (oikos-card → switch-oikos); Hearth modes pending |
 
 ### Body-Schema Contribution
 
@@ -353,7 +336,19 @@ Notes are neither raw data nor finished understanding. They mark attention — "
 
 Insights aren't conclusions — they're understanding on the way to becoming theoria. The surface-then-crystallize flow honors the provisional nature of emerging knowledge.
 
+### T44: The oikos has three faces
+
+Threshold (entry), Hearth (activity), Foundation (structure). A complete oikos addresses all three. The intimate eide (session, conversation, note, insight) are the Hearth. Navigation and switching are the Threshold. Membership and governance (served by politeia) are the Foundation.
+
 ## Future Extensions
+
+### Hearth Modes (Phase 2)
+
+Surface intimate eide through thyra modes: session-history, conversation-view, note-browser, insight-browser. Spatial decisions pending (tab-based center? context-dependent mode switching?).
+
+### Foundation UI (Phase 3)
+
+Governance UI: member list, invitation flow, attainment management. Render-specs and modes for politeia entities scoped to oikos context.
 
 ### Conversation Templates
 

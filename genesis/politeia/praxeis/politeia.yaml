@@ -2685,3 +2685,111 @@ entities:
           conflicts: "$conflicts"
           count: "{{ $conflicts | length }}"
           status_filter: "$filter_status"
+
+# =============================================================================
+# CONSTITUTIONAL AMENDMENT (scaffolding pending)
+# =============================================================================
+#
+# This praxis declares the mechanism for amending foundational documents
+# (SOUL.md, KOSMOGONIA.md, THE-DWELLING.md). It is committed as intent;
+# full operation requires scaffolding not yet in place:
+#
+#   - typos/amended-document — composition mold for amended-document entities
+#   - attainment/constitutional-amendment — new attainment, initially granted
+#     to the genesis prosopon
+#   - document/SOUL, document/KOSMOGONIA, document/THE-DWELLING — foundational
+#     document entities in the graph, likely composed during bootstrap
+#   - eidos/document — if a document eidos doesn't already exist
+#   - desmos/succeeds — if not already defined
+#
+# Until scaffolding is in place, this praxis stands as the authoritative
+# statement of how amendment works. KOSMOGONIA § The Amendment references it.
+
+- eidos: praxis
+  id: praxis/politeia/amend-constitution
+  data:
+    topos: politeia
+    name: amend-constitution
+    visible: true
+    tier: 3
+    description: |
+      Amend one of the foundational documents: SOUL.md, KOSMOGONIA.md, or THE-DWELLING.md.
+
+      Creates a new document entity with `succeeds` bond to the prior version, emits
+      the new content to the filesystem, and marks the prior version as superseded.
+
+      The non-contradiction constraint (KOSMOGONIA must not contradict SOUL) is
+      enforced at review, not mechanically — reviewers must attest consistency
+      before signing.
+    params:
+      - name: target
+        type: string
+        required: true
+        description: "Which document: soul | kosmogonia | the-dwelling"
+      - name: new_content
+        type: string
+        required: true
+        description: The full content of the amended document
+      - name: rationale
+        type: string
+        required: true
+        description: Why this amendment is being made
+    steps:
+      - step: assert
+        condition: "$_parousia"
+        message: "No dwelling context — cannot amend constitution without parousia"
+
+      - step: switch
+        cases:
+          - when: "$target == 'soul'"
+            then:
+              - step: set
+                bindings:
+                  target_path: "genesis/SOUL.md"
+                  prior_entity_id: "document/SOUL"
+          - when: "$target == 'kosmogonia'"
+            then:
+              - step: set
+                bindings:
+                  target_path: "genesis/KOSMOGONIA.md"
+                  prior_entity_id: "document/KOSMOGONIA"
+          - when: "$target == 'the-dwelling'"
+            then:
+              - step: set
+                bindings:
+                  target_path: "genesis/THE-DWELLING.md"
+                  prior_entity_id: "document/THE-DWELLING"
+        default:
+          - step: assert
+            condition: false
+            message: "Invalid target — must be: soul, kosmogonia, or the-dwelling"
+
+      - step: compose
+        typos_id: "typos/amended-document"
+        inputs:
+          target: "$target"
+          content: "$new_content"
+          rationale: "$rationale"
+          prior_entity_id: "$prior_entity_id"
+        bind_to: new_entity
+
+      - step: bind
+        from_id: "$new_entity.id"
+        to_id: "$prior_entity_id"
+        desmos: "succeeds"
+
+      - step: call
+        praxis: thyra/emit
+        params:
+          path: "$target_path"
+          content: "$new_content"
+        bind_to: emit_result
+
+      - step: return
+        value:
+          amended: "$target"
+          new_entity: "$new_entity"
+          succeeds: "$prior_entity_id"
+          emitted_to: "$target_path"
+  bonds:
+    - { desmos: requires-attainment, to: attainment/constitutional-amendment }

@@ -226,7 +226,7 @@ When a parousia arises and dwells:
 3. **Position** grants visibility (reachable entities)
 4. **Visibility** is authentic (all reached entities have provenance)
 
-The dwelling context is not passed as parameters. It IS the topological position. The interpreter knows where you dwell because dwelling IS bonding.
+The dwelling context is not passed as parameters. It IS the topological position. The interpreter knows where a prosopon dwells because dwelling IS bonding.
 
 ### Ambient Context from Dwelling
 

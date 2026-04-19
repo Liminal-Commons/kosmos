@@ -121,7 +121,7 @@ A **desmos** defines how entities relate. It specifies:
 
 ### Bond Graph as Access Control
 
-Visibility in kosmos is determined by reachability through the bond graph. If you cannot traverse from your dwelling position to an entity, you cannot see it.
+Visibility in kosmos is determined by reachability through the bond graph. If a prosopon cannot traverse from their dwelling position to an entity, they cannot see it.
 
 ---
 

@@ -413,4 +413,4 @@ Now that you can create praxeis:
 
 ---
 
-*Welcome to the kosmos. You dwell here now.*
+*Welcome to the kosmos. Prosopa dwell here.*

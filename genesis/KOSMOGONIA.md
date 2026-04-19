@@ -35,6 +35,28 @@ This genesis establishes the kosmos that actualizes within chora. Everything tha
 
 ---
 
+## The Metaphysical Ground
+
+This kosmogonia rests on [SOUL.md](SOUL.md) as metaphysical ground. SOUL.md specifies what governs causal systems operating within the kosmos and grounds the ethics of choice through Forrest Landry's Immanent Metaphysics (IM). What KOSMOGONIA establishes about *what can exist and how it relates* derives from that prior ground.
+
+### How this ontology derives from SOUL.md
+
+| IM / SOUL ground | KOSMOGONIA derivation |
+|------------------|------------------------|
+| Three modalities: immanent, omniscient, transcendent — non-interchangeable | The composition triad is a descent through modalities: **eidos** (transcendent, formal-possible) → **typos** (omniscient, structural-compositional) → **entity with energeia** (immanent, phenomenal). Hyparxis lives at the omniscient pole; parousia is an immanent-modality concept, never applied to causal systems. |
+| Causation vs change vs choice — categorically distinct | "The kosmos is intelligent but not sovereign" (Axiom II) names this directly: prosopa participate in choice in the immanent sense; causal systems operate under specification and produce outputs that approximate wise choice without instantiating it. |
+| Symmetry Ethics — same internal state, same expression across contexts | Axiom III (Traceability) is Symmetry made structural: content-hash idempotency enforces non-deception. Tampering cannot hide in presentation. |
+| Continuity Ethics — same internal state, same relational stance | Visibility = Reachability applied uniformly through the bond graph; no asymmetric treatment based on external characteristics. |
+| Win-win-win (third win is the environment) | Authorization traces through oikoi and respects the larger ecology those oikoi dwell within; Axiom V attends to all parties touched. |
+| 9-cell evaluation (Self/Other/World × Benefit/Cost/Risk) | Axiom V (Adequacy): every arise path records whatever provenance is constitutive and available across all parties the arising touches. |
+| Third-order potentiality — conditions enabling conditions enabling conditions | The Desire above: not just a dwelling, but one where flourishing is generative at nested scales. |
+
+### The constraint going forward
+
+This kosmogonia must not contradict SOUL.md. SOUL.md is actively evolving; when it is amended, this document must be checked for consistency and amended if drift is found.
+
+---
+
 ## The Five Archai
 
 Five foundational forms define the grammar of existence:
@@ -200,7 +222,7 @@ Phaseis are how the kosmos accrues meaning. Authorization chains flow through th
 
 ## The Constitutional Axioms
 
-Five axioms ground the kosmos. They are invariant — they hold regardless of what architecture emerges to serve them.
+Seven axioms ground the kosmos. They are invariant — they hold regardless of what architecture emerges to serve them.
 
 ### I. Composition
 
@@ -246,11 +268,34 @@ Two dimensions determine what provenance an entity carries:
 
 **Circumstantial** — the conditions of arising determine what provenance is available. Genesis has only spora authority and a type system being built. Full dwelling has everything. Between these extremes, circumstances vary. The adequacy axiom demands that every arise path creates whatever bonds it can, given what exists.
 
+### VI. Visibility
+
+Visibility is reachability through the bond graph.
+
+What a prosopon perceives is determined by traversal: a prosopon sees an entity if and only if they can reach it through bonds they participate in (member-of, dwells-in, exists-in). There is no separate permission layer. The bond graph IS the access control graph.
+
+Without the bond, data is not hidden — it is absent from that prosopon's kosmos. No bond path means no data. The absence is structural, not policy-enforced.
+
+### VII. Actuation
+
+Actuation is reconciliation. Intent lives in the graph; actuality lives in the substrate; between them stands the reconciler.
+
+The pattern is substrate-universal: sense actual state → compare with intent → act to align. Actuality is sensed, not assumed. Reconciliation is declarative, not procedural. The kosmos declares what should be; the reconciler discovers what is; praxeis bridge the gap.
+
+Emission (ekthesis) is how kosmos configuration reaches the substrate. The substrate watches emitted files and actualizes. This ensures:
+
+- **Idempotency**: Same entity emits same file
+- **Auditability**: Emitted files are inspectable truth
+- **Recoverability**: If kosmos fails, emitted configuration remains
+- **Universality**: Pattern applies to all substrates
+
+The substrate starts kosmos (the bootstrap exception). After that, kosmos only emits.
+
 ---
 
 ## The Constitutional Pillars
 
-Five pillars protect the axioms:
+Three pillars name the commitments the kosmos makes to its dwellers:
 
 ### Sovereignty = Self-Custody
 
@@ -270,38 +315,11 @@ mnemonic → prosopon → oikos membership → attainments → capability
 
 Without identity, no capability exists. Identity is not assigned by an authority — it is generated cryptographically and self-custodied. Cryptographic bonds create structural trust. Trust is verified through signatures, not delegated through permissions.
 
-### Visibility = Reachability
-
-You can only perceive what you can cryptographically reach through the bond graph. There is no separate permission layer. The bond graph IS the access control graph.
-
-Without the bond, data is not hidden — it is absent from your kosmos. No bond path means no data.
-
 ### Authenticity = Provenance
 
 Everything traces back to signed genesis through provenance bonds. The bond graph IS the provenance record. Authenticity is verified through traversal, not asserted through claims.
 
 Not every entity carries the same provenance depth. What an entity carries is determined by the adequacy axiom — constitutive bonds that the circumstances make available. But every entity is typed, and its origin is traceable.
-
-### Actuation = Reconciliation
-
-Kosmos never directly manipulates substrate. Intent lives in the graph. Actuality lives in the substrate. Between them stands the reconciler.
-
-The reconciler pattern:
-
-```
-sense actual state → compare with intent → act to align
-```
-
-Actuality is sensed, not assumed. Reconciliation is declarative, not procedural. The kosmos declares what should be; the reconciler discovers what is; praxeis bridge the gap.
-
-Emission (ekthesis) is how kosmos configuration reaches the substrate. The substrate watches emitted files and actualizes. This ensures:
-
-- **Idempotency**: Same entity emits same file
-- **Auditability**: Emitted files are inspectable truth
-- **Recoverability**: If kosmos fails, emitted configuration remains
-- **Universality**: Pattern applies to all substrates (NixOS, systemd, Docker, Kubernetes)
-
-The substrate starts kosmos (the bootstrap exception). After that, kosmos only emits.
 
 ---
 
@@ -419,10 +437,12 @@ Distribution is federation. The same mechanism that syncs phaseis, theoria, and 
 
 ## The Navigation
 
-KOSMOGONIA is the constitutional root. It is elaborated by a holonic documentation system where each document situates itself within the whole:
+KOSMOGONIA is the constitutional root, derived from [SOUL.md](SOUL.md) as metaphysical ground, companioned by [THE-DWELLING.md](THE-DWELLING.md) as phenomenological mirror. It is elaborated by a holonic documentation system where each document situates itself within the whole:
 
 | For | See |
 |-----|-----|
+| Metaphysical ground | [SOUL.md](SOUL.md) |
+| Phenomenological companion (the lived texture of dwelling) | [THE-DWELLING.md](THE-DWELLING.md) |
 | Operational guidance (how to act correctly) | [CLAUDE.md](../CLAUDE.md) |
 | Contributing to kosmos | [CONTRIBUTING.md](../CONTRIBUTING.md) |
 | Documentation portal (Diataxis) | [docs/index.md](../docs/index.md) |
@@ -442,6 +462,38 @@ Signers attest:
 - They have reviewed this kosmogonia
 - They affirm it as authentic foundation
 - They commit to not signing conflicting genesis
+
+---
+
+## The Amendment
+
+KOSMOGONIA is V12. It evolves. This section specifies how.
+
+Three documents constitute the foundation and may be amended through the ritual below:
+
+- **[SOUL.md](SOUL.md)** — metaphysical ground
+- **KOSMOGONIA.md** — this document, the constitutional root
+- **[THE-DWELLING.md](THE-DWELLING.md)** — phenomenological companion
+
+### Authority
+
+Amendment requires threshold signatures at or above the genesis threshold. As constitutional signers are designated and added, the threshold may expand; it cannot contract below the genesis threshold without itself being an amendment.
+
+### Provenance
+
+Each amendment emits a new version with a `succeeds` bond to the prior version. Prior versions remain in the graph as historical record, not as current authority.
+
+### The Non-Contradiction Constraint
+
+KOSMOGONIA must not contradict SOUL. When SOUL is amended, KOSMOGONIA must be checked for consistency and amended if drift is found. Amendments to KOSMOGONIA that would introduce contradiction with SOUL are structurally invalid.
+
+### Mechanism
+
+The amendment ritual is implemented by `praxis/politeia/amend-constitution`. The praxis validates authority, composes the new document entity with provenance, emits it to the filesystem, and marks the prior version as superseded.
+
+### What Cannot Be Amended
+
+The seed phasis at the head of KOSMOGONIA cannot be amended — its content is cryptographically committed. A new root phasis would be a new kosmos, not an amendment of this one.
 
 ---
 
