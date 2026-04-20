@@ -647,9 +647,6 @@ entities:
 
   - eidos: praxis
     id: praxis/chora-dev/sense-build-states
-    bonds:
-      - desmos: requires-attainment
-        to: attainment/substrate-develop
     data:
       topos: chora-dev
       name: sense-build-states

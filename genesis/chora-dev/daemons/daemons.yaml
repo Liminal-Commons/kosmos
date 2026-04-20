@@ -20,5 +20,5 @@ entities:
       praxis: chora-dev/sense-build-states
       interval: 60
       enabled: true
-      scope: dwelling
+      scope: global
       backoff_max: 300
